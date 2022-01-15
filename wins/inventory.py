@@ -58,7 +58,6 @@ class Inventory:
             return
         # PAGE 0
 
-
         self.inventory_ui.interaction_callback(element, mb_event, m_bttn)
         # return True if interaction was made to prevent other windows from responding to this event
         return True
