@@ -494,7 +494,7 @@ def doors_set(maze, tile_set, db):
                 dr.shut = False
             locked_room.rating += 10
         if random.randrange(1, 101) <= progression.scale_to_lvl(maze.trap_rate, maze.lvl) and locked_room.doors:
-            trap_params_list = dbrequests.trap_params_get(db.cursor, 'attacks_mon', maze.lvl)
+            trap_params_list = dbrequests.trap_params_get(db.cursor, 'monster_attacks', maze.lvl)
             if not trap_params_list:
                 continue
             label, rang, dam_type, dam_val_base, dam_val_spread, lvl = random.choice(trap_params_list)

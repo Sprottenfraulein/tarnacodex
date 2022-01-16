@@ -1,5 +1,6 @@
 import pygame
 from library import calc2darray, maths
+from objects import dbrequests
 import math
 
 
@@ -79,6 +80,9 @@ class Realm:
                     self.view_maze_h_div = 1.5
                 self.view_maze_update(self.pc.x_sq, self.pc.y_sq)
                 self.render_update()
+            if event.key == pygame.K_p:
+                self.pc.char_sheet.inventory.append(dbrequests.treasure_get_by_id(self.db.cursor, 'treasure', 3))
+                print(*self.pc.char_sheet.inventory)
 
         if event.type == pygame.KEYUP:
             if event.key in (pygame.K_LEFT, pygame.K_RIGHT):

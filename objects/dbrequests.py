@@ -23,3 +23,13 @@ def char_params_get(cursor, table_name, key_chartype):
     for i in range(0, len(column_names)):
         param_dict[column_names[i]] = rows[0][i]
     return param_dict
+
+def treasure_get_by_id(cursor, table_name, key_id):
+    ex_str = "SELECT * FROM %s WHERE treasure_id=?" % (table_name,)
+    cursor.execute(ex_str, (key_id,))
+    rows = cursor.fetchall()
+    column_names = [column[0] for column in cursor.description]
+    param_dict = {}
+    for i in range(0, len(column_names)):
+        param_dict[column_names[i]] = rows[0][i]
+    return param_dict
