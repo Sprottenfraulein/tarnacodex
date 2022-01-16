@@ -49,7 +49,7 @@ class Maze:
         self.flag_array = flags_create(self, self.array)
         exits_set(self, self.exits_list)
         doors_set(self, self.tile_set, self.db)
-        traps_set(self, 'attacks_mon', self.db)
+        traps_set(self, 'monster_attacks', self.db)
         self.decor_array = decor_maze(self.array, self.tile_set, self.flag_array)
         flags_update(self, self.flag_array)
 

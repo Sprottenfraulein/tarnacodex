@@ -6,6 +6,7 @@ class PC:
         self.dest_y_sq = self.prev_y_sq = self.y_sq
         self.off_x = self.off_y = 0
         self.speed = speed
+        self.attack_timer = 0
         self.anim_set = anim_set
         self.anim_frame = 0
         self.anim_timer = 0

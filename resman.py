@@ -25,6 +25,7 @@ class ResMan:
             'gray_light': (200, 200, 200),
             'gray_mid': (130, 130, 130),
             'gray_dark': (50, 50, 50),
+            'gray_darker': (20, 20, 25),
             'black': (0, 0, 0)
         }
 

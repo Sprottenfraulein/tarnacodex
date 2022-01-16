@@ -1,5 +1,5 @@
 def trap_params_get(cursor, table_name, key_level):
-    ex_str = "SELECT label, range, dam_typ, dam_val_base, dam_val_spread, lvl FROM %s WHERE mon_type='mt_trap' AND lvl<=?" % (table_name,)
+    ex_str = "SELECT label, range, attack_type, attack_val_base, attack_val_spread, lvl FROM %s WHERE monster_type='mt_trap' AND lvl<=?" % (table_name,)
     cursor.execute(ex_str, (key_level,))
     rows = cursor.fetchall()
 

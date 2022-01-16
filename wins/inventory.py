@@ -90,38 +90,45 @@ class Inventory:
                                   sq_image=inv_image, same_surface=True)
         inv_panel = self.inventory_ui.panel_add('inv_panel', (0, 0), (self.inv_w, self.inv_h), images=(inv_image,), page=None)
         # INVENTORY SOCKETS
-        socket_image = pydraw.square((0, 0), (inv_sckt_size, inv_sckt_size),
+        inv_sckt_img = pydraw.square((0, 0), (inv_sckt_size, inv_sckt_size),
                                      (self.inventory_ui.resources.colors['gray_light'],
                                       self.inventory_ui.resources.colors['gray_dark'],
                                       self.inventory_ui.resources.colors['gray_mid'],
-                                      self.inventory_ui.resources.colors['black']),
-                                     sq_outsize=1, sq_bsize=1, sq_ldir=2, sq_fill=False,
+                                      self.inventory_ui.resources.colors['gray_darker']),
+                                     sq_outsize=1, sq_bsize=0, sq_ldir=2, sq_fill=False,
                                      sq_image=None)
         for i in range(0, 24):
             s_x = inv_sckt_left + inv_sckt_size * (i % inv_sckt_per_row)
             s_y = inv_sckt_top + inv_sckt_size * (i // inv_sckt_per_row)
             inv_socket = self.inventory_ui.panel_add('inv_sckt_%s' % i, (s_x, s_y), (inv_sckt_size, inv_sckt_size),
-                                                     images=(socket_image,), page=None)
+                                                     images=(inv_sckt_img,), page=None)
             self.inventory_ui.interactives.append(inv_socket)
 
+        eq_sckt_img = pydraw.square((0, 0), (inv_sckt_size, inv_sckt_size),
+                                     (self.inventory_ui.resources.colors['gray_light'],
+                                      self.inventory_ui.resources.colors['gray_dark'],
+                                      self.inventory_ui.resources.colors['gray_mid'],
+                                      self.inventory_ui.resources.colors['gray_darker']),
+                                     sq_outsize=1, sq_bsize=2, sq_ldir=2, sq_fill=False,
+                                     sq_image=None)
         # EQUIPPED ITEMS
         eqs_list = (
             self.inventory_ui.panel_add('inv_eq_head', (self.inv_w // 2 - inv_sckt_size // 2, 24),
-                                        (inv_sckt_size, inv_sckt_size), images=(socket_image,), page=None),
+                                        (inv_sckt_size, inv_sckt_size), images=(eq_sckt_img,), page=None),
             self.inventory_ui.panel_add('inv_eq_chest', (self.inv_w // 2 - inv_sckt_size // 2, 84),
-                                        (inv_sckt_size, inv_sckt_size), images=(socket_image,), page=None),
+                                        (inv_sckt_size, inv_sckt_size), images=(eq_sckt_img,), page=None),
             self.inventory_ui.panel_add('inv_eq_mainhand', (self.inv_w // 2 - inv_sckt_size // 2 - 60, 84),
-                                        (inv_sckt_size, inv_sckt_size), images=(socket_image,), page=None),
+                                        (inv_sckt_size, inv_sckt_size), images=(eq_sckt_img,), page=None),
             self.inventory_ui.panel_add('inv_eq_offhand', (self.inv_w // 2 - inv_sckt_size // 2 + 60, 84),
-                                        (inv_sckt_size, inv_sckt_size), images=(socket_image,), page=None),
+                                        (inv_sckt_size, inv_sckt_size), images=(eq_sckt_img,), page=None),
             self.inventory_ui.panel_add('inv_eq_ring1', (self.inv_w // 2 - inv_sckt_size // 2 - 60, 144),
-                                        (inv_sckt_size, inv_sckt_size), images=(socket_image,), page=None),
+                                        (inv_sckt_size, inv_sckt_size), images=(eq_sckt_img,), page=None),
             self.inventory_ui.panel_add('inv_eq_ring1', (self.inv_w // 2 - inv_sckt_size // 2 + 60, 144),
-                                        (inv_sckt_size, inv_sckt_size), images=(socket_image,), page=None),
+                                        (inv_sckt_size, inv_sckt_size), images=(eq_sckt_img,), page=None),
             self.inventory_ui.panel_add('inv_eq_mainhand', (self.inv_w // 2 - inv_sckt_size // 2 - 60, 24),
-                                        (inv_sckt_size, inv_sckt_size), images=(socket_image,), page=None),
+                                        (inv_sckt_size, inv_sckt_size), images=(eq_sckt_img,), page=None),
             self.inventory_ui.panel_add('inv_eq_offhand', (self.inv_w // 2 - inv_sckt_size // 2 + 60, 24),
-                                        (inv_sckt_size, inv_sckt_size), images=(socket_image,), page=None)
+                                        (inv_sckt_size, inv_sckt_size), images=(eq_sckt_img,), page=None)
         )
         for eqs in eqs_list:
             self.inventory_ui.interactives.append(eqs)
