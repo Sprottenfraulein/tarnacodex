@@ -60,3 +60,10 @@ class ResMan:
                 'bttn_click_down',
             )
         }
+
+        self.sprites = {
+            'battleaxe_rare_floor': ('floor_items', (24, 24), (0,)),
+            'battleaxe_rare_inv': ('inv_items', (24, 24), (0,)),
+            'flail_rare_floor': ('floor_items', (24, 24), (1,)),
+            'flail_rare_inv': ('inv_items', (24, 24), (1,))
+        }

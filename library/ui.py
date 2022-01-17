@@ -10,6 +10,7 @@ class UI:
         self.tilesets = tilesets
         self.pygame_settings = pygame_settings
         self.interactives = []
+        self.decoratives = []
         self.key_focus = None
         self.page = 0
 
@@ -18,13 +19,12 @@ class UI:
         for preset_name, preset_pack in self.resources.sound_presets.items():
             self.snd_packs[preset_name] = [pygame_settings.audio.bank_sounds[snd_name] for snd_name in preset_pack]
 
-    def mouse_actions(self, event):
-        # checking mouse position
-        mouse_x, mouse_y = pygame.mouse.get_pos()
+    def mouse_actions(self, mouse_xy, event):
+        mouse_x, mouse_y = mouse_xy
         # mouse events checking
         if event.type == pygame.MOUSEBUTTONDOWN:
             for interact in self.interactives:
-                if interact.page is None or interact.page != self.page:
+                if interact.page is not None and interact.page != self.page:
                     continue
                 # if interactive element is disabled then pass
                 if interact.mode == -1:
@@ -38,7 +38,7 @@ class UI:
         elif event.type == pygame.MOUSEBUTTONUP:
             inter_click = None
             for interact in self.interactives:
-                if interact.page is None or interact.page != self.page:
+                if interact.page is not None and interact.page != self.page:
                     continue
                 try:
                     if interact.rendered_rect.collidepoint((mouse_x, mouse_y)):
@@ -187,7 +187,8 @@ class UI:
                                        pop_show=pop_show, pop_hide=pop_hide, pop_obj=pop_obj, page=page)
         return new_text
 
-    def panel_add(self, edit_id, xy=None, size=None, images=None, pop_show=30, pop_hide=1, pop_obj=None, page=None):
+    def panel_add(self, edit_id, xy=None, size=None, images=None,
+                  pop_show=30, pop_hide=1, pop_obj=None, page=None, img_stretch=False):
         # setting defaults if attributes not presented:
         if xy is None:
             xy = (0, 0)
@@ -195,7 +196,7 @@ class UI:
             size = (96, 48)
 
         new_panel = panel.Panel(edit_id, xy, size, pan_images=images, pop_show=pop_show, pop_hide=pop_hide,
-                                pop_obj=pop_obj, page=page)
+                                pop_obj=pop_obj, page=page, img_stretch=img_stretch)
         return new_panel
 
     def element_align(self, element, origin_xy, view_rect):
@@ -234,6 +235,10 @@ class UI:
                     element.popup_active = True
 
     def draw(self, surface):
+        for decorative in reversed(self.decoratives):
+            if decorative.page is not None and decorative.page != self.page:
+                continue
+            decorative.draw(surface)
         for interactive in reversed(self.interactives):
             if interactive.page is not None and interactive.page != self.page:
                 continue

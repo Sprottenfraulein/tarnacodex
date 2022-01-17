@@ -78,8 +78,8 @@ def cast_ray(flag_array, x1, y1, x2, y2, sightonly=False):
             if not flag_array[round(temp_y)][round(temp_x)].light:
                 hit = True
             # test ray calculation
-            temp_x += step_x
-            temp_y += step_y
+            temp_x += step_x / 2
+            temp_y += step_y / 2
         if hit:
             return False
         else:

@@ -4,7 +4,7 @@ import pygame
 
 class Panel:
     def __init__(self, pan_id, pan_xy, pan_size, pan_images=None,
-                 pop_show=60, pop_hide=30, pop_obj=None, page=None):
+                 pop_show=60, pop_hide=30, pop_obj=None, page=None, img_stretch=False):
         self.id = pan_id
         self.size = pan_size
         self.images = pan_images
@@ -16,6 +16,8 @@ class Panel:
         self.popup_time_hide = pop_hide
         self.popup_element = pop_obj
         self.popup_active = False
+
+        self.img_stretch = img_stretch
 
         self.rendered_panel = pygame.Surface(pan_size)
         self.rendered_rect = self.rendered_panel.get_rect()
@@ -42,4 +44,8 @@ class Panel:
 
     def draw(self, surface):
         # surface.blit(self.rendered_field, self.rendered_rect)
-        surface.blit(self.images[self.mode], self.rendered_rect)
+        if self.img_stretch:
+            str_img = pygame.transform.scale(self.images[self.mode], self.rendered_rect.size)
+            surface.blit(str_img, self.rendered_rect)
+        else:
+            surface.blit(self.images[self.mode], self.rendered_rect)

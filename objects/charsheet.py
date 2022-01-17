@@ -87,17 +87,28 @@ class CharSheet:
         self.modifiers = {}
         # Inventory list
         self.inventory = []
+        self.inv_max = 24
         # Equipment dictionary
-        self.equipped = {
-            'head': None,
-            'chest': None,
-            'mainhand': None,
-            'offhand': None,
-            'ring1': None,
-            'ring2': None,
-            'ammo': None,
-            'light': None
-        }
+        self.eq_ids = (
+            'head',
+            'chest',
+            'mainhand',
+            'offhand',
+            'ring1',
+            'ring2',
+            'ammo',
+            'light'
+        )
+        self.equipped = [
+            None, # 0 head
+            None, # 1 chest
+            None, # 2 mainhand
+            None, # 3 offhand
+            None, # 4 ring1
+            None, # 5 ring2
+            None, # 6 ammo
+            None, # 7 light
+        ]
 
     def calc_hp(self):
         con_mods = self.equipment_mod('CON') + self.buff_mod('CON')
@@ -131,8 +142,8 @@ class CharSheet:
 
     def calc_attack_base(self):
         try:
-            dmg_weapon_min, dmg_weapon_max = self.equipped['mainhand']['att_base']
-            weapon_type = self.equipped['mainhand']['item_type']
+            dmg_weapon_min, dmg_weapon_max = self.equipped[2]['att_base']
+            weapon_type = self.equipped[2]['item_type']
         except KeyError:
             dmg_weapon_min = dmg_weapon_max = 1
             weapon_type = 'melee'
@@ -242,9 +253,9 @@ class CharSheet:
 
     def equipment_mod(self, stat_name):
         mod = 0
-        for eq_item in self.equipped.values():
+        for eq_item in self.equipped:
             try:
-                mod += eq_item['mods'][stat_name]
+                mod += eq_item.props['mods'][stat_name]
             except KeyError:
                 pass
         return mod
@@ -330,21 +341,25 @@ class CharSheet:
         return food_mod
 
     # INVENTORY
-    def inventory_search(self, item_id):
+    def inventory_search(self, item_type):
         for itm in self.inventory:
-            if itm['id'] == item_id:
+            if itm is None:
+                continue
+            if itm.props['item_type'] == item_type:
                 return itm
-            elif 'container' in itm and itm['container']:
-                con_itm = self.inventory_search(item_id)
+            elif 'container' in itm.props and itm.props['container'] is not None:
+                con_itm = self.inventory_search(item_type)
                 if con_itm:
                     return con_itm
 
-    def inventory_remove(self, item_id):
+    def inventory_remove(self, item_type):
         for itm in self.inventory[:]:
-            if itm['id'] == item_id:
+            if itm is None:
+                continue
+            if itm.props['item_type'] == item_type:
                 self.inventory.remove(itm)
                 return itm
-            elif 'container' in itm and itm['container']:
-                con_itm = self.inventory_remove(item_id)
+            elif 'container' in itm.props and itm.props['container'] is not None:
+                con_itm = self.inventory_remove(item_type)
                 if con_itm:
                     return con_itm

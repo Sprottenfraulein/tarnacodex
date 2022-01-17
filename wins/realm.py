@@ -1,6 +1,6 @@
 import pygame
-from library import calc2darray, maths
-from objects import dbrequests
+from library import calc2darray, maths, logfun
+from objects import treasure, dbrequests
 import math
 
 
@@ -15,10 +15,12 @@ class Realm:
 
         self.doors_short = set()
         self.traps_short = set()
+        self.loot_short = set()
 
         self.draw_view_maze = False
         self.redraw_maze_decor = True
         self.redraw_maze_obj = True
+        self.redraw_maze_loot = True
         self.redraw_pc = True
         self.square_size = 24
         self.square_scale = 2
@@ -40,6 +42,8 @@ class Realm:
         self.pc = None
 
         self.view_maze_surface = None
+
+        self.dark_edges = self.tile_sets.get_image('dark_edges', (24, 24), (0,1,2,3))
 
     def launch(self, audio, settings):
         # game pack must include dungeon set, character
@@ -74,15 +78,22 @@ class Realm:
                 # wins_dict['inventory'].launch(pygame_settings.audio)
                 if wins_dict['inventory'] in active_wins:
                     active_wins.remove(wins_dict['inventory'])
+                    wins_dict['inventory'].clean_inv_all()
                     self.view_maze_h_div = 2
                 else:
+                    wins_dict['inventory'].pc = self.pc
+                    wins_dict['inventory'].render()
                     active_wins.insert(0, wins_dict['inventory'])
                     self.view_maze_h_div = 1.5
                 self.view_maze_update(self.pc.x_sq, self.pc.y_sq)
                 self.render_update()
             if event.key == pygame.K_p:
-                self.pc.char_sheet.inventory.append(dbrequests.treasure_get_by_id(self.db.cursor, 'treasure', 3))
-                print(*self.pc.char_sheet.inventory)
+                test_item = treasure.Treasure(self.tile_sets, resources, self.pygame_settings.audio,
+                                              dbrequests.treasure_get_by_id(self.db.cursor, 'treasure', 3), stashed=True)
+                self.pc.char_sheet.inventory.append(test_item)
+                test_item = treasure.Treasure(self.tile_sets, resources, self.pygame_settings.audio,
+                                              dbrequests.treasure_get_by_id(self.db.cursor, 'treasure', 5), stashed=True)
+                self.pc.char_sheet.inventory.append(test_item)
 
         if event.type == pygame.KEYUP:
             if event.key in (pygame.K_LEFT, pygame.K_RIGHT):
@@ -93,14 +104,19 @@ class Realm:
                 self.pc.move_instr_y = 0
 
         if event.type == pygame.MOUSEBUTTONDOWN:
-            mouse_x, mouse_y = pygame.mouse.get_pos()
-            if not self.square_check(mouse_x, mouse_y, event.button) and event.button == 1:
-                self.pc.move_instr_x, self.pc.move_instr_y = self.mouse_move(mouse_x, mouse_y)
+            if not self.square_check(self.xy_pixels_to_squares(self.mouse_pointer.xy),
+                                     event.button, wins_dict, active_wins) and event.button == 1:
+                self.pc.move_instr_x, self.pc.move_instr_y = self.mouse_move(self.mouse_pointer.xy)
         elif event.type == pygame.MOUSEBUTTONUP:
+            if event.button != 1:
+                return
             self.pc.move_instr_x = self.pc.move_instr_y = 0
+            if self.mouse_pointer.drag_loot is None:
+                return
+            self.loot_drop(self.mouse_pointer.xy, log)
+
         elif event.type == pygame.MOUSEMOTION and (self.pc.move_instr_y != 0 or self.pc.move_instr_x != 0):
-            mouse_x, mouse_y = pygame.mouse.get_pos()
-            self.pc.move_instr_x, self.pc.move_instr_y = self.mouse_move(mouse_x, mouse_y)
+            self.pc.move_instr_x, self.pc.move_instr_y = self.mouse_move(self.mouse_pointer.xy)
 
     def tick(self, pygame_settings, mouse_pointer):
         self.maze.tick()
@@ -161,8 +177,6 @@ class Realm:
 
         if self.redraw_maze_obj:
             for dr in self.doors_short:
-                if not self.maze.flag_array[dr.y_sq][dr.x_sq].vis:
-                    continue
                 try:
                     surface.blit(dr.image[self.maze.anim_frame],
                                  ((dr.x_sq - self.ren_x_sq) * self.square_size + dr.off_x,
@@ -171,6 +185,17 @@ class Realm:
                     surface.blit(dr.image[(self.maze.anim_frame + 1) % (len(dr.image))],
                                  ((dr.x_sq - self.ren_x_sq) * self.square_size + dr.off_x,
                                   (dr.y_sq - self.ren_y_sq) * self.square_size + dr.off_y))
+
+        if self.redraw_maze_loot:
+            for loot in self.loot_short:
+                try:
+                    surface.blit(loot.props['image_floor'][self.maze.anim_frame],
+                                 ((loot.x_sq - self.ren_x_sq) * self.square_size + loot.off_x,
+                                  (loot.y_sq - self.ren_y_sq) * self.square_size + loot.off_y))
+                except IndexError:
+                    surface.blit(loot.props['image_floor'][(self.maze.anim_frame + 1) % (len(loot.props['image_floor']))],
+                                 ((loot.x_sq - self.ren_x_sq) * self.square_size + loot.off_x,
+                                  (loot.y_sq - self.ren_y_sq) * self.square_size + loot.off_y))
 
         ren_left = left_sq
         ren_right = right_sq
@@ -214,19 +239,19 @@ class Realm:
 
                     try:
                         if not self.maze.flag_array[ren_pos_y][ren_pos_x + 1].vis:
-                            surface.blit(self.tile_sets.get_image('dark_edges', (24, 24), (0,))[0],
+                            surface.blit(self.dark_edges[0],
                                          ((ren_pos_x - self.ren_x_sq) * self.square_size,
                                           (ren_pos_y - self.ren_y_sq) * self.square_size))
                         if not self.maze.flag_array[ren_pos_y + 1][ren_pos_x].vis:
-                            surface.blit(self.tile_sets.get_image('dark_edges', (24, 24), (1,))[0],
+                            surface.blit(self.dark_edges[1],
                                          ((ren_pos_x - self.ren_x_sq) * self.square_size,
                                           (ren_pos_y - self.ren_y_sq) * self.square_size))
                         if not self.maze.flag_array[ren_pos_y][ren_pos_x - 1].vis:
-                            surface.blit(self.tile_sets.get_image('dark_edges', (24, 24), (2,))[0],
+                            surface.blit(self.dark_edges[2],
                                          ((ren_pos_x - self.ren_x_sq) * self.square_size,
                                           (ren_pos_y - self.ren_y_sq) * self.square_size))
                         if not self.maze.flag_array[ren_pos_y - 1][ren_pos_x].vis:
-                            surface.blit(self.tile_sets.get_image('dark_edges', (24, 24), (3,))[0],
+                            surface.blit(self.dark_edges[3],
                                          ((ren_pos_x - self.ren_x_sq) * self.square_size,
                                           (ren_pos_y - self.ren_y_sq) * self.square_size))
 
@@ -271,8 +296,8 @@ class Realm:
         # realm.calc_vision(realm.maze.flag_array, orig_xy, 100, (12, 8), r_max=10)
         calc2darray.calc_vision_rays(self.maze.flag_array, orig_xy[0], orig_xy[1], 10)
 
-    def mouse_move(self, mouse_x, mouse_y):
-        rads = maths.xy_dist_to_rads(mouse_x, mouse_y,
+    def mouse_move(self, mouse_xy):
+        rads = maths.xy_dist_to_rads(mouse_xy[0], mouse_xy[1],
                                      (self.pc.x_sq - self.view_maze_x_sq - 1.4) * self.square_size * self.square_scale,
                                      (self.pc.y_sq - self.view_maze_y_sq - 1.4) * self.square_size * self.square_scale)
 
@@ -300,40 +325,82 @@ class Realm:
         else:   # -0.3 > rads >= -1.1
             move_instr_x = -1
             move_instr_y = 1
-        return  move_instr_x, move_instr_y
+        return move_instr_x, move_instr_y
 
-    def square_check(self, mouse_x, mouse_y, m_bttn):
-        mouse_x_sq = round(
-            self.view_bleed_sq + self.view_maze_x_sq - 0.3 + mouse_x / self.square_size / self.square_scale)
-        mouse_y_sq = round(
-            self.view_bleed_sq + self.view_maze_y_sq - 0.3 + mouse_y / self.square_size / self.square_scale)
+    def loot_drop(self, mouse_xy, log=False):
+        m_x_sq, m_y_sq = self.xy_pixels_to_squares(mouse_xy)
+        if m_x_sq < 0 or m_x_sq > self.maze.width - 1 or m_y_sq < 0 or m_y_sq > self.maze.height - 1:
+            return
+        if not calc2darray.cast_ray(self.maze.flag_array, self.pc.x_sq, self.pc.y_sq, m_x_sq, m_y_sq, sightonly=True):
+            logfun.put('I can not see that area.', log)
+            return
+        if not self.maze.flag_array[m_y_sq][m_x_sq].floor:
+            logfun.put('I must choose floor area to drop an item.', log)
+            return
+        self.maze.spawn_loot(m_x_sq, m_y_sq, (self.mouse_pointer.drag_loot,))
+        self.mouse_pointer.drag_loot = None
+        self.mouse_pointer.image = None
+        self.shortlists_update()
+        self.render_update()
+
+    def xy_pixels_to_squares(self, xy):
+        x_sq = round(
+            self.view_bleed_sq + self.view_maze_x_sq - 0.3 + xy[0] / self.square_size / self.square_scale)
+        y_sq = round(
+            self.view_bleed_sq + self.view_maze_y_sq - 0.3 + xy[1] / self.square_size / self.square_scale)
+        return x_sq, y_sq
+
+    def square_check(self, xy_sq, m_bttn, wins_dict, active_wins):
+        x_sq, y_sq = xy_sq
         try:
-            flags = self.maze.flag_array[mouse_y_sq][mouse_x_sq]
+            flags = self.maze.flag_array[y_sq][x_sq]
         except IndexError:
             return False
         if not flags.vis:
             return None
+        if flags.item:
+            # picking up items
+            if m_bttn == 1 and self.mouse_pointer.drag_loot is not None:
+                return False
+            for lt in self.loot_short:
+                if lt.x_sq == x_sq and lt.y_sq == y_sq:
+                    pc_dist = maths.get_distance(self.pc.x_sq, self.pc.y_sq, x_sq, y_sq)
+                    if pc_dist > 2:
+                        return False
+                    if m_bttn == 1:
+                        self.maze.flag_array[y_sq][x_sq].item -= True
+                        self.mouse_pointer.drag_loot = lt
+                        self.mouse_pointer.image = lt.props['image_floor'][0]
+                        self.maze.loot.remove(lt)
+                        self.loot_short.remove(lt)
+                        self.render_update()
+                        return True
+                    elif m_bttn == 3 and len(self.pc.char_sheet.inventory) < self.pc.char_sheet.inv_max:
+                        self.maze.flag_array[y_sq][x_sq].item -= True
+                        lt.stashed = True
+                        self.pc.char_sheet.inventory.append(lt)
+                        self.maze.loot.remove(lt)
+                        self.loot_short.remove(lt)
+                        if wins_dict['inventory'] in active_wins:
+                            wins_dict['inventory'].render()
+                        self.render_update()
+                        return True
         if flags.obj:
             # doors
             for dr in self.doors_short:
-                if dr.x_sq == mouse_x_sq and dr.y_sq == mouse_y_sq:
+                if dr.x_sq == x_sq and dr.y_sq == y_sq:
                     if m_bttn != 1:
                         continue
-                    pc_dist = maths.get_distance(self.pc.x_sq, self.pc.y_sq, mouse_x_sq, mouse_y_sq)
+                    pc_dist = maths.get_distance(self.pc.x_sq, self.pc.y_sq, x_sq, y_sq)
                     if pc_dist != 1:
                         return False
                     if dr.use(self.pc):
-                        self.maze.flag_array[mouse_y_sq][mouse_x_sq].mov = not dr.shut
-                        self.maze.flag_array[mouse_y_sq][mouse_x_sq].light = (not dr.shut) or (dr.grate)
+                        self.maze.flag_array[y_sq][x_sq].mov = not dr.shut
+                        self.maze.flag_array[y_sq][x_sq].light = (not dr.shut) or (dr.grate)
                         self.calc_vision_alt()
+                        self.shortlists_update()
                         self.render_update()
                     return True
-        try:
-            if flags.obj:
-                print(flags.light, )
-                return True
-        except IndexError:
-            pass
         return False
 
     def shortlists_update(self):
@@ -344,10 +411,21 @@ class Realm:
 
         # doors
         for dr in self.maze.doors:
-            if left_sq <= dr.x_sq <= right_sq and top_sq <= dr.y_sq <= bottom_sq:
+            if self.maze.flag_array[dr.y_sq][dr.x_sq].vis:
                 self.doors_short.add(dr)
+            elif dr in self.doors_short:
+                self.doors_short.remove(dr)
+
+        # loot
+        for loot in self.maze.loot:
+            if self.maze.flag_array[loot.y_sq][loot.x_sq].vis:
+                self.loot_short.add(loot)
+            elif loot in self.loot_short:
+                self.loot_short.remove(loot)
+
         # traps
         for tr in self.maze.traps:
+            # Somehow a few traps have None in their coordinates after all. I dont know why. Meanwhile...
             if tr.x_sq is None or tr.y_sq is None:
                 continue
             if left_sq <= tr.x_sq <= right_sq and top_sq <= tr.y_sq <= bottom_sq:

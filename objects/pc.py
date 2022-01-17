@@ -18,6 +18,7 @@ class PC:
 
         self.move_instr_x = 0
         self.move_instr_y = 0
+        self.vision_sq_list = []
 
         self.location = location
         self.char_sheet = char_sheet
@@ -102,12 +103,13 @@ class PC:
             realm.view_maze_update(self.x_sq, self.y_sq)
 
             if abs(realm.ren_x_sq - realm.view_maze_x_sq) >= 1 or abs(realm.ren_y_sq - realm.view_maze_y_sq) >= 1:
-                # creating shortlists
-                realm.shortlists_update()
 
                 # visibility update
 
                 realm.calc_vision_alt()
+
+                # creating shortlists
+                realm.shortlists_update()
 
                 realm.render_update()
 

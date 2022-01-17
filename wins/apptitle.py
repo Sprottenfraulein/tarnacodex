@@ -42,7 +42,8 @@ class AppTitle:
             pass
 
         # return True if interaction was made to prevent other windows from responding to this event
-        return self.ui_click(self.title_ui.mouse_actions(event), pygame_settings, resources, wins_dict, active_wins)
+        return self.ui_click(self.title_ui.mouse_actions(self.mouse_pointer.xy, event),
+                             pygame_settings, resources, wins_dict, active_wins)
 
     def ui_click(self, inter_click, pygame_settings, resources, wins_dict, active_wins):
         if inter_click is None:

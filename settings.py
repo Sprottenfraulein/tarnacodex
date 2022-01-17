@@ -17,7 +17,10 @@ tilesets = (
     ('black_rock', 'res/tilesets/texture02.png'),
     ('dung_bricks', 'res/tilesets/dung_bricks.png'),
     ('dung_doors', 'res/tilesets/dung_doors.png'),
-    ('dark_edges', 'res/tilesets/darkedges.png')
+    ('dark_edges', 'res/tilesets/darkedges.png'),
+    ('interface', 'res/tilesets/interface.png'),
+    ('inv_items', 'res/tilesets/inv_items.png'),
+    ('floor_items', 'res/tilesets/floor_items.png')
 )
 
 sounds = (

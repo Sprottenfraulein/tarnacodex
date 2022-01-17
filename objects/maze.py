@@ -1,6 +1,6 @@
 import random
 from library import maths
-from library import pickrandom
+from library import pickrandom, calc2darray
 from objects import dbrequests
 from objects import progression
 from objects import room
@@ -27,9 +27,10 @@ class Maze:
         self.decor_array = None
         self.flag_array = None
         self.rooms = None
-        self.doors = []
+        self.doors = set()
         self.traps = []
         self.exits = []
+        self.loot = []
         self.ANIM_LEN = 4
         self.anim_frame = 0
         self.anim_timing = anim_timing
@@ -62,6 +63,13 @@ class Maze:
         else:
             self.anim_timer += 1
 
+    def spawn_loot(self, x_sq, y_sq, loot_list):
+        for lt in loot_list:
+            lt.x_sq, lt.y_sq = x_sq, y_sq
+            self.loot.append(lt)
+            flags = self.flag_array[y_sq][x_sq]
+            flags.item += True
+            lt.stashed = False
 
 def split_build(top, left, bottom, right, min_width, min_height, prop, vertical=50, r_limit=4):
     if r_limit <= 0:
@@ -509,7 +517,7 @@ def doors_set(maze, tile_set, db):
         doors_remove = [dr for dr in rm.doors if (dr.lock is None and (not dr.shut)) and random.randrange(1, 101) <= 80]
         for dr_rem in doors_remove:
             rm.doors.remove(dr_rem)
-        maze.doors.extend(rm.doors)
+        maze.doors.update(rm.doors)
     for mz_dr in maze.doors:
         mz_dr.image = mz_dr.image_update()
 
@@ -555,5 +563,3 @@ def flags_update(maze, flags_array):
     for tr in maze.traps:
         if tr.x_sq is not None and tr.y_sq is not None:
             flags_array[tr.y_sq][tr.x_sq].trap = True
-
-

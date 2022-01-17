@@ -64,7 +64,7 @@ def events(pygame_settings, resources, wins_dict, active_wins, mouse_pointer, lo
 
 		# checking for mouse move
 		if event.type == pygame.MOUSEMOTION:
-			# mouse_x, mouse_y = pygame.mouse.get_pos()
+			mouse_pointer.xy = pygame.mouse.get_pos()
 			mouse_pointer.still_timer = 0
 
 		# Checking for window resize
