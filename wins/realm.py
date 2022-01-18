@@ -50,7 +50,13 @@ class Realm:
         self.view_maze_surface = pygame.Surface(((self.view_maze_width_sq + self.view_bleed_sq * 2) * self.square_size * self.square_scale,
                                                 (self.view_maze_height_sq + self.view_bleed_sq * 2) * self.square_size * self.square_scale),
                                                 pygame.HWSURFACE)
+
+        self.view_maze_follow = self.pc
         self.view_maze_update(self.pc.x_sq, self.pc.y_sq)
+        # visibility update
+        self.calc_vision_alt()
+        # creating shortlists
+        self.shortlists_update()
         self.render_update()
 
     def event_check(self, event, pygame_settings, resources, wins_dict, active_wins, log=True):
@@ -79,12 +85,12 @@ class Realm:
                 if wins_dict['inventory'] in active_wins:
                     active_wins.remove(wins_dict['inventory'])
                     wins_dict['inventory'].clean_inv_all()
-                    self.view_maze_h_div = 2
+                    # self.view_maze_h_div = 2
                 else:
                     wins_dict['inventory'].pc = self.pc
                     wins_dict['inventory'].render()
                     active_wins.insert(0, wins_dict['inventory'])
-                    self.view_maze_h_div = 1.5
+                    # self.view_maze_h_div = 1.6
                 self.view_maze_update(self.pc.x_sq, self.pc.y_sq)
                 self.render_update()
             if event.key == pygame.K_p:

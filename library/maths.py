@@ -25,3 +25,23 @@ def get_distance(x1, y1, x2, y2):
     dist = int(round(math.sqrt((abs(x2 - x1)) ** 2 + (
             abs(y2 - y1)) ** 2)))
     return dist
+
+
+def rect_in_bounds(rect_x, rect_y, rect_width, rect_height, space_x, space_y, space_width, space_height):
+    if rect_x < space_x:
+        rect_x = space_x
+    elif rect_x + rect_width > space_x + space_width:
+        rect_x = space_x + space_width - rect_width
+    if rect_y < space_y:
+        rect_y = space_y
+    elif rect_y + rect_height > space_y + space_height:
+        rect_y = space_y + space_height - rect_height
+    return rect_x, rect_y
+
+
+def rect_to_center(rect_x, rect_y, rect_width, rect_height, space_x, space_y, space_width, space_height):
+    if rect_x > space_x + space_width // 2:
+        rect_x = rect_x - rect_width
+    if rect_y > space_y + space_height // 2:
+        rect_y = rect_y - rect_height
+    return rect_x, rect_y

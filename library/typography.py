@@ -5,7 +5,7 @@ class Typography:
     fonts = {
         'def_bold': './res/fonts/Cloude_Regular_Bold_1.02.ttf',
         'def_normal': './res/fonts/Cloude_Regular_1.02.ttf',
-        'system': './res/fonts/slkscr.ttf'
+        'large': './res/fonts/NimbusRomNo9L-Med.otf'
     }
 
     def __init__(self, pygame_settings, caption, xy, font, size, color, bg_color, h_align, v_align, max_width,
@@ -28,7 +28,7 @@ class Typography:
         self.space_size = self.text_font.get_rect(' ')
 
         # self.line_spacing = self.text_font.get_sized_height(self.size)
-        self.line_height = self.text_font.get_rect('A').height
+        self.line_height = self.text_font.get_rect('O').height
         self.line_spacing = round(self.line_height * 1.5)
         self.actual_width, self.max_height = self.get_text_height()
 
@@ -48,7 +48,7 @@ class Typography:
                 x, y = 0, y + self.line_spacing
                 continue
             word_bounds = self.text_font.get_rect(text_word)
-            if x + word_bounds.width + word_bounds.x >= self.max_width:
+            if x + word_bounds.width + self.space_size.width + word_bounds.x >= self.max_width:
                 x, y = 0, y + self.line_spacing
             x = x + word_bounds.width + self.space_size.width + word_bounds.x
             max_x = max(x, max_x)
@@ -70,7 +70,7 @@ class Typography:
     def render(self):
         txt_image = self.blit_text(self.caption, self.color, 0, 0)
         txt_rect = txt_image.get_rect()
-        self.rendered_text = pygame.Surface((self.max_width, self.max_height))
+        self.rendered_text = pygame.Surface((self.max_width, self.max_height)).convert()
         self.rendered_text.fill(self.bg_color)
         colorkey = self.rendered_text.get_at((0, 0))
         self.rendered_text.set_colorkey(colorkey, pygame.RLEACCEL)
@@ -87,39 +87,41 @@ class Typography:
         self.rendered_text.blit(txt_image, txt_rect)
 
     def blit_text(self, text, color, offset_x, offset_y):
-        text_canvas = pygame.Surface((self.max_width, self.max_height))
+        text_canvas = pygame.Surface((self.max_width, self.max_height)).convert()
         text_canvas.fill(self.bg_color)
         colorkey = text_canvas.get_at((0, 0))
         text_canvas.set_colorkey(colorkey, pygame.RLEACCEL)
         self.text_font.origin = True
 
         lined_text = self.split_text(text)
+        y = self.line_spacing
         for i in range(0, len(lined_text)):
             line_bounds = self.text_font.get_rect(lined_text[i])
-            line_bounds.left = self.space_size.width
+            # line_bounds.left = self.space_size.width
             if self.h_align == 'center':
                 line_bounds.centerx = round(self.max_width / 2)
             elif self.h_align == 'right':
                 line_bounds.right = self.max_width - self.space_size.width
-            line_bounds.top = self.line_spacing * (i + 1)
-            self.text_font.render_to(text_canvas, line_bounds, None, color)
+            # line_bounds.top = (self.line_spacing * 0.96) * (i + 1)
+            self.text_font.render_to(text_canvas, (line_bounds.left, y // 1) , None, color)
+            y += line_bounds.height
         return text_canvas
 
     def split_text(self, text):
         splitted_text = text.split()
-        x, y = 0, round(self.line_height / 2)
+        x = 0
         lined_text = []
         text_line = []
         for text_word in splitted_text:
             if text_word == '$n':
-                x, y = 0, y + self.line_spacing
+                x = 0
                 merged_line = ' '.join(text_line)
                 lined_text.append(merged_line)
                 text_line.clear()
                 continue
             word_bounds = self.text_font.get_rect(text_word)
             if x + word_bounds.width + self.space_size.width * 4 + word_bounds.x >= self.max_width:
-                x, y = 0, y + self.line_spacing
+                x = 0
                 merged_line = ' '.join(text_line)
                 lined_text.append(merged_line)
                 text_line.clear()

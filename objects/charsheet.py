@@ -110,6 +110,8 @@ class CharSheet:
             None, # 7 light
         ]
 
+        self.gold_coins = 1000
+
     def calc_hp(self):
         con_mods = self.equipment_mod('CON') + self.buff_mod('CON')
         try:

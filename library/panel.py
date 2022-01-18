@@ -4,7 +4,7 @@ import pygame
 
 class Panel:
     def __init__(self, pan_id, pan_xy, pan_size, pan_images=None,
-                 pop_show=60, pop_hide=30, pop_obj=None, page=None, img_stretch=False):
+                 pop_show=60, pop_hide=30, pop_win=None, page=None, img_stretch=False):
         self.id = pan_id
         self.size = pan_size
         self.images = pan_images
@@ -12,9 +12,7 @@ class Panel:
         self.mode = 0
         self.tags = []
 
-        self.popup_time_show = pop_show
-        self.popup_time_hide = pop_hide
-        self.popup_element = pop_obj
+        self.mouse_over = False
         self.popup_active = False
 
         self.img_stretch = img_stretch

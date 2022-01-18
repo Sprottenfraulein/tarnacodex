@@ -5,7 +5,7 @@ import pygame
 class FieldEdit:
     def __init__(self, fe_id, fe_xy, fe_size, text_obj=None, cursor_obj=None, fe_maxlen=-1, fe_align=-1,
                  fe_sounds=None, fe_images=None, fe_mode=0, fe_blink=30,
-                 pop_show=60, pop_hide=30, pop_obj=None, page=None):
+                 pop_show=60, pop_hide=30, pop_win=None, page=None):
         self.id = fe_id
         self.size = fe_size
         self.text_obj = text_obj
@@ -20,9 +20,7 @@ class FieldEdit:
         self.blink_timer = 0
         self.cursor_visible = False
 
-        self.popup_time_show = pop_show
-        self.popup_time_hide = pop_hide
-        self.popup_element = pop_obj
+        self.mouse_over = False
         self.popup_active = False
 
         self.rendered_field = pygame.Surface(self.images[0].get_rect().size)
@@ -75,7 +73,7 @@ class FieldEdit:
         if self.text_obj:
             self.text_obj.draw(self.rendered_field)
             if self.cursor_visible:
-                self.cursor_symbol.rendered_rect.left = self.text_obj.rendered_rect.right
+                self.cursor_symbol.rendered_rect.left = self.text_obj.actual_width
                 self.cursor_symbol.draw(self.rendered_field)
         # self.rendered_rect = self.rendered_field.get_rect()
 

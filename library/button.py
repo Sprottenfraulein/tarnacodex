@@ -5,7 +5,7 @@ import pygame
 class Button:
     def __init__(self, bttn_id, bttn_xy, bttn_size, text_obj=None,
                  bttn_func=None, bttn_images=None, bttn_sounds=None, bttn_mode=0, bttn_switch=False,
-                 pop_show=60, pop_hide=30, pop_obj=None, page=None):
+                 pop_show=60, pop_hide=30, pop_win=None, page=None):
         self.id = bttn_id
         self.size = bttn_size
         self.text_obj = text_obj
@@ -18,9 +18,7 @@ class Button:
         self.page = page
         self.tags = []
 
-        self.popup_time_show = pop_show
-        self.popup_time_hide = pop_hide
-        self.popup_element = pop_obj
+        self.mouse_over = False
         self.popup_active = False
 
         self.rendered_button = pygame.Surface(self.images[0].get_rect().size)

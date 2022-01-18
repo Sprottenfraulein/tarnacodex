@@ -1,7 +1,7 @@
 # user interface object
 import pygame
 import random
-from library import pydraw, typography, button, fieldedit, fieldtext, panel
+from library import pydraw, typography, button, fieldedit, fieldtext, fieldrich, panel
 
 
 class UI:
@@ -13,14 +13,14 @@ class UI:
         self.decoratives = []
         self.key_focus = None
         self.page = 0
+        self.updated = False
 
-        #sound collections. REMOVE THIS , REMOVE SOUND FROM UI . GENERATE SOUNDS IN WINS
+        # sound collections. REMOVE THIS , REMOVE SOUND FROM UI . GENERATE SOUNDS IN WINS
         self.snd_packs = {}
         for preset_name, preset_pack in self.resources.sound_presets.items():
             self.snd_packs[preset_name] = [pygame_settings.audio.bank_sounds[snd_name] for snd_name in preset_pack]
 
-    def mouse_actions(self, mouse_xy, event):
-        mouse_x, mouse_y = mouse_xy
+    def mouse_actions(self, mouse_x, mouse_y, event):
         # mouse events checking
         if event.type == pygame.MOUSEBUTTONDOWN:
             for interact in self.interactives:
@@ -60,10 +60,10 @@ class UI:
     # UI ELEMENTS CREATION
     def button_add(self, bttn_id, xy=None, size=None, caption=None, images=None,
                    cap_font='def_bold', cap_size=None, cap_color=None, cap_shadow=False, sounds=None,
-                   mode=0, switch=False, function=None, page=0, pop_show=30, pop_hide=1, pop_obj=None):
+                   mode=0, switch=False, function=None, page=0, pop_show=30, pop_hide=1, pop_win=None):
         # setting defaults if attributes not presented:
         if xy is None:
-            xy = (0,0)
+            xy = (0, 0)
         if size is None:
             size = (96, 32)
         if caption is None:
@@ -73,16 +73,16 @@ class UI:
             images = (
                 pydraw.square((0, 0), size,
                               (self.resources.colors['gray_light'],
-                             self.resources.colors['gray_dark'],
-                             self.resources.colors['gray_mid'],
-                             self.resources.colors['black']),
+                               self.resources.colors['gray_dark'],
+                               self.resources.colors['gray_mid'],
+                               self.resources.colors['black']),
                               sq_outsize=1, sq_bsize=1, sq_ldir=0, sq_fill=False,
                               sq_image=rnd_texture),
                 pydraw.square((0, 0), size,
                               (self.resources.colors['gray_light'],
-                             self.resources.colors['gray_dark'],
-                             self.resources.colors['gray_mid'],
-                             self.resources.colors['black']),
+                               self.resources.colors['gray_dark'],
+                               self.resources.colors['gray_mid'],
+                               self.resources.colors['black']),
                               sq_outsize=1, sq_bsize=1, sq_ldir=2, sq_fill=False,
                               sq_image=rnd_texture),
             )
@@ -99,16 +99,17 @@ class UI:
                                      text_bg_color, 'center', 'middle', size[0], size[1], shadow=cap_shadow)
 
         new_button = button.Button(bttn_id, xy, size, text_obj=text, bttn_func=function, bttn_images=images,
-                                    bttn_sounds=sounds, bttn_mode=mode, bttn_switch=switch,
-                                   pop_show=pop_show, pop_hide=pop_hide, pop_obj=pop_obj, page=page)
+                                   bttn_sounds=sounds, bttn_mode=mode, bttn_switch=switch,
+                                   pop_show=pop_show, pop_hide=pop_hide, pop_win=pop_win, page=page)
         return new_button
 
     def edit_add(self, edit_id, xy=None, size=None, caption=None, max_len=12, h_align='left', images=None,
-                   cap_font='def_bold', cap_size=None, cap_color=None, cap_shadow=False, cursor_symbol='|', sounds=None, blink=30,
-                   mode=0, pop_show=30, pop_hide=1, pop_obj=None, page=0):
+                 cap_font='def_bold', cap_size=None, cap_color=None, cap_shadow=False, cursor_symbol='|', sounds=None,
+                 blink=30,
+                 mode=0, pop_show=30, pop_hide=1, pop_win=None, page=0):
         # setting defaults if attributes not presented:
         if xy is None:
-            xy = (0,0)
+            xy = (0, 0)
         if size is None:
             size = (96, 32)
         if caption is None:
@@ -117,15 +118,15 @@ class UI:
             images = (
                 pydraw.square((0, 0), size,
                               (self.resources.colors['gray_light'],
-                             self.resources.colors['gray_dark'],
-                             self.resources.colors['gray_mid'],
-                             self.resources.colors['black']),
+                               self.resources.colors['gray_dark'],
+                               self.resources.colors['gray_mid'],
+                               self.resources.colors['black']),
                               sq_outsize=1, sq_bsize=1, sq_ldir=0, sq_fill=True, sq_image=None),
                 pydraw.square((0, 0), size,
                               (self.resources.colors['gray_light'],
-                             self.resources.colors['gray_dark'],
-                             self.resources.colors['gray_mid'],
-                             self.resources.colors['black']),
+                               self.resources.colors['gray_dark'],
+                               self.resources.colors['gray_mid'],
+                               self.resources.colors['black']),
                               sq_outsize=1, sq_bsize=1, sq_ldir=2, sq_fill=True, sq_image=None),
             )
         if cap_size is None:
@@ -142,20 +143,22 @@ class UI:
             text_xy = size[0] - 1, size[1] // 2
         text_bg_color = images[0].get_at(text_xy)
         inp_text = typography.Typography(self.pygame_settings, caption, text_xy, cap_font, cap_size,
-                                         cap_color, text_bg_color, h_align, 'middle', size[0], size[1], shadow=cap_shadow)
+                                         cap_color, text_bg_color, h_align, 'middle', size[0], size[1],
+                                         shadow=cap_shadow)
         cur_text = typography.Typography(self.pygame_settings, cursor_symbol, text_xy, cap_font, cap_size,
-                                         cap_color, text_bg_color, 'left', 'middle', size[0], size[1], shadow=cap_shadow)
+                                         cap_color, text_bg_color, 'left', 'middle', size[0], size[1],
+                                         shadow=cap_shadow)
         new_edit = fieldedit.FieldEdit(edit_id, xy, size, text_obj=inp_text, cursor_obj=cur_text, fe_images=images,
                                        fe_maxlen=max_len, fe_blink=blink, fe_sounds=sounds, fe_mode=mode,
-                                       pop_show=pop_show, pop_hide=pop_hide, pop_obj=pop_obj, page=page)
+                                       pop_show=pop_show, pop_hide=pop_hide, pop_win=pop_win, page=page)
         return new_edit
 
     def text_add(self, edit_id, xy=None, size=None, caption=None, h_align='left', v_align='top', images=None,
-                   cap_font='def_normal', cap_size=None, cap_color='sun', cap_shadow=False, cap_bgcolor='black',
-                  pop_show=30, pop_hide=1, pop_obj=None, page=None):
+                 cap_font='def_normal', cap_size=None, cap_color='sun', cap_shadow=False, cap_bgcolor='black',
+                 pop_show=30, pop_hide=1, pop_win=None, page=None):
         # setting defaults if attributes not presented:
         if xy is None:
-            xy = (0,0)
+            xy = (0, 0)
         if size is None:
             size = (96, 48)
         if caption is None:
@@ -183,27 +186,116 @@ class UI:
         text_xy = txt_x, txt_y
         inp_text = typography.Typography(self.pygame_settings, caption, text_xy, cap_font, cap_size,
                                          cap_color, cap_bgcolor, h_align, v_align, size[0], size[1], shadow=cap_shadow)
-        new_text = fieldtext.FieldText(edit_id, xy, size, text_obj=inp_text, ft_images=images,
-                                       pop_show=pop_show, pop_hide=pop_hide, pop_obj=pop_obj, page=page)
+        new_text = fieldtext.FieldText(edit_id, xy, size, text_obj=inp_text, ft_images=images, page=page)
         return new_text
 
     def panel_add(self, edit_id, xy=None, size=None, images=None,
-                  pop_show=30, pop_hide=1, pop_obj=None, page=None, img_stretch=False):
+                  pop_show=30, pop_hide=1, pop_win=None, page=None, img_stretch=False):
         # setting defaults if attributes not presented:
         if xy is None:
             xy = (0, 0)
         if size is None:
             size = (96, 48)
 
-        new_panel = panel.Panel(edit_id, xy, size, pan_images=images, pop_show=pop_show, pop_hide=pop_hide,
-                                pop_obj=pop_obj, page=page, img_stretch=img_stretch)
+        new_panel = panel.Panel(edit_id, xy, size, pan_images=images, page=page, img_stretch=img_stretch)
         return new_panel
 
+    def context_headline_info(self, resources, context_id, xy=None, size=None, images=None, text_dict=None,
+                              cap_bgcolor='black', page=None, img_stretch=False):
+        # setting defaults if attributes not presented:
+        if xy is None:
+            xy = (0, 0)
+        if size is None:
+            size = (96, 32)
+        if text_dict is None:
+            text_dict = {
+                'gradetype': 'gradetype',
+                'mainvalue': '123456',
+                'mv_caption': 'mv_caption'
+            }
+        if images is None:
+            """images = (
+                pydraw.square((0, 0), size,
+                              (self.resources.colors['gray_light'],
+                               self.resources.colors['gray_dark'],
+                               self.resources.colors['gray_mid'],
+                               self.resources.colors['black']),
+                              sq_outsize=0, sq_bsize=0, sq_ldir=0, sq_fill=False,
+                              sq_image=None),
+            )"""
+        info_text = {
+            'gradetype': typography.Typography(self.pygame_settings, text_dict['gradetype'], (0, 0), 'def_normal', 24,
+                                               self.resources.colors['fnt_celeb'], self.resources.colors['transparent'],
+                                               'left', 'top', size[0], 24),
+            'mainvalue': typography.Typography(self.pygame_settings, text_dict['mainvalue'], (0, 0), 'large', 18,
+                                               self.resources.colors['fnt_celeb'], self.resources.colors['black'],
+                                               'left', 'top', size[0], 48),
+            'mv_caption': typography.Typography(self.pygame_settings, text_dict['mv_caption'], (0, 0), 'def_normal', 24,
+                                                self.resources.colors['fnt_celeb'],
+                                                self.resources.colors['transparent'],
+                                                'left', 'top', size[0], 24)
+        }
+        for key, text in text_dict.items():
+            info_text[key].caption = text
+        new_rich = fieldrich.FieldRich(resources, context_id, xy, size, fr_images=images, text_dict=info_text, pop_show=60,
+                                       pop_hide=30, pop_win=None, page=None, img_stretch=img_stretch)
+        return new_rich
+
+    def context_body_info(self, resources, context_id, xy=None, size=None, images=None, text_dict=None,
+                          cap_bgcolor='black', page=None, img_stretch=False):
+        # setting defaults if attributes not presented:
+        if xy is None:
+            xy = (0, 0)
+        if size is None:
+            size = (96, 32)
+        if text_dict is None:
+            text_dict = {
+                'modifiers': 'modifiers',
+                'desc': 'desc',
+                'sell_price': 'sell_price',
+                'condition': 'condition'
+            }
+        if images is None:
+            images = (
+                pydraw.square((0, 0), size,
+                              (self.resources.colors['gray_light'],
+                               self.resources.colors['gray_dark'],
+                               self.resources.colors['gray_mid'],
+                               self.resources.colors['black']),
+                              sq_outsize=1, sq_bsize=1, sq_ldir=0, sq_fill=False,
+                              sq_image=None),
+            )
+        info_text = {
+            'modifiers': typography.Typography(self.pygame_settings, text_dict['modifiers'], (0, 0), 'def_normal', 24,
+                                               self.resources.colors['fnt_celeb'],
+                                               self.resources.colors['transparent'],
+                                               'left', 'top', size[0], 0),
+            'desc': typography.Typography(self.pygame_settings, text_dict['desc'], (0, 0), 'def_normal', 24,
+                                          self.resources.colors['fnt_celeb'],
+                                          self.resources.colors['transparent'],
+                                          'left', 'top', size[0], 0),
+            'sell_price': typography.Typography(self.pygame_settings, text_dict['sell_price'], (0, 0), 'def_normal', 24,
+                                          self.resources.colors['bright_gold'],
+                                          self.resources.colors['transparent'],
+                                          'left', 'top', size[0], 0),
+            'condition': typography.Typography(self.pygame_settings, text_dict['condition'], (0, 0), 'def_normal', 24,
+                                                self.resources.colors['fnt_celeb'],
+                                                self.resources.colors['transparent'],
+                                                'left', 'top', size[0], 0),
+        }
+        for key, text in text_dict.items():
+            info_text[key].caption = text
+        new_rich = fieldrich.FieldRich(resources, context_id, xy, size, fr_images=images, text_dict=info_text, pop_show=60,
+                                       pop_hide=30, pop_win=None, page=None, img_stretch=img_stretch)
+        return new_rich
+
     def element_align(self, element, origin_xy, view_rect):
-        if origin_xy[0] - view_rect.left < element.rendered_rect.width:
+        """if origin_xy[0] - view_rect.left < element.rendered_rect.width:
             element.rendered_rect.left = origin_xy[0]
         if origin_xy[1] - view_rect.top < element.rendered_rect.height:
-            element.rendered_rect.top = origin_xy[1]
+            element.rendered_rect.top = origin_xy[1]"""
+        element.rendered_rect.left = origin_xy[0]
+        element.rendered_rect.top = origin_xy[1]
 
     def random_texture(self, size, tileset_name):
         tileset = self.tilesets.sets_dict[tileset_name]
@@ -214,25 +306,12 @@ class UI:
 
     def tick(self, pygame_settings, mouse_pointer):
         for element in self.interactives:
-            if element.page != self.page:
+            if element.page is not None and element.page != self.page:
                 continue
             try:
                 element.tick()
             except AttributeError:
                 pass
-            # Mouse over events
-            # Pop up elements
-            if element.popup_active:
-                if (mouse_pointer.still_timer >= element.popup_time_hide) and not element.rendered_rect.collidepoint(pygame.mouse.get_pos()):
-                    self.interactives.remove(element.popup_element)
-                    element.popup_active = False
-            elif element.popup_element is not None:
-                if (mouse_pointer.still_timer >= element.popup_time_show) and element.rendered_rect.collidepoint(pygame.mouse.get_pos()):
-                    self.interactives.append(element.popup_element)
-
-                    scr_w, scr_h = pygame_settings.screen_res
-                    self.element_align(element.popup_element, pygame.mouse.get_pos(), pygame.Rect(0,0, scr_w, scr_h))
-                    element.popup_active = True
 
     def draw(self, surface):
         for decorative in reversed(self.decoratives):
@@ -243,3 +322,4 @@ class UI:
             if interactive.page is not None and interactive.page != self.page:
                 continue
             interactive.draw(surface)
+        self.updated = False

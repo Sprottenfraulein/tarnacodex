@@ -4,7 +4,7 @@ import pygame
 
 class FieldText:
     def __init__(self, ft_id, ft_xy, ft_size, text_obj=None, ft_align=-1, ft_images=None,
-                 pop_show=60, pop_hide=30, pop_obj=None, page=None):
+                 pop_show=60, pop_hide=30, pop_win=None, page=None):
         self.id = ft_id
         self.size = ft_size
         self.text_obj = text_obj
@@ -13,9 +13,7 @@ class FieldText:
         self.mode = 0
         self.tags = []
 
-        self.popup_time_show = pop_show
-        self.popup_time_hide = pop_hide
-        self.popup_element = pop_obj
+        self.mouse_over = False
         self.popup_active = False
 
         self.rendered_field = pygame.Surface(ft_size)

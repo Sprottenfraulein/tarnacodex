@@ -2,7 +2,7 @@
 import pygame
 from library import cursor, database
 from objects import tilesets, animations
-from wins import apptitle, realm, inventory
+from wins import apptitle, realm, inventory, context
 
 
 def launch(pygame_settings, resources, log=False):
@@ -18,7 +18,8 @@ def launch(pygame_settings, resources, log=False):
 	wins_dict = {
 		'app_title': apptitle.AppTitle(pygame_settings, resources, tile_sets, anims, db, mouse_pointer),
 		'realm': realm.Realm(pygame_settings, resources, tile_sets, anims, db, mouse_pointer),
-		'inventory': inventory.Inventory(pygame_settings, resources, tile_sets, anims, db, mouse_pointer)
+		'inventory': inventory.Inventory(pygame_settings, resources, tile_sets, anims, db, mouse_pointer),
+		'context': context.Context(pygame_settings, resources, tile_sets, anims, db, mouse_pointer)
 	}
 	bigloop(pygame_settings, resources, wins_dict, mouse_pointer)
 
@@ -66,6 +67,7 @@ def events(pygame_settings, resources, wins_dict, active_wins, mouse_pointer, lo
 		if event.type == pygame.MOUSEMOTION:
 			mouse_pointer.xy = pygame.mouse.get_pos()
 			mouse_pointer.still_timer = 0
+			mouse_pointer.move()
 
 		# Checking for window resize
 		if event.type == pygame.VIDEORESIZE:

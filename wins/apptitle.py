@@ -1,8 +1,8 @@
 # game title window
 import pygame
 import settings
-from library import ui, textinput
-from objects import maze, pc, charsheet
+from library import textinput
+from objects import maze, pc, charsheet, ui
 
 
 class AppTitle:
@@ -14,6 +14,7 @@ class AppTitle:
         self.create_elements(log=True)
 
     def event_check(self, event, pygame_settings, resources, wins_dict, active_wins, log=True):
+        mouse_x, mouse_y = self.mouse_pointer.xy
         if event.type == pygame.KEYDOWN:
             if self.title_ui.key_focus is not None:
                 if self.title_ui.key_focus.page is not None and self.title_ui.key_focus.page != self.title_ui.page:
@@ -38,11 +39,23 @@ class AppTitle:
                 pass
 
         elif event.type == pygame.MOUSEMOTION:
-            # light up main menu buttons on hovering
-            pass
+            # preparing popup panel on N-th cycle
+            if self.mouse_pointer.drag_loot:
+                return
+            for i in range(len(self.title_ui.interactives) - 1, -1, -1):
+                if self.title_ui.interactives[i].rendered_rect.collidepoint(self.mouse_pointer.xy):
+                    if not self.title_ui.interactives[i].mouse_over:
+                        self.title_ui.interactives[i].mouse_over = True
+                else:
+                    if self.title_ui.interactives[i].mouse_over:
+                        self.title_ui.interactives[i].mouse_over = False
+                        if self.title_ui.interactives[i].popup_active:
+                            self.title_ui.interactives[i].popup_active = False
+                            self.title_ui.interactives.remove(self.title_ui.interactives[i].popup_win)
+                            self.title_ui.dated = True
 
         # return True if interaction was made to prevent other windows from responding to this event
-        return self.ui_click(self.title_ui.mouse_actions(self.mouse_pointer.xy, event),
+        return self.ui_click(self.title_ui.mouse_actions(mouse_x, mouse_y, event),
                              pygame_settings, resources, wins_dict, active_wins)
 
     def ui_click(self, inter_click, pygame_settings, resources, wins_dict, active_wins):
@@ -151,8 +164,8 @@ class AppTitle:
         char_menu[-1].tags = ['lightup']
 
         new_edit = self.title_ui.edit_add('input_name', (50, 100), sounds=self.title_ui.snd_packs['text_input'])
-        new_edit.popup_element = self.title_ui.text_add('text', (50, 50), h_align='center', size=(320, 500),
-                                                        cap_shadow=True)
+        new_edit.popup_win = self.title_ui.text_add('text', (50, 50), h_align='center', size=(320, 500),
+                                                    cap_shadow=True)
         tag_string = self.title_ui.text_add('tag_string', (0, self.title_ui.pygame_settings.screen_res[1]-16), caption=settings.tag_string,
                                             h_align='left', v_align='bottom',
                                             size=(self.title_ui.pygame_settings.screen_res[0] // 4, 16), cap_color='sun')
@@ -165,5 +178,15 @@ class AppTitle:
     def tick(self, pygame_settings, mouse_pointer):
         self.title_ui.tick(pygame_settings, mouse_pointer)
 
+    def render_ui(self, surface):
+        for decorative in reversed(self.title_ui.decoratives):
+            if decorative.page is not None and decorative.page != self.title_ui.page:
+                continue
+            decorative.draw(surface)
+        for interactive in reversed(self.title_ui.interactives):
+            if interactive.page is not None and interactive.page != self.title_ui.page:
+                continue
+            interactive.draw(surface)
+
     def draw(self, surface):
-        self.title_ui.draw(surface)
+        self.render_ui(surface)

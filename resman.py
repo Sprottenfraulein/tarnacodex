@@ -8,9 +8,17 @@ from library import counter
 
 class ResMan:
     def __init__(self):
+        # declaring names
+        self.grades = (
+            'common', 'rare', 'enchanted', 'legendary', 'unique'
+        )
+        self.grade_colors = (
+            'gray_light', 'bright_gold', 'indigo', 'fnt_attent', 'sun'
+        )
         # Declaring game colors.
         self.colors = {
             'fnt_muted': (200, 50, 0),
+            'indigo': (60, 0, 255),
             'fnt_normal': (200, 100, 0),
             'fnt_header': (250, 150, 0),
             'fnt_attent': (255, 0, 0),
@@ -65,5 +73,7 @@ class ResMan:
             'battleaxe_rare_floor': ('floor_items', (24, 24), (0,)),
             'battleaxe_rare_inv': ('inv_items', (24, 24), (0,)),
             'flail_rare_floor': ('floor_items', (24, 24), (1,)),
-            'flail_rare_inv': ('inv_items', (24, 24), (1,))
+            'flail_rare_inv': ('inv_items', (24, 24), (1,)),
+
+            'gold_coins_icon': ('interface', (24,24), (0,))
         }
