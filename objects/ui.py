@@ -251,6 +251,9 @@ class UI:
         if text_dict is None:
             text_dict = {
                 'modifiers': 'modifiers',
+                'de_buffs': 'de_buffs',
+                'affixes': 'affixes',
+                'affix_de_buffs': 'affix_de_buffs',
                 'desc': 'desc',
                 'sell_price': 'sell_price',
                 'condition': 'condition'
@@ -270,6 +273,18 @@ class UI:
                                                self.resources.colors['fnt_celeb'],
                                                self.resources.colors['transparent'],
                                                'left', 'top', size[0], 0),
+            'de_buffs': typography.Typography(self.pygame_settings, text_dict['de_buffs'], (0, 0), 'def_normal', 24,
+                                               self.resources.colors['fnt_celeb'],
+                                               self.resources.colors['transparent'],
+                                               'left', 'top', size[0], 0),
+            'affixes': typography.Typography(self.pygame_settings, text_dict['affixes'], (0, 0), 'def_normal', 24,
+                                               self.resources.colors['fnt_header'],
+                                               self.resources.colors['transparent'],
+                                               'left', 'top', size[0], 0),
+            'affix_de_buffs': typography.Typography(self.pygame_settings, text_dict['affix_de_buffs'], (0, 0), 'def_normal', 24,
+                                               self.resources.colors['fnt_celeb'],
+                                               self.resources.colors['transparent'],
+                                               'left', 'top', size[0], 0),
             'desc': typography.Typography(self.pygame_settings, text_dict['desc'], (0, 0), 'def_normal', 24,
                                           self.resources.colors['fnt_celeb'],
                                           self.resources.colors['transparent'],
@@ -284,7 +299,9 @@ class UI:
                                                 'left', 'top', size[0], 0),
         }
         for key, text in text_dict.items():
-            info_text[key].caption = text
+            if text == '':
+                del info_text[key]
+
         new_rich = fieldrich.FieldRich(resources, context_id, xy, size, fr_images=images, text_dict=info_text, pop_show=60,
                                        pop_hide=30, pop_win=None, page=None, img_stretch=img_stretch)
         return new_rich

@@ -85,6 +85,7 @@ class AppTitle:
                     pc_y_sq = l.exits[i].y_sq
             char_sheet = charsheet.CharSheet(self.db, 'char_id', chr_name='Xenia', chr_type='champion', chr_level=1)
             p = pc.PC(pc_x_sq, pc_y_sq, location, self.animations.get_animation('anthro_default'), char_sheet, state=0)
+            p.char_sheet.calc_stats()
             wins_dict['realm'].maze = l
             wins_dict['realm'].pc = p
             wins_dict['realm'].launch(pygame_settings.audio, settings)

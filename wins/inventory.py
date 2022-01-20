@@ -201,7 +201,7 @@ class Inventory:
 
     def context_define(self, itm, element, wins_dict, active_wins):
         if itm.props['item_type'] in ('wpn_melee', 'wpn_ranged'):
-            wins_dict['context'].update_elements_weapon(itm, self.mouse_pointer.xy)
+            wins_dict['context'].update_elements_weapon(self.pc, itm, self.mouse_pointer.xy)
         element.popup_active = True
         active_wins.insert(0, wins_dict['context'])
 

@@ -104,7 +104,7 @@ class Typography:
                 line_bounds.right = self.max_width - self.space_size.width
             # line_bounds.top = (self.line_spacing * 0.96) * (i + 1)
             self.text_font.render_to(text_canvas, (line_bounds.left, y // 1) , None, color)
-            y += line_bounds.height
+            y += max(line_bounds.height, self.line_spacing)
         return text_canvas
 
     def split_text(self, text):

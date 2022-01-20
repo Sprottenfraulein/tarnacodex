@@ -1,7 +1,7 @@
 # game title window
 import pygame
 import settings
-from objects import ui
+from objects import ui, treasure
 from library import pydraw, maths
 
 
@@ -35,7 +35,7 @@ class Context:
         return True
 
     # interface creation
-    def update_elements_weapon(self, item, mouse_xy, log=True):
+    def update_elements_weapon(self, pc, item, mouse_xy, log=True):
         self.context_ui.decoratives.clear()
         self.context_ui.interactives.clear()
 
@@ -47,8 +47,8 @@ class Context:
         # calculating and rendering text
         hl_text = {
             'gradetype': (
-                    self.context_ui.resources.grades[item.props['grade']] + ' ' + item.props['class']).capitalize(),
-            'mainvalue': '87',
+                    self.context_ui.resources.grades_loot[item.props['grade']] + ' ' + item.props['class']).capitalize(),
+            'mainvalue': '%s-%s' % pc.char_sheet.calc_attack_base(weapon=item.props),
             'mv_caption': 'Damage'
         }
         itm_headlines = self.context_ui.context_headline_info(self.context_ui.resources, 'headlines',
@@ -57,10 +57,13 @@ class Context:
                                                               images=None, text_dict=hl_text, cap_bgcolor='black',
                                                               page=None)
         body_text = {
-            'modifiers': '5-12 Base attack',
+            'modifiers': self.decorated_modifiers(item.props['mods']),
+            'de_buffs': self.decorated_de_buffs(item.props['de_buffs']),
+            'affixes': ' $n '.join([self.decorated_modifiers(affx['mods']) for affx in item.props['affixes']]),
+            'affix_de_buffs': ' $n '.join([self.decorated_de_buffs(affx['de_buffs']) for affx in item.props['affixes'] if affx['de_buffs']]),
             'desc': (item.props['desc'] + ' '),
-            'sell_price': str('Sell price: %s' % item.props['price_sell']),
-            'condition': str('Condition: %s' % item.props['condition_max'])
+            'sell_price': str('Sell price: %s' % treasure.calc_loot_stat(item.props, 'price_sell')),
+            'condition': str('Condition: %s/%s' % (item.props['condition'], treasure.calc_loot_stat(item.props, 'condition_max')))
         }
         itm_bodylines = self.context_ui.context_body_info(self.context_ui.resources, 'body_text',
                                                           (8, 104),
@@ -87,7 +90,7 @@ class Context:
                                   self.context_ui.resources.colors[decor_color]),
                                  sq_outsize=1, sq_bsize=0, sq_ldir=0, sq_fill=True)
         context_header = self.context_ui.text_add('context_header', (4, 4), (win_width - 8, 24),
-                                                caption=item.props['label'].upper(),
+                                                caption=treasure.loot_calc_name(item.props).upper(),
                                                 h_align='center', v_align='middle', cap_color='fnt_celeb',
                                                 cap_font='def_bold', images=(header_img,))
 
@@ -121,6 +124,32 @@ class Context:
                                                             self.pygame_settings.screen_res[0],
                                                             self.pygame_settings.screen_res[1])
         self.render_ui(self.context_rendered)
+
+    def decorated_modifiers(self, mods):
+        mod_list = []
+        for mod, vals in mods.items():
+            p_n = mod
+            vb_str = str(vals['value_base'])
+            if vals['value_type'] == 0:
+                vb_str = '=' + vb_str
+            elif vals['value_base'] >= 0 and p_n != 'att_base':
+                vb_str = '+' + vb_str
+            if 'value_spread' in vals:
+                vs_str = str(vals['value_base'] + vals['value_spread'])
+                if vals['value_base'] < 0 and (vals['value_spread'] + vals['value_base']) > 0:
+                    vs_str = '+' + vs_str
+                mod_num = '%s-%s %s' % (vb_str, vs_str, self.context_ui.resources.stat_captions[p_n])
+            else:
+                mod_num = '%s %s' % (vb_str, self.context_ui.resources.stat_captions[p_n])
+            mod_list.append(mod_num)
+        return ' $n '.join(mod_list)
+
+    def decorated_de_buffs(self, de_buffs):
+        deb_list = []
+        for deb in de_buffs:
+            deb_list.append(deb['label'])
+            # deb_list.append(deb['desc'])
+        return ' $n '.join(deb_list)
 
     def tick(self, pygame_settings, mouse_pointer):
         self.context_ui.tick(pygame_settings, mouse_pointer)

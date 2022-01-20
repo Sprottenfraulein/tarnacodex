@@ -94,11 +94,16 @@ class Realm:
                 self.view_maze_update(self.pc.x_sq, self.pc.y_sq)
                 self.render_update()
             if event.key == pygame.K_p:
-                test_item = treasure.Treasure(self.tile_sets, resources, self.pygame_settings.audio,
-                                              dbrequests.treasure_get_by_id(self.db.cursor, 'treasure', 3), stashed=True)
+                test_item = treasure.Treasure(3, self.db.cursor, self.tile_sets, resources, self.pygame_settings.audio
+                                              , stashed=True)
+                treasure.calc_level(8, test_item.props)
+                treasure.calc_grade(self.db.cursor, 2, test_item.props)
+                treasure.loot_validate(test_item.props)
                 self.pc.char_sheet.inventory.append(test_item)
-                test_item = treasure.Treasure(self.tile_sets, resources, self.pygame_settings.audio,
-                                              dbrequests.treasure_get_by_id(self.db.cursor, 'treasure', 5), stashed=True)
+                test_item = treasure.Treasure(5, self.db.cursor, self.tile_sets, resources, self.pygame_settings.audio,
+                                              dbrequests.treasure_get_by_id(self.db.cursor, 5), stashed=True)
+                treasure.calc_level(45, test_item.props)
+                treasure.loot_validate(test_item.props)
                 self.pc.char_sheet.inventory.append(test_item)
 
         if event.type == pygame.KEYUP:

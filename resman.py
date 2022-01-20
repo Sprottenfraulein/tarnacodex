@@ -9,12 +9,64 @@ from library import counter
 class ResMan:
     def __init__(self):
         # declaring names
-        self.grades = (
+        self.grades_loot = (
             'common', 'rare', 'enchanted', 'legendary', 'unique'
         )
         self.grade_colors = (
             'gray_light', 'bright_gold', 'indigo', 'fnt_attent', 'sun'
         )
+        self.stat_captions = {
+            'attr_str': 'Strength',
+            'attr_dex': 'Dexterity',
+            'attr_con': 'Constitution',
+            'attr_int': 'Intelligence',
+            'attr_wis': 'Wisdom',
+            'attr_cha': 'Charisma',
+            'HP': 'Hit points',
+            'MP': 'Magic points',
+            'FOOD': 'Food',
+            'att_base': 'Base attack',
+            'att_physical': 'Physical attack',
+            'att_fire': 'Fire attack',
+            'att_poison': 'Poison attack',
+            'att_ice': 'Ice attack',
+            'att_lightning': 'Lightning attack',
+            'att_arcane': 'Arcane attack',
+            'def_melee': 'Melee defence',
+            'def_ranged': 'Missile defence',
+            'def_physical': 'Physical resistance',
+            'def_fire': 'Fire resistance',
+            'def_poison': 'Poison resistance',
+            'def_ice': 'Ice resistance',
+            'def_lightning': 'Lightning resistance',
+            'def_arcane': 'Arcane resistance',
+
+            'prof_provoke': 'Aggro distance',  # distance of mobs becoming aggressive
+            'prof_evade': 'Evade chance',  # avoid being hit by enemy
+            'prof_crit': 'Critical hit chance',  # chance of critical attack
+            'prof_thorns': 'Thorns',  # in percents x10 (100% = 1000), returns all close damage to attacker.
+            'prof_reflect': 'Missile reflect',  # in percents x10 (100% = 1000), returns all ranged damage to attacker.
+
+            'prof_picklock': 'Lockpicking',  # open locked doors without keys
+            'prof_detect': 'Traps detection',  # make trap or hidden door visible
+            'prof_disarm': 'Traps disarming',  # dismantle a trap
+
+            'prof_findgold': 'Find gold',  # in percents x10 (100% = 1000), increases gold amounts dropped.
+            'prof_findfood': 'Find food',  # in percents x10 (100% = 1000), increases food amounts dropped.
+            'prof_findammo': 'Find ammo',  # in percents x10 (100% = 1000), increases ammo amounts dropped.
+            'prof_findore': 'Find ores',
+            # number competes against ore deposit level x10 to successfully drop an ore. based on intelligence
+            'prof_findmagic': 'Find magical items',  # increases quality of drop items
+
+            'prof_lore': 'Lore',  # identify an item
+            'prof_trade': 'Trade',  # buy cheaper
+            'prof_craft': 'Crafting skills',  # number competes against item difficulty to successfully craft. based on intelligence
+
+            'prof_bonusexp': 'Experience',
+            
+            'condition_max': 'Durability'
+
+        }
         # Declaring game colors.
         self.colors = {
             'fnt_muted': (200, 50, 0),

@@ -13,12 +13,12 @@ class CharSheet:
         self.level = chr_level
 
         self.attributes = {
-            'STR': 0,
-            'DEX': 0,
-            'CON': 0,
-            'INT': 0,
-            'WIS': 0,
-            'CHA': 0
+            'attr_str': 0,
+            'attr_dex': 0,
+            'attr_con': 0,
+            'attr_int': 0,
+            'attr_wis': 0,
+            'attr_cha': 0
         }
         self.attr_rate = 1
 
@@ -60,27 +60,27 @@ class CharSheet:
         self.skills = {}
 
         self.profs = {
-            'provoke': 0,       # distance of mobs becoming aggressive
-            'evade': 0,         # avoid being hit by enemy
-            'crit': 0,          # chance of critical attack
-            'thorns': 0,        # in percents x10 (100% = 1000), returns all close damage to attacker.
-            'reflect': 0,       # in percents x10 (100% = 1000), returns all ranged damage to attacker.
+            'prof_provoke': 0,       # distance of mobs becoming aggressive
+            'prof_evade': 0,         # avoid being hit by enemy
+            'prof_crit': 0,          # chance of critical attack
+            'prof_thorns': 0,        # in percents x10 (100% = 1000), returns all close damage to attacker.
+            'prof_reflect': 0,       # in percents x10 (100% = 1000), returns all ranged damage to attacker.
 
-            'picklock': 0,      # open locked doors without keys
-            'detect': 0,        # make trap or hidden door visible
-            'disarm': 0,        # dismantle a trap
+            'prof_picklock': 0,      # open locked doors without keys
+            'prof_detect': 0,        # make trap or hidden door visible
+            'prof_disarm': 0,        # dismantle a trap
 
-            'findgold': 0,      # in percents x10 (100% = 1000), increases gold amounts dropped.
-            'findfood': 0,      # in percents x10 (100% = 1000), increases food amounts dropped.
-            'findammo': 0,      # in percents x10 (100% = 1000), increases ammo amounts dropped.
-            'findore': 0,       # number competes against ore deposit level x10 to successfully drop an ore. based on intelligence
-            'findmagic': 0,     # increases quality of drop items
+            'prof_findgold': 0,      # in percents x10 (100% = 1000), increases gold amounts dropped.
+            'prof_findfood': 0,      # in percents x10 (100% = 1000), increases food amounts dropped.
+            'prof_findammo': 0,      # in percents x10 (100% = 1000), increases ammo amounts dropped.
+            'prof_findore': 0,       # number competes against ore deposit level x10 to successfully drop an ore. based on intelligence
+            'prof_findmagic': 0,     # increases quality of drop items
 
-            'lore': 0,          # identify an item
-            'trade': 0,         # buy cheaper
-            'craft': 0,         # number competes against item difficulty to successfully craft. based on intelligence
+            'prof_lore': 0,          # identify an item
+            'prof_trade': 0,         # buy cheaper
+            'prof_craft': 0,         # number competes against item difficulty to successfully craft. based on intelligence
 
-            'bonusexp': 0       # in percents x10 (100% = 1000), increases exp amounts received.
+            'prof_bonusexp': 0       # in percents x10 (100% = 1000), increases exp amounts received.
         }
         # dictionary of stat alterations. pairs "stat: value" added during game.
         self.de_buffs = {}
@@ -113,12 +113,12 @@ class CharSheet:
         self.gold_coins = 1000
 
     def calc_hp(self):
-        con_mods = self.equipment_mod('CON') + self.buff_mod('CON')
+        con_mods = self.equipment_mod('attr_con') + self.buff_mod('attr_con')
         try:
-            con_mods += self.modifiers['CON']
+            con_mods += self.modifiers['attr_con']
         except KeyError:
             pass
-        natural_hp = (self.attributes['CON'] + con_mods) * 2
+        natural_hp = (self.attributes['attr_con'] + con_mods) * 2
         hp_mods = self.equipment_mod('HP') + self.buff_mod('HP')
         try:
             hp_mods += self.modifiers['HP']
@@ -128,12 +128,12 @@ class CharSheet:
         return total_hp
 
     def calc_mp(self):
-        int_mods = self.equipment_mod('INT') + self.buff_mod('INT')
+        int_mods = self.equipment_mod('attr_int') + self.buff_mod('attr_int')
         try:
-            int_mods += self.modifiers['INT']
+            int_mods += self.modifiers['attr_int']
         except KeyError:
             pass
-        natural_mp = (self.attributes['INT'] + int_mods) * 2
+        natural_mp = (self.attributes['attr_int'] + int_mods) * 2
         mp_mods = self.equipment_mod('MP') + self.buff_mod('MP')
         try:
             mp_mods += self.modifiers['MP']
@@ -142,36 +142,46 @@ class CharSheet:
         total_mp = natural_mp + mp_mods
         return total_mp
 
-    def calc_attack_base(self):
-        try:
-            dmg_weapon_min, dmg_weapon_max = self.equipped[2]['att_base']
-            weapon_type = self.equipped[2]['item_type']
-        except KeyError:
-            dmg_weapon_min = dmg_weapon_max = 1
-            weapon_type = 'melee'
+    def calc_attack_base(self, weapon=None):
+        if weapon is not None:
+            try:
+                dmg_weapon_min, dmg_weapon_max = weapon['mods']['att_base']['value_base'], \
+                                                 weapon['mods']['att_base']['value_base'] + weapon['mods']['att_base']['value_spread']
+                weapon_type = weapon['item_type']
+            except KeyError:
+                dmg_weapon_min = dmg_weapon_max = 1
+                weapon_type = 'wpn_melee'
+        else:
+            try:
+                dmg_weapon_min, dmg_weapon_max = self.equipped[2]['mods']['att_base']['value_base'], \
+                                                 self.equipped[2]['mods']['att_base']['value_base'] + self.equipped[2]['mods']['att_base']['value_spread']
+                weapon_type = self.equipped[2]['item_type']
+            except TypeError:
+                dmg_weapon_min = dmg_weapon_max = 1
+                weapon_type = 'wpn_melee'
 
         attr_multiplier = 1
         if weapon_type == 'wpn_melee':
-            str_mods = self.equipment_mod('STR') + self.buff_mod('STR')
+            str_mods = self.equipment_mod('attr_str') + self.buff_mod('attr_str')
             try:
-                str_mods += self.modifiers['STR']
+                str_mods += self.modifiers['attr_str']
             except KeyError:
                 pass
-            attr_multiplier = self.attributes['STR'] + str_mods
+            attr_multiplier = self.attributes['attr_str'] + str_mods
         elif weapon_type == 'wpn_ranged':
-            dex_mods = self.equipment_mod('DEX') + self.buff_mod('DEX')
+            dex_mods = self.equipment_mod('attr_dex') + self.buff_mod('attr_dex')
             try:
-                dex_mods += self.modifiers['DEX']
+                dex_mods += self.modifiers['attr_dex']
             except KeyError:
                 pass
-            attr_multiplier = self.attributes['DEX'] + dex_mods
+            attr_multiplier = self.attributes['attr_dex'] + dex_mods
         elif weapon_type == 'wpn_magic':
-            int_mods = self.equipment_mod('INT') + self.buff_mod('INT')
+            int_mods = self.equipment_mod('attr_int') + self.buff_mod('attr_int')
             try:
-                int_mods += self.modifiers['INT']
+                int_mods += self.modifiers['attr_int']
             except KeyError:
                 pass
-            attr_multiplier = self.attributes['INT'] + int_mods
+            attr_multiplier = self.attributes['attr_int'] + int_mods
         attack_base_min, attack_base_max = dmg_weapon_min * attr_multiplier, dmg_weapon_max * attr_multiplier
         return attack_base_min, attack_base_max
 
@@ -185,12 +195,12 @@ class CharSheet:
         return total_mods
 
     def calc_defence_melee(self):
-        str_mods = self.equipment_mod('STR') + self.buff_mod('STR')
+        str_mods = self.equipment_mod('attr_str') + self.buff_mod('attr_str')
         try:
-            str_mods += self.modifiers['STR']
+            str_mods += self.modifiers['attr_str']
         except KeyError:
             pass
-        natural_def = self.attributes['STR'] + str_mods
+        natural_def = self.attributes['attr_str'] + str_mods
         def_mods = self.equipment_mod('def_melee') + self.buff_mod('def_melee')
         try:
             def_mods += self.modifiers['def_melee']
@@ -200,12 +210,12 @@ class CharSheet:
         return total_def
 
     def calc_defence_ranged(self):
-        dex_mods = self.equipment_mod('DEX') + self.buff_mod('DEX')
+        dex_mods = self.equipment_mod('attr_dex') + self.buff_mod('attr_dex')
         try:
-            dex_mods += self.modifiers['DEX']
+            dex_mods += self.modifiers['attr_dex']
         except KeyError:
             pass
-        natural_def = self.attributes['DEX'] + dex_mods
+        natural_def = self.attributes['attr_dex'] + dex_mods
         def_mods = self.equipment_mod('def_ranged') + self.buff_mod('def_ranged')
         try:
             def_mods += self.modifiers['def_ranged']
@@ -215,12 +225,12 @@ class CharSheet:
         return total_def
 
     def calc_defence_physical(self):
-        cha_mods = self.equipment_mod('CHA') + self.buff_mod('CHA')
+        cha_mods = self.equipment_mod('attr_cha') + self.buff_mod('attr_cha')
         try:
-            cha_mods += self.modifiers['CHA']
+            cha_mods += self.modifiers['attr_cha']
         except KeyError:
             pass
-        natural_def = self.attributes['CHA'] + cha_mods
+        natural_def = self.attributes['attr_cha'] + cha_mods
         def_mods = self.equipment_mod('def_physical') + self.buff_mod('def_physical')
         try:
             def_mods += self.modifiers['def_physical']
@@ -230,12 +240,12 @@ class CharSheet:
         return total_def
 
     def calc_def_elemental(self, defence_id):
-        wis_mods = self.equipment_mod('WIS') + self.buff_mod('WIS')
+        wis_mods = self.equipment_mod('attr_wis') + self.buff_mod('attr_wis')
         try:
-            wis_mods += self.modifiers['WIS']
+            wis_mods += self.modifiers['attr_wis']
         except KeyError:
             pass
-        natural_def = self.attributes['WIS'] + wis_mods
+        natural_def = self.attributes['attr_wis'] + wis_mods
         def_mods = self.equipment_mod(defence_id) + self.buff_mod(defence_id)
         try:
             def_mods += self.modifiers[defence_id]
@@ -256,6 +266,8 @@ class CharSheet:
     def equipment_mod(self, stat_name):
         mod = 0
         for eq_item in self.equipped:
+            if eq_item is None:
+                continue
             try:
                 mod += eq_item.props['mods'][stat_name]
             except KeyError:
@@ -264,7 +276,7 @@ class CharSheet:
 
     def buff_mod(self, stat_name):
         mod = 0
-        for de_buff in self.de_buffs.values():
+        for de_buff in self.de_buffs:
             try:
                 mod += de_buff['mods'][stat_name]
             except KeyError:
