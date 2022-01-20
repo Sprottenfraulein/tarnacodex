@@ -1,0 +1,293 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="BranchesTreeState">
+    <expand>
+      <path>
+        <item name="ROOT" type="e8cecc67:BranchNodeDescriptor" />
+        <item name="LOCAL_ROOT" type="e8cecc67:BranchNodeDescriptor" />
+      </path>
+      <path>
+        <item name="ROOT" type="e8cecc67:BranchNodeDescriptor" />
+        <item name="REMOTE_ROOT" type="e8cecc67:BranchNodeDescriptor" />
+      </path>
+      <path>
+        <item name="ROOT" type="e8cecc67:BranchNodeDescriptor" />
+        <item name="REMOTE_ROOT" type="e8cecc67:BranchNodeDescriptor" />
+        <item name="GROUP_NODE:origin" type="e8cecc67:BranchNodeDescriptor" />
+      </path>
+    </expand>
+    <select>
+      <path>
+        <item name="ROOT" type="e8cecc67:BranchNodeDescriptor" />
+        <item name="REMOTE_ROOT" type="e8cecc67:BranchNodeDescriptor" />
+        <item name="GROUP_NODE:origin" type="e8cecc67:BranchNodeDescriptor" />
+        <item name="BRANCH:origin/main" type="e8cecc67:BranchNodeDescriptor" />
+      </path>
+    </select>
+  </component>
+  <component name="ChangeListManager">
+    <list default="true" id="cc130b1c-00f5-48a7-860f-78f09248cfe9" name="Default Changelist" comment="Gitignore updated." />
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="FileTemplateManagerImpl">
+    <option name="RECENT_TEMPLATES">
+      <list>
+        <option value="Python Script" />
+      </list>
+    </option>
+  </component>
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+  </component>
+  <component name="ProjectId" id="23jgfDr12TnZQRaW7PMpq4SRjSi" />
+  <component name="ProjectLevelVcsManager" settingsEditedManually="true">
+    <ConfirmationsSetting value="2" id="Add" />
+  </component>
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showLibraryContents" value="true" />
+  </component>
+  <component name="PropertiesComponent">
+    <property name="RunOnceActivity.OpenProjectViewOnStart" value="true" />
+    <property name="TODO_SCOPE" value="All Places" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$/wins" />
+    <property name="restartRequiresConfirmation" value="false" />
+    <property name="settings.editor.selected.configurable" value="vcs.Git" />
+  </component>
+  <component name="RecentsManager">
+    <key name="MoveFile.RECENT_KEYS">
+      <recent name="D:\EZpink\Documents\python\unnamedfinal\objects" />
+    </key>
+    <key name="CopyFile.RECENT_KEYS">
+      <recent name="D:\EZpink\Documents\python\unnamedfinal\wins" />
+      <recent name="D:\EZpink\Documents\python\unnamedfinal\library" />
+    </key>
+  </component>
+  <component name="RunManager">
+    <configuration name="main" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
+      <module name="unnamedfinal" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/main.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+      <option name="REDIRECT_INPUT" value="false" />
+      <option name="INPUT_FILE" value="" />
+      <method v="2" />
+    </configuration>
+    <recent_temporary>
+      <list>
+        <item itemvalue="Python.main" />
+      </list>
+    </recent_temporary>
+  </component>
+  <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="cc130b1c-00f5-48a7-860f-78f09248cfe9" name="Default Changelist" comment="" />
+      <created>1642253012991</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1642253012991</updated>
+    </task>
+    <task id="LOCAL-00001" summary="Attached git to pycharm">
+      <created>1642254077425</created>
+      <option name="number" value="00001" />
+      <option name="presentableId" value="LOCAL-00001" />
+      <option name="project" value="LOCAL" />
+      <updated>1642254077425</updated>
+    </task>
+    <task id="LOCAL-00002" summary="Readme update">
+      <created>1642255066508</created>
+      <option name="number" value="00002" />
+      <option name="presentableId" value="LOCAL-00002" />
+      <option name="project" value="LOCAL" />
+      <updated>1642255066508</updated>
+    </task>
+    <task id="LOCAL-00003" summary="Readme update">
+      <created>1642255500012</created>
+      <option name="number" value="00003" />
+      <option name="presentableId" value="LOCAL-00003" />
+      <option name="project" value="LOCAL" />
+      <updated>1642255500012</updated>
+    </task>
+    <task id="LOCAL-00004" summary="Database reworked.&#10;Char stats math updated.">
+      <created>1642333485731</created>
+      <option name="number" value="00004" />
+      <option name="presentableId" value="LOCAL-00004" />
+      <option name="project" value="LOCAL" />
+      <updated>1642333485731</updated>
+    </task>
+    <task id="LOCAL-00005" summary="Trap db request table name fixed.&#10;Testing db treasure request added.">
+      <created>1642336558352</created>
+      <option name="number" value="00005" />
+      <option name="presentableId" value="LOCAL-00005" />
+      <option name="project" value="LOCAL" />
+      <updated>1642336558352</updated>
+    </task>
+    <task id="LOCAL-00006" summary="Rendering tweaked for the better.&#10;Two items added for inventory testing.&#10;Basic item management implemented (dragging and dropping, picking up, moving around).&#10;Overall improvements (or not) of various procedures.">
+      <created>1642433947071</created>
+      <option name="number" value="00006" />
+      <option name="presentableId" value="LOCAL-00006" />
+      <option name="project" value="LOCAL" />
+      <updated>1642433947071</updated>
+    </task>
+    <task id="LOCAL-00007" summary="Context info window added.&#10;Rich text field object added.&#10;Text rendering half-fixed and tweaked.">
+      <created>1642541148311</created>
+      <option name="number" value="00007" />
+      <option name="presentableId" value="LOCAL-00007" />
+      <option name="project" value="LOCAL" />
+      <updated>1642541148311</updated>
+    </task>
+    <task id="LOCAL-00008" summary="Context info has been developed further, now affixes and (de)buffs showing up properly (mostly). &#10;Database requests updated with more functions.&#10;Database updated.&#10;Loot sounds and images resource managing has been optimised.&#10;Character stats reworked a bit.&#10;Some images edited.">
+      <created>1642696545950</created>
+      <option name="number" value="00008" />
+      <option name="presentableId" value="LOCAL-00008" />
+      <option name="project" value="LOCAL" />
+      <updated>1642696545950</updated>
+    </task>
+    <task id="LOCAL-00009" summary="Readme updated">
+      <created>1642697832286</created>
+      <option name="number" value="00009" />
+      <option name="presentableId" value="LOCAL-00009" />
+      <option name="project" value="LOCAL" />
+      <updated>1642697832286</updated>
+    </task>
+    <task id="LOCAL-00010" summary="Gitignore updated.">
+      <created>1642698163155</created>
+      <option name="number" value="00010" />
+      <option name="presentableId" value="LOCAL-00010" />
+      <option name="project" value="LOCAL" />
+      <updated>1642698163155</updated>
+    </task>
+    <option name="localTasksCounter" value="11" />
+    <servers />
+  </component>
+  <component name="Vcs.Log.Tabs.Properties">
+    <option name="TAB_STATES">
+      <map>
+        <entry key="MAIN">
+          <value>
+            <State>
+              <option name="FILTERS">
+                <map>
+                  <entry key="branch">
+                    <value>
+                      <list>
+                        <option value="origin/main" />
+                      </list>
+                    </value>
+                  </entry>
+                </map>
+              </option>
+            </State>
+          </value>
+        </entry>
+      </map>
+    </option>
+    <option name="oldMeFiltersMigrated" value="true" />
+  </component>
+  <component name="VcsManagerConfiguration">
+    <MESSAGE value="Attached git to pycharm" />
+    <MESSAGE value="Readme update" />
+    <MESSAGE value="Database reworked.&#10;Char stats math updated." />
+    <MESSAGE value="Trap db request table name fixed.&#10;Testing db treasure request added." />
+    <MESSAGE value="Rendering tweaked for the better.&#10;Two items added for inventory testing.&#10;Basic item management implemented (dragging and dropping, picking up, moving around).&#10;Overall improvements (or not) of various procedures." />
+    <MESSAGE value="Context info window added.&#10;Rich text field object added.&#10;Text rendering half-fixed and tweaked." />
+    <MESSAGE value="Context info has been developed further, now affixes and (de)buffs showing up properly (mostly). &#10;Database requests updated with more functions.&#10;Database updated.&#10;Loot sounds and images resource managing has been optimised.&#10;Character stats reworked a bit.&#10;Some images edited." />
+    <MESSAGE value="Readme updated" />
+    <MESSAGE value="Gitignore updated." />
+    <option name="LAST_COMMIT_MESSAGE" value="Gitignore updated." />
+  </component>
+  <component name="WindowStateProjectService">
+    <state x="490" y="70" key="CommitChangelistDialog2" timestamp="1642254803053">
+      <screen x="0" y="0" width="1680" height="1010" />
+    </state>
+    <state x="490" y="70" key="CommitChangelistDialog2/0.0.1680.1010@0.0.1680.1010" timestamp="1642254803053" />
+    <state width="1585" height="466" key="DebuggerActiveHint" timestamp="1642689990100">
+      <screen x="0" y="0" width="1680" height="1010" />
+    </state>
+    <state width="1585" height="466" key="DebuggerActiveHint/0.0.1680.1010@0.0.1680.1010" timestamp="1642689990100" />
+    <state width="540" height="442" key="Diff.GoToChangePopup" timestamp="1642697330208">
+      <screen x="0" y="0" width="1680" height="1010" />
+    </state>
+    <state width="540" height="442" key="Diff.GoToChangePopup/0.0.1680.1010@0.0.1680.1010" timestamp="1642697330208" />
+    <state x="110" y="100" width="1480" height="810" key="DiffContextDialog" timestamp="1642697898834">
+      <screen x="0" y="0" width="1680" height="1010" />
+    </state>
+    <state x="110" y="100" width="1480" height="810" key="DiffContextDialog/0.0.1680.1010@0.0.1680.1010" timestamp="1642697898834" />
+    <state x="630" y="259" key="FileChooserDialogImpl" timestamp="1642486418529">
+      <screen x="0" y="0" width="1680" height="1010" />
+    </state>
+    <state x="630" y="259" key="FileChooserDialogImpl/0.0.1680.1010@0.0.1680.1010" timestamp="1642486418529" />
+    <state width="1659" height="272" key="GridCell.Tab.0.bottom" timestamp="1642696944332">
+      <screen x="0" y="0" width="1680" height="1010" />
+    </state>
+    <state width="1659" height="272" key="GridCell.Tab.0.bottom/0.0.1680.1010@0.0.1680.1010" timestamp="1642696944332" />
+    <state width="1659" height="272" key="GridCell.Tab.0.center" timestamp="1642696944332">
+      <screen x="0" y="0" width="1680" height="1010" />
+    </state>
+    <state width="1659" height="272" key="GridCell.Tab.0.center/0.0.1680.1010@0.0.1680.1010" timestamp="1642696944332" />
+    <state width="1659" height="272" key="GridCell.Tab.0.left" timestamp="1642696944332">
+      <screen x="0" y="0" width="1680" height="1010" />
+    </state>
+    <state width="1659" height="272" key="GridCell.Tab.0.left/0.0.1680.1010@0.0.1680.1010" timestamp="1642696944332" />
+    <state width="1659" height="272" key="GridCell.Tab.0.right" timestamp="1642696944332">
+      <screen x="0" y="0" width="1680" height="1010" />
+    </state>
+    <state width="1659" height="272" key="GridCell.Tab.0.right/0.0.1680.1010@0.0.1680.1010" timestamp="1642696944332" />
+    <state width="1659" height="272" key="GridCell.Tab.1.bottom" timestamp="1642696944333">
+      <screen x="0" y="0" width="1680" height="1010" />
+    </state>
+    <state width="1659" height="272" key="GridCell.Tab.1.bottom/0.0.1680.1010@0.0.1680.1010" timestamp="1642696944333" />
+    <state width="1659" height="272" key="GridCell.Tab.1.center" timestamp="1642696944332">
+      <screen x="0" y="0" width="1680" height="1010" />
+    </state>
+    <state width="1659" height="272" key="GridCell.Tab.1.center/0.0.1680.1010@0.0.1680.1010" timestamp="1642696944332" />
+    <state width="1659" height="272" key="GridCell.Tab.1.left" timestamp="1642696944332">
+      <screen x="0" y="0" width="1680" height="1010" />
+    </state>
+    <state width="1659" height="272" key="GridCell.Tab.1.left/0.0.1680.1010@0.0.1680.1010" timestamp="1642696944332" />
+    <state width="1659" height="272" key="GridCell.Tab.1.right" timestamp="1642696944333">
+      <screen x="0" y="0" width="1680" height="1010" />
+    </state>
+    <state width="1659" height="272" key="GridCell.Tab.1.right/0.0.1680.1010@0.0.1680.1010" timestamp="1642696944333" />
+    <state x="351" y="149" key="SettingsEditor" timestamp="1642253657141">
+      <screen x="0" y="0" width="1680" height="1010" />
+    </state>
+    <state x="351" y="149" key="SettingsEditor/0.0.1680.1010@0.0.1680.1010" timestamp="1642253657141" />
+    <state x="378" y="418" key="VCS.ChangelistChooser" timestamp="1642697611405">
+      <screen x="0" y="0" width="1680" height="1010" />
+    </state>
+    <state x="378" y="418" key="VCS.ChangelistChooser/0.0.1680.1010@0.0.1680.1010" timestamp="1642697611405" />
+    <state x="680" y="374" key="VCS.EditChangelistDialog" timestamp="1642255774149">
+      <screen x="0" y="0" width="1680" height="1010" />
+    </state>
+    <state x="680" y="374" key="VCS.EditChangelistDialog/0.0.1680.1010@0.0.1680.1010" timestamp="1642255774149" />
+    <state x="442" y="241" key="Vcs.Push.Dialog.v2" timestamp="1642698183583">
+      <screen x="0" y="0" width="1680" height="1010" />
+    </state>
+    <state x="442" y="241" key="Vcs.Push.Dialog.v2/0.0.1680.1010@0.0.1680.1010" timestamp="1642698183583" />
+    <state x="667" y="418" key="com.intellij.openapi.vcs.update.UpdateOrStatusOptionsDialogupdate-v2" timestamp="1642696749163">
+      <screen x="0" y="0" width="1680" height="1010" />
+    </state>
+    <state x="667" y="418" key="com.intellij.openapi.vcs.update.UpdateOrStatusOptionsDialogupdate-v2/0.0.1680.1010@0.0.1680.1010" timestamp="1642696749163" />
+    <state x="513" y="221" width="672" height="678" key="search.everywhere.popup" timestamp="1642362884371">
+      <screen x="0" y="0" width="1680" height="1010" />
+    </state>
+    <state x="513" y="221" width="672" height="678" key="search.everywhere.popup/0.0.1680.1010@0.0.1680.1010" timestamp="1642362884371" />
+  </component>
+</project>
