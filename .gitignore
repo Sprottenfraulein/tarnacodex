@@ -112,3 +112,8 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+
+# Krita files
+*.kra
+*.kra~
+*.png~
