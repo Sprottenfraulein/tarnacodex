@@ -173,7 +173,21 @@
       <option name="project" value="LOCAL" />
       <updated>1642698163155</updated>
     </task>
-    <option name="localTasksCounter" value="11" />
+    <task id="LOCAL-00011" summary="Gitignore updated.">
+      <created>1642698358870</created>
+      <option name="number" value="00011" />
+      <option name="presentableId" value="LOCAL-00011" />
+      <option name="project" value="LOCAL" />
+      <updated>1642698358870</updated>
+    </task>
+    <task id="LOCAL-00012" summary="Gitignore updated.">
+      <created>1642698595071</created>
+      <option name="number" value="00012" />
+      <option name="presentableId" value="LOCAL-00012" />
+      <option name="project" value="LOCAL" />
+      <updated>1642698595071</updated>
+    </task>
+    <option name="localTasksCounter" value="13" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -277,10 +291,14 @@
       <screen x="0" y="0" width="1680" height="1010" />
     </state>
     <state x="680" y="374" key="VCS.EditChangelistDialog/0.0.1680.1010@0.0.1680.1010" timestamp="1642255774149" />
-    <state x="442" y="241" key="Vcs.Push.Dialog.v2" timestamp="1642698183583">
+    <state x="442" y="241" key="Vcs.Push.Dialog.v2" timestamp="1642698677482">
       <screen x="0" y="0" width="1680" height="1010" />
     </state>
-    <state x="442" y="241" key="Vcs.Push.Dialog.v2/0.0.1680.1010@0.0.1680.1010" timestamp="1642698183583" />
+    <state x="442" y="241" key="Vcs.Push.Dialog.v2/0.0.1680.1010@0.0.1680.1010" timestamp="1642698677482" />
+    <state x="648" y="238" key="com.intellij.openapi.vcs.changes.SpecificFilesViewDialog" timestamp="1642698475572">
+      <screen x="0" y="0" width="1680" height="1010" />
+    </state>
+    <state x="648" y="238" key="com.intellij.openapi.vcs.changes.SpecificFilesViewDialog/0.0.1680.1010@0.0.1680.1010" timestamp="1642698475572" />
     <state x="667" y="418" key="com.intellij.openapi.vcs.update.UpdateOrStatusOptionsDialogupdate-v2" timestamp="1642696749163">
       <screen x="0" y="0" width="1680" height="1010" />
     </state>
