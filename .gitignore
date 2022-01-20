@@ -117,3 +117,6 @@ dmypy.json
 *.kra
 *.kra~
 *.png~
+
+# dbeaver files
+.project
