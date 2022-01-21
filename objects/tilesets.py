@@ -45,9 +45,9 @@ class Tilesets:
     def get_image(self, image_id, dimensions, indexes):
         image_sheet = self.sets_dict[image_id]
         sheet_width = image_sheet.get_width()
-        sheet_height = image_sheet.get_height()
+        # sheet_height = image_sheet.get_height()
         sh_tiles_hor = sheet_width // dimensions[0]
-        sh_tiles_ver = sheet_height // dimensions[1]
+        # sh_tiles_ver = sheet_height // dimensions[1]
         image_list = []
         for ind in indexes:
             ver, hor = divmod(ind, sh_tiles_hor)

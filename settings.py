@@ -2,7 +2,7 @@
 
 # System settings
 # Application resolution.
-APP_RES = (1280, 800)
+APP_RES = (1296, 816)
 app_scale = 2
 # Application caption (visible in window title or OS apps manager)
 APP_CAPTION = 'UNNAMED FINAL'

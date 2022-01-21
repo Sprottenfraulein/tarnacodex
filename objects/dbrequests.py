@@ -154,3 +154,14 @@ def get_affixes(cursor, max_level, max_grade, item_types, roll, is_suffix=None):
     for row in rows:
         affix_ids.append(row[0])
     return affix_ids
+
+
+def monster_get_by_id(cursor, monster_id):
+    ex_str = "SELECT * FROM monsters WHERE monster_id=?"
+    cursor.execute(ex_str, (monster_id,))
+    rows = cursor.fetchall()
+    column_names = [column[0] for column in cursor.description]
+    monster_dict = {}
+    for i in range(0, len(column_names)):
+        monster_dict[column_names[i]] = rows[0][i]
+    return monster_dict

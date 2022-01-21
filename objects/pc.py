@@ -96,22 +96,24 @@ class PC:
         # sq_flags = maze.flag_array[round(self.y_sq)][round(self.x_sq)]
         # sq_flags.mov = False
         if realm.view_maze_follow:
-            """self.view_maze_x_sq += (self.view_maze_follow.x_sq + 0.5 - (
-                    self.view_maze_x_sq + self.view_maze_width_sq / 2)) / 2 - (self.pc.x_sq - self.ren_x)
-            self.view_maze_y_sq += (self.view_maze_follow.y_sq + 0.5 - (
-                    self.view_maze_y_sq + self.view_maze_height_sq / 2)) / 2 - (self.pc.y_sq - self.ren_y)"""
+
             realm.view_maze_update(self.x_sq, self.y_sq)
 
-            if abs(realm.ren_x_sq - realm.view_maze_x_sq) >= 1 or abs(realm.ren_y_sq - realm.view_maze_y_sq) >= 1:
+            # if abs(realm.ren_x_sq - realm.view_maze_x_sq) >= 1 or abs(realm.ren_y_sq - realm.view_maze_y_sq) >= 1:
+            if abs(self.x_sq - self.prev_x_sq) >= 1 or abs(self.y_sq - self.prev_y_sq) >= 1:
 
                 # visibility update
 
+                # realm.calc_vision_alt()
                 realm.calc_vision_alt()
+                self.prev_x_sq = self.x_sq
+                self.prev_y_sq = self.y_sq
+                """
 
                 # creating shortlists
                 realm.shortlists_update()
 
-                realm.render_update()
+                realm.render_update()"""
 
 
     def state_change(self, new_state):

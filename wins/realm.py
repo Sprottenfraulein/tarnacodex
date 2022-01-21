@@ -1,6 +1,6 @@
 import pygame
-from library import calc2darray, maths, logfun
-from objects import treasure, dbrequests
+from library import calc2darray, maths, logfun, pydraw
+from objects import treasure, dbrequests, monster, animations
 import math
 
 
@@ -16,11 +16,13 @@ class Realm:
         self.doors_short = set()
         self.traps_short = set()
         self.loot_short = set()
+        self.mobs_short = set()
 
         self.draw_view_maze = False
         self.redraw_maze_decor = True
         self.redraw_maze_obj = True
         self.redraw_maze_loot = True
+        self.redraw_maze_mobs = True
         self.redraw_pc = True
         self.square_size = 24
         self.square_scale = 2
@@ -42,14 +44,17 @@ class Realm:
         self.pc = None
 
         self.view_maze_surface = None
+        self.vision_sq_prev = None
 
-        self.dark_edges = self.tile_sets.get_image('dark_edges', (24, 24), (0,1,2,3))
+        self.dark_edges = self.tile_sets.get_image('dark_edges', (24, 24), (0, 1, 2, 3))
+        self.target_mark = self.tile_sets.get_image('interface', (24, 24), (10, 11, 12, 13))
 
     def launch(self, audio, settings):
         # game pack must include dungeon set, character
-        self.view_maze_surface = pygame.Surface(((self.view_maze_width_sq + self.view_bleed_sq * 2) * self.square_size * self.square_scale,
-                                                (self.view_maze_height_sq + self.view_bleed_sq * 2) * self.square_size * self.square_scale),
-                                                pygame.HWSURFACE)
+        self.view_maze_surface = pygame.Surface(
+            ((self.view_maze_width_sq + self.view_bleed_sq * 2) * self.square_size * self.square_scale,
+             (self.view_maze_height_sq + self.view_bleed_sq * 2) * self.square_size * self.square_scale),
+            pygame.HWSURFACE)
 
         self.view_maze_follow = self.pc
         self.view_maze_update(self.pc.x_sq, self.pc.y_sq)
@@ -96,15 +101,25 @@ class Realm:
             if event.key == pygame.K_p:
                 test_item = treasure.Treasure(3, self.db.cursor, self.tile_sets, resources, self.pygame_settings.audio
                                               , stashed=True)
-                treasure.calc_level(8, test_item.props)
-                treasure.calc_grade(self.db.cursor, 2, test_item.props)
-                treasure.loot_validate(test_item.props)
+                # treasure.calc_level(8, test_item.props)
+                # treasure.calc_grade(self.db.cursor, 2, test_item.props)
+                # treasure.loot_validate(test_item.props)
                 self.pc.char_sheet.inventory.append(test_item)
                 test_item = treasure.Treasure(5, self.db.cursor, self.tile_sets, resources, self.pygame_settings.audio,
                                               dbrequests.treasure_get_by_id(self.db.cursor, 5), stashed=True)
-                treasure.calc_level(45, test_item.props)
+                treasure.calc_level(3, test_item.props)
                 treasure.loot_validate(test_item.props)
                 self.pc.char_sheet.inventory.append(test_item)
+            if event.key == pygame.K_m:
+                for i in range(0, 5, 2):
+                    for j in range(0, 10, 2):
+                        nmon = monster.Monster(self.pc.x_sq + j, self.pc.y_sq + i, self.anims.get_animation('anthro_default'),
+                                               dbrequests.monster_get_by_id(self.db.cursor, 2),
+                                               state=0)
+                        self.maze.flag_array[round(nmon.y_sq)][round(nmon.x_sq)].mon = True
+                        self.maze.mobs.append(nmon)
+                self.shortlists_update()
+                self.render_update()
 
         if event.type == pygame.KEYUP:
             if event.key in (pygame.K_LEFT, pygame.K_RIGHT):
@@ -115,7 +130,7 @@ class Realm:
                 self.pc.move_instr_y = 0
 
         if event.type == pygame.MOUSEBUTTONDOWN:
-            if not self.square_check(self.xy_pixels_to_squares(self.mouse_pointer.xy),
+            if not self.square_check(self.mouse_pointer.xy,
                                      event.button, wins_dict, active_wins) and event.button == 1:
                 self.pc.move_instr_x, self.pc.move_instr_y = self.mouse_move(self.mouse_pointer.xy)
         elif event.type == pygame.MOUSEBUTTONUP:
@@ -126,14 +141,21 @@ class Realm:
                 return
             self.loot_drop(self.mouse_pointer.xy, log)
 
-        elif event.type == pygame.MOUSEMOTION and (self.pc.move_instr_y != 0 or self.pc.move_instr_x != 0):
-            self.pc.move_instr_x, self.pc.move_instr_y = self.mouse_move(self.mouse_pointer.xy)
+        elif event.type == pygame.MOUSEMOTION:
+            self.mob_check(self.mouse_pointer.xy, None, wins_dict, active_wins)
+            if self.pc.move_instr_y != 0 or self.pc.move_instr_x != 0:
+                self.pc.move_instr_x, self.pc.move_instr_y = self.mouse_move(self.mouse_pointer.xy)
 
     def tick(self, pygame_settings, mouse_pointer):
         self.maze.tick()
         self.pc.tick(self)
+        for mob in self.mobs_short:
+            mob.tick(self)
 
+        # creating shortlists
+        self.shortlists_update()
 
+        self.render_update()
 
     def draw(self, surface):
         self.stage_display(surface)
@@ -143,8 +165,12 @@ class Realm:
         if not self.draw_view_maze:
             return
 
-        if self.redraw_pc:
+        """if self.redraw_pc:
             self.pc_display(self.view_maze_surface)
+
+        if self.redraw_maze_mobs:
+            for mob in self.mobs_short:
+                self.stage_render(self.view_maze_surface, round(mob.y_sq - 1), round(mob.x_sq - 1), round(mob.y_sq + 1), round(mob.x_sq + 1), clear=False)"""
 
         # screen.blit(self.view_maze_surface, (self.view_maze_left, self.view_maze_top))
         pygame.transform.scale(self.view_maze_surface.subsurface(
@@ -196,6 +222,16 @@ class Realm:
                     surface.blit(dr.image[(self.maze.anim_frame + 1) % (len(dr.image))],
                                  ((dr.x_sq - self.ren_x_sq) * self.square_size + dr.off_x,
                                   (dr.y_sq - self.ren_y_sq) * self.square_size + dr.off_y))
+                if dr.alignment:
+                    if not self.maze.flag_array[dr.y_sq - 1][dr.x_sq].vis:
+                        surface.fill((1,1,1), ((dr.x_sq - self.ren_x_sq) * self.square_size,
+                                                (dr.y_sq - self.ren_y_sq - 1) * self.square_size,
+                                                self.square_size, self.square_size))
+                else:
+                    if not self.maze.flag_array[dr.y_sq][dr.x_sq - 1].vis:
+                        surface.fill((1,1,1), ((dr.x_sq - self.ren_x_sq - 1) * self.square_size,
+                                                (dr.y_sq - self.ren_y_sq) * self.square_size,
+                                                self.square_size, self.square_size))
 
         if self.redraw_maze_loot:
             for loot in self.loot_short:
@@ -204,86 +240,78 @@ class Realm:
                                  ((loot.x_sq - self.ren_x_sq) * self.square_size + loot.off_x,
                                   (loot.y_sq - self.ren_y_sq) * self.square_size + loot.off_y))
                 except IndexError:
-                    surface.blit(loot.props['image_floor'][(self.maze.anim_frame + 1) % (len(loot.props['image_floor']))],
-                                 ((loot.x_sq - self.ren_x_sq) * self.square_size + loot.off_x,
-                                  (loot.y_sq - self.ren_y_sq) * self.square_size + loot.off_y))
+                    surface.blit(
+                        loot.props['image_floor'][(self.maze.anim_frame + 1) % (len(loot.props['image_floor']))],
+                        ((loot.x_sq - self.ren_x_sq) * self.square_size + loot.off_x,
+                         (loot.y_sq - self.ren_y_sq) * self.square_size + loot.off_y))
 
-        ren_left = left_sq
-        ren_right = right_sq
-        ren_top = top_sq
-        ren_bottom = bottom_sq
+        for ren_pos_y in range(top_sq, bottom_sq):
+            for ren_pos_x in range(left_sq, right_sq):
+                # body
+                if (0 <= ren_pos_y < self.maze.height) and (0 <= ren_pos_x < self.maze.width):
 
-        ren_pos_x = ren_left
-        ren_pos_y = ren_top
+                    flags = self.maze.flag_array[ren_pos_y][ren_pos_x]
+                    if flags.vis:
+                        decors = self.maze.decor_array[ren_pos_y][ren_pos_x]
 
-        ren_count = 0
-        ren_max = (ren_right - ren_left) * (ren_bottom - ren_top)
-        while ren_count < ren_max:
-            # body
-            if (0 <= ren_pos_y < self.maze.height) and (0 <= ren_pos_x < self.maze.width):
+                        if len(decors) > 1:
+                            for k in range(1, len(decors)):
+                                if k == 1 and self.redraw_pc and round(self.pc.x_sq) == ren_pos_x and round(
+                                        self.pc.y_sq) == ren_pos_y:
+                                    surface.blit(self.pc.image[self.pc.anim_frame],
+                                                 ((
+                                                              self.pc.x_sq - self.ren_x_sq - 0.1) * self.square_size + self.pc.off_x,
+                                                  (
+                                                              self.pc.y_sq - self.ren_y_sq - 0.1) * self.square_size + self.pc.off_y))
 
-                flags = self.maze.flag_array[ren_pos_y][ren_pos_x]
-                if flags.vis:
-                    decors = self.maze.decor_array[ren_pos_y][ren_pos_x]
+                                if self.redraw_maze_decor:
+                                    try:
+                                        surface.blit(decors[k],
+                                                     ((ren_pos_x - self.ren_x_sq) * self.square_size,
+                                                      (ren_pos_y - self.ren_y_sq) * self.square_size))
+                                    except TypeError:
+                                        # print('Realm.Stage_display: Wrong tile.')
+                                        pass
+                        else:
 
-                    if len(decors) > 1:
-                        for k in range(1, len(decors)):
-                            if k == 1 and self.redraw_pc and round(self.pc.x_sq) == ren_pos_x and round(
-                                    self.pc.y_sq) == ren_pos_y:
+                            if self.redraw_pc and round(self.pc.x_sq) == ren_pos_x and round(self.pc.y_sq) == ren_pos_y:
                                 surface.blit(self.pc.image[self.pc.anim_frame],
                                              ((self.pc.x_sq - self.ren_x_sq - 0.1) * self.square_size + self.pc.off_x,
                                               (self.pc.y_sq - self.ren_y_sq - 0.1) * self.square_size + self.pc.off_y))
-                            if self.redraw_maze_decor:
-                                try:
-                                    surface.blit(decors[k],
-                                                        ((ren_pos_x - self.ren_x_sq) * self.square_size,
-                                                         (ren_pos_y - self.ren_y_sq) * self.square_size))
-                                except TypeError:
-                                    # print('Realm.Stage_display: Wrong tile.')
-                                    pass
-                    else:
-                        if self.redraw_pc and round(self.pc.x_sq) == ren_pos_x and round(
-                                self.pc.y_sq) == ren_pos_y:
-                            surface.blit(self.pc.image[self.pc.anim_frame],
-                                         ((self.pc.x_sq - self.ren_x_sq - 0.1) * self.square_size + self.pc.off_x,
-                                          (self.pc.y_sq - self.ren_y_sq - 0.1) * self.square_size + self.pc.off_y))
 
-                    try:
-                        if not self.maze.flag_array[ren_pos_y][ren_pos_x + 1].vis:
-                            surface.blit(self.dark_edges[0],
-                                         ((ren_pos_x - self.ren_x_sq) * self.square_size,
-                                          (ren_pos_y - self.ren_y_sq) * self.square_size))
-                        if not self.maze.flag_array[ren_pos_y + 1][ren_pos_x].vis:
-                            surface.blit(self.dark_edges[1],
-                                         ((ren_pos_x - self.ren_x_sq) * self.square_size,
-                                          (ren_pos_y - self.ren_y_sq) * self.square_size))
-                        if not self.maze.flag_array[ren_pos_y][ren_pos_x - 1].vis:
-                            surface.blit(self.dark_edges[2],
-                                         ((ren_pos_x - self.ren_x_sq) * self.square_size,
-                                          (ren_pos_y - self.ren_y_sq) * self.square_size))
-                        if not self.maze.flag_array[ren_pos_y - 1][ren_pos_x].vis:
-                            surface.blit(self.dark_edges[3],
-                                         ((ren_pos_x - self.ren_x_sq) * self.square_size,
-                                          (ren_pos_y - self.ren_y_sq) * self.square_size))
+                        try:
+                            if not self.maze.flag_array[ren_pos_y][ren_pos_x + 1].vis:
+                                surface.blit(self.dark_edges[0],
+                                             ((ren_pos_x - self.ren_x_sq) * self.square_size,
+                                              (ren_pos_y - self.ren_y_sq) * self.square_size))
+                            if not self.maze.flag_array[ren_pos_y + 1][ren_pos_x].vis:
+                                surface.blit(self.dark_edges[1],
+                                             ((ren_pos_x - self.ren_x_sq) * self.square_size,
+                                              (ren_pos_y - self.ren_y_sq) * self.square_size))
+                            if not self.maze.flag_array[ren_pos_y][ren_pos_x - 1].vis:
+                                surface.blit(self.dark_edges[2],
+                                             ((ren_pos_x - self.ren_x_sq) * self.square_size,
+                                              (ren_pos_y - self.ren_y_sq) * self.square_size))
+                            if not self.maze.flag_array[ren_pos_y - 1][ren_pos_x].vis:
+                                surface.blit(self.dark_edges[3],
+                                             ((ren_pos_x - self.ren_x_sq) * self.square_size,
+                                              (ren_pos_y - self.ren_y_sq) * self.square_size))
 
-                    except IndexError:
-                        # print('Realm.Stage_display: Wrong tile.')
-                        pass
+                        except IndexError:
+                            # print('Realm.Stage_display: Wrong tile.')
+                            pass
 
-            if ren_pos_x == ren_right - 1 and ren_pos_y == ren_bottom - 1:
-                break
-            elif ren_pos_x == ren_left or ren_pos_y == ren_bottom - 1:
-                ext = (ren_pos_y + 1 - ren_top + ren_pos_x + 1 - ren_left) - (ren_right - ren_left)
-                if ext > 0:
-                    ren_pos_x = ren_right - 1
-                    ren_pos_y = ren_top + ext
-                else:
-                    ren_pos_x = ren_left + (ren_pos_y + 1 - ren_top + ren_pos_x + 1 - ren_left) - 1
-                    ren_pos_y = ren_top
-            else:
-                ren_pos_x -= 1
-                ren_pos_y += 1
-                ren_count += 1
+                        # mobs rendering
+                        if flags.mon:
+                            for mon in self.mobs_short:
+                                if round(mon.x_sq) == ren_pos_x and round(mon.y_sq) == ren_pos_y:
+                                    if mon.aimed:
+                                        surface.blit(self.target_mark[self.maze.anim_frame],
+                                                     ((mon.x_sq - self.ren_x_sq + 0.15) * self.square_size + mon.off_x,
+                                                      (mon.y_sq - self.ren_y_sq + 0.2) * self.square_size + mon.off_y))
+                                    surface.blit(mon.image[mon.anim_frame],
+                                                 ((mon.x_sq - self.ren_x_sq - 0.1) * self.square_size + mon.off_x,
+                                                  (mon.y_sq - self.ren_y_sq - 0.1) * self.square_size + mon.off_y))
 
     def pc_display(self, surface):
         r_vm_x_sq = round(self.ren_x_sq + (round(self.pc.x_sq) - self.view_maze_x_sq) - 2)
@@ -296,16 +324,28 @@ class Realm:
         # prepare game pack for return to BigLoop
         pass
 
-    def calc_vision(self, flag_array, orig_xy, max_spaces, max_dist_hv, r_max=10):
-        sq_list = calc2darray.fill2d(flag_array, {'light': False}, orig_xy, orig_xy, max_spaces, max_dist_hv,
+    def calc_vision(self, flag_array=None, orig_xy=None, max_spaces=300, max_dist=10, r_max=20):
+        flag_array = flag_array or self.maze.flag_array
+        orig_xy = orig_xy or (round(self.pc.x_sq), round(self.pc.y_sq))
+
+        sq_list = calc2darray.fill2d(flag_array, {'light': False}, orig_xy, orig_xy, max_spaces, max_dist,
                                      r_max=r_max)
         for sq_x, sq_y in sq_list:
             flag_array[sq_y][sq_x].vis = True
 
+        darkening_list = [d_sq for d_sq in self.vision_sq_prev if d_sq not in sq_list]
+        for d_sq_x, d_sq_y in darkening_list:
+            try:
+                flag_array[d_sq_y][d_sq_x].vis = False
+            except IndexError:
+                pass
+        self.vision_sq_prev = sq_list
+
     def calc_vision_alt(self):
         orig_xy = round(self.pc.x_sq), round(self.pc.y_sq)
         # realm.calc_vision(realm.maze.flag_array, orig_xy, 100, (12, 8), r_max=10)
-        calc2darray.calc_vision_rays(self.maze.flag_array, orig_xy[0], orig_xy[1], 10)
+        self.vision_sq_prev = calc2darray.calc_vision_rays(self.maze.flag_array, orig_xy[0], orig_xy[1], 10, self.vision_sq_prev)
+
 
     def mouse_move(self, mouse_xy):
         rads = maths.xy_dist_to_rads(mouse_xy[0], mouse_xy[1],
@@ -333,7 +373,7 @@ class Realm:
         elif -1.9 > rads >= -2.7:
             move_instr_x = 1
             move_instr_y = 1
-        else:   # -0.3 > rads >= -1.1
+        else:  # -0.3 > rads >= -1.1
             move_instr_x = -1
             move_instr_y = 1
         return move_instr_x, move_instr_y
@@ -354,15 +394,16 @@ class Realm:
         self.shortlists_update()
         self.render_update()
 
-    def xy_pixels_to_squares(self, xy):
-        x_sq = round(
-            self.view_bleed_sq + self.view_maze_x_sq - 0.3 + xy[0] / self.square_size / self.square_scale)
-        y_sq = round(
-            self.view_bleed_sq + self.view_maze_y_sq - 0.3 + xy[1] / self.square_size / self.square_scale)
-        return x_sq, y_sq
+    def xy_pixels_to_squares(self, xy, do_round=True):
+        x_sq = self.view_bleed_sq + self.view_maze_x_sq - 0.3 + xy[0] / self.square_size / self.square_scale
+        y_sq = self.view_bleed_sq + self.view_maze_y_sq - 0.3 + xy[1] / self.square_size / self.square_scale
+        if do_round:
+            return round(x_sq), round(y_sq)
+        else:
+            return x_sq, y_sq
 
-    def square_check(self, xy_sq, m_bttn, wins_dict, active_wins):
-        x_sq, y_sq = xy_sq
+    def square_check(self, xy, m_bttn, wins_dict, active_wins):
+        x_sq, y_sq = self.xy_pixels_to_squares(xy)
         try:
             flags = self.maze.flag_array[y_sq][x_sq]
         except IndexError:
@@ -414,6 +455,22 @@ class Realm:
                     return True
         return False
 
+    def mob_check(self, xy, m_bttn, wins_dict, active_wins):
+        x_sq, y_sq = self.xy_pixels_to_squares(xy, do_round=False)
+        for mon in self.mobs_short:
+            if not self.maze.flag_array[round(mon.y_sq)][round(mon.x_sq)].vis:
+                continue
+            if mon.x_sq <= x_sq + 0.5 < mon.x_sq + 1 and mon.y_sq <= y_sq + 0.5 < mon.y_sq + 1:
+                wins_dict['target'].aim(mon)
+                active_wins.insert(0, wins_dict['target'])
+                return True
+        try:
+            active_wins.remove(wins_dict['target'])
+            wins_dict['target'].drop_aim()
+        except ValueError:
+            pass
+        return False
+
     def shortlists_update(self):
         left_sq = round(self.view_maze_x_sq - self.view_bleed_sq)
         top_sq = round(self.view_maze_y_sq - self.view_bleed_sq)
@@ -424,15 +481,21 @@ class Realm:
         for dr in self.maze.doors:
             if self.maze.flag_array[dr.y_sq][dr.x_sq].vis:
                 self.doors_short.add(dr)
-            elif dr in self.doors_short:
-                self.doors_short.remove(dr)
+            else:
+                try:
+                    self.doors_short.remove(dr)
+                except KeyError:
+                    pass
 
         # loot
         for loot in self.maze.loot:
             if self.maze.flag_array[loot.y_sq][loot.x_sq].vis:
                 self.loot_short.add(loot)
-            elif loot in self.loot_short:
-                self.loot_short.remove(loot)
+            else:
+                try:
+                    self.loot_short.remove(loot)
+                except KeyError:
+                    pass
 
         # traps
         for tr in self.maze.traps:
@@ -441,3 +504,19 @@ class Realm:
                 continue
             if left_sq <= tr.x_sq <= right_sq and top_sq <= tr.y_sq <= bottom_sq:
                 self.traps_short.add(tr)
+            else:
+                try:
+                    self.traps_short.remove(tr)
+                except KeyError:
+                    pass
+
+        # mobs
+        for mob in self.maze.mobs:
+            # Mobs have to live in darkness, but freeze outside drawing canvas. So...
+            if left_sq <= mob.x_sq <= right_sq and top_sq <= mob.y_sq <= bottom_sq:
+                self.mobs_short.add(mob)
+            else:
+                try:
+                    self.mobs_short.remove(mob)
+                except KeyError:
+                    pass

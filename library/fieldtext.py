@@ -32,6 +32,10 @@ class FieldText:
     def release(self, m_button):
         pass
 
+    def render_all(self):
+        self.text_obj.render()
+        self.render()
+
     def render(self):
         if self.images is None:
             if self.text_obj is not None:

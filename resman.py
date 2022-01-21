@@ -74,6 +74,7 @@ class ResMan:
             'fnt_normal': (200, 100, 0),
             'fnt_header': (250, 150, 0),
             'fnt_attent': (255, 0, 0),
+            'bloody': (220, 20, 60),
             'fnt_accent': (255, 230, 0),
             'fnt_bonus': (0, 254, 0),
             'frm_normal': (200, 100, 0),

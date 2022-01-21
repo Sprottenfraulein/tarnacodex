@@ -2,7 +2,7 @@
 import pygame
 from library import cursor, database
 from objects import tilesets, animations
-from wins import apptitle, realm, inventory, context
+from wins import apptitle, realm, inventory, context, target
 
 
 def launch(pygame_settings, resources, log=False):
@@ -19,6 +19,7 @@ def launch(pygame_settings, resources, log=False):
 		'app_title': apptitle.AppTitle(pygame_settings, resources, tile_sets, anims, db, mouse_pointer),
 		'realm': realm.Realm(pygame_settings, resources, tile_sets, anims, db, mouse_pointer),
 		'inventory': inventory.Inventory(pygame_settings, resources, tile_sets, anims, db, mouse_pointer),
+		'target': target.Target(pygame_settings, resources, tile_sets, anims, db, mouse_pointer),
 		'context': context.Context(pygame_settings, resources, tile_sets, anims, db, mouse_pointer)
 	}
 	bigloop(pygame_settings, resources, wins_dict, mouse_pointer)

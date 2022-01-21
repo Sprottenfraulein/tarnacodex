@@ -26,7 +26,7 @@ class Inventory:
 
         self.gold_sum = None
 
-        self.rendered_inv = pygame.Surface((self.inv_w, self.inv_h))
+        self.rendered_inv = pygame.Surface((self.inv_w, self.inv_h)).convert()
         self.create_elements(log=True)
 
     def event_check(self, event, pygame_settings, resources, wins_dict, active_wins, log=True):
@@ -277,15 +277,15 @@ class Inventory:
         )
 
         # window header
-        header_texture = self.inventory_ui.random_texture((self.inv_w, inv_sckt_size // 2.5), 'red_glass')
-        header_img = pydraw.square((0, 0), (self.inv_w, inv_sckt_size // 2.5),
+        header_texture = self.inventory_ui.random_texture((self.inv_w, 19), 'red_glass')
+        header_img = pydraw.square((0, 0), (self.inv_w, 19),
                                    (self.inventory_ui.resources.colors['gray_light'],
                                     self.inventory_ui.resources.colors['gray_dark'],
                                     self.inventory_ui.resources.colors['gray_mid'],
                                     self.inventory_ui.resources.colors['gray_darker']),
                                    sq_outsize=1, sq_bsize=1, sq_ldir=0, sq_fill=False,
                                    sq_image=header_texture)
-        win_header = self.inventory_ui.text_add('win_header', (0, 0), (self.inv_w, inv_sckt_size // 2.5),
+        win_header = self.inventory_ui.text_add('win_header', (0, 0), (self.inv_w, 19),
                                             caption='Inventory',
                                             h_align='center', v_align='middle', cap_color='sun', images=(header_img,))
 

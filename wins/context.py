@@ -12,18 +12,19 @@ class Context:
         self.mouse_pointer = mouse_pointer
         self.animations = animations
         self.context_ui = ui.UI(pygame_settings, resources, tilesets, db)
-        self.context_rendered = None
+        self.target_rendered = None
         self.offset_x = 0
         self.offset_y = 0
 
     def event_check(self, event, pygame_settings, resources, wins_dict, active_wins, log=True):
         # return True if interaction was made to prevent other windows from responding to this event
-        mouse_x, mouse_y = self.mouse_pointer.xy
+        """mouse_x, mouse_y = self.mouse_pointer.xy
         return self.ui_click(self.context_ui.mouse_actions(mouse_x - self.offset_x, mouse_y - self.offset_y, event),
-                             pygame_settings, resources, wins_dict, active_wins)
+                             pygame_settings, resources, wins_dict, active_wins)"""
+        pass
 
     def ui_click(self, inter_click, pygame_settings, resources, wins_dict, active_wins):
-        if inter_click is None:
+        """if inter_click is None:
             return
         element, m_bttn, mb_event = inter_click
         if element.page is not None and element.page != self.context_ui.page:
@@ -32,7 +33,8 @@ class Context:
 
         self.context_ui.interaction_callback(element, mb_event, m_bttn)
         # return True if interaction was made to prevent other windows from responding to this event
-        return True
+        return True"""
+        pass
 
     # interface creation
     def update_elements_weapon(self, pc, item, mouse_xy, log=True):
@@ -74,8 +76,8 @@ class Context:
         itm_bodylines.render_all()
 
         win_height = itm_bodylines.size[1] + 104 + 8
-        self.context_rendered = pygame.Surface((win_width, win_height)).convert()
-        self.context_rendered.set_colorkey(self.context_ui.resources.colors['transparent'])
+        self.target_rendered = pygame.Surface((win_width, win_height)).convert()
+        self.target_rendered.set_colorkey(self.context_ui.resources.colors['transparent'])
         # background
         bg_image = pydraw.square((0, 0), (win_width, win_height),
                                  (self.context_ui.resources.colors[decor_color],
@@ -123,7 +125,7 @@ class Context:
         self.offset_x, self.offset_y = maths.rect_in_bounds(self.offset_x, self.offset_y, win_width, win_height, 0, 0,
                                                             self.pygame_settings.screen_res[0],
                                                             self.pygame_settings.screen_res[1])
-        self.render_ui(self.context_rendered)
+        self.render_ui(self.target_rendered)
 
     def decorated_modifiers(self, mods):
         mod_list = []
@@ -152,7 +154,7 @@ class Context:
         return ' $n '.join(deb_list)
 
     def tick(self, pygame_settings, mouse_pointer):
-        self.context_ui.tick(pygame_settings, mouse_pointer)
+        self.target_ui.tick(pygame_settings, mouse_pointer)
 
     def render_ui(self, surface):
         for decorative in reversed(self.context_ui.decoratives):
@@ -165,4 +167,4 @@ class Context:
             interactive.draw(surface)
 
     def draw(self, surface):
-        surface.blit(self.context_rendered, (self.offset_x, self.offset_y))
+        surface.blit(self.target_rendered, (self.offset_x, self.offset_y))

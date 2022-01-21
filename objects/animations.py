@@ -6,6 +6,8 @@ class Animations:
         self.sets_dict = {
             'anthro_ragdoll': pygame.image.load('res/tilesets/anthro_ragdoll.png').convert()
         }
+        for ts in self.sets_dict.values():
+            ts.set_colorkey((0, 255, 0), pygame.RLEACCEL)
 
     def get_animation(self, anim_id):
         if anim_id == 'anthro_default':
@@ -32,14 +34,12 @@ class Animations:
     def get_image(self, image_id, dimensions, indexes):
         image_sheet = self.sets_dict[image_id]
         sheet_width = image_sheet.get_width()
-        sheet_height = image_sheet.get_height()
+        # sheet_height = image_sheet.get_height()
         sh_tiles_hor = sheet_width // dimensions[0]
-        sh_tiles_ver = sheet_height // dimensions[1]
+        # sh_tiles_ver = sheet_height // dimensions[1]
         image_list = []
         for ind in indexes:
-            new_image = pygame.Surface((dimensions[0], dimensions[1]), pygame.HWSURFACE)
             ver, hor = divmod(ind, sh_tiles_hor)
-            new_image.blit(image_sheet, (0, 0), (hor * dimensions[0], ver * dimensions[1], dimensions[0], dimensions[1]))
-            new_image.set_colorkey((0, 255, 0))
+            new_image = image_sheet.subsurface((hor * dimensions[0], ver * dimensions[1], dimensions[0], dimensions[1]))
             image_list.append(new_image)
         return image_list

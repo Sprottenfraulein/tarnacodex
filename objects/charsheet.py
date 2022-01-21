@@ -182,7 +182,7 @@ class CharSheet:
             except KeyError:
                 pass
             attr_multiplier = self.attributes['attr_int'] + int_mods
-        attack_base_min, attack_base_max = dmg_weapon_min * attr_multiplier, dmg_weapon_max * attr_multiplier
+        attack_base_min, attack_base_max = dmg_weapon_min + dmg_weapon_min * attr_multiplier // 100, dmg_weapon_max + dmg_weapon_min * attr_multiplier // 100
         return attack_base_min, attack_base_max
 
     def calc_attack_mod(self, attack):

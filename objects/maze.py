@@ -28,6 +28,7 @@ class Maze:
         self.flag_array = None
         self.rooms = None
         self.doors = set()
+        self.mobs = []
         self.traps = []
         self.exits = []
         self.loot = []
@@ -36,7 +37,7 @@ class Maze:
         self.anim_timing = anim_timing
         self.anim_timer = 0
 
-        self.generate_1(0, 0, height - 1, width - 1, 3, 3, True)
+        self.generate_1(0, 0, height - 1, width - 1, 6, 6, False)
 
     def generate_1(self, top, left, bottom, right, min_width, min_height, prop, vert_chance=50):
         self.rooms = split_build(top, left, bottom, right, min_width, min_height, prop, r_limit=14)
@@ -479,6 +480,8 @@ def doors_set(maze, tile_set, db):
     for locked_room in maze.rooms:
         if locked_room.corridor:
             for dr in locked_room.doors:
+                if dr.lock is not None:
+                    continue
                 if random.randrange(1, 101) <= 50:
                     dr.shut = False
             continue
@@ -498,9 +501,10 @@ def doors_set(maze, tile_set, db):
                 square(maze.array, locked_room.top + 1, locked_room.left + 1, locked_room.bottom, locked_room.right,
                        '0', '0', True)
         elif random.randrange(1, 101) <= 50:
-            for dr in locked_room.doors:
+            """for dr in locked_room.doors:
                 dr.shut = False
-            locked_room.rating += 10
+            locked_room.rating += 10"""
+            pass
         if random.randrange(1, 101) <= progression.scale_to_lvl(maze.trap_rate, maze.lvl) and locked_room.doors:
             trap_params_list = dbrequests.trap_params_get(db.cursor, 'monster_attacks', maze.lvl)
             if not trap_params_list:
