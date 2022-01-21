@@ -7,12 +7,16 @@ Click [REALM] to load randomly generated test labyrinth.
 
 [I] to open inventory when map is loaded.
 
-[P] to add two test items to inventory.
+[P] to add two test items to inventory (reopen inventory for them to appear)
 
 Hover with mouse over inventory items to reveal context info.
 
 [ARROW KEYS], or mouse to walk around. 
 
 Click on the doors to operate them. 
+
+[M] to spawn monster mob. Do this further from map edge or it will fall with an error.
+
+Hover over monsters with cursor to reveal targeting window.
 
 That's all for now.
