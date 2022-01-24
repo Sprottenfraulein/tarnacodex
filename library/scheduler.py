@@ -24,6 +24,7 @@ class Scheduler(counter.Counter):
         for i in range(0, len(schedule[1]) - 1):
             if schedule[1][i][0] <= rounds_counter < schedule[1][i+1][0]:
                 schedule[1].insert(i+1, new_task)
+                break
         else:
             schedule[1].append(new_task)
 
@@ -36,11 +37,14 @@ class Scheduler(counter.Counter):
         for schedule in self.schedules.values():
             if schedule[0] >= len(schedule[1]):
                 continue
-            pos_task = schedule[1][schedule[0]]
-            if pos_task[0] == self.rounds:
-                getattr(pos_task[1], pos_task[2])(*pos_task[3])
-                schedule[0] += 1
+            while schedule[0] < len(schedule[1]) and schedule[1][schedule[0]][0] == self.rounds:
+                getattr(schedule[1][schedule[0]][1], schedule[1][schedule[0]][2])(*schedule[1][schedule[0]][3])
+                if schedule[0] < len(schedule[1]):
+                    schedule[0] += 1
+                else:
+                    break
 
-            if schedule[0] == self.history_size:
-                del schedule[1][0]
-                schedule[0] -= 1
+            if schedule[0] >= self.history_size:
+                for i in range(0, self.history_size):
+                    del schedule[1][0]
+                    schedule[0] -= 1
