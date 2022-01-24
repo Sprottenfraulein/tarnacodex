@@ -3,8 +3,7 @@ import pygame
 
 
 class Panel:
-    def __init__(self, pan_id, pan_xy, pan_size, pan_images=None,
-                 pop_show=60, pop_hide=30, pop_win=None, page=None, img_stretch=False):
+    def __init__(self, pan_id, pan_xy, pan_size, pan_images=None, page=None, img_stretch=False):
         self.id = pan_id
         self.size = pan_size
         self.images = pan_images

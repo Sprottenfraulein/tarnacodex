@@ -1,20 +1,14 @@
 import random
 from library import maths
 from library import pickrandom, calc2darray
-from objects import dbrequests
-from objects import progression
-from objects import room
-from objects import door
-from objects import stairs
-from objects import trap
-from objects import lock
-from objects import flagtile
+from objects import dbrequests, progression, room, door, stairs, trap, lock, flagtile, monster
 
 
 class Maze:
-    def __init__(self, db, width, height, lvl, exits_list, tile_set,
+    def __init__(self, db, animations, width, height, lvl, exits_list, tile_set,
                  anim_timing=15, trap_rate=1, lock_rate=70, magic_lock_rate=30):
         self.db = db
+        self.animations = animations
         self.width = width
         self.height = height
         self.lvl = lvl
@@ -23,21 +17,28 @@ class Maze:
         self.trap_rate = trap_rate
         self.lock_rate = lock_rate
         self.magic_lock_rate = magic_lock_rate
+        self.monster_types = None
+        self.monster_type_amount = 2
+        self.monster_amount_rate = 1
+
         self.array = maze_array(width, height)
         self.decor_array = None
         self.flag_array = None
+
         self.rooms = None
         self.doors = set()
         self.mobs = []
         self.traps = []
         self.exits = []
         self.loot = []
+        self.text = []
+
         self.ANIM_LEN = 4
         self.anim_frame = 0
         self.anim_timing = anim_timing
         self.anim_timer = 0
 
-        self.generate_1(0, 0, height - 1, width - 1, 6, 6, False)
+        self.generate_1(0, 0, height - 1, width - 1, 8, 8, False)
 
     def generate_1(self, top, left, bottom, right, min_width, min_height, prop, vert_chance=50):
         self.rooms = split_build(top, left, bottom, right, min_width, min_height, prop, r_limit=14)
@@ -54,6 +55,8 @@ class Maze:
         traps_set(self, 'monster_attacks', self.db)
         self.decor_array = decor_maze(self.array, self.tile_set, self.flag_array)
         flags_update(self, self.flag_array)
+
+        populate(self.db, self, self.animations)
 
     def tick(self):
         if self.anim_timer >= self.anim_timing:
@@ -536,6 +539,40 @@ def exits_set(maze, exits_list):
         dest = exits_list[er]
         new_exit = stairs.Stairs(x_sq, y_sq, dest)
         maze.exits.append(new_exit)
+
+
+def populate(db, maze, animations):
+    mon_ids = roll_monsters(db.cursor, maze.lvl, 0, maze.monster_types, maze.monster_type_amount)
+    maze_monster_pool = [dbrequests.monster_get_by_id(db.cursor, mon_id) for mon_id in mon_ids]
+
+    mob_populate_alg_1(maze, animations, maze_monster_pool, maze.monster_amount_rate)
+
+
+def mob_populate_alg_1(maze, animations, maze_monster_pool, monster_amount_rate):
+    for i in range(0, round(len(maze.rooms) * monster_amount_rate)):
+        room = maze.rooms[random.randrange(0, len(maze.rooms))]
+        mon_x_sq = random.randrange(room.left + 1, room.right)
+        mon_y_sq = random.randrange(room.top + 1, room.bottom)
+
+        for mon in maze.mobs:
+            if mon.x_sq == mon_x_sq and mon.y_sq == mon_y_sq:
+                break
+        else:
+            rnd_mob = maze_monster_pool[random.randrange(0, len(maze_monster_pool))]
+
+            nmon = monster.Monster(mon_x_sq, mon_y_sq,
+                                   animations.get_animation(rnd_mob['animation']), rnd_mob, state=0)
+            maze.flag_array[round(mon_y_sq)][round(mon_x_sq)].mon = True
+            maze.mobs.append(nmon)
+
+
+def roll_monsters(db_cursor, max_level, max_grade, monster_types, mon_amount=1):
+    rnd_roll = random.randrange(0, 10001)
+    monster_ids = dbrequests.get_monsters(db_cursor, max_level, max_grade, monster_types, rnd_roll)
+    monster_list = []
+    for i in range(0, mon_amount):
+        monster_list.append(monster_ids[random.randrange(0, len(monster_ids))])
+    return monster_list
 
 
 def flags_create(maze, array):

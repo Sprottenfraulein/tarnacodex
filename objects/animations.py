@@ -27,6 +27,26 @@ class Animations:
                 'face_west': {
                     'images': self.get_image('anthro_ragdoll', (24, 24), (15, 16, 17, 18)),
                     'timings': (8, 8, 8, 8)
+                },
+                'act_north': {
+                    'images': self.get_image('anthro_ragdoll', (24, 24), (4,0)),
+                    'timings': (18, 18)
+                },
+                'act_east': {
+                    'images': self.get_image('anthro_ragdoll', (24, 24), (9,5)),
+                    'timings': (18, 18)
+                },
+                'act_south': {
+                    'images': self.get_image('anthro_ragdoll', (24, 24), (14,10)),
+                    'timings': (18, 18)
+                },
+                'act_west': {
+                    'images': self.get_image('anthro_ragdoll', (24, 24), (19,15)),
+                    'timings': (18, 18)
+                },
+                'lay_down': {
+                    'images': self.get_image('anthro_ragdoll', (24, 24), (20,)),
+                    'timings': (18,)
                 }
             }
             return animation

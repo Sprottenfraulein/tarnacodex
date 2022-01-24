@@ -80,7 +80,8 @@ class CharSheet:
             'prof_trade': 0,         # buy cheaper
             'prof_craft': 0,         # number competes against item difficulty to successfully craft. based on intelligence
 
-            'prof_bonusexp': 0       # in percents x10 (100% = 1000), increases exp amounts received.
+            'prof_bonusexp': 0,       # in percents x10 (100% = 1000), increases exp amounts received.
+            'prof_range': 0          # in squares. increases ranged attacks distance
         }
         # dictionary of stat alterations. pairs "stat: value" added during game.
         self.de_buffs = {}
@@ -298,6 +299,7 @@ class CharSheet:
             level_value = x + 2
             if self.experience >= exp_value:
                 level = level_value
+                self.exp_next_lvl = exp_value + maths.exponential(self.exp_rate, x + 1, self.exp_rate_multiplier)
         return level
 
     def calc_stats(self):

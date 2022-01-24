@@ -61,6 +61,29 @@ def treasure_get_by_id(cursor, key_id):
     return treasure_dict, modifiers_list, de_buffs_list
 
 
+def treasure_get(cursor, lvl, treasure_group, roll, item_type=None, char_type=None, equipment_type=None):
+    ex_str = "SELECT treasure_id FROM treasure WHERE lvl<=? AND treasure_group=? AND roll_chance>=?"
+    if item_type is not None:
+        itm_str = ','.join(item_type)
+        itm_query = ' AND item_type IN (%s)' % itm_str
+        ex_str += itm_query
+    if char_type is not None:
+        char_str = ','.join(char_type)
+        char_query = ' AND char_type IN (%s)' % char_str
+        ex_str += char_query
+    if equipment_type is not None:
+        eq_str = ','.join(equipment_type)
+        eq_query = ' AND eq_type IN (%s)' % eq_str
+        ex_str += eq_query
+    cursor.execute(ex_str, (lvl, treasure_group, roll))
+    rows = cursor.fetchall()
+    treasure_ids = []
+    for row in rows:
+        treasure_ids.append(row[0])
+    return treasure_ids
+
+
+
 def de_buff_get_mods(cursor, de_buff_id):
     # de_buff modifiers query
     ex_str = "SELECT * FROM modifiers m JOIN de_buff_modifier_sets dbms ON dbms.modifier_id=m.modifier_id WHERE dbms.de_buff_id=?"
@@ -149,7 +172,6 @@ def get_affixes(cursor, max_level, max_grade, item_types, roll, is_suffix=None):
         bindings.append(is_suffix)
     cursor.execute(ex_str, bindings)
     rows = cursor.fetchall()
-    column_names = [column[0] for column in cursor.description]
     affix_ids = []
     for row in rows:
         affix_ids.append(row[0])
@@ -164,4 +186,47 @@ def monster_get_by_id(cursor, monster_id):
     monster_dict = {}
     for i in range(0, len(column_names)):
         monster_dict[column_names[i]] = rows[0][i]
+        # item modifiers set query
+    ex_str = "SELECT ma.attack_id, label, range, attack_type, attack_val_base, attack_val_spread, monster_type, lvl FROM monster_attack_sets mas JOIN monster_attacks ma ON mas.attack_id=ma.attack_id WHERE mas.monster_id=?"
+    cursor.execute(ex_str, (monster_id,))
+    rows = cursor.fetchall()
+    column_names = [column[0] for column in cursor.description]
+    ranged_attacks_list = []
+    melee_attacks_list = []
+    for row in rows:
+        attack_dict = {}
+        for i in range(0, len(column_names)):
+            attack_dict[column_names[i]] = row[i]
+        if attack_dict['range'] > 0:
+            ranged_attacks_list.append(attack_dict)
+        else:
+            melee_attacks_list.append(attack_dict)
+    monster_dict['attacks_ranged'] = ranged_attacks_list
+    monster_dict['attacks_melee'] = melee_attacks_list
     return monster_dict
+
+
+def get_monsters(cursor, max_level, max_grade, monster_types, roll):
+    ex_str = "SELECT monster_id FROM monsters WHERE lvl<=? AND grade<=? AND roll_chance>=?"
+    if monster_types is not None:
+        mon_str = ','.join(monster_types)
+        mon_query = ' AND monster_type IN (%s)' % mon_str
+        ex_str += mon_query
+    bindings = [max_level, max_grade, roll]
+    cursor.execute(ex_str, bindings)
+    rows = cursor.fetchall()
+    monster_ids = []
+    for row in rows:
+        monster_ids.append(row[0])
+    return monster_ids
+
+
+def skill_get_by_id(cursor, skill_id):
+    ex_str = "SELECT * FROM character_skills WHERE skill_id=?"
+    cursor.execute(ex_str, (skill_id,))
+    rows = cursor.fetchall()
+    column_names = [column[0] for column in cursor.description]
+    skill_dict = {}
+    for i in range(0, len(column_names)):
+        skill_dict[column_names[i]] = rows[0][i]
+    return skill_dict

@@ -63,6 +63,7 @@ class ResMan:
             'prof_craft': 'Crafting skills',  # number competes against item difficulty to successfully craft. based on intelligence
 
             'prof_bonusexp': 'Experience',
+            'prof_range': 'Missile range',
             
             'condition_max': 'Durability'
 

@@ -1,6 +1,6 @@
 # Main script with pygame loop.
 import pygame
-from library import cursor, database
+from library import cursor, database, scheduler
 from objects import tilesets, animations
 from wins import apptitle, realm, inventory, context, target
 
@@ -14,18 +14,20 @@ def launch(pygame_settings, resources, log=False):
 	db = database.DB('res/data/tables.db')
 	# creating mouse pointer object
 	mouse_pointer = cursor.Cursor(pygame_settings, resources)
+	# creating scheduler
+	schedule_man = scheduler.Scheduler(5, 4, 9999999)
 	# declaring wins
 	wins_dict = {
-		'app_title': apptitle.AppTitle(pygame_settings, resources, tile_sets, anims, db, mouse_pointer),
-		'realm': realm.Realm(pygame_settings, resources, tile_sets, anims, db, mouse_pointer),
-		'inventory': inventory.Inventory(pygame_settings, resources, tile_sets, anims, db, mouse_pointer),
-		'target': target.Target(pygame_settings, resources, tile_sets, anims, db, mouse_pointer),
-		'context': context.Context(pygame_settings, resources, tile_sets, anims, db, mouse_pointer)
+		'app_title': apptitle.AppTitle(pygame_settings, resources, tile_sets, anims, db, mouse_pointer, schedule_man),
+		'realm': realm.Realm(pygame_settings, resources, tile_sets, anims, db, mouse_pointer, schedule_man),
+		'inventory': inventory.Inventory(pygame_settings, resources, tile_sets, anims, db, mouse_pointer, schedule_man),
+		'target': target.Target(pygame_settings, resources, tile_sets, anims, db, mouse_pointer, schedule_man),
+		'context': context.Context(pygame_settings, resources, tile_sets, anims, db, mouse_pointer, schedule_man)
 	}
-	bigloop(pygame_settings, resources, wins_dict, mouse_pointer)
+	bigloop(pygame_settings, resources, wins_dict, mouse_pointer, schedule_man)
 
 
-def bigloop(pygame_settings, resources, wins_dict, mouse_pointer, log=True):
+def bigloop(pygame_settings, resources, wins_dict, mouse_pointer, schedule_man, log=True):
 	# adding the first unit to active wins
 	active_wins = [wins_dict['app_title']]
 
@@ -35,11 +37,9 @@ def bigloop(pygame_settings, resources, wins_dict, mouse_pointer, log=True):
 		# Checking controls
 		events(pygame_settings, resources, wins_dict, active_wins, mouse_pointer)
 
+		schedule_man.tick()
 		for win in active_wins:
-			try:
-				win.tick(pygame_settings, mouse_pointer)
-			except AttributeError:
-				pass
+			win.tick(pygame_settings, wins_dict, active_wins, mouse_pointer)
 
 		if mouse_pointer.still_timer < mouse_pointer.still_max:
 			mouse_pointer.still_timer += 1

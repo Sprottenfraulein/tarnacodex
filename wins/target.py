@@ -6,10 +6,11 @@ from library import pydraw, maths
 
 
 class Target:
-    def __init__(self, pygame_settings, resources, tilesets, animations, db, mouse_pointer, log=True):
+    def __init__(self, pygame_settings, resources, tilesets, animations, db, mouse_pointer, schedule_man, log=True):
         self.db = db
         self.pygame_settings = pygame_settings
         self.mouse_pointer = mouse_pointer
+        self.schedule_man = schedule_man
         self.animations = animations
         self.target_ui = ui.UI(pygame_settings, resources, tilesets, db)
         self.target_rendered = None
@@ -106,11 +107,12 @@ class Target:
         self.target_ui.decoratives.append(self.mob_title)
         self.target_ui.decoratives.append(tar_panel)
 
-    def tick(self, pygame_settings, mouse_pointer):
-        if self.mon_hp != self.mob_object.hp:
-            self.mon_hp = self.mob_object.hp
-            self.render_ui(self.target_rendered)
-            self.progress_bar_update(self.mob_object.stats['hp_max'], self.mon_hp, self.bar_color)
+    def tick(self, pygame_settings, wins_dict, active_wins, mouse_pointer):
+        if self.mob_object is not None:
+            if self.mon_hp != self.mob_object.hp:
+                self.mon_hp = self.mob_object.hp
+                self.render_ui(self.target_rendered)
+                self.progress_bar_update(self.mob_object.stats['hp_max'], self.mon_hp, self.bar_color)
 
         self.target_ui.tick(pygame_settings, mouse_pointer)
 

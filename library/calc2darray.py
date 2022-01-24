@@ -7,7 +7,7 @@ def fill2d(array2d, stop_list, orig_xy, xy, max_spaces, max_dist, xy_stop_list=N
         xy_stop_list = [xy]
         r = 1
     spaces_list = [(0, -1), (-1, 0), (1, 0), (0, 1), (-1, -1), (-1, 1), (1, -1), (1, 1)]
-    # random.shuffle(spaces_list)
+    random.shuffle(spaces_list)
     for tile_x, tile_y in spaces_list:
         abs_x, abs_y = xy[0] + tile_x, xy[1] + tile_y
         if (abs_x, abs_y) in xy_stop_list:
@@ -16,7 +16,7 @@ def fill2d(array2d, stop_list, orig_xy, xy, max_spaces, max_dist, xy_stop_list=N
             continue
         if maths.get_distance(orig_xy[0], orig_xy[1], abs_x, abs_y) >= max_dist:
             continue
-        xy_stop_list.append((abs_x, abs_y))
+
         if len(xy_stop_list) >= max_spaces:
             return xy_stop_list
         xy_stop = False
@@ -24,11 +24,50 @@ def fill2d(array2d, stop_list, orig_xy, xy, max_spaces, max_dist, xy_stop_list=N
             if getattr(array2d[abs_y][abs_x], flag_name) is flag_value:
                 xy_stop = True
         if xy_stop:
-            pass
-        elif r < r_max:
+            continue
+        xy_stop_list.append((abs_x, abs_y))
+        if r < r_max:
             abs_x, abs_y = xy[0] + tile_x, xy[1] + tile_y
             fill2d(array2d, stop_list, orig_xy, (abs_x, abs_y), max_spaces, max_dist, xy_stop_list, r + 1, r_max)
     return xy_stop_list
+
+
+def path2d(array2d, stop_list, xy, dest_xy, max_spaces, max_dist, parent_index=0, xy_sq_list=None, xy_ind_list=None, r=None, r_max=20):
+    goal = False
+    if xy_sq_list is None:
+        xy_sq_list = [xy]
+        xy_ind_list = [0]
+        r = 1
+    spaces_list = [(0, -1), (-1, 0), (1, 0), (0, 1), (-1, -1), (-1, 1), (1, -1), (1, 1)]
+    spaces_list.sort(key=lambda x: (abs(dest_xy[0] - (xy[0] + x[0])) + abs(dest_xy[1] - (xy[1] + x[1]))))
+    spaces_list = spaces_list[:4]
+    # random.shuffle(spaces_list)
+    for tile_x, tile_y in spaces_list:
+        if goal:
+            break
+        abs_x, abs_y = xy[0] + tile_x, xy[1] + tile_y
+        if (abs_x, abs_y) in xy_sq_list:
+            continue
+        if abs_x < 0 or abs_y < 0 or abs_x >= len(array2d[0]) or abs_y >= len(array2d):
+            continue
+        if len(xy_sq_list) >= max_spaces:
+            return False, xy_sq_list, xy_ind_list
+        xy_stop = False
+        for flag_name, flag_value in stop_list.items():
+            if getattr(array2d[abs_y][abs_x], flag_name) is flag_value:
+                xy_stop = True
+        if xy_stop:
+            continue
+        else:
+            if abs_x == dest_xy[0] and abs_y == dest_xy[1]:
+                return True, xy_sq_list, xy_ind_list
+            xy_sq_list.append((abs_x, abs_y))
+            xy_ind_list.append(parent_index)
+            if r < r_max:
+                abs_x, abs_y = xy[0] + tile_x, xy[1] + tile_y
+                goal, sq_list, ind_list = path2d(array2d, stop_list, (abs_x, abs_y), dest_xy, max_spaces, max_dist,
+                       parent_index=len(xy_ind_list) - 1, xy_sq_list=xy_sq_list, xy_ind_list=xy_ind_list, r=r+1, r_max=r_max)
+    return goal, xy_sq_list, xy_ind_list
 
 
 def calc_vision_rays(flag_array, x, y, max_distance, vision_prev, dark=True):

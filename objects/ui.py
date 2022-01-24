@@ -325,10 +325,8 @@ class UI:
         for element in self.interactives:
             if element.page is not None and element.page != self.page:
                 continue
-            try:
+            if hasattr(element, 'tick'):
                 element.tick()
-            except AttributeError:
-                pass
 
     def draw(self, surface):
         for decorative in reversed(self.decoratives):

@@ -52,3 +52,4 @@ def square(sq_xy, sq_size, sq_cols, sq_outsize=1, sq_bsize=1, sq_ldir=0, sq_fill
 def progress_bar(x, y, full_num, current_num, width, height, fg_color, bg_color, surface):
     pygame.draw.line(surface, bg_color, (x, y), (x+ width, y), height)
     pygame.draw.line(surface, fg_color, (x, y), (x + width * current_num // full_num, y), height - 2)
+

@@ -26,7 +26,7 @@ def init_props(db_cursor, treasure_dicts):
 
     # adding container list
     base_props['container_max'] = base_props['container']
-    if base_props['container_max'] > 0:
+    if base_props['container_max'] is not None and base_props['container_max'] > 0:
         base_props['container'] = []
     else:
         del base_props['container']
@@ -156,12 +156,18 @@ def loot_calc_name(loot_props):
 
 def images_update(db_cursor, loot_props, tile_sets):
     images_dict = dbrequests.treasure_images_get(db_cursor, loot_props['treasure_id'], loot_props['grade'])
-    loot_props['image_inventory'] = tile_sets.get_image(images_dict[0]['tileset'],
+    try:
+        loot_props['image_inventory'] = tile_sets.get_image(images_dict[0]['tileset'],
                                                         (images_dict[0]['width'], images_dict[0]['height']),
                                                         (images_dict[0]['index'],))
-    loot_props['image_floor'] = tile_sets.get_image(images_dict[1]['tileset'],
+    except KeyError:
+        pass
+    try:
+        loot_props['image_floor'] = tile_sets.get_image(images_dict[1]['tileset'],
                                                         (images_dict[1]['width'], images_dict[1]['height']),
                                                         (images_dict[1]['index'],))
+    except KeyError:
+        pass
 
 
 def sounds_update(db_cursor, loot_props, audio):
@@ -187,7 +193,7 @@ def calc_level(level, loot_props):
     loot_props['lvl'] = level
 
 
-def calc_grade(db_cursor, grade, loot_props):
+def calc_grade(db_cursor, grade, loot_props, tile_sets, audio):
     affix_ids = set()
     if grade >= 2:
         affix_ids.add(roll_affix(db_cursor, grade, loot_props, is_suffix=0))
@@ -197,6 +203,10 @@ def calc_grade(db_cursor, grade, loot_props):
         affix_ids.add(roll_affix(db_cursor, grade, loot_props))
     for aff in affix_ids:
         affix_add(db_cursor, loot_props, dbrequests.affix_loot_get_by_id(db_cursor, aff))
+
+    images_update(db_cursor, loot_props, tile_sets)
+    sounds_update(db_cursor, loot_props, audio)
+
     loot_props['grade'] = grade
 
 

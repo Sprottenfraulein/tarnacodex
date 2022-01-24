@@ -6,10 +6,11 @@ from library import pydraw, maths
 
 
 class Context:
-    def __init__(self, pygame_settings, resources, tilesets, animations, db, mouse_pointer, log=True):
+    def __init__(self, pygame_settings, resources, tilesets, animations, db, mouse_pointer, schedule_man, log=True):
         self.db = db
         self.pygame_settings = pygame_settings
         self.mouse_pointer = mouse_pointer
+        self.schedule_man = schedule_man
         self.animations = animations
         self.context_ui = ui.UI(pygame_settings, resources, tilesets, db)
         self.target_rendered = None
@@ -153,8 +154,8 @@ class Context:
             # deb_list.append(deb['desc'])
         return ' $n '.join(deb_list)
 
-    def tick(self, pygame_settings, mouse_pointer):
-        self.target_ui.tick(pygame_settings, mouse_pointer)
+    def tick(self, pygame_settings, wins_dict, active_wins, mouse_pointer):
+        self.context_ui.tick(pygame_settings, mouse_pointer)
 
     def render_ui(self, surface):
         for decorative in reversed(self.context_ui.decoratives):

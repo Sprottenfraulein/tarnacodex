@@ -8,9 +8,10 @@ from objects import ui
 
 
 class Inventory:
-    def __init__(self, pygame_settings, resources, tilesets, animations, db, mouse_pointer, log=True):
+    def __init__(self, pygame_settings, resources, tilesets, animations, db, mouse_pointer, schedule_man, log=True):
         self.db = db
         self.mouse_pointer = mouse_pointer
+        self.schedule_man = schedule_man
         self.animations = animations
         self.inventory_ui = ui.UI(pygame_settings, resources, tilesets, db)
         self.pc = None
@@ -306,7 +307,7 @@ class Inventory:
         self.inventory_ui.interactives.append(coins_icon)
         self.inventory_ui.decoratives.append(inv_panel)
 
-    def tick(self, pygame_settings, mouse_pointer):
+    def tick(self, pygame_settings, wins_dict, active_wins, mouse_pointer):
         self.inventory_ui.tick(pygame_settings, mouse_pointer)
         if self.inventory_ui.updated:
             self.render()

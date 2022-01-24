@@ -6,9 +6,10 @@ from objects import maze, pc, charsheet, ui
 
 
 class AppTitle:
-    def __init__(self, pygame_settings, resources, tilesets, animations, db, mouse_pointer, log=True):
+    def __init__(self, pygame_settings, resources, tilesets, animations, db, mouse_pointer, schedule_man, log=True):
         self.db = db
         self.mouse_pointer = mouse_pointer
+        self.schedule_man = schedule_man
         self.animations = animations
         self.title_ui = ui.UI(pygame_settings, resources, tilesets, db)
         self.create_elements(log=True)
@@ -73,7 +74,7 @@ class AppTitle:
         elif element.id == 'exit' and m_bttn == 1 and mb_event == 'up' and element.mode == 1:
             exit()
         elif element.id == 'test_start' and m_bttn == 1 and mb_event == 'up' and element.mode == 1:
-            l = maze.Maze(self.db, 80, 80, 1, ['town', 'cave', 'forest'], self.title_ui.tilesets.get_maze_tiles('dung_default'))
+            l = maze.Maze(self.db, self.animations, 80, 80, 1, ['town', 'cave', 'forest'], self.title_ui.tilesets.get_maze_tiles('dung_default'))
             for r in l.array:
                 print(*r)
             location = 'town'
@@ -88,7 +89,7 @@ class AppTitle:
             p.char_sheet.calc_stats()
             wins_dict['realm'].maze = l
             wins_dict['realm'].pc = p
-            wins_dict['realm'].launch(pygame_settings.audio, settings)
+            wins_dict['realm'].launch(pygame_settings.audio, settings, wins_dict, active_wins)
             active_wins.append(wins_dict['realm'])
             active_wins.remove(self)
 
@@ -176,7 +177,7 @@ class AppTitle:
         self.title_ui.interactives.append(new_edit)
         self.title_ui.interactives.append(tag_string)
 
-    def tick(self, pygame_settings, mouse_pointer):
+    def tick(self, pygame_settings, wins_dict, active_wins, mouse_pointer):
         self.title_ui.tick(pygame_settings, mouse_pointer)
 
     def render_ui(self, surface):
