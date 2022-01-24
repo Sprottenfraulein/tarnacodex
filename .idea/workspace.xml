@@ -26,35 +26,7 @@
     </select>
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="cc130b1c-00f5-48a7-860f-78f09248cfe9" name="Default Changelist" comment="Readme update">
-      <change afterPath="$PROJECT_DIR$/library/scheduler.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/objects/particle.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/objects/realmtext.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/library/calc2darray.py" beforeDir="false" afterPath="$PROJECT_DIR$/library/calc2darray.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/library/counter.py" beforeDir="false" afterPath="$PROJECT_DIR$/library/counter.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/library/panel.py" beforeDir="false" afterPath="$PROJECT_DIR$/library/panel.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/library/pydraw.py" beforeDir="false" afterPath="$PROJECT_DIR$/library/pydraw.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/objects/animations.py" beforeDir="false" afterPath="$PROJECT_DIR$/objects/animations.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/objects/charsheet.py" beforeDir="false" afterPath="$PROJECT_DIR$/objects/charsheet.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/objects/dbrequests.py" beforeDir="false" afterPath="$PROJECT_DIR$/objects/dbrequests.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/objects/maze.py" beforeDir="false" afterPath="$PROJECT_DIR$/objects/maze.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/objects/monster.py" beforeDir="false" afterPath="$PROJECT_DIR$/objects/monster.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/objects/pc.py" beforeDir="false" afterPath="$PROJECT_DIR$/objects/pc.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/objects/treasure.py" beforeDir="false" afterPath="$PROJECT_DIR$/objects/treasure.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/objects/ui.py" beforeDir="false" afterPath="$PROJECT_DIR$/objects/ui.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/res/data/tables.db" beforeDir="false" afterPath="$PROJECT_DIR$/res/data/tables.db" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/res/tilesets/anthro_ragdoll.png" beforeDir="false" afterPath="$PROJECT_DIR$/res/tilesets/anthro_ragdoll.png" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/res/tilesets/floor_items.png" beforeDir="false" afterPath="$PROJECT_DIR$/res/tilesets/floor_items.png" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/res/tilesets/inv_items.png" beforeDir="false" afterPath="$PROJECT_DIR$/res/tilesets/inv_items.png" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/resman.py" beforeDir="false" afterPath="$PROJECT_DIR$/resman.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/unf.py" beforeDir="false" afterPath="$PROJECT_DIR$/unf.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/wins/apptitle.py" beforeDir="false" afterPath="$PROJECT_DIR$/wins/apptitle.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/wins/context.py" beforeDir="false" afterPath="$PROJECT_DIR$/wins/context.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/wins/inventory.py" beforeDir="false" afterPath="$PROJECT_DIR$/wins/inventory.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/wins/realm.py" beforeDir="false" afterPath="$PROJECT_DIR$/wins/realm.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/wins/target.py" beforeDir="false" afterPath="$PROJECT_DIR$/wins/target.py" afterDir="false" />
-    </list>
+    <list default="true" id="cc130b1c-00f5-48a7-860f-78f09248cfe9" name="Default Changelist" comment="Monster population, loot drop.&#10;A lot of things reworked.&#10;Go around and kill mobs." />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -238,7 +210,14 @@
       <option name="project" value="LOCAL" />
       <updated>1642802848681</updated>
     </task>
-    <option name="localTasksCounter" value="16" />
+    <task id="LOCAL-00016" summary="Monster population, loot drop.&#10;A lot of things reworked.&#10;Go around and kill mobs.">
+      <created>1643026129965</created>
+      <option name="number" value="00016" />
+      <option name="presentableId" value="LOCAL-00016" />
+      <option name="project" value="LOCAL" />
+      <updated>1643026129965</updated>
+    </task>
+    <option name="localTasksCounter" value="17" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -276,7 +255,8 @@
     <MESSAGE value="Gitignore updated." />
     <MESSAGE value="Monster object added with basic movement calculations.&#10;Targeting window added (appear on mouse over monsters).&#10;Rendering reworked. All my &quot;fancy&quot; shenanigans has been cut. &#10;More in readme." />
     <MESSAGE value="Readme update" />
-    <option name="LAST_COMMIT_MESSAGE" value="Readme update" />
+    <MESSAGE value="Monster population, loot drop.&#10;A lot of things reworked.&#10;Go around and kill mobs." />
+    <option name="LAST_COMMIT_MESSAGE" value="Monster population, loot drop.&#10;A lot of things reworked.&#10;Go around and kill mobs." />
   </component>
   <component name="WindowStateProjectService">
     <state x="520" y="240" key="#com.intellij.openapi.updateSettings.impl.PluginUpdateInfoDialog" timestamp="1642802901619">
