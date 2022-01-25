@@ -23,7 +23,6 @@ class SkillBook:
         self.gold_sum = None
 
         self.rendered_skb = pygame.Surface((self.skb_w, self.skb_h)).convert()
-        self.create_elements(log=True)
 
     def launch(self, pc):
         self.pc = pc
@@ -63,6 +62,9 @@ class SkillBook:
             # preparing popup panel on N-th cycle
             if self.mouse_pointer.drag_item:
                 return
+            if (not self.offset_x <= mouse_x < self.offset_x + self.skb_w
+                    or not self.offset_y <= mouse_y < self.offset_y + self.skb_h):
+                return False
             for i in range(len(self.skb_sockets_list) - 1, -1, -1):
                 if self.skb_sockets_list[i].rendered_rect.collidepoint((mouse_x - self.offset_x, mouse_y - self.offset_y)):
                     if not self.skb_sockets_list[i].mouse_over:
@@ -76,6 +78,7 @@ class SkillBook:
                             self.skb_sockets_list[i].popup_active = False
                             if wins_dict['context'] in active_wins:
                                 active_wins.remove(wins_dict['context'])
+            return True
 
         # return True if interaction was made to prevent other windows from responding to this event
         return self.ui_click(self.skillbook_ui.mouse_actions(mouse_x - self.offset_x, mouse_y - self.offset_y, event),
@@ -119,7 +122,7 @@ class SkillBook:
                     # exchange between inventory socket and mouse
 
                     item_down = self.mouse_pointer.drag_item[0][self.mouse_pointer.drag_item[1]]
-                    self.mouse_pointer.image = item_down.props['image_inventory'][0]
+                    self.mouse_pointer.image = item_down.props['image_book'][0]
 
             elif mb_event == 'up' and self.mouse_pointer.drag_item is not None:
                 item_dragging = self.mouse_pointer.drag_item[0][self.mouse_pointer.drag_item[1]]
@@ -159,7 +162,7 @@ class SkillBook:
                 self.mouse_pointer.image = None
 
                 self.clean_skb_tail()
-            self.render()
+            self.render_slots(wins_dict, active_wins)
 
         self.skillbook_ui.interaction_callback(element, mb_event, m_bttn)
         # return True if interaction was made to prevent other windows from responding to this event
@@ -182,12 +185,12 @@ class SkillBook:
     def context_info_update(self, element, wins_dict, active_wins):
         # Here I need to write making changes to context_info_rich element
         if 'skill' in element.tags:
-            if element.id < len(self.pc.char_sheet.skills) and self.pc.char_sheet.skills[element.id] is not None:
-                inv_itm = self.pc.char_sheet.skills[element.id]
+            if element.id < len(element.tags[0]) and element.tags[0][element.id] is not None:
+                inv_itm = element.tags[0][element.id]
                 self.context_define(inv_itm, element, wins_dict, active_wins)
 
     def context_define(self, skill, element, wins_dict, active_wins):
-        if skill.props['skill_type'] in ('skill_melee', 'skill_ranged', 'skill_magic', 'skill_craft', 'skill_misc'):
+        if skill.props['item_type'] in ('skill_melee', 'skill_ranged', 'skill_magic', 'skill_craft', 'skill_misc'):
             wins_dict['context'].update_elements_skill(self.pc, skill, self.mouse_pointer.xy)
         element.popup_active = True
         active_wins.insert(0, wins_dict['context'])
@@ -230,8 +233,9 @@ class SkillBook:
         for i in range(0, 24):
             s_x = skb_sckt_left + skb_sckt_size * (i % skb_sckt_per_row)
             s_y = skb_sckt_top + skb_sckt_size * (i // skb_sckt_per_row)
-            skb_socket = self.skillbook_ui.panel_add('skb_socket', (s_x, s_y), (skb_sckt_size, skb_sckt_size),
-                                                     images=(self.skb_sckt_img,), page=None, img_stretch=True)
+            skb_socket = self.skillbook_ui.panel_add(i, (s_x, s_y), (skb_sckt_size, skb_sckt_size),
+                                                     images=(self.skb_sckt_img,), page=None, img_stretch=True,
+                                                     tags=(self.pc.char_sheet.skills, 'skill'))
             self.skillbook_ui.interactives.append(skb_socket)
             self.skb_sockets_list.append(skb_socket)
 
@@ -255,6 +259,11 @@ class SkillBook:
         self.skillbook_ui.tick(pygame_settings, mouse_pointer)
         if self.skillbook_ui.updated:
             self.render()
+
+    def render_slots(self, wins_dict, active_wins):
+        for win in ('inventory','skillbook'):
+            if wins_dict[win] in active_wins:
+                wins_dict[win].render()
 
     def render(self, skb=True):
         # backpack update

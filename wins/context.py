@@ -1,7 +1,7 @@
 # game title window
 import pygame
 import settings
-from objects import ui, treasure
+from objects import ui, treasure, skillfuncs
 from library import pydraw, maths
 
 
@@ -117,6 +117,77 @@ class Context:
         self.context_ui.decoratives.append(context_header)
         self.context_ui.decoratives.append(itm_bodylines)
         self.context_ui.decoratives.append(itm_headlines)
+        self.context_ui.decoratives.append(itm_icon_panel)
+        self.context_ui.decoratives.append(bg_panel)
+
+        self.offset_x, self.offset_y = maths.rect_to_center(mouse_xy[0], mouse_xy[1], win_width, win_height, 0, 0,
+                                                            self.pygame_settings.screen_res[0],
+                                                            self.pygame_settings.screen_res[1])
+        self.offset_x, self.offset_y = maths.rect_in_bounds(self.offset_x, self.offset_y, win_width, win_height, 0, 0,
+                                                            self.pygame_settings.screen_res[0],
+                                                            self.pygame_settings.screen_res[1])
+        self.render_ui(self.target_rendered)
+
+    def update_elements_skill(self, pc, item, mouse_xy, log=True):
+        self.context_ui.decoratives.clear()
+        self.context_ui.interactives.clear()
+
+        win_width = 320
+        itm_img_size = (48, 48)
+
+        # color based on grade
+        decor_color = self.context_ui.resources.grade_colors[item.props['grade']]
+        # calculating and rendering text
+        bl_text = {
+            'desc': item.props['desc'] % getattr(skillfuncs, item.props['function_name'])(pc, item.props, just_values=True)
+        }
+        itm_bodylines = self.context_ui.context_paragraphs(self.context_ui.resources, 'bodylines',
+                                                              (itm_img_size[0] + 16, 32),
+                                                              (win_width - (itm_img_size[0] + 24), itm_img_size[1]),
+                                                              images=None, text_dict=bl_text, cap_bgcolor='black',
+                                                              page=None)
+        itm_bodylines.render_all()
+
+        win_height = itm_bodylines.size[1] + 104 + 8
+        self.target_rendered = pygame.Surface((win_width, win_height)).convert()
+        self.target_rendered.set_colorkey(self.context_ui.resources.colors['transparent'])
+        # background
+        bg_image = pydraw.square((0, 0), (win_width, win_height),
+                                 (self.context_ui.resources.colors[decor_color],
+                                  self.context_ui.resources.colors['gray_dark'],
+                                  self.context_ui.resources.colors['black'],
+                                  self.context_ui.resources.colors['black']),
+                                  sq_outsize=1, sq_bsize=2, sq_ldir=4, sq_fill=True, sq_image=None)
+        header_img = pydraw.square((0, 0), (win_width - 8, 24),
+                                 (self.context_ui.resources.colors['gray_light'],
+                                  self.context_ui.resources.colors['gray_dark'],
+                                  self.context_ui.resources.colors['black'],
+                                  self.context_ui.resources.colors[decor_color]),
+                                 sq_outsize=1, sq_bsize=0, sq_ldir=0, sq_fill=True)
+        context_header = self.context_ui.text_add('context_header', (4, 4), (win_width - 8, 24),
+                                                caption=item.props['label'].upper(),
+                                                h_align='center', v_align='middle', cap_color='fnt_celeb',
+                                                cap_font='def_bold', images=(header_img,))
+
+        bg_panel = self.context_ui.panel_add('inv_panel', (0, 0), (win_width, win_height), images=(bg_image,),
+                                                   page=None)
+
+        # item icon
+        item_image = pygame.transform.scale(item.props['image_book'][0], itm_img_size)
+        itm_img_w, itm_img_h = itm_img_size[0] + 16, itm_img_size[1] + 16
+        item_icon = pydraw.square((0, 0), (itm_img_w, itm_img_h),
+                                  (self.context_ui.resources.colors[decor_color],
+                                   self.context_ui.resources.colors['gray_dark'],
+                                   self.context_ui.resources.colors['black'],
+                                   self.context_ui.resources.colors['black']),
+                                  sq_outsize=0, sq_bsize=0, sq_ldir=4, sq_fill=False,
+                                  sq_image=None)
+        item_icon.blit(item_image, (8,8))
+        itm_icon_panel = self.context_ui.panel_add('inv_panel', (4, 32), (itm_img_w, itm_img_h), images=(item_icon,),
+                                                page=None)
+
+        self.context_ui.decoratives.append(context_header)
+        self.context_ui.decoratives.append(itm_bodylines)
         self.context_ui.decoratives.append(itm_icon_panel)
         self.context_ui.decoratives.append(bg_panel)
 

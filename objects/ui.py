@@ -41,7 +41,7 @@ class UI:
                 if interact.page is not None and interact.page != self.page:
                     continue
                 try:
-                    if interact.rendered_rect.collidepoint((mouse_x, mouse_y)):
+                    if inter_click is None and interact.rendered_rect.collidepoint((mouse_x, mouse_y)):
                         inter_click = (interact, event.button, 'up')
                     else:
                         interact.release(event.button)
@@ -303,6 +303,40 @@ class UI:
 
         new_rich = fieldrich.FieldRich(resources, context_id, xy, size, fr_images=images, text_dict=info_text, pop_show=60,
                                        pop_hide=30, pop_win=None, page=None, img_stretch=img_stretch)
+        return new_rich
+
+    def context_paragraphs(self, resources, context_id, xy=None, size=None, images=None, text_dict=None,
+                          cap_bgcolor='black', page=None, img_stretch=False):
+        # setting defaults if attributes not presented:
+        if xy is None:
+            xy = (0, 0)
+        if size is None:
+            size = (96, 32)
+        if text_dict is None:
+            text_dict = {
+                'desc': 'desc',
+            }
+        if images is None:
+            images = (
+                pydraw.square((0, 0), size,
+                              (self.resources.colors['gray_light'],
+                               self.resources.colors['gray_dark'],
+                               self.resources.colors['gray_mid'],
+                               self.resources.colors['black']),
+                              sq_outsize=1, sq_bsize=1, sq_ldir=0, sq_fill=False,
+                              sq_image=None),
+            )
+        info_text = {
+            'desc': typography.Typography(self.pygame_settings, text_dict['desc'], (0, 0), 'def_normal', 24,
+                                          self.resources.colors['fnt_celeb'],
+                                          self.resources.colors['transparent'],
+                                          'left', 'top', size[0], 0)
+        }
+        for key, text in text_dict.items():
+            if text == '':
+                del info_text[key]
+
+        new_rich = fieldrich.FieldRich(resources, context_id, xy, size, fr_images=images, text_dict=info_text, img_stretch=img_stretch)
         return new_rich
 
     def element_align(self, element, origin_xy, view_rect):

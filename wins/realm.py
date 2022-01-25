@@ -1,6 +1,6 @@
 import pygame
-from library import calc2darray, maths, logfun, pydraw, typography
-from objects import treasure, dbrequests, monster, animations, realmtext
+from library import calc2darray, maths, logfun, typography
+from objects import realmtext, skill
 import math
 
 
@@ -112,24 +112,18 @@ class Realm:
                 if wins_dict['skillbook'] in active_wins:
                     active_wins.remove(wins_dict['skillbook'])
                     wins_dict['skillbook'].clean_skb_all()
+                    wins_dict['skillbook'].end()
                     # self.view_maze_h_div = 2
                 else:
-                    wins_dict['skillbook'].pc = self.pc
+                    wins_dict['skillbook'].launch(self.pc)
                     wins_dict['skillbook'].render()
                     active_wins.insert(0, wins_dict['skillbook'])
                     # self.view_maze_h_div = 1.6
                 self.view_maze_update(self.pc.x_sq, self.pc.y_sq)
                 # self.render_update()
             if event.key == pygame.K_p:
-                test_item = treasure.Treasure(3, self.db.cursor, self.tile_sets, resources, self.pygame_settings.audio)
-                # treasure.calc_level(8, test_item.props)
-                # treasure.calc_grade(self.db.cursor, 2, test_item.props)
-                # treasure.loot_validate(test_item.props)
-                self.pc.char_sheet.inventory.append(test_item)
-                test_item = treasure.Treasure(5, self.db.cursor, self.tile_sets, resources, self.pygame_settings.audio)
-                treasure.calc_level(3, test_item.props)
-                treasure.loot_validate(test_item.props)
-                self.pc.char_sheet.inventory.append(test_item)
+                self.pc.char_sheet.skills.append(skill.Skill(1, self.db.cursor, self.tile_sets, self.resources,
+                                                             self.pygame_settings.audio))
             if event.key == pygame.K_m:
                 self.schedule_man.task_add('realm_tasks', 6, self, 'spawn_realmtext',
                                            ('new_txt', "I'd better have a black muffin.",

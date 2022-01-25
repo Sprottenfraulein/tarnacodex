@@ -222,7 +222,7 @@ def get_monsters(cursor, max_level, max_grade, monster_types, roll):
 
 
 def skill_get_by_id(cursor, skill_id):
-    ex_str = "SELECT * FROM character_skills WHERE skill_id=?"
+    ex_str = "SELECT * FROM skills WHERE skill_id=?"
     cursor.execute(ex_str, (skill_id,))
     rows = cursor.fetchall()
     column_names = [column[0] for column in cursor.description]
@@ -230,3 +230,32 @@ def skill_get_by_id(cursor, skill_id):
     for i in range(0, len(column_names)):
         skill_dict[column_names[i]] = rows[0][i]
     return skill_dict
+
+
+def skill_images_get(cursor, skill_id, grade):
+    ex_str = "SELECT skill_grade, image_type, tileset, width, height, `index` FROM images i JOIN skill_image_sets sis ON sis.image_id=i.image_id WHERE sis.skill_id=? AND sis.skill_grade=?"
+    cursor.execute(ex_str, (skill_id, grade))
+    rows = cursor.fetchall()
+    column_names = [column[0] for column in cursor.description]
+    images_dict = {}
+    for row in rows:
+        image_dict = {}
+        for i in range(2, len(column_names)):
+            image_dict[column_names[i]] = row[i]
+        images_dict[row[1]] = image_dict
+    return images_dict
+
+
+def skill_sounds_get(cursor, skill_id, grade):
+    ex_str = "SELECT skill_grade, filename FROM sounds s JOIN skill_sound_sets sss ON sss.sound_id=s.sound_id WHERE sss.skill_id=? AND sss.skill_grade=?"
+    cursor.execute(ex_str, (skill_id, grade))
+    rows = cursor.fetchall()
+    column_names = [column[0] for column in cursor.description]
+    sounds_dict = {}
+    s_ind = 0
+    for row in rows:
+        sound_dict = {}
+        sound_dict[column_names[1]] = row[1]
+        sounds_dict[row[0]] = sound_dict
+        s_ind += 1
+    return sounds_dict

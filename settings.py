@@ -20,7 +20,8 @@ tilesets = (
     ('dark_edges', 'res/tilesets/darkedges.png'),
     ('interface', 'res/tilesets/interface.png'),
     ('inv_items', 'res/tilesets/inv_items.png'),
-    ('floor_items', 'res/tilesets/floor_items.png')
+    ('floor_items', 'res/tilesets/floor_items.png'),
+    ('inv_skills', 'res/tilesets/inv_skills.png')
 )
 
 sounds = (

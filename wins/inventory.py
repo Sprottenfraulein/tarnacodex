@@ -67,6 +67,9 @@ class Inventory:
             # preparing popup panel on N-th cycle
             if self.mouse_pointer.drag_item:
                 return
+            if (not self.offset_x <= mouse_x < self.offset_x + self.inv_w
+                    or not self.offset_y <= mouse_y < self.offset_y + self.inv_h):
+                return False
             for i in range(len(self.inv_sockets_list) - 1, -1, -1):
                 if self.inv_sockets_list[i].rendered_rect.collidepoint(
                         (mouse_x - self.offset_x, mouse_y - self.offset_y)):
@@ -95,6 +98,7 @@ class Inventory:
                             self.eq_sockets_list[i].popup_active = False
                             if wins_dict['context'] in active_wins:
                                 active_wins.remove(wins_dict['context'])
+            return True
 
         # return True if interaction was made to prevent other windows from responding to this event
         return self.ui_click(self.inventory_ui.mouse_actions(mouse_x - self.offset_x, mouse_y - self.offset_y, event),
@@ -171,7 +175,9 @@ class Inventory:
                 self.mouse_pointer.image = None
 
                 self.clean_inv_tail()
-            self.render()
+
+                self.pc.char_sheet.calc_stats()
+            self.render_slots(wins_dict, active_wins)
 
         self.inventory_ui.interaction_callback(element, mb_event, m_bttn)
         # return True if interaction was made to prevent other windows from responding to this event
@@ -195,8 +201,8 @@ class Inventory:
     def context_info_update(self, element, wins_dict, active_wins):
         # Here I need to write making changes to context_info_rich element
         if 'itm' in element.tags:
-            if element.id < len(self.pc.char_sheet.inventory) and self.pc.char_sheet.inventory[element.id] is not None:
-                inv_itm = self.pc.char_sheet.inventory[element.id]
+            if element.id < len(element.tags[0]) and element.tags[0][element.id] is not None:
+                inv_itm = element.tags[0][element.id]
                 self.context_define(inv_itm, element, wins_dict, active_wins)
 
     def context_define(self, itm, element, wins_dict, active_wins):
@@ -315,12 +321,17 @@ class Inventory:
         self.inventory_ui.interactives.append(self.gold_sum)
         self.inventory_ui.interactives.append(win_header)
         self.inventory_ui.interactives.append(coins_icon)
-        self.inventory_ui.decoratives.append(inv_panel)
+        self.inventory_ui.interactives.append(inv_panel)
 
     def tick(self, pygame_settings, wins_dict, active_wins, mouse_pointer):
         self.inventory_ui.tick(pygame_settings, mouse_pointer)
         if self.inventory_ui.updated:
             self.render()
+
+    def render_slots(self, wins_dict, active_wins):
+        for win in ('inventory','skillbook'):
+            if wins_dict[win] in active_wins:
+                wins_dict[win].render()
 
     def render(self, inv=True, eq=True, gold=True):
         # backpack update

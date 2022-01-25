@@ -124,6 +124,8 @@ class CharSheet:
                 'item_types': ['light'],
             }),
         ]
+        for i in range(0, len(self.equipped)):
+            self.equipped[i].append(None)
 
         self.gold_coins = 1000
 
@@ -167,11 +169,12 @@ class CharSheet:
                 dmg_weapon_min = dmg_weapon_max = 1
                 weapon_type = 'wpn_melee'
         else:
-            try:
-                dmg_weapon_min, dmg_weapon_max = self.equipped[2]['mods']['att_base']['value_base'], \
-                                                 self.equipped[2]['mods']['att_base']['value_base'] + self.equipped[2]['mods']['att_base']['value_spread']
-                weapon_type = self.equipped[2]['item_type']
-            except TypeError:
+            mainhand = self.equipped[2][0]
+            if mainhand is not None and 'mods' in mainhand.props and 'att_base' in mainhand.props['mods']:
+                dmg_weapon_min, dmg_weapon_max = mainhand.props['mods']['att_base']['value_base'], \
+                                                 mainhand.props['mods']['att_base']['value_base'] + mainhand.props['mods']['att_base']['value_spread']
+                weapon_type = mainhand.props['item_type']
+            else:
                 dmg_weapon_min = dmg_weapon_max = 1
                 weapon_type = 'wpn_melee'
 
