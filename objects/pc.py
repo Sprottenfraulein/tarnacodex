@@ -148,6 +148,7 @@ class PC:
         self.state_change(self.state + 4)
 
         self.attacking = {
+            'lvl': 1,
             'label': 'Melee strike',
             'time': 32,
             'hit_time': 1,

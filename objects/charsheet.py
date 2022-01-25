@@ -1,5 +1,5 @@
 # Player character game rules stats object.
-from library import maths
+from library import maths, itemlist
 from objects import dbrequests
 
 
@@ -57,7 +57,9 @@ class CharSheet:
         }
         self.attack_speed = 0
 
-        self.skills = {}
+        self.skills = itemlist.ItemList(items_max=24, filters={
+            'item_types': ['skill_melee', 'skill_ranged', 'skill_magic', 'skill_craft', 'skill_misc']
+        })
 
         self.profs = {
             'prof_provoke': 0,       # distance of mobs becoming aggressive
@@ -87,28 +89,40 @@ class CharSheet:
         self.de_buffs = {}
         self.modifiers = {}
         # Inventory list
-        self.inventory = []
-        self.inv_max = 24
+        self.inventory = itemlist.ItemList(items_max=24, filters={
+            'item_types': ['wpn_melee', 'wpn_ranged', 'wpn_magic', 'arm_head', 'arm_chest', 'acc_ring', 'orb_shield',
+                           'orb_ammo', 'orb_source', 'use_potion', 'use_wand', 'use_tools', 'light']
+        })
         # Equipment dictionary
-        self.eq_ids = (
-            'head',
-            'chest',
-            'mainhand',
-            'offhand',
-            'ring1',
-            'ring2',
-            'ammo',
-            'light'
-        )
         self.equipped = [
-            None, # 0 head
-            None, # 1 chest
-            None, # 2 mainhand
-            None, # 3 offhand
-            None, # 4 ring1
-            None, # 5 ring2
-            None, # 6 ammo
-            None, # 7 light
+            # 0 head
+            itemlist.ItemList(items_max=1, filters={
+                'item_types': ['arm_head'],
+            }),
+            # 1 chest
+            itemlist.ItemList(items_max=1, filters={
+                'item_types': ['arm_chest'],
+            }),
+            # 2 mainhand
+            itemlist.ItemList(items_max=1, filters={
+                'item_types': ['wpn_melee', 'wpn_ranged', 'wpn_magic'],
+            }),
+            # 3 offhand
+            itemlist.ItemList(items_max=1, filters={
+                'item_types': ['wpn_melee', 'orb_shield', 'orb_ammo', 'orb_source'],
+            }),
+            # 4 ring1
+            itemlist.ItemList(items_max=1, filters={
+                'item_types': ['acc_ring'],
+            }),
+            # 5 ring2
+            itemlist.ItemList(items_max=1, filters={
+                'item_types': ['acc_ring'],
+            }),
+            # 7 light
+            itemlist.ItemList(items_max=1, filters={
+                'item_types': ['light'],
+            }),
         ]
 
         self.gold_coins = 1000
@@ -266,13 +280,14 @@ class CharSheet:
 
     def equipment_mod(self, stat_name):
         mod = 0
-        for eq_item in self.equipped:
-            if eq_item is None:
-                continue
-            try:
-                mod += eq_item.props['mods'][stat_name]
-            except KeyError:
-                pass
+        for eq_pos in self.equipped:
+            for eq_itm in eq_pos:
+                if eq_itm is None:
+                    continue
+                try:
+                    mod += eq_itm.props['mods'][stat_name]
+                except KeyError:
+                    pass
         return mod
 
     def buff_mod(self, stat_name):

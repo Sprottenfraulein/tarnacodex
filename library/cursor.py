@@ -4,7 +4,7 @@ import pygame
 
 class Cursor:
     def __init__(self, pygame_settings, resources):
-        self.drag_loot = None
+        self.drag_item = None
         self.drag_ui = None
         self.image = None
         self.visible = True

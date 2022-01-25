@@ -3,13 +3,16 @@ import pygame
 
 
 class Panel:
-    def __init__(self, pan_id, pan_xy, pan_size, pan_images=None, page=None, img_stretch=False):
+    def __init__(self, pan_id, pan_xy, pan_size, pan_images=None, page=None, img_stretch=False, tags=None):
         self.id = pan_id
         self.size = pan_size
         self.images = pan_images
         self.page = page
         self.mode = 0
-        self.tags = []
+        if tags is None:
+            self.tags = []
+        else:
+            self.tags = tags
 
         self.mouse_over = False
         self.popup_active = False

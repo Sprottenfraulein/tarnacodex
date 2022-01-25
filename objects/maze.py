@@ -1,6 +1,6 @@
 import random
 from library import maths
-from library import pickrandom, calc2darray
+from library import pickrandom, calc2darray, itemlist
 from objects import dbrequests, progression, room, door, stairs, trap, lock, flagtile, monster
 
 
@@ -30,7 +30,10 @@ class Maze:
         self.mobs = []
         self.traps = []
         self.exits = []
-        self.loot = []
+        self.loot = itemlist.ItemList(filters={
+                'item_types': ['wpn_melee', 'wpn_ranged', 'wpn_magic', 'arm_head', 'arm_chest', 'acc_ring', 'orb_shield',
+                           'orb_ammo', 'orb_source', 'use_potion', 'use_wand', 'use_tools', 'light'],
+            })
         self.text = []
 
         self.ANIM_LEN = 4

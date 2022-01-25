@@ -316,7 +316,7 @@ def generate_loot(monster, realm, pc):
         for i in range(0, tr_amount):
             rnd_id = tr_ids_list[random.randrange(0, len(tr_ids_list))]
             new_tr = treasure.Treasure(rnd_id, realm.db.cursor, realm.tile_sets, realm.resources,
-                                       realm.pygame_settings.audio, stashed=False)
+                                       realm.pygame_settings.audio)
             if monster.stats['lvl'] != new_tr.props['lvl']:
                 treasure.calc_level(monster.stats['lvl'], new_tr.props)
             treasure.loot_validate(new_tr.props)
@@ -340,7 +340,7 @@ def generate_gold(monster, realm, pc):
     treasure_list = []
     for gold_pile in gold_list:
         new_gold = treasure.Treasure(6, realm.db.cursor, realm.tile_sets, realm.resources,
-                                   realm.pygame_settings.audio, stashed=False)
+                                   realm.pygame_settings.audio)
         amount = new_gold.props['amount'] + new_gold.props['amount'] * gold_pile // 100
         new_gold.props['amount'] = amount * monster.stats['lvl']
 

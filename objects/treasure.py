@@ -5,11 +5,10 @@ import random
 
 
 class Treasure:
-    def __init__(self, treasure_id, db_cursor, tile_sets, resources, audio, x_sq=-1, y_sq=-1, stashed=True, log=True):
+    def __init__(self, treasure_id, db_cursor, tile_sets, resources, audio, x_sq=-1, y_sq=-1, log=True):
         self.x_sq = x_sq
         self.y_sq = y_sq
         self.off_x = self.off_y = 0
-        self.stashed = stashed
 
         treasure_dict = dbrequests.treasure_get_by_id(db_cursor, treasure_id)
 

@@ -23,12 +23,20 @@ class Inventory:
         self.inv_sockets_list = []
         self.eq_sockets_list = None
         self.inv_sockets_image = None
-        self.drag_socket = None
 
         self.gold_sum = None
 
         self.rendered_inv = pygame.Surface((self.inv_w, self.inv_h)).convert()
+
+    def launch(self, pc):
+        self.pc = pc
         self.create_elements(log=True)
+
+    def end(self):
+        self.inventory_ui.decoratives.clear()
+        self.inventory_ui.interactives.clear()
+        self.inv_sockets_list.clear()
+        self.eq_sockets_list = None
 
     def event_check(self, event, pygame_settings, resources, wins_dict, active_wins, log=True):
         mouse_x, mouse_y = self.mouse_pointer.xy
@@ -57,10 +65,11 @@ class Inventory:
 
         elif event.type == pygame.MOUSEMOTION:
             # preparing popup panel on N-th cycle
-            if self.mouse_pointer.drag_loot:
+            if self.mouse_pointer.drag_item:
                 return
-            for i in range(len(self.inv_sockets_list)-1, -1, -1):
-                if self.inv_sockets_list[i].rendered_rect.collidepoint((mouse_x - self.offset_x, mouse_y - self.offset_y)):
+            for i in range(len(self.inv_sockets_list) - 1, -1, -1):
+                if self.inv_sockets_list[i].rendered_rect.collidepoint(
+                        (mouse_x - self.offset_x, mouse_y - self.offset_y)):
                     if not self.inv_sockets_list[i].mouse_over:
                         self.inv_sockets_list[i].mouse_over = True
                         if not self.inv_sockets_list[i].popup_active:
@@ -72,8 +81,9 @@ class Inventory:
                             self.inv_sockets_list[i].popup_active = False
                             if wins_dict['context'] in active_wins:
                                 active_wins.remove(wins_dict['context'])
-            for i in range(len(self.eq_sockets_list)-1, -1, -1):
-                if self.eq_sockets_list[i].rendered_rect.collidepoint((mouse_x - self.offset_x, mouse_y - self.offset_y)):
+            for i in range(len(self.eq_sockets_list) - 1, -1, -1):
+                if self.eq_sockets_list[i].rendered_rect.collidepoint(
+                        (mouse_x - self.offset_x, mouse_y - self.offset_y)):
                     if not self.eq_sockets_list[i].mouse_over:
                         self.eq_sockets_list[i].mouse_over = True
                         if not self.eq_sockets_list[i].popup_active:
@@ -103,6 +113,8 @@ class Inventory:
             if mb_event == 'down':
                 self.mouse_pointer.drag_ui = (self, self.mouse_pointer.xy[0] - self.offset_x,
                                               self.mouse_pointer.xy[1] - self.offset_y)
+                active_wins.remove(wins_dict['inventory'])
+                active_wins.insert(0, wins_dict['inventory'])
             if mb_event == 'up':
                 self.mouse_pointer.drag_ui = None
                 if self.offset_x < 0:
@@ -115,56 +127,50 @@ class Inventory:
                     self.offset_y = pygame_settings.screen_res[1] - self.inv_h
 
         # PAGE 0
-        if m_bttn == 1 and element.id in ('inv_socket', 'eq_socket'):
+        if m_bttn == 1 and 'itm' in element.tags:
             # removing popup if active
             if wins_dict['context'] in active_wins:
                 active_wins.remove(wins_dict['context'])
-            catch_excess = [None]
-            if element.id == 'inv_socket':
-                itm_index = (self.pc.char_sheet.inventory, self.inv_sockets_list.index(element), element.id)
-            if element.id == 'eq_socket':
-                itm_index = (self.pc.char_sheet.equipped, self.eq_sockets_list.index(element), element.id)
-            if mb_event == 'down' and self.mouse_pointer.drag_loot is None:
-                if itm_index[1] < len(itm_index[0]) and itm_index[0][itm_index[1]] is not None:
-                    self.drag_socket = list(itm_index)
+            item_info = [element.tags[0], element.id]
+            if mb_event == 'down' and self.mouse_pointer.drag_item is None:
+                if item_info[1] < len(item_info[0]) and item_info[0][item_info[1]] is not None:
+                    self.mouse_pointer.drag_item = item_info
                     # exchange between inventory socket and mouse
-                    self.mouse_pointer.drag_loot, itm_index[0][itm_index[1]] = itm_index[0][itm_index[1]], None
-                    self.mouse_pointer.image = self.mouse_pointer.drag_loot.props['image_inventory'][0]
-                    self.clean_inv_tail()
-            elif mb_event == 'up' and self.mouse_pointer.drag_loot is not None:
-                if not self.mouse_pointer.drag_loot.stashed:
-                    self.drag_socket = [catch_excess, 0, None]
-                if itm_index[1] < len(itm_index[0]):
-                    if itm_index[0][itm_index[1]] is None:
-                        itm_index[0][itm_index[1]] = self.mouse_pointer.drag_loot
-                    elif self.drag_socket[1] < len(self.drag_socket[0]):
-                        self.drag_socket[0][self.drag_socket[1]] = itm_index[0][itm_index[1]]
-                        itm_index[0][itm_index[1]] = self.mouse_pointer.drag_loot
+
+                    item_down = self.mouse_pointer.drag_item[0][self.mouse_pointer.drag_item[1]]
+                    self.mouse_pointer.image = item_down.props['image_inventory'][0]
+
+            elif mb_event == 'up' and self.mouse_pointer.drag_item is not None:
+                item_dragging = self.mouse_pointer.drag_item[0][self.mouse_pointer.drag_item[1]]
+                if item_info[1] < len(item_info[0]):
+                    if item_info[0][item_info[1]] is None:
+                        item_info[0][item_info[1]], self.mouse_pointer.drag_item[0][self.mouse_pointer.drag_item[1]] = \
+                            self.mouse_pointer.drag_item[0][self.mouse_pointer.drag_item[1]], item_info[0][item_info[1]]
                     else:
-                        self.drag_socket[0].append(itm_index[0][itm_index[1]])
-                        self.drag_socket[1] = len(self.drag_socket[0]) - 1
-                        itm_index[0][itm_index[1]] = self.mouse_pointer.drag_loot
-
+                        if self.mouse_pointer.drag_item[1] >= len(self.mouse_pointer.drag_item[0]):
+                            self.mouse_pointer.drag_item[0].append(None)
+                            self.mouse_pointer.drag_item[1] = len(self.mouse_pointer.drag_item[0]) - 1
+                        item_info[0][item_info[1]], self.mouse_pointer.drag_item[0][self.mouse_pointer.drag_item[1]] = \
+                            self.mouse_pointer.drag_item[0][self.mouse_pointer.drag_item[1]], item_info[0][item_info[1]]
                 else:
-                    self.pc.char_sheet.inventory.append(self.mouse_pointer.drag_loot)
-                self.mouse_pointer.drag_loot.stashed = True
-                self.mouse_pointer.drag_loot = None
-                self.mouse_pointer.image = None
-                if self.drag_socket[1] >= len(self.drag_socket[0]):
-                    self.drag_socket[0].append(None)
-                    self.drag_socket[1] = len(self.drag_socket[0]) - 1
-                if ((element.id == 'eq_socket' and self.pc.char_sheet.eq_ids[itm_index[1]]
-                    not in itm_index[0][itm_index[1]].props['equipment_type'])
-                    or (self.drag_socket[0][self.drag_socket[1]] is not None
-                    and self.drag_socket[2] == 'eq_socket' and self.pc.char_sheet.eq_ids[self.drag_socket[1]]
-                    not in self.drag_socket[0][self.drag_socket[1]].props['equipment_type'])):
-                        itm_index[0][itm_index[1]], self.drag_socket[0][self.drag_socket[1]] = \
-                            self.drag_socket[0][self.drag_socket[1]], itm_index[0][itm_index[1]]
+                    item_info[0].append(item_dragging)
+                    item_info[1] = len(item_info[0]) - 1
+                    self.mouse_pointer.drag_item[0][self.mouse_pointer.drag_item[1]] = None
 
-                if catch_excess[0] is not None:
-                    self.mouse_pointer.drag_loot = catch_excess.pop()
-                    self.mouse_pointer.drag_loot.stashed = False
-                    self.mouse_pointer.image = self.mouse_pointer.drag_loot.props['image_inventory'][0]
+                if (item_info[0][item_info[1]].props['item_type'] not in item_info[0].filters['item_types']
+                        or item_dragging.props['item_type'] not in self.mouse_pointer.drag_item[0].filters['item_types']):
+                    item_info[0][item_info[1]], self.mouse_pointer.drag_item[0][self.mouse_pointer.drag_item[1]] = \
+                        self.mouse_pointer.drag_item[0][self.mouse_pointer.drag_item[1]], item_info[0][item_info[1]]
+
+                if (self.mouse_pointer.drag_item[0][self.mouse_pointer.drag_item[1]] is None
+                        and self.mouse_pointer.drag_item[0] == wins_dict['realm'].maze.loot):
+                    # wins_dict['realm'].loot_short.remove(item_dragging)
+                    del self.mouse_pointer.drag_item[0][self.mouse_pointer.drag_item[1]]
+
+                self.mouse_pointer.drag_item = None
+                self.mouse_pointer.image = None
+
+                self.clean_inv_tail()
             self.render()
 
         self.inventory_ui.interaction_callback(element, mb_event, m_bttn)
@@ -179,6 +185,7 @@ class Inventory:
                 break
         else:
             self.pc.char_sheet.inventory.clear()
+        pass
 
     def clean_inv_all(self):
         for sckt in reversed(self.pc.char_sheet.inventory):
@@ -187,18 +194,10 @@ class Inventory:
 
     def context_info_update(self, element, wins_dict, active_wins):
         # Here I need to write making changes to context_info_rich element
-        if element.id == 'inv_socket':
-            itm_index = self.inv_sockets_list.index(element)
-            if itm_index < len(self.pc.char_sheet.inventory) and self.pc.char_sheet.inventory[itm_index] is not None:
-                # deciding which type of context create based on item_type
-                inv_itm = self.pc.char_sheet.inventory[itm_index]
+        if 'itm' in element.tags:
+            if element.id < len(self.pc.char_sheet.inventory) and self.pc.char_sheet.inventory[element.id] is not None:
+                inv_itm = self.pc.char_sheet.inventory[element.id]
                 self.context_define(inv_itm, element, wins_dict, active_wins)
-        elif element.id == 'eq_socket':
-            itm_index = self.eq_sockets_list.index(element)
-            if self.pc.char_sheet.equipped[itm_index] is not None:
-                # deciding which type of context create based on item_type
-                eq_itm = self.pc.char_sheet.equipped[itm_index]
-                self.context_define(eq_itm, element, wins_dict, active_wins)
 
     def context_define(self, itm, element, wins_dict, active_wins):
         if itm.props['item_type'] in ('wpn_melee', 'wpn_ranged'):
@@ -215,12 +214,12 @@ class Inventory:
         # INVENTORY
         inv_texture = self.inventory_ui.random_texture((self.inv_w, self.inv_h), 'black_rock')
         inv_image = pydraw.square((0, 0), (self.inv_w, self.inv_h),
-                              (self.inventory_ui.resources.colors['gray_light'],
-                             self.inventory_ui.resources.colors['gray_dark'],
-                             self.inventory_ui.resources.colors['gray_mid'],
-                             self.inventory_ui.resources.colors['black']),
-                              sq_outsize=1, sq_bsize=2, sq_ldir=0, sq_fill=False,
-                              sq_image=inv_texture)
+                                  (self.inventory_ui.resources.colors['gray_light'],
+                                   self.inventory_ui.resources.colors['gray_dark'],
+                                   self.inventory_ui.resources.colors['gray_mid'],
+                                   self.inventory_ui.resources.colors['black']),
+                                  sq_outsize=1, sq_bsize=2, sq_ldir=0, sq_fill=False,
+                                  sq_image=inv_texture)
         # INVENTORY BACKGROUND
         inv_image = pydraw.square((inv_sckt_left - 1, inv_sckt_top - 1),
                                   (inv_sckt_per_row * inv_sckt_size + 2,
@@ -231,50 +230,57 @@ class Inventory:
                                    self.inventory_ui.resources.colors['black']),
                                   sq_outsize=0, sq_bsize=1, sq_ldir=2, sq_fill=False,
                                   sq_image=inv_image, same_surface=True)
-        inv_panel = self.inventory_ui.panel_add('inv_panel', (0, 0), (self.inv_w, self.inv_h), images=(inv_image,), page=None)
+        inv_panel = self.inventory_ui.panel_add('inv_panel', (0, 0), (self.inv_w, self.inv_h), images=(inv_image,),
+                                                page=None)
 
         # INVENTORY SOCKETS
         self.inv_sckt_img = pydraw.square((0, 0), (inv_sckt_size, inv_sckt_size),
-                                     (self.inventory_ui.resources.colors['gray_light'],
-                                      self.inventory_ui.resources.colors['gray_dark'],
-                                      self.inventory_ui.resources.colors['gray_mid'],
-                                      self.inventory_ui.resources.colors['gray_darker']),
-                                     sq_outsize=1, sq_bsize=0, sq_ldir=2, sq_fill=False,
-                                     sq_image=None)
+                                          (self.inventory_ui.resources.colors['gray_light'],
+                                           self.inventory_ui.resources.colors['gray_dark'],
+                                           self.inventory_ui.resources.colors['gray_mid'],
+                                           self.inventory_ui.resources.colors['gray_darker']),
+                                          sq_outsize=1, sq_bsize=0, sq_ldir=2, sq_fill=False,
+                                          sq_image=None)
         for i in range(0, 24):
             s_x = inv_sckt_left + inv_sckt_size * (i % inv_sckt_per_row)
             s_y = inv_sckt_top + inv_sckt_size * (i // inv_sckt_per_row)
-            inv_socket = self.inventory_ui.panel_add('inv_socket', (s_x, s_y), (inv_sckt_size, inv_sckt_size),
-                                                     images=(self.inv_sckt_img,), page=None, img_stretch=True)
+            inv_socket = self.inventory_ui.panel_add(i, (s_x, s_y), (inv_sckt_size, inv_sckt_size),
+                                                     images=(self.inv_sckt_img,), page=None, img_stretch=True,
+                                                     tags=(self.pc.char_sheet.inventory, 'itm'))
             self.inventory_ui.interactives.append(inv_socket)
             self.inv_sockets_list.append(inv_socket)
 
         eq_sckt_img = pydraw.square((0, 0), (inv_sckt_size, inv_sckt_size),
-                                     (self.inventory_ui.resources.colors['gray_light'],
-                                      self.inventory_ui.resources.colors['gray_dark'],
-                                      self.inventory_ui.resources.colors['gray_mid'],
-                                      self.inventory_ui.resources.colors['gray_darker']),
-                                     sq_outsize=1, sq_bsize=2, sq_ldir=2, sq_fill=False,
-                                     sq_image=None)
+                                    (self.inventory_ui.resources.colors['gray_light'],
+                                     self.inventory_ui.resources.colors['gray_dark'],
+                                     self.inventory_ui.resources.colors['gray_mid'],
+                                     self.inventory_ui.resources.colors['gray_darker']),
+                                    sq_outsize=1, sq_bsize=2, sq_ldir=2, sq_fill=False,
+                                    sq_image=None)
         # EQUIPPED ITEMS
         # panel ids must match char_sheet.equipped keys
         self.eq_sockets_list = (
-            self.inventory_ui.panel_add('eq_socket', (self.inv_w // 2 - inv_sckt_size // 2, 48),
-                                        (inv_sckt_size, inv_sckt_size), images=(eq_sckt_img,), page=None, img_stretch=True),
-            self.inventory_ui.panel_add('eq_socket', (self.inv_w // 2 - inv_sckt_size // 2, 108),
-                                        (inv_sckt_size, inv_sckt_size), images=(eq_sckt_img,), page=None, img_stretch=True),
-            self.inventory_ui.panel_add('eq_socket', (self.inv_w // 2 - inv_sckt_size // 2 - 60, 108),
-                                        (inv_sckt_size, inv_sckt_size), images=(eq_sckt_img,), page=None, img_stretch=True),
-            self.inventory_ui.panel_add('eq_socket', (self.inv_w // 2 - inv_sckt_size // 2 + 60, 108),
-                                        (inv_sckt_size, inv_sckt_size), images=(eq_sckt_img,), page=None, img_stretch=True),
-            self.inventory_ui.panel_add('eq_socket', (self.inv_w // 2 - inv_sckt_size // 2 - 60, 168),
-                                        (inv_sckt_size, inv_sckt_size), images=(eq_sckt_img,), page=None, img_stretch=True),
-            self.inventory_ui.panel_add('eq_socket', (self.inv_w // 2 - inv_sckt_size // 2 + 60, 168),
-                                        (inv_sckt_size, inv_sckt_size), images=(eq_sckt_img,), page=None, img_stretch=True),
-            self.inventory_ui.panel_add('eq_socket', (self.inv_w // 2 - inv_sckt_size // 2 - 60, 48),
-                                        (inv_sckt_size, inv_sckt_size), images=(eq_sckt_img,), page=None, img_stretch=True),
-            self.inventory_ui.panel_add('eq_socket', (self.inv_w // 2 - inv_sckt_size // 2 + 60, 48),
-                                        (inv_sckt_size, inv_sckt_size), images=(eq_sckt_img,), page=None, img_stretch=True)
+            self.inventory_ui.panel_add(0, (self.inv_w // 2 - inv_sckt_size // 2, 48),
+                                        (inv_sckt_size, inv_sckt_size), images=(eq_sckt_img,), page=None,
+                                        img_stretch=True, tags=(self.pc.char_sheet.equipped[0], 'itm')),
+            self.inventory_ui.panel_add(0, (self.inv_w // 2 - inv_sckt_size // 2, 108),
+                                        (inv_sckt_size, inv_sckt_size), images=(eq_sckt_img,), page=None,
+                                        img_stretch=True, tags=(self.pc.char_sheet.equipped[1], 'itm')),
+            self.inventory_ui.panel_add(0, (self.inv_w // 2 - inv_sckt_size // 2 - 60, 108),
+                                        (inv_sckt_size, inv_sckt_size), images=(eq_sckt_img,), page=None,
+                                        img_stretch=True, tags=(self.pc.char_sheet.equipped[2], 'itm')),
+            self.inventory_ui.panel_add(0, (self.inv_w // 2 - inv_sckt_size // 2 + 60, 108),
+                                        (inv_sckt_size, inv_sckt_size), images=(eq_sckt_img,), page=None,
+                                        img_stretch=True, tags=(self.pc.char_sheet.equipped[3], 'itm')),
+            self.inventory_ui.panel_add(0, (self.inv_w // 2 - inv_sckt_size // 2 - 60, 168),
+                                        (inv_sckt_size, inv_sckt_size), images=(eq_sckt_img,), page=None,
+                                        img_stretch=True, tags=(self.pc.char_sheet.equipped[4], 'itm')),
+            self.inventory_ui.panel_add(0, (self.inv_w // 2 - inv_sckt_size // 2 + 60, 168),
+                                        (inv_sckt_size, inv_sckt_size), images=(eq_sckt_img,), page=None,
+                                        img_stretch=True, tags=(self.pc.char_sheet.equipped[5], 'itm')),
+            self.inventory_ui.panel_add(0, (self.inv_w // 2 - inv_sckt_size // 2 - 60, 48),
+                                        (inv_sckt_size, inv_sckt_size), images=(eq_sckt_img,), page=None,
+                                        img_stretch=True, tags=(self.pc.char_sheet.equipped[6], 'itm')),
         )
 
         # window header
@@ -287,19 +293,23 @@ class Inventory:
                                    sq_outsize=1, sq_bsize=1, sq_ldir=0, sq_fill=False,
                                    sq_image=header_texture)
         win_header = self.inventory_ui.text_add('win_header', (0, 0), (self.inv_w, 19),
-                                            caption='Inventory',
-                                            h_align='center', v_align='middle', cap_color='sun', images=(header_img,))
+                                                caption='Inventory',
+                                                h_align='center', v_align='middle', cap_color='sun',
+                                                images=(header_img,))
 
         self.gold_sum = self.inventory_ui.text_add('inv_gold', (inv_sckt_left - 1 + 24,
-                                              inv_sckt_top + self.inv_sckt_total // inv_sckt_per_row * inv_sckt_size + 8),
-                                              caption='* 600,000,000', cap_font='def_bold',
-                                              h_align='left', v_align='bottom', size=(self.inv_w //2, 24),
-                                              cap_color='bright_gold')
+                                                                inv_sckt_top + self.inv_sckt_total // inv_sckt_per_row * inv_sckt_size + 8),
+                                                   caption='* 600,000,000', cap_font='def_bold',
+                                                   h_align='left', v_align='bottom', size=(self.inv_w // 2, 24),
+                                                   cap_color='bright_gold')
 
         coins_icon = self.inventory_ui.panel_add('coins_icon',
-                (inv_sckt_left - 1, inv_sckt_top + self.inv_sckt_total // inv_sckt_per_row * inv_sckt_size + 2), (24, 24),
-                images=(self.inventory_ui.tilesets.get_image(*self.inventory_ui.resources.sprites['gold_coins_icon'])),
-                page=None, img_stretch=True)
+                                                 (inv_sckt_left - 1,
+                                                  inv_sckt_top + self.inv_sckt_total // inv_sckt_per_row * inv_sckt_size + 2),
+                                                 (24, 24),
+                                                 images=(self.inventory_ui.tilesets.get_image(
+                                                     *self.inventory_ui.resources.sprites['gold_coins_icon'])),
+                                                 page=None, img_stretch=True)
 
         self.inventory_ui.interactives.extend(self.eq_sockets_list)
         self.inventory_ui.interactives.append(self.gold_sum)
@@ -323,17 +333,20 @@ class Inventory:
                 for s_ind in range(0, len(self.inv_sockets_list)):
                     if s_ind >= len(self.pc.char_sheet.inventory) or self.pc.char_sheet.inventory[s_ind] is None:
                         self.inv_sockets_list[s_ind].images = (self.inv_sckt_img,)
+                    elif (self.mouse_pointer.drag_item is not None and self.mouse_pointer.drag_item[0] == self.pc.char_sheet.inventory
+                        and s_ind == self.mouse_pointer.drag_item[1]):
+                        self.inv_sockets_list[s_ind].images = (self.inv_sckt_img,)
                     else:
-                        self.inv_sockets_list[s_ind].images = self.pc.char_sheet.inventory[s_ind].props['image_inventory']
+                        self.inv_sockets_list[s_ind].images = self.pc.char_sheet.inventory[s_ind].props[
+                            'image_inventory']
             if eq:
                 for s_ind in range(0, len(self.eq_sockets_list)):
-                    if s_ind >= len(self.pc.char_sheet.equipped) or self.pc.char_sheet.equipped[s_ind] is None:
+                    if len(self.pc.char_sheet.equipped[s_ind]) == 0 or self.pc.char_sheet.equipped[s_ind][0] is None:
                         self.eq_sockets_list[s_ind].images = (self.inv_sckt_img,)
                     else:
-                        self.eq_sockets_list[s_ind].images = self.pc.char_sheet.equipped[s_ind].props['image_inventory']
+                        self.eq_sockets_list[s_ind].images = self.pc.char_sheet.equipped[s_ind][0].props['image_inventory']
 
         self.inventory_ui.draw(self.rendered_inv)
 
     def draw(self, surface):
         surface.blit(self.rendered_inv, (self.offset_x, self.offset_y))
-

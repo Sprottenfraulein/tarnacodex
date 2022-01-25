@@ -41,7 +41,7 @@ class AppTitle:
 
         elif event.type == pygame.MOUSEMOTION:
             # preparing popup panel on N-th cycle
-            if self.mouse_pointer.drag_loot:
+            if self.mouse_pointer.drag_item is not None:
                 return
             for i in range(len(self.title_ui.interactives) - 1, -1, -1):
                 if self.title_ui.interactives[i].rendered_rect.collidepoint(self.mouse_pointer.xy):

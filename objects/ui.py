@@ -189,15 +189,14 @@ class UI:
         new_text = fieldtext.FieldText(edit_id, xy, size, text_obj=inp_text, ft_images=images, page=page)
         return new_text
 
-    def panel_add(self, edit_id, xy=None, size=None, images=None,
-                  pop_show=30, pop_hide=1, pop_win=None, page=None, img_stretch=False):
+    def panel_add(self, edit_id, xy=None, size=None, images=None, page=None, img_stretch=False, tags=None):
         # setting defaults if attributes not presented:
         if xy is None:
             xy = (0, 0)
         if size is None:
             size = (96, 48)
 
-        new_panel = panel.Panel(edit_id, xy, size, pan_images=images, page=page, img_stretch=img_stretch)
+        new_panel = panel.Panel(edit_id, xy, size, pan_images=images, page=page, img_stretch=img_stretch, tags=tags)
         return new_panel
 
     def context_headline_info(self, resources, context_id, xy=None, size=None, images=None, text_dict=None,

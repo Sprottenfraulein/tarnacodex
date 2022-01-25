@@ -98,30 +98,42 @@ class Realm:
                 if wins_dict['inventory'] in active_wins:
                     active_wins.remove(wins_dict['inventory'])
                     wins_dict['inventory'].clean_inv_all()
+                    wins_dict['inventory'].end()
                     # self.view_maze_h_div = 2
                 else:
-                    wins_dict['inventory'].pc = self.pc
+                    wins_dict['inventory'].launch(self.pc)
                     wins_dict['inventory'].render()
                     active_wins.insert(0, wins_dict['inventory'])
                     # self.view_maze_h_div = 1.6
                 self.view_maze_update(self.pc.x_sq, self.pc.y_sq)
                 # self.render_update()
+            if event.key == pygame.K_s:
+                # wins_dict['inventory'].launch(pygame_settings.audio)
+                if wins_dict['skillbook'] in active_wins:
+                    active_wins.remove(wins_dict['skillbook'])
+                    wins_dict['skillbook'].clean_skb_all()
+                    # self.view_maze_h_div = 2
+                else:
+                    wins_dict['skillbook'].pc = self.pc
+                    wins_dict['skillbook'].render()
+                    active_wins.insert(0, wins_dict['skillbook'])
+                    # self.view_maze_h_div = 1.6
+                self.view_maze_update(self.pc.x_sq, self.pc.y_sq)
+                # self.render_update()
             if event.key == pygame.K_p:
-                test_item = treasure.Treasure(3, self.db.cursor, self.tile_sets, resources, self.pygame_settings.audio
-                                              , stashed=True)
+                test_item = treasure.Treasure(3, self.db.cursor, self.tile_sets, resources, self.pygame_settings.audio)
                 # treasure.calc_level(8, test_item.props)
                 # treasure.calc_grade(self.db.cursor, 2, test_item.props)
                 # treasure.loot_validate(test_item.props)
                 self.pc.char_sheet.inventory.append(test_item)
-                test_item = treasure.Treasure(5, self.db.cursor, self.tile_sets, resources, self.pygame_settings.audio,
-                                              stashed=True)
+                test_item = treasure.Treasure(5, self.db.cursor, self.tile_sets, resources, self.pygame_settings.audio)
                 treasure.calc_level(3, test_item.props)
                 treasure.loot_validate(test_item.props)
                 self.pc.char_sheet.inventory.append(test_item)
             if event.key == pygame.K_m:
                 self.schedule_man.task_add('realm_tasks', 6, self, 'spawn_realmtext',
                                            ('new_txt', "I'd better have a black muffin.",
-                                           (0,0), (0, -24), None, True, self.pc))
+                                            (0, 0), (0, -24), None, True, self.pc))
                 self.schedule_man.task_add('realm_tasks', 12, self, 'remove_realmtext', ('new_txt',))
 
         if event.type == pygame.KEYUP:
@@ -137,15 +149,17 @@ class Realm:
 
                 self.pc.attack(self, wins_dict['target'])
             elif not self.square_check(self.mouse_pointer.xy,
-                                     event.button, wins_dict, active_wins) and event.button == 1:
+                                       event.button, wins_dict, active_wins) and event.button == 1:
                 self.pc.move_instr_x, self.pc.move_instr_y = self.mouse_move(self.mouse_pointer.xy)
+
         elif event.type == pygame.MOUSEBUTTONUP:
             if event.button != 1:
                 return
             self.pc.move_instr_x = self.pc.move_instr_y = 0
-            if self.mouse_pointer.drag_loot is None:
+
+            if self.mouse_pointer.drag_item is None:
                 return
-            self.pc_loot_drop(self.mouse_pointer.xy, log)
+            self.pc_loot_drop(self.mouse_pointer.xy, wins_dict, active_wins, log)
 
         elif event.type == pygame.MOUSEMOTION:
             self.mob_check(self.mouse_pointer.xy, None, wins_dict, active_wins)
@@ -181,8 +195,10 @@ class Realm:
         if self.redraw_maze_text:
             for txt in self.text_short:
                 txt.draw(screen,
-                         (txt.x_sq - self.view_maze_x_sq - self.view_bleed_sq) * self.square_size * self.square_scale + txt.off_x,
-                         (txt.y_sq - self.view_maze_y_sq - self.view_bleed_sq) * self.square_size * self.square_scale + txt.off_y)
+                         (
+                                     txt.x_sq - self.view_maze_x_sq - self.view_bleed_sq) * self.square_size * self.square_scale + txt.off_x,
+                         (
+                                     txt.y_sq - self.view_maze_y_sq - self.view_bleed_sq) * self.square_size * self.square_scale + txt.off_y)
 
     def view_maze_update(self, x_sq, y_sq):
         self.view_maze_x_sq = x_sq - round(self.view_maze_width_sq / self.view_maze_h_div)
@@ -228,14 +244,14 @@ class Realm:
                                   (dr.y_sq - self.ren_y_sq) * self.square_size + dr.off_y))
                 if dr.alignment:
                     if not self.maze.flag_array[dr.y_sq - 1][dr.x_sq].vis:
-                        surface.fill((1,1,1), ((dr.x_sq - self.ren_x_sq) * self.square_size,
-                                                (dr.y_sq - self.ren_y_sq - 1) * self.square_size,
-                                                self.square_size, self.square_size))
+                        surface.fill((1, 1, 1), ((dr.x_sq - self.ren_x_sq) * self.square_size,
+                                                 (dr.y_sq - self.ren_y_sq - 1) * self.square_size,
+                                                 self.square_size, self.square_size))
                 else:
                     if not self.maze.flag_array[dr.y_sq][dr.x_sq - 1].vis:
-                        surface.fill((1,1,1), ((dr.x_sq - self.ren_x_sq - 1) * self.square_size,
-                                                (dr.y_sq - self.ren_y_sq) * self.square_size,
-                                                self.square_size, self.square_size))
+                        surface.fill((1, 1, 1), ((dr.x_sq - self.ren_x_sq - 1) * self.square_size,
+                                                 (dr.y_sq - self.ren_y_sq) * self.square_size,
+                                                 self.square_size, self.square_size))
 
         if self.redraw_maze_loot:
             for loot in self.loot_short:
@@ -350,13 +366,13 @@ class Realm:
     def calc_vision_alt(self):
         orig_xy = round(self.pc.x_sq), round(self.pc.y_sq)
         # realm.calc_vision(realm.maze.flag_array, orig_xy, 100, (12, 8), r_max=10)
-        self.vision_sq_prev = calc2darray.calc_vision_rays(self.maze.flag_array, orig_xy[0], orig_xy[1], 10, self.vision_sq_prev)
-
+        self.vision_sq_prev = calc2darray.calc_vision_rays(self.maze.flag_array, orig_xy[0], orig_xy[1], 10,
+                                                           self.vision_sq_prev)
 
     def mouse_move(self, mouse_xy):
         rads = maths.xy_dist_to_rads(mouse_xy[0], mouse_xy[1],
-                                     (self.pc.x_sq - self.view_maze_x_sq - 1.4) * self.square_size * self.square_scale,
-                                     (self.pc.y_sq - self.view_maze_y_sq - 1.4) * self.square_size * self.square_scale)
+                                     (self.pc.x_sq - self.view_maze_x_sq - 0.4) * self.square_size * self.square_scale,
+                                     (self.pc.y_sq - self.view_maze_y_sq - 0.4) * self.square_size * self.square_scale)
 
         if -1.9 < rads <= -1.1:
             move_instr_x = 0
@@ -384,7 +400,7 @@ class Realm:
             move_instr_y = 1
         return move_instr_x, move_instr_y
 
-    def pc_loot_drop(self, mouse_xy, log=False):
+    def pc_loot_drop(self, mouse_xy, wins_dict, active_wins, log=False):
         m_x_sq, m_y_sq = self.xy_pixels_to_squares(mouse_xy)
         if m_x_sq < 0 or m_x_sq > self.maze.width - 1 or m_y_sq < 0 or m_y_sq > self.maze.height - 1:
             return
@@ -394,8 +410,17 @@ class Realm:
         if not self.maze.flag_array[m_y_sq][m_x_sq].floor:
             logfun.put('I must choose floor area to drop an item.', log)
             return
-        self.maze.spawn_loot(m_x_sq, m_y_sq, (self.mouse_pointer.drag_loot,))
-        self.mouse_pointer.drag_loot = None
+        item_dragging = self.mouse_pointer.drag_item[0][self.mouse_pointer.drag_item[1]]
+        if self.mouse_pointer.drag_item[0] == self.maze.loot:
+            item_dragging.x_sq = m_x_sq
+            item_dragging.y_sq = m_y_sq
+            self.maze.flag_array[item_dragging.y_sq][item_dragging.x_sq].item += True
+        else:
+            self.maze.spawn_loot(m_x_sq, m_y_sq, (item_dragging,))
+            del self.mouse_pointer.drag_item[0][self.mouse_pointer.drag_item[1]]
+            if wins_dict['inventory'] in active_wins:
+                wins_dict['inventory'].render()
+        self.mouse_pointer.drag_item = None
         self.mouse_pointer.image = None
         self.shortlists_update(loot=True)
         # self.render_update()
@@ -418,7 +443,7 @@ class Realm:
             return None
         if flags.item:
             # picking up items
-            if m_bttn == 1 and self.mouse_pointer.drag_loot is not None:
+            if m_bttn == 1 and self.mouse_pointer.drag_item is not None:
                 return False
             for lt in self.loot_short:
                 if lt.x_sq == x_sq and lt.y_sq == y_sq:
@@ -436,15 +461,14 @@ class Realm:
                         return True
                     elif m_bttn == 1:
                         self.maze.flag_array[y_sq][x_sq].item -= True
-                        self.mouse_pointer.drag_loot = lt
+                        self.mouse_pointer.drag_item = [self.maze.loot, self.maze.loot.index(lt)]
                         self.mouse_pointer.image = lt.props['image_floor'][0]
-                        self.maze.loot.remove(lt)
+                        # self.maze.loot.remove(lt)
                         self.loot_short.remove(lt)
                         # self.render_update()
                         return True
-                    elif m_bttn == 3 and len(self.pc.char_sheet.inventory) < self.pc.char_sheet.inv_max:
+                    elif m_bttn == 3 and len(self.pc.char_sheet.inventory) < self.pc.char_sheet.inventory.items_max:
                         self.maze.flag_array[y_sq][x_sq].item -= True
-                        lt.stashed = True
                         self.pc.char_sheet.inventory.append(lt)
                         self.maze.loot.remove(lt)
                         self.loot_short.remove(lt)
@@ -500,13 +524,15 @@ class Realm:
                 if self.maze.flag_array[dr.y_sq][dr.x_sq].vis:
                     self.doors_short.add(dr)
                 elif dr in self.doors_short:
-                        self.doors_short.remove(dr)
+                    self.doors_short.remove(dr)
 
         # loot
         if loot or everything:
             for lt in self.maze.loot:
                 if self.maze.flag_array[lt.y_sq][lt.x_sq].vis:
-                    self.loot_short.add(lt)
+                    if (self.mouse_pointer.drag_item is None
+                            or lt != self.mouse_pointer.drag_item[0][self.mouse_pointer.drag_item[1]]):
+                        self.loot_short.add(lt)
 
                 elif lt in self.loot_short:
                     self.loot_short.remove(lt)
@@ -520,7 +546,7 @@ class Realm:
                 if left_sq <= tr.x_sq <= right_sq and top_sq <= tr.y_sq <= bottom_sq:
                     self.traps_short.add(tr)
                 elif tr in self.traps_short:
-                        self.traps_short.remove(tr)
+                    self.traps_short.remove(tr)
 
         # mobs
         if mobs or everything:
@@ -529,7 +555,7 @@ class Realm:
                 if left_sq <= mob.x_sq <= right_sq and top_sq <= mob.y_sq <= bottom_sq:
                     self.mobs_short.add(mob)
                 elif mob in self.mobs_short:
-                        self.mobs_short.remove(mob)
+                    self.mobs_short.remove(mob)
 
         # texts
         if texts or everything:
@@ -537,7 +563,7 @@ class Realm:
                 if left_sq <= txt.x_sq <= right_sq and top_sq <= txt.y_sq <= bottom_sq:
                     self.text_short.add(txt)
                 elif txt in self.text_short:
-                        self.text_short.remove(txt)
+                    self.text_short.remove(txt)
 
     def spawn_realmtext(self, rt_id, caption, xy_sq, offset_xy, color=None, bold=True, stick_obj=None):
         if color is None:
@@ -561,11 +587,10 @@ class Realm:
             self.maze.text.clear()
             self.text_short.clear()
             return
-        for i in range(len(self.maze.text) -1, -1, -1):
+        for i in range(len(self.maze.text) - 1, -1, -1):
             if self.maze.text[i].id == text_id:
                 del self.maze.text[i]
         for txt in self.text_short:
             if txt.id == text_id:
                 self.text_short.remove(txt)
                 return
-
