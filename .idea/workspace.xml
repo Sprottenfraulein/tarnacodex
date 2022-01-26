@@ -26,20 +26,24 @@
     </select>
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="cc130b1c-00f5-48a7-860f-78f09248cfe9" name="Default Changelist" comment="Item managing updated. Skillbook added. Character sheet updated.">
-      <change afterPath="$PROJECT_DIR$/objects/skill.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/objects/skillfuncs.py" afterDir="false" />
+    <list default="true" id="cc130b1c-00f5-48a7-860f-78f09248cfe9" name="Default Changelist" comment="Test skill added, slot management fixed and improved, interface interactions updated and fixed. Context window updated for the skills. Calculations start coming together and working.">
+      <change afterPath="$PROJECT_DIR$/library/fate.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/objects/lootgen.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/library/maths.py" beforeDir="false" afterPath="$PROJECT_DIR$/library/maths.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/objects/charsheet.py" beforeDir="false" afterPath="$PROJECT_DIR$/objects/charsheet.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/objects/dbrequests.py" beforeDir="false" afterPath="$PROJECT_DIR$/objects/dbrequests.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/objects/ui.py" beforeDir="false" afterPath="$PROJECT_DIR$/objects/ui.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/objects/monster.py" beforeDir="false" afterPath="$PROJECT_DIR$/objects/monster.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/objects/pc.py" beforeDir="false" afterPath="$PROJECT_DIR$/objects/pc.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/objects/skillfuncs.py" beforeDir="false" afterPath="$PROJECT_DIR$/objects/skillfuncs.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/objects/treasure.py" beforeDir="false" afterPath="$PROJECT_DIR$/objects/treasure.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/res/data/tables.db" beforeDir="false" afterPath="$PROJECT_DIR$/res/data/tables.db" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/resman.py" beforeDir="false" afterPath="$PROJECT_DIR$/resman.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/settings.py" beforeDir="false" afterPath="$PROJECT_DIR$/settings.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/unf.py" beforeDir="false" afterPath="$PROJECT_DIR$/unf.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/wins/apptitle.py" beforeDir="false" afterPath="$PROJECT_DIR$/wins/apptitle.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/wins/context.py" beforeDir="false" afterPath="$PROJECT_DIR$/wins/context.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/wins/inventory.py" beforeDir="false" afterPath="$PROJECT_DIR$/wins/inventory.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/wins/realm.py" beforeDir="false" afterPath="$PROJECT_DIR$/wins/realm.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/wins/skillbook.py" beforeDir="false" afterPath="$PROJECT_DIR$/wins/skillbook.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/wins/target.py" beforeDir="false" afterPath="$PROJECT_DIR$/wins/target.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -252,7 +256,14 @@
       <option name="project" value="LOCAL" />
       <updated>1643105574327</updated>
     </task>
-    <option name="localTasksCounter" value="20" />
+    <task id="LOCAL-00020" summary="Test skill added, slot management fixed and improved, interface interactions updated and fixed. Context window updated for the skills. Calculations start coming together and working.">
+      <created>1643125316392</created>
+      <option name="number" value="00020" />
+      <option name="presentableId" value="LOCAL-00020" />
+      <option name="project" value="LOCAL" />
+      <updated>1643125316392</updated>
+    </task>
+    <option name="localTasksCounter" value="21" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -294,7 +305,8 @@
     <MESSAGE value="Monster population, loot drop.&#10;A lot of things reworked.&#10;Go around and kill mobs.&#10;Scheduler introduced." />
     <MESSAGE value="Scheduler fix" />
     <MESSAGE value="Item managing updated. Skillbook added. Character sheet updated." />
-    <option name="LAST_COMMIT_MESSAGE" value="Item managing updated. Skillbook added. Character sheet updated." />
+    <MESSAGE value="Test skill added, slot management fixed and improved, interface interactions updated and fixed. Context window updated for the skills. Calculations start coming together and working." />
+    <option name="LAST_COMMIT_MESSAGE" value="Test skill added, slot management fixed and improved, interface interactions updated and fixed. Context window updated for the skills. Calculations start coming together and working." />
   </component>
   <component name="WindowStateProjectService">
     <state x="520" y="240" key="#com.intellij.openapi.updateSettings.impl.PluginUpdateInfoDialog" timestamp="1642802901619">
@@ -305,10 +317,10 @@
       <screen x="0" y="0" width="1680" height="1010" />
     </state>
     <state x="490" y="70" key="CommitChangelistDialog2/0.0.1680.1010@0.0.1680.1010" timestamp="1642254803053" />
-    <state width="1585" height="466" key="DebuggerActiveHint" timestamp="1643124624286">
+    <state width="1585" height="466" key="DebuggerActiveHint" timestamp="1643132491447">
       <screen x="0" y="0" width="1680" height="1010" />
     </state>
-    <state width="1585" height="466" key="DebuggerActiveHint/0.0.1680.1010@0.0.1680.1010" timestamp="1643124624286" />
+    <state width="1585" height="466" key="DebuggerActiveHint/0.0.1680.1010@0.0.1680.1010" timestamp="1643132491447" />
     <state width="540" height="442" key="Diff.GoToChangePopup" timestamp="1642697330208">
       <screen x="0" y="0" width="1680" height="1010" />
     </state>
@@ -321,42 +333,42 @@
       <screen x="0" y="0" width="1680" height="1010" />
     </state>
     <state x="630" y="259" key="FileChooserDialogImpl/0.0.1680.1010@0.0.1680.1010" timestamp="1643011903942" />
-    <state width="1659" height="168" key="GridCell.Tab.0.bottom" timestamp="1643124928994">
+    <state width="1659" height="223" key="GridCell.Tab.0.bottom" timestamp="1643183173039">
       <screen x="0" y="0" width="1680" height="1010" />
     </state>
-    <state width="1659" height="168" key="GridCell.Tab.0.bottom/0.0.1680.1010@0.0.1680.1010" timestamp="1643124928994" />
-    <state width="1659" height="168" key="GridCell.Tab.0.center" timestamp="1643124928994">
+    <state width="1659" height="223" key="GridCell.Tab.0.bottom/0.0.1680.1010@0.0.1680.1010" timestamp="1643183173039" />
+    <state width="1659" height="223" key="GridCell.Tab.0.center" timestamp="1643183173039">
       <screen x="0" y="0" width="1680" height="1010" />
     </state>
-    <state width="1659" height="168" key="GridCell.Tab.0.center/0.0.1680.1010@0.0.1680.1010" timestamp="1643124928994" />
-    <state width="1659" height="168" key="GridCell.Tab.0.left" timestamp="1643124928994">
+    <state width="1659" height="223" key="GridCell.Tab.0.center/0.0.1680.1010@0.0.1680.1010" timestamp="1643183173039" />
+    <state width="1659" height="223" key="GridCell.Tab.0.left" timestamp="1643183173039">
       <screen x="0" y="0" width="1680" height="1010" />
     </state>
-    <state width="1659" height="168" key="GridCell.Tab.0.left/0.0.1680.1010@0.0.1680.1010" timestamp="1643124928994" />
-    <state width="1659" height="168" key="GridCell.Tab.0.right" timestamp="1643124928994">
+    <state width="1659" height="223" key="GridCell.Tab.0.left/0.0.1680.1010@0.0.1680.1010" timestamp="1643183173039" />
+    <state width="1659" height="223" key="GridCell.Tab.0.right" timestamp="1643183173039">
       <screen x="0" y="0" width="1680" height="1010" />
     </state>
-    <state width="1659" height="168" key="GridCell.Tab.0.right/0.0.1680.1010@0.0.1680.1010" timestamp="1643124928994" />
-    <state width="1659" height="168" key="GridCell.Tab.1.bottom" timestamp="1643124928837">
+    <state width="1659" height="223" key="GridCell.Tab.0.right/0.0.1680.1010@0.0.1680.1010" timestamp="1643183173039" />
+    <state width="1659" height="223" key="GridCell.Tab.1.bottom" timestamp="1643183172878">
       <screen x="0" y="0" width="1680" height="1010" />
     </state>
     <state width="1579" height="154" key="GridCell.Tab.1.bottom/0.0.1600.860@0.0.1600.860" timestamp="1642792337009" />
-    <state width="1659" height="168" key="GridCell.Tab.1.bottom/0.0.1680.1010@0.0.1680.1010" timestamp="1643124928837" />
-    <state width="1659" height="168" key="GridCell.Tab.1.center" timestamp="1643124928837">
+    <state width="1659" height="223" key="GridCell.Tab.1.bottom/0.0.1680.1010@0.0.1680.1010" timestamp="1643183172878" />
+    <state width="1659" height="223" key="GridCell.Tab.1.center" timestamp="1643183172878">
       <screen x="0" y="0" width="1680" height="1010" />
     </state>
     <state width="1579" height="154" key="GridCell.Tab.1.center/0.0.1600.860@0.0.1600.860" timestamp="1642792337008" />
-    <state width="1659" height="168" key="GridCell.Tab.1.center/0.0.1680.1010@0.0.1680.1010" timestamp="1643124928837" />
-    <state width="1659" height="168" key="GridCell.Tab.1.left" timestamp="1643124928837">
+    <state width="1659" height="223" key="GridCell.Tab.1.center/0.0.1680.1010@0.0.1680.1010" timestamp="1643183172878" />
+    <state width="1659" height="223" key="GridCell.Tab.1.left" timestamp="1643183172878">
       <screen x="0" y="0" width="1680" height="1010" />
     </state>
     <state width="1579" height="154" key="GridCell.Tab.1.left/0.0.1600.860@0.0.1600.860" timestamp="1642792337008" />
-    <state width="1659" height="168" key="GridCell.Tab.1.left/0.0.1680.1010@0.0.1680.1010" timestamp="1643124928837" />
-    <state width="1659" height="168" key="GridCell.Tab.1.right" timestamp="1643124928837">
+    <state width="1659" height="223" key="GridCell.Tab.1.left/0.0.1680.1010@0.0.1680.1010" timestamp="1643183172878" />
+    <state width="1659" height="223" key="GridCell.Tab.1.right" timestamp="1643183172878">
       <screen x="0" y="0" width="1680" height="1010" />
     </state>
     <state width="1579" height="154" key="GridCell.Tab.1.right/0.0.1600.860@0.0.1600.860" timestamp="1642792337009" />
-    <state width="1659" height="168" key="GridCell.Tab.1.right/0.0.1680.1010@0.0.1680.1010" timestamp="1643124928837" />
+    <state width="1659" height="223" key="GridCell.Tab.1.right/0.0.1680.1010@0.0.1680.1010" timestamp="1643183172878" />
     <state x="351" y="149" key="SettingsEditor" timestamp="1642253657141">
       <screen x="0" y="0" width="1680" height="1010" />
     </state>
@@ -369,10 +381,10 @@
       <screen x="0" y="0" width="1680" height="1010" />
     </state>
     <state x="680" y="374" key="VCS.EditChangelistDialog/0.0.1680.1010@0.0.1680.1010" timestamp="1642255774149" />
-    <state x="442" y="241" key="Vcs.Push.Dialog.v2" timestamp="1643105583025">
+    <state x="442" y="241" key="Vcs.Push.Dialog.v2" timestamp="1643125322981">
       <screen x="0" y="0" width="1680" height="1010" />
     </state>
-    <state x="442" y="241" key="Vcs.Push.Dialog.v2/0.0.1680.1010@0.0.1680.1010" timestamp="1643105583025" />
+    <state x="442" y="241" key="Vcs.Push.Dialog.v2/0.0.1680.1010@0.0.1680.1010" timestamp="1643125322981" />
     <state width="848" height="513" key="XDebugger.FullValuePopup" timestamp="1642970738872">
       <screen x="0" y="0" width="1680" height="1010" />
     </state>

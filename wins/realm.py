@@ -1,6 +1,6 @@
 import pygame
 from library import calc2darray, maths, logfun, typography
-from objects import realmtext, skill
+from components import realmtext, skill, treasure
 import math
 
 
@@ -124,6 +124,7 @@ class Realm:
             if event.key == pygame.K_p:
                 self.pc.char_sheet.skills.append(skill.Skill(1, self.db.cursor, self.tile_sets, self.resources,
                                                              self.pygame_settings.audio))
+                # self.pc.char_sheet.inventory.append(treasure.Treasure(3, self.db.cursor, self.tile_sets, self.resources, self.pygame_settings.audio))
             if event.key == pygame.K_m:
                 self.schedule_man.task_add('realm_tasks', 6, self, 'spawn_realmtext',
                                            ('new_txt', "I'd better have a black muffin.",
@@ -141,7 +142,7 @@ class Realm:
         if event.type == pygame.MOUSEBUTTONDOWN:
             if wins_dict['target'].mob_object is not None:
 
-                self.pc.attack(self, wins_dict['target'])
+                self.pc.attack(wins_dict['target'], self.pc.char_sheet.skills[0].props)
             elif not self.square_check(self.mouse_pointer.xy,
                                        event.button, wins_dict, active_wins) and event.button == 1:
                 self.pc.move_instr_x, self.pc.move_instr_y = self.mouse_move(self.mouse_pointer.xy)
@@ -160,9 +161,9 @@ class Realm:
             if self.pc.move_instr_y != 0 or self.pc.move_instr_x != 0:
                 self.pc.move_instr_x, self.pc.move_instr_y = self.mouse_move(self.mouse_pointer.xy)
 
-    def tick(self, pygame_settings, wins_dict, active_wins, mouse_pointer):
+    def tick(self, pygame_settings, wins_dict, active_wins, mouse_pointer, fate_rnd):
         self.maze.tick()
-        self.pc.tick(self, wins_dict, active_wins)
+        self.pc.tick(self, fate_rnd, wins_dict, active_wins)
         for mob in self.mobs_short:
             mob.tick(self)
         for txt in self.text_short:
@@ -189,10 +190,8 @@ class Realm:
         if self.redraw_maze_text:
             for txt in self.text_short:
                 txt.draw(screen,
-                         (
-                                     txt.x_sq - self.view_maze_x_sq - self.view_bleed_sq) * self.square_size * self.square_scale + txt.off_x,
-                         (
-                                     txt.y_sq - self.view_maze_y_sq - self.view_bleed_sq) * self.square_size * self.square_scale + txt.off_y)
+                     (txt.x_sq - self.view_maze_x_sq - self.view_bleed_sq) * self.square_size * self.square_scale + txt.off_x,
+                     (txt.y_sq - self.view_maze_y_sq - self.view_bleed_sq) * self.square_size * self.square_scale + txt.off_y)
 
     def view_maze_update(self, x_sq, y_sq):
         self.view_maze_x_sq = x_sq - round(self.view_maze_width_sq / self.view_maze_h_div)
@@ -409,12 +408,13 @@ class Realm:
             item_dragging.x_sq = m_x_sq
             item_dragging.y_sq = m_y_sq
             self.maze.flag_array[item_dragging.y_sq][item_dragging.x_sq].item += True
+            self.mouse_pointer.drag_item = None
         else:
             self.maze.spawn_loot(m_x_sq, m_y_sq, (item_dragging,))
-            del self.mouse_pointer.drag_item[0][self.mouse_pointer.drag_item[1]]
+            self.mouse_pointer.drag_item[0][self.mouse_pointer.drag_item[1]] = None
+            self.mouse_pointer.drag_item = None
             if wins_dict['inventory'] in active_wins:
                 wins_dict['inventory'].render()
-        self.mouse_pointer.drag_item = None
         self.mouse_pointer.image = None
         self.shortlists_update(loot=True)
         # self.render_update()

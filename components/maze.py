@@ -1,7 +1,7 @@
 import random
 from library import maths
 from library import pickrandom, calc2darray, itemlist
-from objects import dbrequests, progression, room, door, stairs, trap, lock, flagtile, monster
+from components import dbrequests, progression, room, door, stairs, trap, lock, flagtile, monster
 
 
 class Maze:

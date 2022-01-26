@@ -1,7 +1,7 @@
 # game title window
 import pygame
 import settings
-from objects import ui, treasure, skillfuncs
+from components import ui, treasure, skillfuncs
 from library import pydraw, maths
 
 
@@ -139,7 +139,7 @@ class Context:
         decor_color = self.context_ui.resources.grade_colors[item.props['grade']]
         # calculating and rendering text
         bl_text = {
-            'desc': item.props['desc'] % getattr(skillfuncs, item.props['function_name'])(pc, item.props, just_values=True)
+            'desc': item.props['desc'] % getattr(skillfuncs, item.props['function_name'])(None, None, pc, None, item.props, just_values=True)
         }
         itm_bodylines = self.context_ui.context_paragraphs(self.context_ui.resources, 'bodylines',
                                                               (itm_img_size[0] + 16, 32),
@@ -225,7 +225,7 @@ class Context:
             # deb_list.append(deb['desc'])
         return ' $n '.join(deb_list)
 
-    def tick(self, pygame_settings, wins_dict, active_wins, mouse_pointer):
+    def tick(self, pygame_settings, wins_dict, active_wins, mouse_pointer, fate_rnd):
         self.context_ui.tick(pygame_settings, mouse_pointer)
 
     def render_ui(self, surface):

@@ -1,4 +1,4 @@
-from objects import debuff
+from components import debuff
 
 
 def trap_params_get(cursor, table_name, key_level):

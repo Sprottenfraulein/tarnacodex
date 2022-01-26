@@ -1,6 +1,6 @@
 # game skill object
 from library import logfun
-from objects import dbrequests
+from components import dbrequests
 import random
 
 

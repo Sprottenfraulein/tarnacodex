@@ -1,3 +1,6 @@
+from components import skillfuncs
+
+
 class PC:
     def __init__(self, x_sq, y_sq, location, anim_set, char_sheet, state=2, speed=0.08):
         self.x_sq = x_sq
@@ -60,11 +63,14 @@ class PC:
             self.anim_frame -= len(self.image)
         self.frame_timing = self.anim_timings[self.anim_frame]
 
-    def tick(self, realm, wins_dict, active_wins):
+    def tick(self, realm, fate_rnd, wins_dict, active_wins):
         if self.attacking is None and (self.move_instr_x != 0 or self.move_instr_y != 0):
             self.move(self.move_instr_x, self.move_instr_y, realm, wins_dict, active_wins)
 
         elif self.attacking is not None:
+            if self.attack_timer == self.attacking['commit_time']:
+                aimed_obj = wins_dict['target'].mob_object
+                getattr(skillfuncs, self.attacking['function_name'])(realm, fate_rnd, self, aimed_obj, self.attacking)
             if self.attack_timer > self.attacking['time']:
                 self.attacking = None
                 if self.state > 3:
@@ -141,30 +147,17 @@ class PC:
                                 wins_dict['inventory'].render()
                             break
 
-    def attack(self, realm, target):
+    def attack(self, target, skill_props):
         if self.attacking is not None:
             return
         self.face_point(target.mob_object.x_sq, target.mob_object.y_sq)
         self.state_change(self.state + 4)
 
-        self.attacking = {
-            'lvl': 1,
-            'label': 'Melee strike',
-            'time': 32,
-            'hit_time': 1,
-            'attack_percent': 1000, # 1000 = 100% of base attack
-            'attack_type': 'att_physical', # type of bonuses applied from equipment
-            'desc': 'Basic melee attack'
-        }
-
-        target.mob_object.hp -= 20
-        target.mob_object.check(realm, self)
+        self.attacking = skill_props
 
         self.attack_timer = 0
         self.anim_frame = 0
         self.anim_timer = 0
-        print('ATTACK!!!')
-        pass
 
     def state_change(self, new_state):
         # check if state change is possible

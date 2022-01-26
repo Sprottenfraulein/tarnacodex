@@ -2,7 +2,7 @@
 import pygame
 import settings
 from library import textinput
-from objects import maze, pc, charsheet, ui
+from components import maze, pc, charsheet, ui
 
 
 class AppTitle:
@@ -177,7 +177,7 @@ class AppTitle:
         self.title_ui.interactives.append(new_edit)
         self.title_ui.interactives.append(tag_string)
 
-    def tick(self, pygame_settings, wins_dict, active_wins, mouse_pointer):
+    def tick(self, pygame_settings, wins_dict, active_wins, mouse_pointer, fate_rnd):
         self.title_ui.tick(pygame_settings, mouse_pointer)
 
     def render_ui(self, surface):

@@ -1,10 +1,10 @@
 # char inventory window
 import pygame
 from library import textinput, pydraw
-from objects import ui
+from components import ui
 
 
-# from objects import maze, pc, charsheet
+# from components import maze, pc, charsheet
 
 
 class Inventory:
@@ -71,6 +71,8 @@ class Inventory:
                     or not self.offset_y <= mouse_y < self.offset_y + self.inv_h):
                 return False
             for i in range(len(self.inv_sockets_list) - 1, -1, -1):
+                if self.inv_sockets_list[i].page is not None and self.inv_sockets_list[i].page != self.inventory_ui.page:
+                    continue
                 if self.inv_sockets_list[i].rendered_rect.collidepoint(
                         (mouse_x - self.offset_x, mouse_y - self.offset_y)):
                     if not self.inv_sockets_list[i].mouse_over:
@@ -85,6 +87,8 @@ class Inventory:
                             if wins_dict['context'] in active_wins:
                                 active_wins.remove(wins_dict['context'])
             for i in range(len(self.eq_sockets_list) - 1, -1, -1):
+                if self.eq_sockets_list[i].page is not None and self.eq_sockets_list[i].page != self.inventory_ui.page:
+                    continue
                 if self.eq_sockets_list[i].rendered_rect.collidepoint(
                         (mouse_x - self.offset_x, mouse_y - self.offset_y)):
                     if not self.eq_sockets_list[i].mouse_over:
@@ -323,7 +327,7 @@ class Inventory:
         self.inventory_ui.interactives.append(coins_icon)
         self.inventory_ui.interactives.append(inv_panel)
 
-    def tick(self, pygame_settings, wins_dict, active_wins, mouse_pointer):
+    def tick(self, pygame_settings, wins_dict, active_wins, mouse_pointer, fate_rnd):
         self.inventory_ui.tick(pygame_settings, mouse_pointer)
         if self.inventory_ui.updated:
             self.render()

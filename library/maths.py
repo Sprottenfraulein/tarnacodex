@@ -1,5 +1,5 @@
 # mathematical functions
-import math
+import math, random
 
 
 def exponential(ratio, value, multiplier):
@@ -45,3 +45,18 @@ def rect_to_center(rect_x, rect_y, rect_width, rect_height, space_x, space_y, sp
     if rect_y > space_y + space_height // 2:
         rect_y = rect_y - rect_height
     return rect_x, rect_y
+
+
+def expo_rnd_sample(minimum=1, maximum=1000, expolambda=0.004):
+    r = int(random.expovariate(expolambda))
+    if minimum <= r <= maximum:
+        return r
+    return
+
+
+def get_rnd_expo_list(range_min, range_max, n):
+    sample_list = [expo_rnd_sample() for i in range(0, n)]
+    filtered = list(filter(lambda x: x is not None, sample_list))
+    spread = range_max - range_min
+    result_list = [i * spread // 1000 + range_min for i in filtered]
+    return result_list

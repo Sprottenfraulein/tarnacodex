@@ -1,7 +1,7 @@
 # mob targeting window
 import pygame
 import settings
-from objects import ui, treasure
+from components import ui, treasure
 from library import pydraw, maths
 
 
@@ -107,7 +107,7 @@ class Target:
         self.target_ui.decoratives.append(self.mob_title)
         self.target_ui.decoratives.append(tar_panel)
 
-    def tick(self, pygame_settings, wins_dict, active_wins, mouse_pointer):
+    def tick(self, pygame_settings, wins_dict, active_wins, mouse_pointer, fate_rnd):
         if self.mob_object is not None:
             if self.mon_hp != self.mob_object.hp:
                 self.mon_hp = self.mob_object.hp

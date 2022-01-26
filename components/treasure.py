@@ -1,18 +1,18 @@
 # game items object
-from library import logfun
-from objects import dbrequests
+from library import logfun, maths
+from components import dbrequests
 import random
 
 
 class Treasure:
-    def __init__(self, treasure_id, db_cursor, tile_sets, resources, audio, x_sq=-1, y_sq=-1, log=True):
+    def __init__(self, treasure_id, db_cursor, tile_sets, resources, audio, fate_rnd, x_sq=-1, y_sq=-1, log=True):
         self.x_sq = x_sq
         self.y_sq = y_sq
         self.off_x = self.off_y = 0
 
         treasure_dict = dbrequests.treasure_get_by_id(db_cursor, treasure_id)
 
-        self.props = init_props(db_cursor, treasure_dict)
+        self.props = init_props(db_cursor, fate_rnd, treasure_dict)
 
         # linking images and sounds
         images_update(db_cursor, self.props, tile_sets)
@@ -20,7 +20,7 @@ class Treasure:
         sounds_update(db_cursor, self.props, audio)
 
 
-def init_props(db_cursor, treasure_dicts):
+def init_props(db_cursor, fate_rnd, treasure_dicts):
     base_props, modifier_list, de_buff_list = treasure_dicts
 
     # adding container list
@@ -54,14 +54,14 @@ def init_props(db_cursor, treasure_dicts):
     # inserting modifiers
     base_props['mods'] = {}
     for mod_dict in modifier_list:
-        init_modifier(base_props, mod_dict)
+        init_modifier(base_props, mod_dict, fate_rnd)
 
     # inserting de_buffs
     for db_dict in de_buff_list:
         modifier_list = dbrequests.de_buff_get_mods(db_cursor, db_dict['de_buff_id'])
 
         for mod_dict in modifier_list:
-            init_modifier(db_dict, mod_dict)
+            init_modifier(db_dict, mod_dict, fate_rnd)
 
     base_props['de_buffs'] = de_buff_list
 
@@ -70,33 +70,33 @@ def init_props(db_cursor, treasure_dicts):
     return base_props
 
 
-def affix_add(db_cursor, loot_props, affix_dicts):
+def affix_add(db_cursor, loot_props, affix_dicts, fate_rnd):
     base_props, modifier_list, de_buff_list = affix_dicts
 
     # inserting modifiers
     base_props['mods'] = {}
     for mod_dict in modifier_list:
-        init_modifier(base_props, mod_dict)
+        init_modifier(base_props, mod_dict, fate_rnd)
 
     # inserting de_buffs
     for db_dict in de_buff_list:
         modifier_list = dbrequests.de_buff_get_mods(db_cursor, db_dict['de_buff_id'])
 
         for mod_dict in modifier_list:
-            init_modifier(db_dict, mod_dict)
+            init_modifier(db_dict, mod_dict, fate_rnd)
 
     base_props['de_buffs'] = de_buff_list
 
     loot_props['affixes'].append(base_props)
 
 
-def init_modifier(parent_dict, mod_dict):
+def init_modifier(parent_dict, mod_dict, fate_rnd):
     parent_dict['mods'][mod_dict['parameter_name']] = {}
-    mod_value_base = random.randrange(mod_dict['value_base_min'], mod_dict['value_base_max'] + 1)
+    mod_value_base = fate_rnd.expo_rnd(mod_dict['value_base_min'], mod_dict['value_base_max'])
     parent_dict['mods'][mod_dict['parameter_name']]['value_base'] = mod_value_base
     parent_dict['mods'][mod_dict['parameter_name']]['value_type'] = mod_dict['value_type']
     if mod_dict['value_spread_min'] is not None and mod_dict['value_spread_max'] is not None:
-        mod_value_spread = random.randrange(mod_dict['value_spread_min'], mod_dict['value_spread_max'] + 1)
+        mod_value_spread = fate_rnd.expo_rnd(mod_dict['value_spread_min'], mod_dict['value_spread_max'])
         parent_dict['mods'][mod_dict['parameter_name']]['value_spread'] = mod_value_spread
 
 

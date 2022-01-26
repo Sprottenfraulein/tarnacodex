@@ -1,6 +1,6 @@
 # Player character game rules stats object.
 from library import maths, itemlist
-from objects import dbrequests
+from components import dbrequests
 
 
 class CharSheet:
@@ -30,11 +30,12 @@ class CharSheet:
         self.hp = 0
         self.mp = 0
         self.food = 0
-        self.experience = 0
-        self.exp_next_lvl = 0
 
         self.exp_rate = 1.4
         self.exp_rate_multiplier = 100
+
+        self.experience = 0
+        self.exp_next_lvl = maths.exponential(self.exp_rate, 1, self.exp_rate_multiplier)
 
         self.attacks = {
             'att_base': [0, 0],
@@ -308,12 +309,13 @@ class CharSheet:
         self.level = self.calc_level(self.experience)
         if self.level != old_level:
             self.calc_stats()
+        print('+%s exp. Total: %s/%s (level %s)' % (exp_value, self.experience, self.exp_next_lvl, self.level))
 
     def calc_level(self, exp_value):
         exp_value = 0
         level = 1
         for x in range(0, 101):
-            exp_value += maths.exponential(self.exp_rate, x, self.exp_rate_multiplier)
+            exp_value += maths.exponential(self.exp_rate, x + 1, self.exp_rate_multiplier)
             level_value = x + 2
             if self.experience >= exp_value:
                 level = level_value

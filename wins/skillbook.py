@@ -1,7 +1,7 @@
 # char skillbook window
 import pygame
 from library import textinput, pydraw
-from objects import ui
+from components import ui
 
 
 class SkillBook:
@@ -66,6 +66,8 @@ class SkillBook:
                     or not self.offset_y <= mouse_y < self.offset_y + self.skb_h):
                 return False
             for i in range(len(self.skb_sockets_list) - 1, -1, -1):
+                if self.skb_sockets_list[i].page is not None and self.skb_sockets_list[i].page != self.skillbook_ui.page:
+                    continue
                 if self.skb_sockets_list[i].rendered_rect.collidepoint((mouse_x - self.offset_x, mouse_y - self.offset_y)):
                     if not self.skb_sockets_list[i].mouse_over:
                         self.skb_sockets_list[i].mouse_over = True
@@ -255,7 +257,7 @@ class SkillBook:
         self.skillbook_ui.interactives.append(win_header)
         self.skillbook_ui.decoratives.append(skb_panel)
 
-    def tick(self, pygame_settings, wins_dict, active_wins, mouse_pointer):
+    def tick(self, pygame_settings, wins_dict, active_wins, mouse_pointer, fate_rnd):
         self.skillbook_ui.tick(pygame_settings, mouse_pointer)
         if self.skillbook_ui.updated:
             self.render()
