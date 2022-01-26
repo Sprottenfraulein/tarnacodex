@@ -404,6 +404,12 @@ class Realm:
             logfun.put('I must choose floor area to drop an item.', log)
             return
         item_dragging = self.mouse_pointer.drag_item[0][self.mouse_pointer.drag_item[1]]
+        if 'skill_id' in item_dragging.props:
+            self.schedule_man.task_add('realm_tasks', 1, self, 'spawn_realmtext',
+                                       ('new_txt', "Don't bury talents in the ground!",
+                                        (0, 0), (0, -24), None, True, self.pc))
+            self.schedule_man.task_add('realm_tasks', 8, self, 'remove_realmtext', ('new_txt',))
+            return
         if self.mouse_pointer.drag_item[0] == self.maze.loot:
             item_dragging.x_sq = m_x_sq
             item_dragging.y_sq = m_y_sq

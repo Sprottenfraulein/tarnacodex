@@ -173,7 +173,7 @@ class Context:
                                                    page=None)
 
         # item icon
-        item_image = pygame.transform.scale(item.props['image_book'][0], itm_img_size)
+        item_image = pygame.transform.scale(item.props['image_inventory'][0], itm_img_size)
         itm_img_w, itm_img_h = itm_img_size[0] + 16, itm_img_size[1] + 16
         item_icon = pydraw.square((0, 0), (itm_img_w, itm_img_h),
                                   (self.context_ui.resources.colors[decor_color],

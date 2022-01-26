@@ -37,7 +37,7 @@ class Scheduler(counter.Counter):
         for schedule in self.schedules.values():
             if schedule[0] >= len(schedule[1]):
                 continue
-            while schedule[0] < len(schedule[1]) and schedule[1][schedule[0]][0] == self.rounds:
+            while schedule[0] < len(schedule[1]) and schedule[1][schedule[0]][0] <= self.rounds:
                 getattr(schedule[1][schedule[0]][1], schedule[1][schedule[0]][2])(*schedule[1][schedule[0]][3])
                 if schedule[0] < len(schedule[1]):
                     schedule[0] += 1

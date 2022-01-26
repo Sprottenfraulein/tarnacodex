@@ -21,7 +21,7 @@ class Skill:
 def images_update(db_cursor, skill_props, tile_sets):
     images_dict = dbrequests.skill_images_get(db_cursor, skill_props['skill_id'], skill_props['grade'])
     try:
-        skill_props['image_book'] = tile_sets.get_image(images_dict[0]['tileset'],
+        skill_props['image_inventory'] = tile_sets.get_image(images_dict[0]['tileset'],
                                                         (images_dict[0]['width'], images_dict[0]['height']),
                                                         (images_dict[0]['index'],))
     except KeyError:
