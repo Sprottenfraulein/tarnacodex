@@ -10,6 +10,8 @@ class Skill:
         self.y_sq = y_sq
         self.off_x = self.off_y = 0
 
+        self.cooldown_timer = 0
+
         self.props = dbrequests.skill_get_by_id(db_cursor, skill_id)
 
         # linking images and sounds

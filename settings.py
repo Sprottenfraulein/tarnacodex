@@ -21,7 +21,8 @@ tilesets = (
     ('interface', 'res/tilesets/interface.png'),
     ('inv_items', 'res/tilesets/inv_items.png'),
     ('floor_items', 'res/tilesets/floor_items.png'),
-    ('inv_skills', 'res/tilesets/inv_skills.png')
+    ('inv_skills', 'res/tilesets/inv_skills.png'),
+    ('pools', 'res/tilesets/pools.png'),
 )
 
 sounds = (

@@ -43,8 +43,8 @@ class UI:
                 try:
                     if inter_click is None and interact.rendered_rect.collidepoint((mouse_x, mouse_y)):
                         inter_click = (interact, event.button, 'up')
-                    else:
-                        interact.release(event.button)
+                    """else:
+                        interact.release(event.button)"""
                 except AttributeError:
                     pass
             if inter_click is None:
@@ -66,8 +66,6 @@ class UI:
             xy = (0, 0)
         if size is None:
             size = (96, 32)
-        if caption is None:
-            caption = bttn_id
         if images is None:
             rnd_texture = self.random_texture(size, 'red_glass')
             images = (
@@ -93,10 +91,13 @@ class UI:
         else:
             cap_color = self.resources.colors[cap_color]
 
-        text_xy = size[0] // 2, size[1] // 2
-        text_bg_color = images[0].get_at(text_xy)
-        text = typography.Typography(self.pygame_settings, caption, text_xy, cap_font, cap_size, cap_color,
-                                     text_bg_color, 'center', 'middle', size[0], size[1], shadow=cap_shadow)
+        if caption is None:
+            text = None
+        else:
+            text_xy = size[0] // 2, size[1] // 2
+            text_bg_color = images[0].get_at(text_xy)
+            text = typography.Typography(self.pygame_settings, caption, text_xy, cap_font, cap_size, cap_color,
+                                         text_bg_color, 'center', 'middle', size[0], size[1], shadow=cap_shadow)
 
         new_button = button.Button(bttn_id, xy, size, text_obj=text, bttn_func=function, bttn_images=images,
                                    bttn_sounds=sounds, bttn_mode=mode, bttn_switch=switch,

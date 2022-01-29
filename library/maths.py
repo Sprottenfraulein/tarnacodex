@@ -22,8 +22,7 @@ def xy_dist_to_rads(x1, y1, x2, y2):
 
 
 def get_distance(x1, y1, x2, y2):
-    dist = int(round(math.sqrt((abs(x2 - x1)) ** 2 + (
-            abs(y2 - y1)) ** 2)))
+    dist = math.sqrt((abs(x2 - x1)) ** 2 + (abs(y2 - y1)) ** 2)
     return dist
 
 
@@ -45,6 +44,43 @@ def rect_to_center(rect_x, rect_y, rect_width, rect_height, space_x, space_y, sp
     if rect_y > space_y + space_height // 2:
         rect_y = rect_y - rect_height
     return rect_x, rect_y
+
+
+def rect_sticky_edges(rect, rects_list):
+    dist = 48
+    r_x, r_y, r_w, r_h = rect
+    for ar in rects_list:
+        if rect == ar:
+            continue
+        ar_x, ar_y, ar_w, ar_h = ar
+        x_attach = False
+        y_attach = False
+        if r_y < ar_y + ar_h + dist and r_y + r_h + dist > ar_y:
+            x_attach = True
+
+        if r_x < ar_x + ar_w + dist and r_x + r_w + dist > ar_x:
+            y_attach = True
+
+        if x_attach:
+            if abs(r_x - ar_x) < dist:
+                r_x = ar_x
+            elif abs(r_x - (ar_x + ar_w)) < dist:
+                r_x = ar_x + ar_w
+            elif abs(r_x + r_w - ar_x) < dist:
+                r_x = ar_x - r_w
+            elif abs(r_x + r_w - (ar_x + ar_w)) < dist:
+                r_x = ar_x + ar_w - r_w
+        if y_attach:
+            if abs(r_y - ar_y) < dist:
+                r_y = ar_y
+            elif abs(r_y - (ar_y + ar_h)) < dist:
+                r_y = ar_y + ar_h
+            elif abs(r_y + r_h - ar_y) < dist:
+                r_y = ar_y - r_h
+            elif abs(r_y + r_h - (ar_y + ar_h)) < dist:
+                r_y = ar_y + ar_h - r_h
+    return r_x, r_y
+
 
 
 def expo_rnd_sample(minimum=1, maximum=1000, expolambda=0.004):

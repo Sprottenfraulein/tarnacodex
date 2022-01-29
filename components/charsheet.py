@@ -25,17 +25,18 @@ class CharSheet:
         self.pools = {
             'HP': 0,
             'MP': 0,
-            'FOOD': 0
+            'FOOD': 1000
         }
         self.hp = 0
         self.mp = 0
-        self.food = 0
+        self.food = 1000
 
         self.exp_rate = 1.4
         self.exp_rate_multiplier = 100
 
         self.experience = 0
         self.exp_next_lvl = maths.exponential(self.exp_rate, 1, self.exp_rate_multiplier)
+        self.exp_prev_lvl = 0
 
         self.attacks = {
             'att_base': [0, 0],
@@ -56,7 +57,15 @@ class CharSheet:
             'def_lightning': 0,
             'def_arcane': 0
         }
-        self.attack_speed = 0
+        self.att_def_dict = {
+            'att_physical': 'def_physical',
+            'att_fire': 'def_fire',
+            'att_poison': 'def_poison',
+            'att_ice': 'def_ice',
+            'att_lightning': 'def_lightning',
+            'att_arcane': 'def_arcane'
+        }
+        # self.attack_speed = 0
 
         self.skills = itemlist.ItemList(items_max=24, filters={
             'item_types': ['skill_melee', 'skill_ranged', 'skill_magic', 'skill_craft', 'skill_misc']
@@ -97,36 +106,39 @@ class CharSheet:
         # Equipment dictionary
         self.equipped = [
             # 0 head
-            itemlist.ItemList(items_max=1, filters={
+            itemlist.ItemList(all_to_none=True, items_max=1, filters={
                 'item_types': ['arm_head'],
             }),
             # 1 chest
-            itemlist.ItemList(items_max=1, filters={
+            itemlist.ItemList(all_to_none=True, items_max=1, filters={
                 'item_types': ['arm_chest'],
             }),
             # 2 mainhand
-            itemlist.ItemList(items_max=1, filters={
+            itemlist.ItemList(all_to_none=True, items_max=1, filters={
                 'item_types': ['wpn_melee', 'wpn_ranged', 'wpn_magic'],
             }),
             # 3 offhand
-            itemlist.ItemList(items_max=1, filters={
+            itemlist.ItemList(all_to_none=True, items_max=1, filters={
                 'item_types': ['wpn_melee', 'orb_shield', 'orb_ammo', 'orb_source'],
             }),
             # 4 ring1
-            itemlist.ItemList(items_max=1, filters={
+            itemlist.ItemList(all_to_none=True, items_max=1, filters={
                 'item_types': ['acc_ring'],
             }),
             # 5 ring2
-            itemlist.ItemList(items_max=1, filters={
+            itemlist.ItemList(all_to_none=True, items_max=1, filters={
                 'item_types': ['acc_ring'],
             }),
             # 7 light
-            itemlist.ItemList(items_max=1, filters={
+            itemlist.ItemList(all_to_none=True, items_max=1, filters={
                 'item_types': ['light'],
             }),
         ]
-        for i in range(0, len(self.equipped)):
-            self.equipped[i].append(None)
+
+        self.hotbar = itemlist.ItemList(all_to_none=True, items_max=6, filters={
+            'item_types': ['skill_melee', 'skill_ranged', 'skill_magic', 'skill_craft', 'skill_misc',
+                           'wpn_melee']
+        })
 
         self.gold_coins = 1000
 
@@ -305,11 +317,14 @@ class CharSheet:
 
     def experience_get(self, exp_value):
         self.experience += exp_value
-        old_level = self.level
-        self.level = self.calc_level(self.experience)
-        if self.level != old_level:
-            self.calc_stats()
+        if not self.exp_prev_lvl <= self.experience < self.exp_next_lvl:
+            old_level = self.level
+            self.level = self.calc_level(self.experience)
+            if self.level != old_level:
+                self.calc_stats()
+                return True
         print('+%s exp. Total: %s/%s (level %s)' % (exp_value, self.experience, self.exp_next_lvl, self.level))
+        return False
 
     def calc_level(self, exp_value):
         exp_value = 0
@@ -319,7 +334,8 @@ class CharSheet:
             level_value = x + 2
             if self.experience >= exp_value:
                 level = level_value
-                self.exp_next_lvl = exp_value + maths.exponential(self.exp_rate, x + 1, self.exp_rate_multiplier)
+                self.exp_prev_lvl = exp_value
+                self.exp_next_lvl = exp_value + maths.exponential(self.exp_rate, x + 2, self.exp_rate_multiplier)
         return level
 
     def calc_stats(self):
@@ -346,31 +362,31 @@ class CharSheet:
             self.profs[prof_name] = chartype_stats[prof_name]
             self.profs[prof_name] = self.calc_prof(prof_name)
 
-    def hp_get(self, value=100, percent=True):
+    def hp_get(self, value=100, percent=False):
         hp_mod = value
         if percent:
             hp_mod = round(self.pools['HP'] * value / 100)
-            self.hp = hp_mod
+            self.hp += hp_mod
         else:
             self.hp += value
         self.hp = min(self.hp, self.pools['HP'])
         return hp_mod
 
-    def mp_get(self, value=100, percent=True):
+    def mp_get(self, value=100, percent=False):
         mp_mod = value
         if percent:
             mp_mod = round(self.pools['MP'] * value / 100)
-            self.mp = mp_mod
+            self.mp += mp_mod
         else:
             self.mp += value
         self.mp = min(self.mp, self.pools['MP'])
         return mp_mod
 
-    def food_get(self, value=100, percent=True):
+    def food_get(self, value=100, percent=False):
         food_mod = value
         if percent:
             food_mod = round(self.pools['FOOD'] * value / 100)
-            self.food = food_mod
+            self.food += food_mod
         else:
             self.food += value
         self.food = min(self.food, self.pools['FOOD'])
@@ -399,3 +415,29 @@ class CharSheet:
                 con_itm = self.inventory_remove(item_type)
                 if con_itm:
                     return con_itm
+
+    def itemlists_clean_tail(self):
+        for i in range(len(self.skills) - 1, -1, -1):
+            if self.skills[i] is None:
+                del self.skills[i]
+            else:
+                break
+        else:
+            self.skills.clear()
+        for i in range(len(self.inventory) - 1, -1, -1):
+            if self.inventory[i] is None:
+                del self.inventory[i]
+            else:
+                break
+        else:
+            self.inventory.clear()
+
+    def itemlist_cleanall_skills(self):
+        for sckt in reversed(self.skills):
+            if sckt is None:
+                self.skills.remove(sckt)
+
+    def itemlist_cleanall_inventory(self):
+        for sckt in reversed(self.inventory):
+            if sckt is None:
+                self.inventory.remove(sckt)

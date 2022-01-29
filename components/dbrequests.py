@@ -187,7 +187,7 @@ def monster_get_by_id(cursor, monster_id):
     for i in range(0, len(column_names)):
         monster_dict[column_names[i]] = rows[0][i]
         # item modifiers set query
-    ex_str = "SELECT ma.attack_id, label, range, attack_type, attack_val_base, attack_val_spread, monster_type, lvl FROM monster_attack_sets mas JOIN monster_attacks ma ON mas.attack_id=ma.attack_id WHERE mas.monster_id=?"
+    ex_str = "SELECT ma.attack_id, label, range, attack_type, attack_val_base, attack_val_spread, monster_type, lvl , chance FROM monster_attack_sets mas JOIN monster_attacks ma ON mas.attack_id=ma.attack_id WHERE mas.monster_id=?"
     cursor.execute(ex_str, (monster_id,))
     rows = cursor.fetchall()
     column_names = [column[0] for column in cursor.description]
@@ -203,7 +203,21 @@ def monster_get_by_id(cursor, monster_id):
             melee_attacks_list.append(attack_dict)
     monster_dict['attacks_ranged'] = ranged_attacks_list
     monster_dict['attacks_melee'] = melee_attacks_list
-    return monster_dict
+    for at in (monster_dict['attacks_melee'], monster_dict['attacks_ranged']):
+        for att in at:
+            # monster de_buff effects set query
+            ex_str = "SELECT * FROM de_buffs d JOIN monster_debuff_sets mdbs ON mdbs.de_buff_id=d.de_buff_id WHERE mdbs.attack_id=?"
+            cursor.execute(ex_str, (att['attack_id'],))
+            rows = cursor.fetchall()
+            column_names = [column[0] for column in cursor.description]
+            de_buffs_list = []
+            for row in rows:
+                de_buff_dict = debuff.DeBuff()
+                for i in range(0, len(column_names)):
+                    de_buff_dict[column_names[i]] = row[i]
+                de_buffs_list.append(de_buff_dict)
+            att['de_buffs'] = de_buffs_list
+        return monster_dict
 
 
 def get_monsters(cursor, max_level, max_grade, monster_types, roll):

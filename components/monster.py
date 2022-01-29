@@ -1,6 +1,6 @@
 import random
 import math
-from library import maths, calc2darray, logfun
+from library import maths, calc2darray, logfun, pickrandom
 from components import lootgen
 
 
@@ -79,7 +79,7 @@ class Monster:
             self.anim_frame -= len(self.image)
         self.frame_timing = self.anim_timings[self.anim_frame]
 
-    def tick(self, realm):
+    def tick(self, wins_dict, realm):
         if not self.alive:
             return
         if not self.attacking and ((not self.rest or self.waypoints is not None) and (self.move_instr_x != 0 or self.move_instr_y != 0)):
@@ -108,7 +108,7 @@ class Monster:
         pc_distance = maths.get_distance(self.x_sq, self.y_sq, realm.pc.x_sq, realm.pc.y_sq)
         if pc_distance <= self.stats['melee_distance'] and not self.attacking:
             self.move_instr_x = self.move_instr_y = 0
-            self.attack(realm.pc)
+            self.attack(wins_dict, realm.pc)
 
         if self.attacking:
             return
@@ -246,12 +246,18 @@ class Monster:
                     step_x = step_y = 0
         return step_x, step_y
 
-    def attack(self, pc):
+    def attack(self, wins_dict, pc):
         if len(self.stats['attacks_melee']) == 0:
             return False
         self.face_point(pc.x_sq, pc.y_sq)
         self.state_change(self.state + 4)
         self.attacking = True
+
+        attacks_list = [(att, att['chance']) for att in self.stats['attacks_melee']]
+        chosen_attack = pickrandom.items_get(attacks_list)[0]
+
+        pc.wound(wins_dict, self, chosen_attack)
+
         logfun.put('Monster MELEE Attack!', True)
         return True
 
@@ -267,15 +273,16 @@ class Monster:
         logfun.put('Monster Ranged Attack!', True)
         return True
 
-    def check(self, realm, fate_rnd, pc):
+    def check(self, wins_dict, fate_rnd, pc):
         if self.hp <= 0:
             self.alive = False
             self.anim_frame = 0
             self.state_change(8)
             pc.char_sheet.experience_get(self.stats['exp'])
-            loot_total = lootgen.generate_loot(self, realm, fate_rnd, pc)
-            loot_total.extend(lootgen.generate_gold(self, realm, fate_rnd, pc))
-            lootgen.drop_loot(round(self.x_sq), round(self.y_sq), realm, loot_total)
+            wins_dict['pools'].updated = True
+            loot_total = lootgen.generate_loot(self, wins_dict['realm'], fate_rnd, pc)
+            loot_total.extend(lootgen.generate_gold(self, wins_dict['realm'], fate_rnd, pc))
+            lootgen.drop_loot(round(self.x_sq), round(self.y_sq), wins_dict['realm'], loot_total)
 
     def state_change(self, new_state):
         # check if state change is possible

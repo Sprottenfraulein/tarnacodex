@@ -3,11 +3,13 @@
 import pygame
 import os
 import settings
-from library import counter
+from library import fate
 
 
 class ResMan:
     def __init__(self):
+        # creating fate
+        self.fate_rnd = fate.Fate()
         # declaring names
         self.grades_loot = (
             'common', 'rare', 'enchanted', 'legendary', 'unique'

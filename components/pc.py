@@ -1,5 +1,5 @@
-from components import skillfuncs
-
+from library import maths
+import random
 
 class PC:
     def __init__(self, x_sq, y_sq, location, anim_set, char_sheet, state=2, speed=0.08):
@@ -9,8 +9,8 @@ class PC:
         self.prev_y_sq = self.y_sq
         self.off_x = self.off_y = 0
         self.speed = speed
-        self.attack_timer = 0
-        self.attacking = None
+        self.busy_timer = 0
+        self.busy = None
         self.anim_set = anim_set
         self.anim_frame = 0
         self.anim_timer = 0
@@ -26,6 +26,8 @@ class PC:
 
         self.location = location
         self.char_sheet = char_sheet
+
+        self.hot_cooling_set = set()
 
     def animate(self):
         # PC states:
@@ -64,21 +66,18 @@ class PC:
         self.frame_timing = self.anim_timings[self.anim_frame]
 
     def tick(self, realm, fate_rnd, wins_dict, active_wins):
-        if self.attacking is None and (self.move_instr_x != 0 or self.move_instr_y != 0):
+        if self.busy is None and (self.move_instr_x != 0 or self.move_instr_y != 0):
             self.move(self.move_instr_x, self.move_instr_y, realm, wins_dict, active_wins)
 
-        elif self.attacking is not None:
-            if self.attack_timer == self.attacking['commit_time']:
-                aimed_obj = wins_dict['target'].mob_object
-                getattr(skillfuncs, self.attacking['function_name'])(realm, fate_rnd, self, aimed_obj, self.attacking)
-            if self.attack_timer > self.attacking['time']:
-                self.attacking = None
+        elif self.busy is not None:
+            if self.busy_timer > self.busy['time']:
+                self.busy = None
                 if self.state > 3:
                     self.state_change(self.state - 4)
             else:
-                self.attack_timer += 1
+                self.busy_timer += 1
 
-        if self.attacking is not None or (self.move_instr_x != 0 or self.move_instr_y != 0):
+        if self.busy is not None or (self.move_instr_x != 0 or self.move_instr_y != 0):
             if self.anim_timer > self.frame_timing:
                 self.anim_timer = 0
                 self.anim_frame += 1
@@ -87,6 +86,19 @@ class PC:
                 self.frame_timing = self.anim_timings[self.anim_frame]
             else:
                 self.anim_timer += 1
+
+        if not self.hot_cooling_set:
+            return
+
+        set_upd = False
+        for i in self.hot_cooling_set:
+            cooling_skill = i.tags[0][i.id]
+            if cooling_skill.cooldown_timer > 0:
+                cooling_skill.cooldown_timer -= 1
+            else:
+                set_upd = True
+        if set_upd:
+            self.hot_cooling_set = set(filter(lambda x: x.tags[0][x.id].cooldown_timer > 0, self.hot_cooling_set))
 
     # movement
     def move(self, step_x, step_y, realm, wins_dict, active_wins):
@@ -134,30 +146,58 @@ class PC:
                 self.prev_x_sq = self.x_sq
                 self.prev_y_sq = self.y_sq
 
+                self.char_sheet.food -= 5
+                if not self.char_sheet.food % 20:
+                    wins_dict['pools'].updated = True
+
                 realm.shortlists_update(everything=True)
 
-                if realm.maze.flag_array[dest_y_sq][dest_x_sq].item:
-                    for loot in realm.loot_short:
-                        if loot.props['treasure_id'] == 6 and loot.x_sq == round(self.x_sq) and loot.y_sq == round(self.y_sq):
-                            self.char_sheet.gold_coins += loot.props['amount']
-                            realm.maze.flag_array[dest_y_sq][dest_x_sq].item -= True
-                            realm.maze.loot.remove(loot)
-                            realm.loot_short.remove(loot)
-                            if wins_dict['inventory'] in active_wins:
-                                wins_dict['inventory'].render()
-                            break
+                for loot in realm.loot_short:
+                    if loot.props['treasure_id'] == 6 and maths.get_distance(self.x_sq, self.y_sq, loot.x_sq, loot.y_sq) < 3:
+                        self.char_sheet.gold_coins += loot.props['amount']
+                        realm.maze.flag_array[dest_y_sq][dest_x_sq].item -= True
+                        realm.maze.loot.remove(loot)
+                        realm.loot_short.remove(loot)
+                        if wins_dict['inventory'] in active_wins:
+                            wins_dict['inventory'].render()
+                        break
 
-    def attack(self, target, skill_props):
-        if self.attacking is not None:
-            return
-        self.face_point(target.mob_object.x_sq, target.mob_object.y_sq)
+    def act(self, wins_dict, aim_xy, skill):
+        self.face_point(aim_xy[0], aim_xy[1])
         self.state_change(self.state + 4)
 
-        self.attacking = skill_props
+        self.busy = skill.props
+        skill.cooldown_timer = skill.props['cooldown']
+        self.check_cooldowns(wins_dict)
 
-        self.attack_timer = 0
+        self.busy_timer = 0
+
         self.anim_frame = 0
         self.anim_timer = 0
+
+    def wound(self, wins_dict, monster, chosen_attack):
+        if chosen_attack['range'] > 0:
+            pc_def = self.char_sheet.defences['def_ranged']
+        else:
+            pc_def = self.char_sheet.defences['def_melee']
+
+        pc_def += self.char_sheet.defences[self.char_sheet.att_def_dict[chosen_attack['attack_type']]]  # Sum in percents
+
+        rnd_dmg = random.randrange(chosen_attack['attack_val_base'], chosen_attack['attack_val_base'] + chosen_attack['attack_val_spread'])
+
+        rnd_dmg -= (rnd_dmg * pc_def // 1000)
+
+        self.char_sheet.hp_get(rnd_dmg * -1)
+
+        wins_dict['pools'].updated = True
+
+
+    def check_cooldowns(self, wins_dict):
+        hotbar = wins_dict['hotbar']
+        for sckt in hotbar.hot_sockets_list:
+            if sckt.tags[0][sckt.id] is not None and self.busy == sckt.tags[0][sckt.id].props:
+                self.hot_cooling_set.add(sckt)
+
 
     def state_change(self, new_state):
         # check if state change is possible

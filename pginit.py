@@ -33,7 +33,7 @@ class PG:
 		self.clock = pygame.time.Clock()
 		logfun.put('Pygame initialized successfully.', log)
 
-	def set_display(self, w, h, mode=pygame.SCALED):
+	def set_display(self, w, h, mode=pygame.RESIZABLE):
 		self.screen_res = (w, h)
 		self.screen = pygame.display.set_mode(self.screen_res, mode)
 		pygame.display.update()

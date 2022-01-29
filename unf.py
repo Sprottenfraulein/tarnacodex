@@ -1,8 +1,8 @@
 # Main script with pygame loop.
 import pygame
-from library import cursor, database, scheduler, fate
+from library import cursor, database, scheduler
 from components import tilesets, animations
-from wins import apptitle, realm, inventory, skillbook, context, target
+from wins import apptitle, realm, inventory, skillbook, context, target, hotbar, pools
 
 
 def launch(pygame_settings, resources, log=False):
@@ -16,8 +16,6 @@ def launch(pygame_settings, resources, log=False):
 	mouse_pointer = cursor.Cursor(pygame_settings, resources)
 	# creating scheduler
 	schedule_man = scheduler.Scheduler(5, 4, 9999999)
-	# creating fate
-	fate_rnd = fate.Fate()
 	# declaring wins
 	wins_dict = {
 		'app_title': apptitle.AppTitle(pygame_settings, resources, tile_sets, anims, db, mouse_pointer, schedule_man),
@@ -25,12 +23,14 @@ def launch(pygame_settings, resources, log=False):
 		'inventory': inventory.Inventory(pygame_settings, resources, tile_sets, anims, db, mouse_pointer, schedule_man),
 		'target': target.Target(pygame_settings, resources, tile_sets, anims, db, mouse_pointer, schedule_man),
 		'context': context.Context(pygame_settings, resources, tile_sets, anims, db, mouse_pointer, schedule_man),
-		'skillbook': skillbook.SkillBook(pygame_settings, resources, tile_sets, anims, db, mouse_pointer, schedule_man)
+		'skillbook': skillbook.SkillBook(pygame_settings, resources, tile_sets, anims, db, mouse_pointer, schedule_man),
+		'hotbar': hotbar.Hotbar(pygame_settings, resources, tile_sets, anims, db, mouse_pointer, schedule_man),
+		'pools': pools.Pools(pygame_settings, resources, tile_sets, anims, db, mouse_pointer, schedule_man)
 	}
-	bigloop(pygame_settings, resources, wins_dict, mouse_pointer, schedule_man, fate_rnd)
+	bigloop(pygame_settings, resources, wins_dict, mouse_pointer, schedule_man)
 
 
-def bigloop(pygame_settings, resources, wins_dict, mouse_pointer, schedule_man, fate_rnd, log=True):
+def bigloop(pygame_settings, resources, wins_dict, mouse_pointer, schedule_man, log=True):
 	# adding the first unit to active wins
 	active_wins = [wins_dict['app_title']]
 
@@ -42,7 +42,7 @@ def bigloop(pygame_settings, resources, wins_dict, mouse_pointer, schedule_man, 
 
 		schedule_man.tick()
 		for win in active_wins:
-			win.tick(pygame_settings, wins_dict, active_wins, mouse_pointer, fate_rnd)
+			win.tick(pygame_settings, wins_dict, active_wins, mouse_pointer)
 
 		if mouse_pointer.still_timer < mouse_pointer.still_max:
 			mouse_pointer.still_timer += 1
@@ -75,6 +75,7 @@ def events(pygame_settings, resources, wins_dict, active_wins, mouse_pointer, lo
 
 		# Checking for window resize
 		if event.type == pygame.VIDEORESIZE:
+			wins_dict['realm'].view_resize(wins_dict, event.w, event.h)
 			pygame_settings.set_display(event.w, event.h)
 
 		# checking wins for events
@@ -85,3 +86,10 @@ def events(pygame_settings, resources, wins_dict, active_wins, mouse_pointer, lo
 				break
 			if len(active_wins) != wins_num:
 				break
+
+		"""if event.type == pygame.MOUSEBUTTONUP:
+			for win in active_wins:
+				if win == wins_dict['realm']:
+					continue
+				for inter in win.win_ui.interactives:
+					inter.release(event.buttnon)"""

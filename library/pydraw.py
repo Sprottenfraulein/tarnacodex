@@ -7,7 +7,7 @@ def square(sq_xy, sq_size, sq_cols, sq_outsize=1, sq_bsize=1, sq_ldir=0, sq_fill
         sq_surface = sq_image
     else:
         if sq_image is not None:
-            sq_surface = pygame.Surface((sq_image.get_width(), sq_image.get_height())).convert()
+            sq_surface = pygame.Surface(sq_size).convert()
         else:
             sq_surface = pygame.Surface(sq_size).convert()
         sq_surface.set_colorkey((0,255,0))

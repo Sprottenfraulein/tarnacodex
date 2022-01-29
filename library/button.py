@@ -73,9 +73,9 @@ class Button:
     def render(self):
         self.rendered_button.fill((0,0,0))
         self.rendered_button.blit(self.images[self.mode], (0,0))
-        if self.text_obj:
+        if self.text_obj is not None:
             if self.mode == 1:
-                self.text_obj.draw(self.rendered_button, (1,1))
+                self.text_obj.draw(self.rendered_button, (0,1))
             else:
                 self.text_obj.draw(self.rendered_button)
         # self.rendered_rect = self.rendered_button.get_rect()
