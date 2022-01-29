@@ -23,6 +23,7 @@ tilesets = (
     ('floor_items', 'res/tilesets/floor_items.png'),
     ('inv_skills', 'res/tilesets/inv_skills.png'),
     ('pools', 'res/tilesets/pools.png'),
+    ('char_portraits', 'res/tilesets/char_portraits.png'),
 )
 
 sounds = (

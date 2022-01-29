@@ -1,6 +1,6 @@
 # char skillbook window
 import pygame
-from library import textinput, pydraw, maths
+from library import textinput, pydraw, maths, itemlist
 from components import ui
 
 
@@ -16,7 +16,7 @@ class SkillBook:
         self.win_h = 510
         self.offset_x = 8
         self.offset_y = 8
-        self.skb_sckt_total = 24
+        self.skb_sckt_total = 36
         self.skb_sockets_list = []
         self.skb_sockets_image = None
 
@@ -109,7 +109,7 @@ class SkillBook:
                                                                     self.win_h,
                                                                     0, 0, pygame_settings.screen_res[0],
                                                                     pygame_settings.screen_res[1])
-                framed_wins = [fw for fw in (wins_dict['pools'], wins_dict['hotbar'], wins_dict['inventory'], wins_dict['skillbook']) if fw in active_wins]
+                framed_wins = [fw for fw in (wins_dict['charstats'], wins_dict['pools'], wins_dict['hotbar'], wins_dict['inventory'], wins_dict['skillbook']) if fw in active_wins]
                 self.offset_x, self.offset_y = maths.rect_sticky_edges(
                     (self.offset_x, self.offset_y, self.win_w, self.win_h),
                     [(ow.offset_x, ow.offset_y, ow.win_w, ow.win_h) for ow in framed_wins])
@@ -130,6 +130,10 @@ class SkillBook:
 
             elif mb_event == 'up' and self.mouse_pointer.drag_item is not None:
                 item_dragging = self.mouse_pointer.drag_item[0][self.mouse_pointer.drag_item[1]]
+                if self.mouse_pointer.drag_item[0] == wins_dict['realm'].maze.loot:
+                    self.mouse_pointer.catcher[0] = item_dragging
+                    self.mouse_pointer.drag_item = [self.mouse_pointer.catcher, 0]
+                    wins_dict['realm'].maze.loot.remove(item_dragging)
                 if item_info[1] < len(item_info[0]):
                     if item_info[0][item_info[1]] is None:
                         item_info[0][item_info[1]], self.mouse_pointer.drag_item[0][
@@ -150,24 +154,20 @@ class SkillBook:
                     self.mouse_pointer.drag_item[0][self.mouse_pointer.drag_item[1]] = None
 
                 if (item_info[0][item_info[1]].props['item_type'] not in item_info[0].filters['item_types']
-                        or item_dragging.props['item_type'] not in self.mouse_pointer.drag_item[0].filters[
-                            'item_types']):
+                        or (self.mouse_pointer.drag_item[0][self.mouse_pointer.drag_item[1]] is not None
+                            and self.mouse_pointer.drag_item[0][self.mouse_pointer.drag_item[1]].props['item_type']
+                            not in self.mouse_pointer.drag_item[0].filters['item_types'])):
                     item_info[0][item_info[1]], self.mouse_pointer.drag_item[0][
                         self.mouse_pointer.drag_item[1]] = \
                         self.mouse_pointer.drag_item[0][self.mouse_pointer.drag_item[1]], item_info[0][
                             item_info[1]]
 
-                if self.mouse_pointer.drag_item[0] == wins_dict['realm'].maze.loot:
-                    if self.mouse_pointer.drag_item[0][self.mouse_pointer.drag_item[1]] is None:
-                         # wins_dict['realm'].loot_short.remove(item_dragging)
-                        del self.mouse_pointer.drag_item[0][self.mouse_pointer.drag_item[1]]
-                    else:
-                        wins_dict['realm'].loot_short.add(item_dragging)
-                        wins_dict['realm'].maze.flag_array[item_dragging.y_sq][item_dragging.x_sq].item += True
-
-
-                self.mouse_pointer.drag_item = None
-                self.mouse_pointer.image = None
+                if self.mouse_pointer.catcher[0] is not None:
+                    self.mouse_pointer.drag_item = [self.mouse_pointer.catcher, 0]
+                    self.mouse_pointer.image = self.mouse_pointer.drag_item[0][self.mouse_pointer.drag_item[1]].props['image_inventory'][0]
+                else:
+                    self.mouse_pointer.drag_item = None
+                    self.mouse_pointer.image = None
 
                 self.pc.char_sheet.itemlists_clean_tail()
             self.render_slots(wins_dict, active_wins)
@@ -180,7 +180,7 @@ class SkillBook:
     def create_elements(self, log=True):
         skb_sckt_size = 48
         skb_sckt_left = 16
-        skb_sckt_top = 256
+        skb_sckt_top = 160
         skb_sckt_per_row = 6
         # INVENTORY
         skb_texture = self.win_ui.random_texture((self.win_w, self.win_h), 'black_rock')
@@ -203,7 +203,7 @@ class SkillBook:
                                   sq_image=skb_image, same_surface=True)
         skb_panel = self.win_ui.panel_add('skb_panel', (0, 0), (self.win_w, self.win_h), images=(skb_image,), page=None)
 
-        # INVENTORY SOCKETS
+        # SKILL SOCKETS
         self.skb_sckt_img = pydraw.square((0, 0), (skb_sckt_size, skb_sckt_size),
                                           (self.win_ui.resources.colors['gray_light'],
                                       self.win_ui.resources.colors['gray_dark'],
@@ -211,7 +211,7 @@ class SkillBook:
                                       self.win_ui.resources.colors['gray_darker']),
                                           sq_outsize=1, sq_bsize=0, sq_ldir=2, sq_fill=False,
                                           sq_image=None)
-        for i in range(0, 24):
+        for i in range(0, self.skb_sckt_total):
             s_x = skb_sckt_left + skb_sckt_size * (i % skb_sckt_per_row)
             s_y = skb_sckt_top + skb_sckt_size * (i // skb_sckt_per_row)
             skb_socket = self.win_ui.panel_add(i, (s_x, s_y), (skb_sckt_size, skb_sckt_size),
@@ -232,6 +232,12 @@ class SkillBook:
         win_header = self.win_ui.text_add('win_header', (0, 0), (self.win_w, 19),
                                           caption='Skillbook',
                                           h_align='center', v_align='middle', cap_color='sun', images=(header_img,))
+
+        help_text_element = self.win_ui.text_add('help', (12, 32), (self.win_w - 24, 128),
+                                                  caption='This is your Book of Skills. $n Drag the skills you want to use $n to the HOTBAR.',
+                                                  h_align='center', v_align='middle', cap_color='gray_mid',
+                                                  cap_font='def_normal', cap_size=24)
+        self.win_ui.decoratives.append(help_text_element)
 
         self.win_ui.interactives.append(win_header)
         self.win_ui.decoratives.append(skb_panel)

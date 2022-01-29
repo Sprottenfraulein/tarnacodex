@@ -1,7 +1,7 @@
 # hotbar window
 import pygame
 import math
-from library import textinput, pydraw, maths
+from library import textinput, pydraw, maths, itemlist
 from components import ui
 
 
@@ -15,7 +15,7 @@ class Hotbar:
         self.pc = None
         self.win_w = None
         self.win_h = None
-        self.hot_sckt_total = 4  # not counting 2 mandatory left click and right click sockets
+        self.hot_sckt_total = 7  # not counting 2 mandatory left click and right click sockets
         self.hot_sckt_size = 48
         self.hot_sockets_list = []
         self.hot_sockets_image = None
@@ -35,7 +35,6 @@ class Hotbar:
         self.win_ui.decoratives.clear()
         self.win_ui.interactives.clear()
         self.hot_sockets_list.clear()
-
 
     def event_check(self, event, pygame_settings, resources, wins_dict, active_wins, log=True):
         mouse_x, mouse_y = self.mouse_pointer.xy
@@ -69,7 +68,7 @@ class Hotbar:
             if (not self.offset_x <= mouse_x < self.offset_x + self.win_w
                     or not self.offset_y <= mouse_y < self.offset_y + self.win_h):
                 return False
-            for j in (self.hot_sockets_list, ):
+            for j in (self.hot_sockets_list,):
                 for i in range(len(j) - 1, -1, -1):
                     if j[i].page is not None and j[i].page != self.win_ui.page:
                         continue
@@ -109,7 +108,9 @@ class Hotbar:
                 active_wins.insert(0, wins_dict['hotbar'])
             if mb_event == 'up':
                 self.mouse_pointer.drag_ui = None
-                framed_wins = [fw for fw in (wins_dict['pools'], wins_dict['hotbar'], wins_dict['inventory'], wins_dict['skillbook']) if fw in active_wins]
+                framed_wins = [fw for fw in (
+                wins_dict['charstats'], wins_dict['pools'], wins_dict['hotbar'], wins_dict['inventory'],
+                wins_dict['skillbook']) if fw in active_wins]
                 self.offset_x, self.offset_y = maths.rect_sticky_edges(
                     (self.offset_x, self.offset_y, self.win_w, self.win_h),
                     [(ow.offset_x, ow.offset_y, ow.win_w, ow.win_h) for ow in framed_wins])
@@ -134,6 +135,10 @@ class Hotbar:
 
             elif mb_event == 'up' and self.mouse_pointer.drag_item is not None:
                 item_dragging = self.mouse_pointer.drag_item[0][self.mouse_pointer.drag_item[1]]
+                if self.mouse_pointer.drag_item[0] == wins_dict['realm'].maze.loot:
+                    self.mouse_pointer.catcher[0] = item_dragging
+                    self.mouse_pointer.drag_item = [self.mouse_pointer.catcher, 0]
+                    wins_dict['realm'].maze.loot.remove(item_dragging)
                 if item_info[1] < len(item_info[0]):
                     if item_info[0][item_info[1]] is None:
                         item_info[0][item_info[1]], self.mouse_pointer.drag_item[0][
@@ -154,23 +159,21 @@ class Hotbar:
                     self.mouse_pointer.drag_item[0][self.mouse_pointer.drag_item[1]] = None
 
                 if (item_info[0][item_info[1]].props['item_type'] not in item_info[0].filters['item_types']
-                        or item_dragging.props['item_type'] not in self.mouse_pointer.drag_item[0].filters[
-                            'item_types']):
+                        or (self.mouse_pointer.drag_item[0][self.mouse_pointer.drag_item[1]] is not None
+                            and self.mouse_pointer.drag_item[0][self.mouse_pointer.drag_item[1]].props['item_type']
+                            not in self.mouse_pointer.drag_item[0].filters['item_types'])):
                     item_info[0][item_info[1]], self.mouse_pointer.drag_item[0][
                         self.mouse_pointer.drag_item[1]] = \
                         self.mouse_pointer.drag_item[0][self.mouse_pointer.drag_item[1]], item_info[0][
                             item_info[1]]
 
-                if self.mouse_pointer.drag_item[0] == wins_dict['realm'].maze.loot:
-                    if self.mouse_pointer.drag_item[0][self.mouse_pointer.drag_item[1]] is None:
-                        # wins_dict['realm'].loot_short.remove(item_dragging)
-                        del self.mouse_pointer.drag_item[0][self.mouse_pointer.drag_item[1]]
-                    else:
-                        wins_dict['realm'].loot_short.add(item_dragging)
-                        wins_dict['realm'].maze.flag_array[item_dragging.y_sq][item_dragging.x_sq].item += True
-
-                self.mouse_pointer.drag_item = None
-                self.mouse_pointer.image = None
+                if self.mouse_pointer.catcher[0] is not None:
+                    self.mouse_pointer.drag_item = [self.mouse_pointer.catcher, 0]
+                    self.mouse_pointer.image = \
+                        self.mouse_pointer.drag_item[0][self.mouse_pointer.drag_item[1]].props['image_inventory'][0]
+                else:
+                    self.mouse_pointer.drag_item = None
+                    self.mouse_pointer.image = None
 
                 self.pc.char_sheet.itemlists_clean_tail()
             self.render_slots(wins_dict, active_wins)
@@ -185,12 +188,14 @@ class Hotbar:
         hot_sckt_left = 16 + 19
         hot_sckt_right = 16
         hot_sckt_top = 12
-        hot_sckt_per_row = 4
+        hot_sckt_per_row = 7
 
-        self.win_w = (hot_sckt_per_row + 2) * self.hot_sckt_size + hot_sckt_left + hot_sckt_right * 2
+        # self.win_w = (hot_sckt_per_row + 2) * self.hot_sckt_size + hot_sckt_left + hot_sckt_right * 2
+        self.win_w = 511
         self.win_h = math.ceil(self.hot_sckt_total / hot_sckt_per_row) * self.hot_sckt_size + hot_sckt_top * 2
 
         self.rendered_hot = pygame.Surface((self.win_w, self.win_h)).convert()
+        self.rendered_hot.set_colorkey(self.win_ui.resources.colors['transparent'])
 
         self.offset_x = 218
         self.offset_y = self.win_ui.pygame_settings.screen_res[1] - self.win_h
@@ -199,9 +204,9 @@ class Hotbar:
         hot_texture = self.win_ui.random_texture((self.win_w, self.win_h), 'black_rock')
         hot_image = pydraw.square((0, 0), (self.win_w, self.win_h),
                                   (self.win_ui.resources.colors['gray_light'],
-                             self.win_ui.resources.colors['gray_dark'],
-                             self.win_ui.resources.colors['gray_mid'],
-                             self.win_ui.resources.colors['black']),
+                                   self.win_ui.resources.colors['gray_dark'],
+                                   self.win_ui.resources.colors['gray_mid'],
+                                   self.win_ui.resources.colors['black']),
                                   sq_outsize=1, sq_bsize=2, sq_ldir=0, sq_fill=False,
                                   sq_image=hot_texture)
         # HOTBAR BACKGROUND
@@ -214,15 +219,24 @@ class Hotbar:
                                    self.win_ui.resources.colors['black']),
                                   sq_outsize=0, sq_bsize=1, sq_ldir=2, sq_fill=False,
                                   sq_image=hot_image, same_surface=True)
+        hot_image = pydraw.square((self.win_w - hot_sckt_right - self.hot_sckt_size * 2 - 1,
+                                              hot_sckt_top - 1),
+                                  (self.hot_sckt_size * 2 + 2, self.hot_sckt_size + 2),
+                                  (self.win_ui.resources.colors['gray_light'],
+                                   self.win_ui.resources.colors['gray_dark'],
+                                   self.win_ui.resources.colors['gray_mid'],
+                                   self.win_ui.resources.colors['black']),
+                                  sq_outsize=0, sq_bsize=1, sq_ldir=2, sq_fill=False,
+                                  sq_image=hot_image, same_surface=True)
         hot_panel = self.win_ui.panel_add('hot_panel', (0, 0), (self.win_w, self.win_h), images=(hot_image,), page=None)
 
         # HOT SOCKETS
         self.hot_sckt_img = pydraw.square((0, 0), (self.hot_sckt_size, self.hot_sckt_size),
                                           (self.win_ui.resources.colors['gray_light'],
-                                      self.win_ui.resources.colors['gray_dark'],
-                                      self.win_ui.resources.colors['gray_mid'],
-                                      self.win_ui.resources.colors['gray_darker']),
-                                          sq_outsize=1, sq_bsize=0, sq_ldir=2, sq_fill=False,
+                                           self.win_ui.resources.colors['gray_dark'],
+                                           self.win_ui.resources.colors['transparent'],
+                                           self.win_ui.resources.colors['gray_darker']),
+                                          sq_outsize=1, sq_bsize=0, sq_ldir=2, sq_fill=True,
                                           sq_image=None)
         i = 0
         for i in range(0, self.hot_sckt_total):
@@ -232,20 +246,38 @@ class Hotbar:
                                                images=(self.hot_sckt_img,), page=None, img_stretch=True,
                                                tags=(self.pc.char_sheet.hotbar, 'hot'))
             self.hot_sockets_list.append(hot_socket)
+            label_element = self.win_ui.text_add('shortcut', (s_x, s_y), (self.hot_sckt_size, self.hot_sckt_size),
+                                                 caption=str(i + 1),
+                                                 h_align='left', v_align='top', cap_color='gray_dark',
+                                                 cap_font='def_bold', cap_size=24)
+            self.win_ui.decoratives.append(label_element)
 
         # MANDATORY SOCKETS
         self.hot_sockets_list.extend((
-            self.win_ui.panel_add(i + 1, (hot_sckt_left + hot_sckt_right + self.hot_sckt_size * hot_sckt_per_row,
+            self.win_ui.panel_add(i + 1, (self.win_w - hot_sckt_right - self.hot_sckt_size * 2,
                                           hot_sckt_top), (self.hot_sckt_size, self.hot_sckt_size),
                                   images=(self.hot_sckt_img,), page=None, img_stretch=True,
                                   tags=(self.pc.char_sheet.hotbar, 'hot')),
-            self.win_ui.panel_add(i + 2, (hot_sckt_left + hot_sckt_right + self.hot_sckt_size * (hot_sckt_per_row + 1),
+            self.win_ui.panel_add(i + 2, (self.win_w - hot_sckt_right - self.hot_sckt_size,
                                           hot_sckt_top), (self.hot_sckt_size, self.hot_sckt_size),
                                   images=(self.hot_sckt_img,), page=None, img_stretch=True,
                                   tags=(self.pc.char_sheet.hotbar, 'hot'))
         ))
         self.win_ui.interactives.extend(self.hot_sockets_list)
-
+        label_element = self.win_ui.text_add('shortcut',
+                                             (self.win_w - hot_sckt_right - self.hot_sckt_size * 2,
+                                              hot_sckt_top), (self.hot_sckt_size + 10, self.hot_sckt_size),
+                                             caption='LEFT $n click',
+                                             h_align='left', v_align='top', cap_color='gray_dark',
+                                             cap_font='def_bold', cap_size=24)
+        self.win_ui.decoratives.append(label_element)
+        label_element = self.win_ui.text_add('shortcut',
+                                             (self.win_w - hot_sckt_right - self.hot_sckt_size,
+                                              hot_sckt_top), (self.hot_sckt_size + 10, self.hot_sckt_size),
+                                             caption='RIGHT $n click',
+                                             h_align='left', v_align='top', cap_color='gray_dark',
+                                             cap_font='def_bold', cap_size=24)
+        self.win_ui.decoratives.append(label_element)
 
         # window header
         header_texture = self.win_ui.random_texture((19, self.win_h), 'red_glass')
@@ -267,7 +299,7 @@ class Hotbar:
             self.render()
 
     def render_slots(self, wins_dict, active_wins):
-        for win in ('inventory','skillbook', 'hotbar'):
+        for win in ('inventory', 'skillbook', 'hotbar'):
             if wins_dict[win] in active_wins:
                 wins_dict[win].render()
 
@@ -295,5 +327,6 @@ class Hotbar:
 
         for cl in self.pc.hot_cooling_set:
             skill = cl.tags[0][cl.id]
-            surface.fill((1,1,1), (self.offset_x + cl.rendered_rect.left, self.offset_y + cl.rendered_rect.top,
-                                   self.hot_sckt_size, self.hot_sckt_size * skill.cooldown_timer // skill.props['cooldown']))
+            surface.fill((1, 1, 1), (self.offset_x + cl.rendered_rect.left, self.offset_y + cl.rendered_rect.top,
+                                     self.hot_sckt_size,
+                                     self.hot_sckt_size * skill.cooldown_timer // skill.props['cooldown']))

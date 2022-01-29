@@ -1,6 +1,6 @@
 # char inventory window
 import pygame
-from library import textinput, pydraw, maths
+from library import textinput, pydraw, maths, itemlist
 from components import ui
 
 
@@ -111,7 +111,7 @@ class Inventory:
                 active_wins.insert(0, wins_dict['inventory'])
             if mb_event == 'up':
                 self.mouse_pointer.drag_ui = None
-                framed_wins = [fw for fw in (wins_dict['pools'], wins_dict['hotbar'], wins_dict['inventory'], wins_dict['skillbook']) if fw in active_wins]
+                framed_wins = [fw for fw in (wins_dict['charstats'], wins_dict['pools'], wins_dict['hotbar'], wins_dict['inventory'], wins_dict['skillbook']) if fw in active_wins]
                 self.offset_x, self.offset_y = maths.rect_sticky_edges(
                     (self.offset_x, self.offset_y, self.win_w, self.win_h),
                     [(ow.offset_x, ow.offset_y, ow.win_w, ow.win_h) for ow in framed_wins])
@@ -136,6 +136,10 @@ class Inventory:
 
             elif mb_event == 'up' and self.mouse_pointer.drag_item is not None:
                 item_dragging = self.mouse_pointer.drag_item[0][self.mouse_pointer.drag_item[1]]
+                if self.mouse_pointer.drag_item[0] == wins_dict['realm'].maze.loot:
+                    self.mouse_pointer.catcher[0] = item_dragging
+                    self.mouse_pointer.drag_item = [self.mouse_pointer.catcher, 0]
+                    wins_dict['realm'].maze.loot.remove(item_dragging)
                 if item_info[1] < len(item_info[0]):
                     if item_info[0][item_info[1]] is None:
                         item_info[0][item_info[1]], self.mouse_pointer.drag_item[0][self.mouse_pointer.drag_item[1]] = \
@@ -152,24 +156,23 @@ class Inventory:
                     self.mouse_pointer.drag_item[0][self.mouse_pointer.drag_item[1]] = None
 
                 if (item_info[0][item_info[1]].props['item_type'] not in item_info[0].filters['item_types']
-                        or item_dragging.props['item_type'] not in self.mouse_pointer.drag_item[0].filters['item_types']):
+                        or (self.mouse_pointer.drag_item[0][self.mouse_pointer.drag_item[1]] is not None
+                            and self.mouse_pointer.drag_item[0][self.mouse_pointer.drag_item[1]].props['item_type']
+                            not in self.mouse_pointer.drag_item[0].filters['item_types'])):
                     item_info[0][item_info[1]], self.mouse_pointer.drag_item[0][self.mouse_pointer.drag_item[1]] = \
                         self.mouse_pointer.drag_item[0][self.mouse_pointer.drag_item[1]], item_info[0][item_info[1]]
 
-                if self.mouse_pointer.drag_item[0] == wins_dict['realm'].maze.loot:
-                    if self.mouse_pointer.drag_item[0][self.mouse_pointer.drag_item[1]] is None:
-                        # wins_dict['realm'].loot_short.remove(item_dragging)
-                        del self.mouse_pointer.drag_item[0][self.mouse_pointer.drag_item[1]]
-                    else:
-                        wins_dict['realm'].loot_short.add(item_dragging)
-                        wins_dict['realm'].maze.flag_array[item_dragging.y_sq][item_dragging.x_sq].item += True
-
-                self.mouse_pointer.drag_item = None
-                self.mouse_pointer.image = None
+                if self.mouse_pointer.catcher[0] is not None:
+                    self.mouse_pointer.drag_item = [self.mouse_pointer.catcher, 0]
+                    self.mouse_pointer.image = self.mouse_pointer.drag_item[0][self.mouse_pointer.drag_item[1]].props['image_inventory'][0]
+                else:
+                    self.mouse_pointer.drag_item = None
+                    self.mouse_pointer.image = None
 
                 self.pc.char_sheet.itemlists_clean_tail()
 
                 self.pc.char_sheet.calc_stats()
+                wins_dict['charstats'].updated = True
             self.render_slots(wins_dict, active_wins)
 
         self.win_ui.interaction_callback(element, mb_event, m_bttn)

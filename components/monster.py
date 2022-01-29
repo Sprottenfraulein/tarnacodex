@@ -280,6 +280,7 @@ class Monster:
             self.state_change(8)
             pc.char_sheet.experience_get(self.stats['exp'])
             wins_dict['pools'].updated = True
+            wins_dict['charstats'].updated = True
             loot_total = lootgen.generate_loot(self, wins_dict['realm'], fate_rnd, pc)
             loot_total.extend(lootgen.generate_gold(self, wins_dict['realm'], fate_rnd, pc))
             lootgen.drop_loot(round(self.x_sq), round(self.y_sq), wins_dict['realm'], loot_total)

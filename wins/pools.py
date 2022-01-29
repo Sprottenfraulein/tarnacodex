@@ -65,7 +65,7 @@ class Pools:
             if mb_event == 'up':
                 self.mouse_pointer.drag_ui = None
                 framed_wins = [fw for fw in
-                               (wins_dict['pools'], wins_dict['hotbar'], wins_dict['inventory'], wins_dict['skillbook'])
+                               (wins_dict['charstats'], wins_dict['pools'], wins_dict['hotbar'], wins_dict['inventory'], wins_dict['skillbook'])
                                if fw in active_wins]
                 self.offset_x, self.offset_y = maths.rect_sticky_edges(
                     (self.offset_x, self.offset_y, self.win_w, self.win_h),
@@ -91,10 +91,11 @@ class Pools:
                 if not wins_dict['hotbar'] in active_wins:
                     wins_dict['hotbar'].render()
                     active_wins.insert(0, wins_dict['hotbar'])
-            """elif element.id == 'char':
+            elif element.id == 'char':
                 if not wins_dict['charstats'] in active_wins:
+                    wins_dict['charstats'].launch(self.pc)
                     wins_dict['charstats'].render()
-                    active_wins.insert(0, wins_dict['charstats'])"""
+                    active_wins.insert(0, wins_dict['charstats'])
 
         elif 'hud' in element.tags and m_bttn == 1 and element.mode == 1 and element.sw_op is False and mb_event == 'up':
             if element.id == 'inv':
@@ -110,9 +111,10 @@ class Pools:
             elif element.id == 'hot':
                 if wins_dict['hotbar'] in active_wins:
                     active_wins.remove(wins_dict['hotbar'])
-            """elif element.id == 'char':
+            elif element.id == 'char':
                 if wins_dict['charstats'] in active_wins:
-                    active_wins.remove(wins_dict['charstats'])"""
+                    active_wins.remove(wins_dict['charstats'])
+                    wins_dict['charstats'].end()
 
         self.win_ui.interaction_callback(element, mb_event, m_bttn)
         # return True if interaction was made to prevent other windows from responding to this event

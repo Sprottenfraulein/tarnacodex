@@ -2,7 +2,7 @@
 import pygame
 from library import cursor, database, scheduler
 from components import tilesets, animations
-from wins import apptitle, realm, inventory, skillbook, context, target, hotbar, pools
+from wins import apptitle, realm, inventory, skillbook, context, target, hotbar, pools, charstats
 
 
 def launch(pygame_settings, resources, log=False):
@@ -25,7 +25,8 @@ def launch(pygame_settings, resources, log=False):
 		'context': context.Context(pygame_settings, resources, tile_sets, anims, db, mouse_pointer, schedule_man),
 		'skillbook': skillbook.SkillBook(pygame_settings, resources, tile_sets, anims, db, mouse_pointer, schedule_man),
 		'hotbar': hotbar.Hotbar(pygame_settings, resources, tile_sets, anims, db, mouse_pointer, schedule_man),
-		'pools': pools.Pools(pygame_settings, resources, tile_sets, anims, db, mouse_pointer, schedule_man)
+		'pools': pools.Pools(pygame_settings, resources, tile_sets, anims, db, mouse_pointer, schedule_man),
+		'charstats': charstats.CharStats(pygame_settings, resources, tile_sets, anims, db, mouse_pointer, schedule_man),
 	}
 	bigloop(pygame_settings, resources, wins_dict, mouse_pointer, schedule_man)
 

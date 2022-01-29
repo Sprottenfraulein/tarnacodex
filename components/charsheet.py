@@ -72,28 +72,28 @@ class CharSheet:
         })
 
         self.profs = {
-            'prof_provoke': 0,       # distance of mobs becoming aggressive
-            'prof_evade': 0,         # avoid being hit by enemy
-            'prof_crit': 0,          # chance of critical attack
-            'prof_thorns': 0,        # in percents x10 (100% = 1000), returns all close damage to attacker.
-            'prof_reflect': 0,       # in percents x10 (100% = 1000), returns all ranged damage to attacker.
-
-            'prof_picklock': 0,      # open locked doors without keys
-            'prof_detect': 0,        # make trap or hidden door visible
-            'prof_disarm': 0,        # dismantle a trap
-
-            'prof_findgold': 0,      # in percents x10 (100% = 1000), increases gold amounts dropped.
-            'prof_findfood': 0,      # in percents x10 (100% = 1000), increases food amounts dropped.
-            'prof_findammo': 0,      # in percents x10 (100% = 1000), increases ammo amounts dropped.
-            'prof_findore': 0,       # number competes against ore deposit level x10 to successfully drop an ore. based on intelligence
-            'prof_findmagic': 0,     # increases quality of drop items
-
-            'prof_lore': 0,          # identify an item
-            'prof_trade': 0,         # buy cheaper
-            'prof_craft': 0,         # number competes against item difficulty to successfully craft. based on intelligence
-
-            'prof_bonusexp': 0,       # in percents x10 (100% = 1000), increases exp amounts received.
-            'prof_range': 0          # in squares. increases ranged attacks distance
+            'prof_provoke': 0,     # in  tenths of percents (1000 is 100%)
+            'prof_evade': 0,       # in  tenths of percents (1000 is 100%)
+            'prof_crit': 0,        # in  tenths of percents (1000 is 100%)
+            'prof_thorns': 0,      # in  tenths of percents (1000 is 100%)
+            'prof_reflect': 0,     # in  tenths of percents (1000 is 100%)
+                                   # in  tenths of percents (1000 is 100%)
+            'prof_picklock': 0,    # in  tenths of percents (1000 is 100%)
+            'prof_detect': 0,      # in  tenths of percents (1000 is 100%)
+            'prof_disarm': 0,      # in  tenths of percents (1000 is 100%)
+                                   # in  tenths of percents (1000 is 100%)
+            'prof_findgold': 0,    # in  tenths of percents (1000 is 100%)
+            'prof_findfood': 0,    # in  tenths of percents (1000 is 100%)
+            'prof_findammo': 0,    # in  tenths of percents (1000 is 100%)
+            'prof_findore': 0,     # in  tenths of percents (1000 is 100%intelligence
+            'prof_findmagic': 0,   # in  tenths of percents (1000 is 100%)
+                                   # in  tenths of percents (1000 is 100%)
+            'prof_lore': 0,        # in  tenths of percents (1000 is 100%)
+            'prof_trade': 0,       # in  tenths of percents (1000 is 100%)
+            'prof_craft': 0,       # in  tenths of percents (1000 is 100%)
+                                   # in  tenths of percents (1000 is 100%)
+            'prof_bonusexp': 0,    # in  tenths of percents (1000 is 100%)
+            'prof_range': 0        # in  tenths of percents (1000 is 100%)
         }
         # dictionary of stat alterations. pairs "stat: value" added during game.
         self.de_buffs = {}
@@ -135,7 +135,7 @@ class CharSheet:
             }),
         ]
 
-        self.hotbar = itemlist.ItemList(all_to_none=True, items_max=6, filters={
+        self.hotbar = itemlist.ItemList(all_to_none=True, items_max=9, filters={
             'item_types': ['skill_melee', 'skill_ranged', 'skill_magic', 'skill_craft', 'skill_misc',
                            'wpn_melee']
         })
@@ -315,6 +315,14 @@ class CharSheet:
                 pass
         return mod
 
+    def calc_all_mods(self, stat_name):
+        mod_sum = self.equipment_mod(stat_name) + self.buff_mod(stat_name)
+        try:
+            mod_sum += self.modifiers[stat_name]
+        except KeyError:
+            pass
+        return mod_sum
+
     def experience_get(self, exp_value):
         self.experience += exp_value
         if not self.exp_prev_lvl <= self.experience < self.exp_next_lvl:
@@ -322,6 +330,9 @@ class CharSheet:
             self.level = self.calc_level(self.experience)
             if self.level != old_level:
                 self.calc_stats()
+                if self.level > old_level:
+                    self.hp_get(100, True)
+                    self.mp_get(100, True)
                 return True
         print('+%s exp. Total: %s/%s (level %s)' % (exp_value, self.experience, self.exp_next_lvl, self.level))
         return False
@@ -355,8 +366,8 @@ class CharSheet:
         self.defences['def_melee'] = self.calc_defence_melee()
         self.defences['def_ranged'] = self.calc_defence_ranged()
         self.defences['def_physical'] = self.calc_defence_physical()
-        for att in ('def_fire', 'def_poison', 'def_ice', 'def_lightning', 'def_arcane'):
-            self.attacks[att] = self.calc_def_elemental(att)
+        for df in ('def_fire', 'def_poison', 'def_ice', 'def_lightning', 'def_arcane'):
+            self.defences[df] = self.calc_def_elemental(df)
         # Calculating proficiencies
         for prof_name in self.profs.keys():
             self.profs[prof_name] = chartype_stats[prof_name]

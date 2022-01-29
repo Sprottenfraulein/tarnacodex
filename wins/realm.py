@@ -67,7 +67,7 @@ class Realm:
              (self.view_maze_height_sq + self.view_bleed_sq * 2) * self.square_size),
             pygame.HWSURFACE)
         self.view_size_scaled = (w,h)
-        framed_wins = (wins_dict['pools'], wins_dict['hotbar'], wins_dict['inventory'], wins_dict['skillbook'])
+        framed_wins = (wins_dict['charstats'], wins_dict['pools'], wins_dict['hotbar'], wins_dict['inventory'], wins_dict['skillbook'])
         for win in framed_wins:
             win.offset_x, win.offset_y = maths.rect_sticky_edges((win.offset_x, win.offset_y, win.win_w, win.win_h),
                                                                  [(ow.offset_x, ow.offset_y, ow.win_w, ow.win_h) for ow in framed_wins])

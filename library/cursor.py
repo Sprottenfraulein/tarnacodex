@@ -1,5 +1,6 @@
 # Mouse pointer object
 import pygame
+from library import itemlist
 
 
 class Cursor:
@@ -13,6 +14,11 @@ class Cursor:
         self.still_timer = 0
         self.still_max = 640
         self.inter_list = []
+        self.catcher = itemlist.ItemList(items_max=1, filters={
+            'item_types': ['wpn_melee', 'wpn_ranged', 'wpn_magic', 'arm_head', 'arm_chest', 'acc_ring', 'orb_shield',
+                           'orb_ammo', 'orb_source', 'use_potion', 'use_wand', 'use_tools', 'light']
+        })
+        self.catcher.append(None)
 
     def interact(self, inter_entry):
         self.inter_list.append(inter_entry)
