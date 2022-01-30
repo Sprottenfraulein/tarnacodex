@@ -67,7 +67,7 @@ def pickup(wins_dict, fate_rnd, pc, skill, just_values=False):
     except IndexError:
         return True
 
-    if not flags.item or not flags.vis:
+    if len(flags.item) == 0 or not flags.vis:
         return True
     if maths.get_distance(pc.x_sq, pc.y_sq, x_sq, y_sq) > skill.props['range']:
         realm.schedule_man.task_add('realm_tasks', 1, realm, 'spawn_realmtext',
@@ -76,29 +76,28 @@ def pickup(wins_dict, fate_rnd, pc, skill, just_values=False):
         realm.schedule_man.task_add('realm_tasks', 8, realm, 'remove_realmtext', ('new_txt',))
         return True
 
-    for lt in realm.loot_short:
-        if lt.x_sq == x_sq and lt.y_sq == y_sq:
-            if lt.props['treasure_id'] == 6:
-                pc.char_sheet.gold_coins += lt.props['amount']
-                realm.maze.flag_array[y_sq][x_sq].item -= True
-                realm.maze.loot.remove(lt)
-                realm.loot_short.remove(lt)
-                wins_dict['inventory'].updated = True
-                break
-            if len(pc.char_sheet.inventory) >= pc.char_sheet.inventory.items_max:
-                for i in range(0, len(pc.char_sheet.inventory)):
-                    if pc.char_sheet.inventory[i] is None:
-                        pc.char_sheet.inventory[i] = lt
-                    break
-                else:
-                    return True
-            else:
-                pc.char_sheet.inventory.append(lt)
+    for lt in flags.item:
+        if lt.props['treasure_id'] == 6:
+            pc.char_sheet.gold_coins += lt.props['amount']
             realm.maze.flag_array[y_sq][x_sq].item -= True
             realm.maze.loot.remove(lt)
-            realm.loot_short.remove(lt)
+            # realm.loot_short.remove(lt)
             wins_dict['inventory'].updated = True
             break
+        if len(pc.char_sheet.inventory) >= pc.char_sheet.inventory.items_max:
+            for i in range(0, len(pc.char_sheet.inventory)):
+                if pc.char_sheet.inventory[i] is None:
+                    pc.char_sheet.inventory[i] = lt
+                break
+            else:
+                return True
+        else:
+            pc.char_sheet.inventory.append(lt)
+        realm.maze.flag_array[y_sq][x_sq].item.remove(lt)
+        realm.maze.loot.remove(lt)
+        # realm.loot_short.remove(lt)
+        wins_dict['inventory'].updated = True
+        break
 
     pc.act(wins_dict, (x_sq, y_sq), skill)
 

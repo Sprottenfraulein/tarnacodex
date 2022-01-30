@@ -1,6 +1,7 @@
 # game title window
 import pygame
 import settings
+import random
 from library import textinput
 from components import maze, pc, charsheet, ui, skill, treasure
 
@@ -78,7 +79,9 @@ class AppTitle:
         elif element.id == 'exit' and m_bttn == 1 and mb_event == 'up' and element.mode == 1:
             exit()
         elif element.id == 'test_start' and m_bttn == 1 and mb_event == 'up' and element.mode == 1:
-            l = maze.Maze(self.db, self.animations, 80, 80, 1, ['town', 'cave', 'forest'], self.win_ui.tilesets.get_maze_tiles('dung_default'))
+            l = maze.Maze(self.db, self.animations, 80, 80, 1, ['cave', 'forest'],
+                          self.win_ui.tilesets.get_maze_tiles('dung_default'),
+                          monster_types=None, monster_type_amount=2, monster_amount_rate=1)
             for r in l.array:
                 print(*r)
             location = 'town'
@@ -86,8 +89,9 @@ class AppTitle:
             pc_y_sq = 1
             for i in range(0, len(l.exits)):
                 if l.exits[i].dest == location or i == len(l.exits) - 1:
-                    pc_x_sq = l.exits[i].x_sq
-                    pc_y_sq = l.exits[i].y_sq
+                    pc_x_sq = random.randrange(l.exits[i].room.left, l.exits[i].room.right)
+                    pc_y_sq = random.randrange(l.exits[i].room.top, l.exits[i].room.bottom)
+                    break
             char_sheet = charsheet.CharSheet(self.db, 'char_id', chr_name='Xenia', chr_type='champion', chr_level=1)
             p = pc.PC(pc_x_sq, pc_y_sq, location, self.animations.get_animation('anthro_default'), char_sheet, state=0)
 

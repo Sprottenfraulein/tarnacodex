@@ -17,7 +17,7 @@ class Pools:
         self.win_ui = ui.UI(pygame_settings, resources, tilesets, db)
         self.pools_rendered = None
         self.win_header = None
-        self.win_w = 218
+        self.win_w = 210
         self.win_h = 192
         self.offset_x = 0
         self.offset_y = pygame_settings.screen_res[1] - self.win_h
@@ -169,8 +169,9 @@ class Pools:
                                                    (self.pool_exp_w, self.pool_exp_h))
 
         # HUD BUTTONS
-        pools_btn_w = 62
+        pools_btn_w = 54
         pools_btn_h = 34
+        bttns_per_col = 5
         settings_btn_h = 35
         # MAIN MENU
         bttn_texture = self.win_ui.random_texture((pools_btn_w, pools_btn_h), 'red_glass')
@@ -220,8 +221,8 @@ class Pools:
         for i in range(0, len(pools_menu)):
             pools_menu[i].tags = ['hud']
             # pools_menu[i].page = 0
-            pools_menu[i].rendered_rect.left = self.win_w - pools_btn_w - 3
-            pools_menu[i].rendered_rect.top = 19 + pools_btn_h * i
+            pools_menu[i].rendered_rect.left = self.win_w - pools_btn_w - pools_btn_w * (i // bttns_per_col) - 3
+            pools_menu[i].rendered_rect.top = 19 + (pools_btn_h * (i % bttns_per_col))
 
         self.win_ui.interactives.append(self.win_header)
         self.win_ui.interactives.extend(pools_menu)

@@ -1,6 +1,7 @@
 class FlagTile:
-    def __init__(self, obj=False, mon=False, trap=False, item=False, light=False, mov=False, vis=False, map=False, floor=False):
+    def __init__(self, obj=None, door=None, mon=None, trap=None, item=None, light=False, mov=False, vis=False, map=False, floor=False):
         self.obj = obj
+        self.door = door
         self.mon = mon
         self.trap = trap
         self.item = item

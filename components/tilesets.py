@@ -30,7 +30,7 @@ class Tilesets:
                 'doorway_ver_b': self.get_image('dung_bricks', (24, 24), (30,)),
                 'doorway_ver_t': self.get_image('dung_bricks', (24, 24), (10,)),
                 'floor_tiled': self.get_image('dung_bricks', (24, 24), (55,)),
-                'floor_ground': self.get_image('dung_bricks', (24, 24), (65,)),
+                'floor_ground': self.get_image('dung_bricks', (24, 24), (65,66,67,68,69)),
                 'door_ver_mlock': self.get_image('dung_doors', (24, 48), (0, 1, 2)),
                 'door_ver_lock': self.get_image('dung_doors', (24, 48), (3,)),
                 'door_ver_shut': self.get_image('dung_doors', (24, 48), (4,)),
@@ -38,7 +38,8 @@ class Tilesets:
                 'door_hor_mlock': self.get_image('dung_doors', (48, 24), (6, 7, 8)),
                 'door_hor_lock': self.get_image('dung_doors', (48, 24), (9,)),
                 'door_hor_shut': self.get_image('dung_doors', (48, 24), (10,)),
-                'door_hor_open': self.get_image('dung_doors', (48, 24), (11,))
+                'door_hor_open': self.get_image('dung_doors', (48, 24), (11,)),
+                'exit_up': self.get_image('dung_bricks', (48, 48), (4,)),
             }
             return tileset
 

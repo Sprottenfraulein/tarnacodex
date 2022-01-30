@@ -8,11 +8,11 @@ class Monster:
     def __init__(self, x_sq, y_sq, anim_set, stats, state=2):
         self.x_sq = x_sq
         self.y_sq = y_sq
-        self.dest_x_sq = self.origin_x_sq = self.x_sq
-        self.dest_y_sq = self.origin_y_sq = self.y_sq
+        self.origin_x_sq = self.x_sq
+        self.origin_y_sq = self.y_sq
         self.off_x = self.off_y = 0
         self.attack_timer = 0
-        self.attacking = False
+        self.attacking = None
         self.anim_set = anim_set
         self.anim_frame = 0
         self.anim_timer = 0
@@ -84,7 +84,17 @@ class Monster:
             return
         if not self.attacking and ((not self.rest or self.waypoints is not None) and (self.move_instr_x != 0 or self.move_instr_y != 0)):
             self.move(self.move_instr_x, self.move_instr_y, realm)
-            if self.anim_timer >= self.frame_timing:
+
+        elif self.attacking is not None:
+            if self.attack_timer > self.attacking['time']:
+                self.attacking = None
+                if self.state > 3:
+                    self.state_change(self.state - 4)
+            else:
+                self.attack_timer += 1
+
+        if self.attacking or (not self.rest and (self.move_instr_x != 0 or self.move_instr_y != 0)):
+            if self.anim_timer > self.frame_timing:
                 self.anim_timer = 0
                 self.anim_frame += 1
                 if self.anim_frame >= len(self.image):
@@ -92,25 +102,13 @@ class Monster:
                 self.frame_timing = self.anim_timings[self.anim_frame]
             else:
                 self.anim_timer += 1
-        elif self.attacking:
-            if self.attack_timer >= self.frame_timing:
-                self.attack_timer = 0
-                self.anim_frame += 1
-                if self.anim_frame >= len(self.image):
-                    self.anim_frame -= len(self.image)
-                    self.attacking = False
-                    if self.state > 3:
-                        self.state_change(self.state - 4)
-                self.frame_timing = self.anim_timings[self.anim_frame]
-            else:
-                self.attack_timer += 1
 
         pc_distance = maths.get_distance(self.x_sq, self.y_sq, realm.pc.x_sq, realm.pc.y_sq)
-        if pc_distance <= self.stats['melee_distance'] and not self.attacking:
+        if pc_distance <= self.stats['melee_distance'] and self.attacking is None:
             self.move_instr_x = self.move_instr_y = 0
             self.attack(wins_dict, realm.pc)
 
-        if self.attacking:
+        if self.attacking is not None:
             return
 
         if self.waypoints is not None:
@@ -201,33 +199,41 @@ class Monster:
         if step_x != 0 and step_y != 0:
             step_x *= 0.8
             step_y *= 0.8
-        self.dest_x_sq = round(self.x_sq + step_x * self.speed / 100)
-        self.dest_y_sq = round(self.y_sq + step_y * self.speed / 100)
+        dest_x_sq = round(self.x_sq + step_x * self.speed / 100)
+        dest_y_sq = round(self.y_sq + step_y * self.speed / 100)
 
-        may_x, may_y = self.sq_is_free(realm, self.dest_x_sq, self.dest_y_sq)
+        if not (0 <= dest_x_sq < realm.maze.width):
+            dest_x_sq = round(self.x_sq)
+            step_x = 0
+        if not (0 <= dest_y_sq < realm.maze.height):
+            dest_y_sq = round(self.y_sq)
+            step_y = 0
+
+        may_x, may_y = self.sq_is_free(realm, dest_x_sq, dest_y_sq)
         step_x *= may_x
         step_y *= may_y
+
         if step_x == 0 and step_y == 0:
             if self.waypoints is not None:
                 self.waypoints = None
                 self.phase_change()
             return
 
-        realm.maze.flag_array[round(self.y_sq)][round(self.x_sq)].mon = False
+        realm.maze.flag_array[round(self.y_sq)][round(self.x_sq)].mon = None
 
         self.x_sq += step_x * self.speed / 100
         self.y_sq += step_y * self.speed / 100
 
-        realm.maze.flag_array[round(self.y_sq)][round(self.x_sq)].mon = True
+        realm.maze.flag_array[round(self.y_sq)][round(self.x_sq)].mon = self
 
     def sq_is_free(self, realm, sq_x, sq_y):
         step_x, step_y = 1, 1
         if sq_x != round(self.x_sq) or sq_y != round(self.y_sq):
-            if realm.maze.flag_array[sq_y][sq_x].mon:
-                if not realm.maze.flag_array[round(self.y_sq)][sq_x].mon:
+            if realm.maze.flag_array[sq_y][sq_x].mon is not None:
+                if realm.maze.flag_array[round(self.y_sq)][sq_x].mon is None:
                     step_y = 0
                     # self.move_instr_x *= -1
-                elif not realm.maze.flag_array[sq_y][round(self.x_sq)].mon:
+                elif realm.maze.flag_array[sq_y][round(self.x_sq)].mon is None:
                     step_x = 0
                     # self.move_instr_y *= -1
                 else:
@@ -251,26 +257,31 @@ class Monster:
             return False
         self.face_point(pc.x_sq, pc.y_sq)
         self.state_change(self.state + 4)
-        self.attacking = True
 
         attacks_list = [(att, att['chance']) for att in self.stats['attacks_melee']]
-        chosen_attack = pickrandom.items_get(attacks_list)[0]
+        self.attacking = pickrandom.items_get(attacks_list)[0]
 
-        pc.wound(wins_dict, self, chosen_attack)
+        pc.wound(wins_dict, self, self.attacking)
 
-        logfun.put('Monster MELEE Attack!', True)
+        self.attack_timer = 0
+
+        self.anim_frame = 0
+        self.anim_timer = 0
         return True
 
     def attack_ranged(self, pc, distance):
         if len(self.stats['attacks_ranged']) == 0:
             return False
-        available_attacks = [att for att in self.stats['attack_ranged'] if att['range'] <= distance]
-        if len(available_attacks) == 0:
-            return False
         self.face_point(pc.x_sq, pc.y_sq)
         self.state_change(self.state + 4)
-        self.attacking = True
-        logfun.put('Monster Ranged Attack!', True)
+
+        attacks_list = [(att, att['chance']) for att in self.stats['attacks_ranged']]
+        self.attacking = pickrandom.items_get(attacks_list)[0]
+
+        self.attack_timer = 0
+
+        self.anim_frame = 0
+        self.anim_timer = 0
         return True
 
     def check(self, wins_dict, fate_rnd, pc):

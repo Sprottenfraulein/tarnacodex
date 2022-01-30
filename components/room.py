@@ -11,6 +11,7 @@ class Room:
         self.doors = []
         self.traps = []
         self.corridor = False
+        self.locked = False
 
     def inside(self, x, y):
         if self.left < x < self.right and self.top < y < self.bottom:

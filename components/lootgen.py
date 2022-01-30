@@ -69,4 +69,4 @@ def drop_loot(x_sq, y_sq, realm, loot_list):
         lt_x_sq, lt_y_sq = space_list[min(1 + i, len(space_list) - 1)]
 
         realm.maze.spawn_loot(lt_x_sq, lt_y_sq, (loot_list[i],))
-    realm.shortlists_update(loot=True)
+    # realm.shortlists_update(loot=True)

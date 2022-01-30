@@ -263,39 +263,6 @@ class Realm:
                             # print('Realm.Stage_display: Wrong tile.')
                             pass
 
-        if self.redraw_maze_obj:
-            for dr in self.doors_short:
-                try:
-                    surface.blit(dr.image[self.maze.anim_frame],
-                                 ((dr.x_sq - self.ren_x_sq) * self.square_size + dr.off_x,
-                                  (dr.y_sq - self.ren_y_sq) * self.square_size + dr.off_y))
-                except IndexError:
-                    surface.blit(dr.image[(self.maze.anim_frame + 1) % (len(dr.image))],
-                                 ((dr.x_sq - self.ren_x_sq) * self.square_size + dr.off_x,
-                                  (dr.y_sq - self.ren_y_sq) * self.square_size + dr.off_y))
-                if dr.alignment:
-                    if not self.maze.flag_array[dr.y_sq - 1][dr.x_sq].vis:
-                        surface.fill((1, 1, 1), ((dr.x_sq - self.ren_x_sq) * self.square_size,
-                                                 (dr.y_sq - self.ren_y_sq - 1) * self.square_size,
-                                                 self.square_size, self.square_size))
-                else:
-                    if not self.maze.flag_array[dr.y_sq][dr.x_sq - 1].vis:
-                        surface.fill((1, 1, 1), ((dr.x_sq - self.ren_x_sq - 1) * self.square_size,
-                                                 (dr.y_sq - self.ren_y_sq) * self.square_size,
-                                                 self.square_size, self.square_size))
-
-        if self.redraw_maze_loot:
-            for loot in self.loot_short:
-                try:
-                    surface.blit(loot.props['image_floor'][self.maze.anim_frame],
-                                 ((loot.x_sq - self.ren_x_sq) * self.square_size + loot.off_x,
-                                  (loot.y_sq - self.ren_y_sq) * self.square_size + loot.off_y))
-                except IndexError:
-                    surface.blit(
-                        loot.props['image_floor'][(self.maze.anim_frame + 1) % (len(loot.props['image_floor']))],
-                        ((loot.x_sq - self.ren_x_sq) * self.square_size + loot.off_x,
-                         (loot.y_sq - self.ren_y_sq) * self.square_size + loot.off_y))
-
         for ren_pos_y in range(top_sq, bottom_sq):
             for ren_pos_x in range(left_sq, right_sq):
                 # body
@@ -304,6 +271,51 @@ class Realm:
                     flags = self.maze.flag_array[ren_pos_y][ren_pos_x]
                     if flags.vis:
                         decors = self.maze.decor_array[ren_pos_y][ren_pos_x]
+
+                        # drawing doors
+                        if flags.door is not None:
+                            try:
+                                surface.blit(flags.door.image[self.maze.anim_frame],
+                                             ((flags.door.x_sq - self.ren_x_sq) * self.square_size + flags.door.off_x,
+                                              (flags.door.y_sq - self.ren_y_sq) * self.square_size + flags.door.off_y))
+                            except IndexError:
+                                surface.blit(flags.door.image[(self.maze.anim_frame + 1) % (len(flags.door.image))],
+                                             ((flags.door.x_sq - self.ren_x_sq) * self.square_size + flags.door.off_x,
+                                              (flags.door.y_sq - self.ren_y_sq) * self.square_size + flags.door.off_y))
+                            if flags.door.alignment:
+                                if not self.maze.flag_array[flags.door.y_sq - 1][flags.door.x_sq].vis:
+                                    surface.fill((1, 1, 1), ((flags.door.x_sq - self.ren_x_sq) * self.square_size,
+                                                             (flags.door.y_sq - self.ren_y_sq - 1) * self.square_size,
+                                                             self.square_size, self.square_size))
+                            else:
+                                if not self.maze.flag_array[flags.door.y_sq][flags.door.x_sq - 1].vis:
+                                    surface.fill((1, 1, 1), ((flags.door.x_sq - self.ren_x_sq - 1) * self.square_size,
+                                                             (flags.door.y_sq - self.ren_y_sq) * self.square_size,
+                                                             self.square_size, self.square_size))
+
+                        if flags.obj is not None:
+                            try:
+                                surface.blit(flags.obj.image[self.maze.anim_frame],
+                                             ((flags.obj.x_sq - self.ren_x_sq) * self.square_size + flags.obj.off_x,
+                                              (flags.obj.y_sq - self.ren_y_sq) * self.square_size + flags.obj.off_y))
+                            except IndexError:
+                                surface.blit(flags.obj.image[(self.maze.anim_frame + 1) % (len(flags.obj.image))],
+                                             ((flags.obj.x_sq - self.ren_x_sq) * self.square_size + flags.obj.off_x,
+                                              (flags.obj.y_sq - self.ren_y_sq) * self.square_size + flags.obj.off_y))
+
+                        # drawing loot
+                        if flags.item is not None:
+                            for loot in flags.item:
+                                try:
+                                    surface.blit(loot.props['image_floor'][self.maze.anim_frame],
+                                                 ((loot.x_sq - self.ren_x_sq) * self.square_size + loot.off_x,
+                                                  (loot.y_sq - self.ren_y_sq) * self.square_size + loot.off_y))
+                                except IndexError:
+                                    surface.blit(
+                                        loot.props['image_floor'][
+                                            (self.maze.anim_frame + 1) % (len(loot.props['image_floor']))],
+                                        ((loot.x_sq - self.ren_x_sq) * self.square_size + loot.off_x,
+                                         (loot.y_sq - self.ren_y_sq) * self.square_size + loot.off_y))
 
                         if len(decors) > 1:
                             for k in range(1, len(decors)):
@@ -320,7 +332,6 @@ class Realm:
                                         # print('Realm.Stage_display: Wrong tile.')
                                         pass
                         else:
-
                             if self.redraw_pc and round(self.pc.x_sq) == ren_pos_x and round(self.pc.y_sq) == ren_pos_y:
                                 self.pc_display(surface, self.ren_x_sq, self.ren_y_sq)
 
@@ -347,21 +358,20 @@ class Realm:
                             pass
 
                         # mobs rendering
-                        if flags.mon:
-                            for mon in self.mobs_short:
-                                if round(mon.x_sq) == ren_pos_x and round(mon.y_sq) == ren_pos_y:
-                                    if mon.aimed:
-                                        surface.blit(self.target_mark[self.maze.anim_frame],
-                                                     ((mon.x_sq - self.ren_x_sq + 0.15) * self.square_size + mon.off_x,
-                                                      (mon.y_sq - self.ren_y_sq + 0.2) * self.square_size + mon.off_y))
-                                    """if mon.waypoints is not None:
-                                        for wp in mon.waypoints:
-                                            surface.blit(self.target_mark[0],
-                                                         ((wp[0] - self.ren_x_sq + 0.15) * self.square_size,
-                                                          (wp[1] - self.ren_y_sq + 0.2) * self.square_size))"""
-                                    surface.blit(mon.image[mon.anim_frame],
-                                                 ((mon.x_sq - self.ren_x_sq - 0.1) * self.square_size + mon.off_x,
-                                                  (mon.y_sq - self.ren_y_sq - 0.1) * self.square_size + mon.off_y))
+                        if flags.mon is not None:
+                            mon = flags.mon
+                            if mon.aimed:
+                                surface.blit(self.target_mark[self.maze.anim_frame],
+                                             ((mon.x_sq - self.ren_x_sq + 0.15) * self.square_size + mon.off_x,
+                                              (mon.y_sq - self.ren_y_sq + 0.2) * self.square_size + mon.off_y))
+                            """if mon.waypoints is not None:
+                                for wp in mon.waypoints:
+                                    surface.blit(self.target_mark[0],
+                                                 ((wp[0] - self.ren_x_sq + 0.15) * self.square_size,
+                                                  (wp[1] - self.ren_y_sq + 0.2) * self.square_size))"""
+                            surface.blit(mon.image[mon.anim_frame],
+                                         ((mon.x_sq - self.ren_x_sq - 0.1) * self.square_size + mon.off_x,
+                                          (mon.y_sq - self.ren_y_sq - 0.1) * self.square_size + mon.off_y))
 
     def pc_display(self, surface, x_sq, y_sq):
         try:
@@ -448,20 +458,15 @@ class Realm:
                                         (0, 0), (0, -24), None, True, self.pc))
             self.schedule_man.task_add('realm_tasks', 8, self, 'remove_realmtext', ('new_txt',))
             return
-        if self.mouse_pointer.drag_item[0] == self.maze.loot:
-            item_dragging.x_sq = m_x_sq
-            item_dragging.y_sq = m_y_sq
-            self.maze.flag_array[item_dragging.y_sq][item_dragging.x_sq].item += True
-            self.mouse_pointer.drag_item = None
-        else:
-            self.maze.spawn_loot(m_x_sq, m_y_sq, (item_dragging,))
-            self.mouse_pointer.drag_item[0][self.mouse_pointer.drag_item[1]] = None
-            self.mouse_pointer.drag_item = None
+        self.maze.spawn_loot(m_x_sq, m_y_sq, (item_dragging,))
+        if not self.mouse_pointer.drag_item[0] == self.mouse_pointer.catcher:
             wins_dict['inventory'].updated = True
             wins_dict['hotbar'].updated = True
             wins_dict['skillbook'].updated = True
+        self.mouse_pointer.drag_item[0][self.mouse_pointer.drag_item[1]] = None
+        self.mouse_pointer.drag_item = None
         self.mouse_pointer.image = None
-        self.shortlists_update(loot=True)
+        # self.shortlists_update(loot=True)
         # self.render_update()
 
     def xy_pixels_to_squares(self, xy, do_round=True):
@@ -484,36 +489,34 @@ class Realm:
         if pc_dist > 3:
             return True
 
-        if flags.item:
+        if len(flags.item) > 0:
             # picking up items
-            for lt in self.loot_short:
-                if lt.x_sq == x_sq and lt.y_sq == y_sq:
-                    if lt.props['treasure_id'] == 6:
-                        self.pc.char_sheet.gold_coins += lt.props['amount']
-                        self.maze.flag_array[y_sq][x_sq].item -= True
-                        self.maze.loot.remove(lt)
-                        self.loot_short.remove(lt)
-                        wins_dict['inventory'].updated = True
-                        return False
-                    else:
-                        self.maze.flag_array[y_sq][x_sq].item -= True
-                        self.mouse_pointer.drag_item = [self.maze.loot, self.maze.loot.index(lt)]
-                        self.mouse_pointer.image = lt.props['image_floor'][0]
-                        # self.maze.loot.remove(lt)
-                        self.loot_short.remove(lt)
-                        # self.render_update()
-                        return False
-        if flags.obj:
-            # doors
-            for dr in self.doors_short:
-                if dr.x_sq == x_sq and dr.y_sq == y_sq:
-                    if dr.use(self.pc):
-                        self.maze.flag_array[y_sq][x_sq].mov = not dr.shut
-                        self.maze.flag_array[y_sq][x_sq].light = (not dr.shut) or (dr.grate)
-                        self.calc_vision_alt()
-                        self.shortlists_update(doors=True, loot=True, mobs=True, traps=True)
-                        # self.render_update()
+            for lt in flags.item:
+                if lt.props['treasure_id'] == 6:
+                    self.pc.char_sheet.gold_coins += lt.props['amount']
+                    self.maze.flag_array[y_sq][x_sq].item.remove(lt)
+                    self.maze.loot.remove(lt)
+                    # self.loot_short.remove(lt)
+                    wins_dict['inventory'].updated = True
                     return False
+                else:
+                    self.maze.flag_array[y_sq][x_sq].item.remove(lt)
+                    self.mouse_pointer.catcher[0] = lt
+                    self.mouse_pointer.drag_item = [self.mouse_pointer.catcher, 0]
+                    self.mouse_pointer.image = lt.props['image_floor'][0]
+                    self.maze.loot.remove(lt)
+                    # self.loot_short.remove(lt)
+                    # self.render_update()
+                    return False
+        if flags.door is not None:
+            # doors
+            if flags.door.use(self.pc):
+                self.maze.flag_array[y_sq][x_sq].mov = not flags.door.shut
+                self.maze.flag_array[y_sq][x_sq].light = (not flags.door.shut) or (flags.door.grate)
+                self.calc_vision_alt()
+                self.shortlists_update(mobs=True)
+                # self.render_update()
+            return False
         return True
 
     def mob_check(self, xy, m_bttn, wins_dict, active_wins):
@@ -541,15 +544,15 @@ class Realm:
         right_sq = left_sq + self.view_maze_width_sq + self.view_bleed_sq * 3
 
         # doors
-        if doors or everything:
+        """if doors or everything:
             for dr in self.maze.doors:
                 if self.maze.flag_array[dr.y_sq][dr.x_sq].vis:
                     self.doors_short.add(dr)
                 elif dr in self.doors_short:
-                    self.doors_short.remove(dr)
+                    self.doors_short.remove(dr)"""
 
         # loot
-        if loot or everything:
+        """if loot or everything:
             for lt in self.maze.loot:
                 if self.maze.flag_array[lt.y_sq][lt.x_sq].vis:
                     if (self.mouse_pointer.drag_item is None
@@ -557,10 +560,10 @@ class Realm:
                         self.loot_short.add(lt)
 
                 elif lt in self.loot_short:
-                    self.loot_short.remove(lt)
+                    self.loot_short.remove(lt)"""
 
         # traps
-        if traps or everything:
+        """if traps or everything:
             for tr in self.maze.traps:
                 # Somehow a few traps have None in their coordinates after all. I dont know why. Meanwhile...
                 if tr.x_sq is None or tr.y_sq is None:
@@ -568,7 +571,7 @@ class Realm:
                 if left_sq <= tr.x_sq <= right_sq and top_sq <= tr.y_sq <= bottom_sq:
                     self.traps_short.add(tr)
                 elif tr in self.traps_short:
-                    self.traps_short.remove(tr)
+                    self.traps_short.remove(tr)"""
 
         # mobs
         if mobs or everything:

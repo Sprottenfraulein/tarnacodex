@@ -6,6 +6,7 @@ from components import dbrequests, progression, room, door, stairs, trap, lock, 
 
 class Maze:
     def __init__(self, db, animations, width, height, lvl, exits_list, tile_set,
+                 monster_types=None, monster_type_amount=2, monster_amount_rate=1,
                  anim_timing=15, trap_rate=1, lock_rate=70, magic_lock_rate=30):
         self.db = db
         self.animations = animations
@@ -17,9 +18,9 @@ class Maze:
         self.trap_rate = trap_rate
         self.lock_rate = lock_rate
         self.magic_lock_rate = magic_lock_rate
-        self.monster_types = None
-        self.monster_type_amount = 2
-        self.monster_amount_rate = 1
+        self.monster_types = monster_types
+        self.monster_type_amount = monster_type_amount
+        self.monster_amount_rate = monster_amount_rate
 
         self.array = maze_array(width, height)
         self.decor_array = None
@@ -75,8 +76,8 @@ class Maze:
             lt.x_sq, lt.y_sq = x_sq, y_sq
             self.loot.append(lt)
             flags = self.flag_array[y_sq][x_sq]
-            flags.item += True
-            lt.stashed = False
+            flags.item.append(lt)
+
 
 def split_build(top, left, bottom, right, min_width, min_height, prop, vertical=50, r_limit=4):
     if r_limit <= 0:
@@ -494,23 +495,20 @@ def doors_set(maze, tile_set, db):
         if random.randrange(1, 101) <= maze.lock_rate:
             if random.randrange(1, 101) <= maze.magic_lock_rate:
                 for dr in locked_room.doors:
-                    dr.lock = lock.Lock(maze.lvl, magical=True)
+                    if dr.lock is None:
+                        dr.lock = lock.Lock(maze.lvl, magical=True)
                     dr.shut = True
                 locked_room.rating += 150
                 square(maze.array, locked_room.top + 1, locked_room.left + 1, locked_room.bottom, locked_room.right,
                        '0', '0', True)
             else:
                 for dr in locked_room.doors:
-                    dr.lock = lock.Lock(maze.lvl)
+                    if dr.lock is None:
+                        dr.lock = lock.Lock(maze.lvl)
                     dr.shut = True
                 locked_room.rating += 100
                 square(maze.array, locked_room.top + 1, locked_room.left + 1, locked_room.bottom, locked_room.right,
                        '0', '0', True)
-        elif random.randrange(1, 101) <= 50:
-            """for dr in locked_room.doors:
-                dr.shut = False
-            locked_room.rating += 10"""
-            pass
         if random.randrange(1, 101) <= progression.scale_to_lvl(maze.trap_rate, maze.lvl) and locked_room.doors:
             trap_params_list = dbrequests.trap_params_get(db.cursor, 'monster_attacks', maze.lvl)
             if not trap_params_list:
@@ -523,25 +521,47 @@ def doors_set(maze, tile_set, db):
             locked_room.rating += 50
     # create list of all doors
     for rm in maze.rooms:
-        # remove half of the doors without locks and traps for variability
-        doors_remove = [dr for dr in rm.doors if (dr.lock is None and (not dr.shut)) and random.randrange(1, 101) <= 80]
-        for dr_rem in doors_remove:
-            rm.doors.remove(dr_rem)
         maze.doors.update(rm.doors)
+    dr_remove = [dr for dr in maze.doors if dr.lock is None and not dr.shut and random.randrange(1, 101) < 81]
+    for dr in dr_remove:
+        maze.doors.remove(dr)
+        for rm in maze.rooms:
+            try:
+                rm.doors.remove(dr)
+            except ValueError:
+                pass
+
+    # check for locked rooms
+    for rm in maze.rooms:
+        for dr in rm.doors:
+            if dr.lock is None:
+                rm.locked = False
+                break
+        else:
+            rm.locked = True
     for mz_dr in maze.doors:
         mz_dr.image = mz_dr.image_update()
 
 
-
-
 def exits_set(maze, exits_list):
-    exit_rooms = random.sample(maze.rooms, len(exits_list))
-    for er in range(len(exit_rooms)):
-        x_sq = random.randrange(exit_rooms[er].left + 1, exit_rooms[er].right)
-        y_sq = random.randrange(exit_rooms[er].top + 1, exit_rooms[er].bottom)
-        dest = exits_list[er]
-        new_exit = stairs.Stairs(x_sq, y_sq, dest)
+    valid_rooms = [rm for rm in maze.rooms if not rm.locked]
+    exit_rooms = random.sample(valid_rooms, len(exits_list))
+
+    for i in range(0, len(exits_list)):
+        dest = exits_list[i]
+        room = exit_rooms[i]
+        print(room.locked, 'lock room')
+        x_sq = random.randrange(room.left + 1, room.right)
+        y_sq = random.randrange(room.top + 1, room.bottom)
+        new_exit = stairs.Stairs(x_sq, y_sq, -24, -24, dest, room, maze.tile_set['exit_up'])
+
         maze.exits.append(new_exit)
+
+
+def array_pattern_apply(array, pattern, x, y):
+    for i in range(0, len(pattern)):
+        for j in range(0, len(pattern[i])):
+            array[y + i][x + j] = pattern[i][j]
 
 
 def populate(db, maze, animations):
@@ -565,7 +585,7 @@ def mob_populate_alg_1(maze, animations, maze_monster_pool, monster_amount_rate)
 
             nmon = monster.Monster(mon_x_sq, mon_y_sq,
                                    animations.get_animation(rnd_mob['animation']), rnd_mob, state=0)
-            maze.flag_array[round(mon_y_sq)][round(mon_x_sq)].mon = True
+            maze.flag_array[round(mon_y_sq)][round(mon_x_sq)].mon = nmon
             maze.mobs.append(nmon)
 
 
@@ -583,7 +603,7 @@ def flags_create(maze, array):
     for i in range(0, maze.height):
         for j in range(0, maze.width):
             flags_array[i][j] = flagtile.FlagTile(
-                False, False, False, False,
+                None, None, None, None, [],
                 (array[i][j] in ('.', '+')),
                 (array[i][j] in ('.', '+')),
                 False, False,
@@ -595,7 +615,7 @@ def flags_create(maze, array):
 def flags_update(maze, flags_array):
     for dr in maze.doors:
         fl = flags_array[dr.y_sq][dr.x_sq]
-        fl.obj = True
+        fl.door = dr
         if dr.shut:
             fl.mov = False
             if not dr.grate:
@@ -603,7 +623,8 @@ def flags_update(maze, flags_array):
     for ex in maze.exits:
         fl = flags_array[ex.y_sq][ex.x_sq]
         fl.mov = True
-        fl.obj = True
+        fl.obj = ex
+        # fl.light = True
     for tr in maze.traps:
         if tr.x_sq is not None and tr.y_sq is not None:
-            flags_array[tr.y_sq][tr.x_sq].trap = True
+            flags_array[tr.y_sq][tr.x_sq].trap = tr

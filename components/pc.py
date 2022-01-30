@@ -121,6 +121,8 @@ class PC:
         dest_x_sq = round(self.x_sq + step_x * self.speed)
         dest_y_sq = round(self.y_sq + step_y * self.speed)
 
+        if not (0 <= dest_x_sq < realm.maze.width) or not (0 <= dest_y_sq < realm.maze.height):
+            return
         if not realm.maze.flag_array[dest_y_sq][dest_x_sq].mov:
             if realm.maze.flag_array[round(self.y_sq)][dest_x_sq].mov:
                 step_y = 0
@@ -152,14 +154,17 @@ class PC:
 
                 realm.shortlists_update(everything=True)
 
-                for loot in realm.loot_short:
-                    if loot.props['treasure_id'] == 6 and maths.get_distance(self.x_sq, self.y_sq, loot.x_sq, loot.y_sq) < 3:
-                        self.char_sheet.gold_coins += loot.props['amount']
-                        realm.maze.flag_array[dest_y_sq][dest_x_sq].item -= True
-                        realm.maze.loot.remove(loot)
-                        realm.loot_short.remove(loot)
+                flags = realm.maze.flag_array[int(self.y_sq + 0.5)][int(self.x_sq + 0.5)]
+                if flags.item is None:
+                    return
+                for itm in flags.item:
+                    if itm.props['treasure_id'] == 6:
+                        self.char_sheet.gold_coins += itm.props['amount']
+                        realm.maze.loot.remove(itm)
+                        # realm.loot_short.remove(itm)
                         if wins_dict['inventory'] in active_wins:
                             wins_dict['inventory'].render()
+                        flags.item.remove(itm)
                         break
 
     def act(self, wins_dict, aim_xy, skill):
