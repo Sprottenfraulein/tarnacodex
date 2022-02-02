@@ -56,9 +56,7 @@ class AppTitle:
 
                 self.win_ui.key_focus.do_sound(1)
 
-                self.win_ui.key_focus.text_obj.actual_width, self.win_ui.key_focus.text_obj.max_height = self.win_ui.key_focus.text_obj.get_text_height()
-                self.win_ui.key_focus.text_obj.render()
-                self.win_ui.key_focus.render()
+                self.win_ui.key_focus.render_all()
                 self.win_ui.updated = True
             elif event.key == pygame.K_SPACE:
                 pass
@@ -162,6 +160,8 @@ class AppTitle:
 
             location = [self.chapters[self.chapter_selection], 0]
 
+            if self.field_charname_edit.text_obj.caption == '':
+                self.char_name_rnd()
             char_sheet = charsheet.CharSheet(self.db, 0, chr_name=self.field_charname_edit.text_obj.caption,
                                              chr_type=self.chars[self.char_selection]['char_type'], chr_level=1)
             p = pc.PC(0, 0, location, self.animations.get_animation('anthro_default'), char_sheet, state=0)
@@ -232,10 +232,10 @@ class AppTitle:
         char_menu[0].text_obj.render()
         char_menu[0].render()
 
-        bttn_begin = self.win_ui.button_add('begin', caption='Begin >>', size=(menu_btn_w, menu_btn_h),
+        bttn_begin = self.win_ui.button_add('begin', caption='Start', size=(menu_btn_w, menu_btn_h),
                                             cap_font='large', cap_size = 16,
                                             cap_color='fnt_muted', sounds=self.win_ui.snd_packs['button'], page=1)
-        bttn_back = self.win_ui.button_add('back', caption='<< Back', size=(menu_btn_w, menu_btn_h),
+        bttn_back = self.win_ui.button_add('back', caption='Main menu', size=(menu_btn_w, menu_btn_h),
                                            cap_font='large', cap_size=16,
                                            cap_color='fnt_muted', sounds=self.win_ui.snd_packs['button'], page=1)
 
@@ -302,7 +302,7 @@ class AppTitle:
             (menu_btn_h, round(self.win_ui.pygame_settings.screen_res[1] / 2 - menu_btn_h*1.5)),
             caption='Choose a character:',
             h_align='center', v_align='top', size=char_menu[0].size, cap_color='fnt_celeb',
-            cap_font='large', cap_size=18, page=1)
+            cap_font='large', cap_size=14, page=1)
         self.win_ui.decoratives.append(char_string)
 
         chapter_string = \
@@ -312,7 +312,7 @@ class AppTitle:
             caption='Choose a chapter:',
             h_align='center', v_align='top', size=char_menu[0].size,
             cap_color='fnt_celeb',
-            cap_font='large', cap_size=18, page=1)
+            cap_font='large', cap_size=14, page=1)
         self.win_ui.decoratives.append(chapter_string)
 
         char_imgs = self.win_ui.tilesets.get_image('char_portraits', (60,60), (0,))
@@ -338,12 +338,12 @@ class AppTitle:
 
         input_invite_string = \
             self.win_ui.text_add('input_invite',
-                                 (0, round(self.win_ui.pygame_settings.screen_res[1] / 2) + (menu_btn_h * 1.2) * 7 - 32),
+                                 (0, round(self.win_ui.pygame_settings.screen_res[1] / 2) + (menu_btn_h * 1.2) * 7 - 48),
                                  caption="Enter hero's name:",
                                  h_align='center', v_align='top',
                                  size=(280, 32),
                                  cap_color='fnt_celeb',
-                                 cap_font='def_bold', cap_size=24, page=1)
+                                 cap_font='large', cap_size=14, page=1)
         input_invite_string.rendered_rect.centerx = menu_btn_h + menu_btn_w + (self.win_ui.pygame_settings.screen_res[0] / 2 - menu_btn_h - menu_btn_w) / 2
         self.win_ui.decoratives.append(input_invite_string)
 
@@ -429,8 +429,7 @@ class AppTitle:
 
     def char_name_rnd(self):
         self.field_charname_edit.text_obj.caption = dbrequests.char_name_get_random(self.db.cursor)
-        self.field_charname_edit.text_obj.render()
-        self.field_charname_edit.render()
+        self.field_charname_edit.render_all()
         self.win_ui.updated = True
 
     def tick(self, pygame_settings, wins_dict, active_wins, mouse_pointer):

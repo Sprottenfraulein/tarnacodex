@@ -145,7 +145,7 @@ class UI:
         inp_text = typography.Typography(self.pygame_settings, caption, text_xy, cap_font, cap_size,
                                          cap_color, text_bg_color, h_align, 'middle', size[0], size[1],
                                          shadow=cap_shadow)
-        cur_text = typography.Typography(self.pygame_settings, cursor_symbol, (inp_text.rendered_rect.right, text_xy[1]), cap_font, cap_size,
+        cur_text = typography.Typography(self.pygame_settings, cursor_symbol, (0, text_xy[1]), cap_font, cap_size,
                                          cap_color, text_bg_color, 'left', 'middle', size[0], size[1],
                                          shadow=cap_shadow)
         new_edit = fieldedit.FieldEdit(self, edit_id, xy, size, text_obj=inp_text, cursor_obj=cur_text, fe_images=images,

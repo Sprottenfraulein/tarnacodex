@@ -25,6 +25,7 @@ class Overlay:
         pass
 
     def fade_out(self, active_wins, ticks_number=20, color=None):
+        self.width, self.height = self.pygame_settings.screen_res
         if color is not None:
             self.color = color
         self.time = self.timer = ticks_number
@@ -32,6 +33,7 @@ class Overlay:
         active_wins.insert(0, self)
 
     def fade_in(self, active_wins, ticks_number=20, color=None):
+        self.width, self.height = self.pygame_settings.screen_res
         if color is not None:
             self.color = color
         self.time = self.timer = ticks_number

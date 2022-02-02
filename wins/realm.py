@@ -76,6 +76,7 @@ class Realm:
         self.view_maze_update(self.pc.x_sq, self.pc.y_sq)
 
     def launch(self, audio, settings, wins_dict, active_wins):
+        wins_dict['realm'].view_resize(wins_dict, self.pygame_settings.screen_res[0], self.pygame_settings.screen_res[1])
         # creating dedicated schedule
         self.schedule_man.new_schedule('realm_tasks')
         # game pack must include dungeon set, character

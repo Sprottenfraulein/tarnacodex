@@ -27,6 +27,14 @@ class FieldEdit:
         self.rendered_field = pygame.Surface(self.images[0].get_rect().size)
         self.rendered_rect = self.rendered_field.get_rect()
         self.rendered_rect.topleft = fe_xy
+
+        if self.fe_align == 'left':
+            self.cursor_symbol.rendered_rect.left = self.text_obj.actual_width
+        elif self.fe_align == 'right':
+            self.cursor_symbol.rendered_rect.left = self.rendered_rect.width - self.text_obj.actual_width
+        elif self.fe_align == 'center':
+            self.cursor_symbol.rendered_rect.left = self.rendered_rect.width // 2 + self.text_obj.actual_width // 2
+
         self.render()
 
     def mouse_down(self, m_button):
@@ -68,6 +76,10 @@ class FieldEdit:
             self.sounds[sound_index].play()
         except TypeError or IndexError:
             pass
+
+    def render_all(self):
+        self.text_obj.update_and_render()
+        self.render()
 
     def render(self):
         self.rendered_field.fill((0,0,0))

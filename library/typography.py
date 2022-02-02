@@ -30,13 +30,21 @@ class Typography:
         # self.line_spacing = self.text_font.get_sized_height(self.size)
         self.line_height = self.text_font.get_rect('O').height
         self.line_spacing = round(self.line_height * 1.5)
-        self.actual_width, self.max_height = self.get_text_height()
+        self.actual_width, self.max_height = 0, 0
+        self.size_update()
 
         self.x, self.y = xy
         self.h_align = h_align
         self.v_align = v_align
         self.rendered_text = None
         self.rendered_rect = None
+        self.render()
+
+    def size_update(self):
+        self.actual_width, self.max_height = self.get_text_height()
+
+    def update_and_render(self):
+        self.size_update()
         self.render()
 
     def get_text_height(self):

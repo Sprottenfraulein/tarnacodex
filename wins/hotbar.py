@@ -13,15 +13,15 @@ class Hotbar:
         self.animations = animations
         self.win_ui = ui.UI(pygame_settings, resources, tilesets, db)
         self.pc = None
-        self.win_w = None
-        self.win_h = None
+        self.win_w = 0
+        self.win_h = 0
         self.hot_sckt_total = 7  # not counting 2 mandatory left click and right click sockets
         self.hot_sckt_size = 48
         self.hot_sockets_list = []
         self.hot_sockets_image = None
 
-        self.offset_x = None
-        self.offset_y = None
+        self.offset_x = 0
+        self.offset_y = 0
 
         self.rendered_hot = None
 
