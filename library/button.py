@@ -5,7 +5,7 @@ import pygame
 class Button:
     def __init__(self, bttn_id, bttn_xy, bttn_size, text_obj=None,
                  bttn_func=None, bttn_images=None, bttn_sounds=None, bttn_mode=0, bttn_switch=False,
-                 pop_show=60, pop_hide=30, pop_win=None, page=None):
+                 page=None):
         self.id = bttn_id
         self.size = bttn_size
         self.text_obj = text_obj
@@ -17,6 +17,7 @@ class Button:
         self.sw_op = False
         self.page = page
         self.tags = []
+        self.enabled = True
 
         self.mouse_over = False
         self.popup_active = False
@@ -27,6 +28,8 @@ class Button:
         self.render()
 
     def mouse_down(self, m_button):
+        if not self.enabled:
+            return
         if m_button == 1:
             if self.switch:
                 if self.mode == 1:
@@ -42,6 +45,8 @@ class Button:
             self.render()
 
     def mouse_up(self, m_button, outside=False):
+        if not self.enabled:
+            return
         if m_button == 1:
             if self.switch:
                 if self.sw_op:
@@ -58,7 +63,9 @@ class Button:
                 return self.func
 
     def release(self, m_button):
-        if not self.switch:
+        if not self.enabled:
+            return
+        if not self.switch and m_button == 1:
             self.mode = 0
             self.render()
 

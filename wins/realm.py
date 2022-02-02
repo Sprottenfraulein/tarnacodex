@@ -19,7 +19,7 @@ class Realm:
         self.loot_short = set()
         self.mobs_short = set()
 
-        self.text_short = set()
+        self.text_short = []
 
         self.draw_view_maze = False
 
@@ -75,7 +75,6 @@ class Realm:
                                                               0, w, h)
         self.view_maze_update(self.pc.x_sq, self.pc.y_sq)
 
-
     def launch(self, audio, settings, wins_dict, active_wins):
         # creating dedicated schedule
         self.schedule_man.new_schedule('realm_tasks')
@@ -100,6 +99,25 @@ class Realm:
         wins_dict['hotbar'].launch(self.pc)
         """wins_dict['hotbar'].render()
         active_wins.insert(0, wins_dict['hotbar'])"""
+
+    def stage_update(self, wins_dict):
+        self.schedule_man.new_schedule('realm_tasks')
+
+        # wins_dict['realm'].view_resize(wins_dict, self.pygame_settings.screen_res[0], self.pygame_settings.screen_res[1])
+
+        self.view_maze_update(self.pc.x_sq, self.pc.y_sq)
+
+        # visibility update
+        self.calc_vision_alt()
+        # creating shortlists
+        self.doors_short = set()
+        self.traps_short = set()
+        self.loot_short = set()
+        self.mobs_short = set()
+
+        self.text_short = []
+
+        self.shortlists_update(everything=True)
 
     def event_check(self, event, pygame_settings, resources, wins_dict, active_wins, log=True):
         # character and gui controls
@@ -136,8 +154,7 @@ class Realm:
             if event.key == pygame.K_m:
                 self.schedule_man.task_add('realm_tasks', 6, self, 'spawn_realmtext',
                                            ('new_txt', "I'd better have a black muffin.",
-                                            (0, 0), (0, -24), None, True, self.pc))
-                self.schedule_man.task_add('realm_tasks', 12, self, 'remove_realmtext', ('new_txt',))
+                                            (0, 0), (0, -24), None, self.pc, None, 120, 'def_bold', 24))
 
         if event.type == pygame.KEYUP:
             if event.key in (pygame.K_LEFT, pygame.K_RIGHT):
@@ -181,7 +198,7 @@ class Realm:
                     wins_dict, resources.fate_rnd, self.pc, self.pc.char_sheet.hotbar[-1]
                 )
             if can_move and event.button == 1:
-                can_move = self.square_check(self.mouse_pointer.xy, wins_dict)
+                can_move = self.square_check(self.mouse_pointer.xy, wins_dict, active_wins)
             if can_move and event.button == 1:
                 self.pc.move_instr_x, self.pc.move_instr_y = self.mouse_move(self.mouse_pointer.xy)
 
@@ -204,8 +221,9 @@ class Realm:
         self.pc.tick(self, self.resources.fate_rnd, wins_dict, active_wins)
         for mob in self.mobs_short:
             mob.tick(wins_dict, self)
-        for txt in self.text_short:
-            txt.tick()
+
+        for i in range(len(self.text_short) -1, -1, -1):
+            self.text_short[i].tick()
 
         self.render_update()
 
@@ -228,8 +246,8 @@ class Realm:
         if self.redraw_maze_text:
             for txt in self.text_short:
                 txt.draw(screen,
-                     (txt.x_sq - self.view_maze_x_sq - self.view_bleed_sq) * self.square_size * self.square_scale + txt.off_x,
-                     (txt.y_sq - self.view_maze_y_sq - self.view_bleed_sq) * self.square_size * self.square_scale + txt.off_y)
+                 (txt.x_sq - self.view_maze_x_sq - self.view_bleed_sq) * self.square_size * self.square_scale + txt.off_x,
+                 (txt.y_sq - self.view_maze_y_sq - self.view_bleed_sq) * self.square_size * self.square_scale + txt.off_y)
 
     def view_maze_update(self, x_sq, y_sq):
         self.view_maze_x_sq = x_sq + self.view_offset_x_sq
@@ -255,13 +273,9 @@ class Realm:
                     flags = self.maze.flag_array[ren_pos_y][ren_pos_x]
                     if flags.vis:
                         decors = self.maze.decor_array[ren_pos_y][ren_pos_x]
-                        try:
-                            surface.blit(decors[0],
-                                         ((ren_pos_x - self.ren_x_sq) * self.square_size,
-                                          (ren_pos_y - self.ren_y_sq) * self.square_size))
-                        except TypeError:
-                            # print('Realm.Stage_display: Wrong tile.')
-                            pass
+                        surface.blit(decors[0],
+                             ((ren_pos_x - self.ren_x_sq) * self.square_size,
+                              (ren_pos_y - self.ren_y_sq) * self.square_size))
 
         for ren_pos_y in range(top_sq, bottom_sq):
             for ren_pos_x in range(left_sq, right_sq):
@@ -477,7 +491,7 @@ class Realm:
         else:
             return x_sq, y_sq
 
-    def square_check(self, xy, wins_dict):
+    def square_check(self, xy, wins_dict, active_wins):
         x_sq, y_sq = self.xy_pixels_to_squares(xy)
         try:
             flags = self.maze.flag_array[y_sq][x_sq]
@@ -516,6 +530,10 @@ class Realm:
                 self.calc_vision_alt()
                 self.shortlists_update(mobs=True)
                 # self.render_update()
+            return False
+        if flags.obj is not None:
+            # objects
+            flags.obj.use(wins_dict, active_wins, self.pc)
             return False
         return True
 
@@ -586,26 +604,26 @@ class Realm:
         if texts or everything:
             for txt in self.maze.text:
                 if left_sq <= txt.x_sq <= right_sq and top_sq <= txt.y_sq <= bottom_sq:
-                    self.text_short.add(txt)
+                    self.text_short.append(txt)
                 elif txt in self.text_short:
                     self.text_short.remove(txt)
 
-    def spawn_realmtext(self, rt_id, caption, xy_sq, offset_xy, color=None, bold=True, stick_obj=None):
+    def spawn_realmtext(self, rt_id, caption, xy_sq, offset_xy, color=None, stick_obj=None, speed_xy=None,
+                        kill_timer=None, font='def_bold', size=24, frict_x=0, frict_y=0):
+        if speed_xy is None:
+            speed_xy = (0,0)
         if color is None:
             color = self.resources.colors['fnt_celeb']
         else:
             color = self.resources.colors[color]
-        if bold:
-            font = 'def_bold'
-        else:
-            font = 'def_normal'
         new_tpg = typography.Typography(self.pygame_settings,
                                         caption,
-                                        (0, 0), font, 24, color,
-                                        self.resources.colors['transparent'], 'center', 'bottom', 144, 64, shadow=True)
-        new_rt = realmtext.RealmText(rt_id, xy_sq, text_obj=new_tpg, stick_obj=stick_obj, offset_xy=offset_xy)
+                                        (0, 0), font, size, color,
+                                        self.resources.colors['bg'], 'center', 'bottom', 144, 64, shadow=True)
+        new_rt = realmtext.RealmText(self, rt_id, xy_sq, text_obj=new_tpg, stick_obj=stick_obj, offset_xy=offset_xy,
+                                     speed_xy=speed_xy, kill_timer=kill_timer, frict_x=frict_x, frict_y=frict_y)
         self.maze.text.append(new_rt)
-        self.text_short.add(new_rt)
+        self.text_short.append(new_rt)
 
     def remove_realmtext(self, text_id=None):
         if text_id is None:

@@ -76,6 +76,7 @@ class ResMan:
             'indigo': (60, 0, 255),
             'fnt_normal': (200, 100, 0),
             'fnt_header': (250, 150, 0),
+            'pink': (255, 200, 200),
             'fnt_attent': (255, 0, 0),
             'bloody': (220, 20, 60),
             'fnt_accent': (255, 230, 0),

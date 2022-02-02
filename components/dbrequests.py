@@ -1,4 +1,5 @@
 from components import debuff
+import random
 
 
 def trap_params_get(cursor, table_name, key_level):
@@ -26,6 +27,44 @@ def char_params_get(cursor, table_name, key_chartype):
     for i in range(0, len(column_names)):
         param_dict[column_names[i]] = rows[0][i]
     return param_dict
+
+
+def chars_get_all(cursor):
+    ex_str = "SELECT * FROM characters"
+    cursor.execute(ex_str)
+    rows = cursor.fetchall()
+    column_names = [column[0] for column in cursor.description]
+    chars_list = []
+    for row in rows:
+        char_dict = {}
+        for i in range(0, len(column_names)):
+            char_dict[column_names[i]] = row[i]
+        chars_list.append(char_dict)
+    return chars_list
+
+
+def chapters_get_all(cursor):
+    ex_str = "SELECT * FROM chapters"
+    cursor.execute(ex_str)
+    rows = cursor.fetchall()
+    column_names = [column[0] for column in cursor.description]
+    chapters_list = []
+    for row in rows:
+        chapter_dict = {}
+        for i in range(0, len(column_names)):
+            chapter_dict[column_names[i]] = row[i]
+        chapters_list.append(chapter_dict)
+    return chapters_list
+
+
+def char_name_get_random(cursor):
+    ex_str = "SELECT * FROM names"
+    cursor.execute(ex_str)
+    rows = cursor.fetchall()
+    rnd_index = random.randrange(0, len(rows))
+    return rows[rnd_index][1]
+
+
 
 def treasure_get_by_id(cursor, key_id):
     # base item properties query
@@ -273,3 +312,36 @@ def skill_sounds_get(cursor, skill_id, grade):
         sounds_dict[row[0]] = sound_dict
         s_ind += 1
     return sounds_dict
+
+
+def chapter_get_by_id(cursor, chapter_id):
+    ex_str = "SELECT * FROM chapters c WHERE chapter_id=?"
+    cursor.execute(ex_str, (chapter_id,))
+    rows = cursor.fetchall()
+    column_names = [column[0] for column in cursor.description]
+    chapter_dict = {}
+    for i in range(0, len(column_names)):
+        chapter_dict[column_names[i]] = rows[0][i]
+    return chapter_dict
+
+
+def stage_get(cursor, chapter_id, stage_index, roll):
+    ex_str = "SELECT * FROM stages s JOIN chapter_stage_sets css ON css.stage_id=s.stage_id WHERE css.chapter_id=? AND css.stage_index=? AND css.roll_chance>=?"
+    cursor.execute(ex_str, (chapter_id, stage_index, roll))
+    rows = cursor.fetchall()
+    column_names = [column[0] for column in cursor.description]
+    stages_list = []
+    for row in rows:
+        stage_dict = {}
+        for i in range(0, len(column_names)):
+            stage_dict[column_names[i]] = row[i]
+        stages_list.append(stage_dict)
+    for stage in stages_list:
+        ex_str = "SELECT m.monster_id FROM monsters m JOIN stage_monster_sets sms ON sms.monster_id=m.monster_id WHERE sms.stage_id=?"
+        cursor.execute(ex_str, (stage['stage_id'],))
+        rows = cursor.fetchall()
+        monster_list = []
+        for row in rows:
+            monster_list.append(row[0])
+        stage['monsters'] = monster_list
+    return stages_list

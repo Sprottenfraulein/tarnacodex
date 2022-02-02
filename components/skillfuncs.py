@@ -10,25 +10,24 @@ def attack_default(wins_dict, fate_rnd, pc, skill, just_values=False):
     if just_values:
         return att_val_min, att_val_max
     if pc.busy is not None:
-        return True
+        return False
     if skill.cooldown_timer > 0:
-        return True
+        return False
     realm = wins_dict['realm']
     if skill.props['cost_mp'] > pc.char_sheet.mp:
         realm.schedule_man.task_add('realm_tasks', 1, realm, 'spawn_realmtext',
                                     ('new_txt', "Not enough powers!",
-                                     (0, 0), (0, -24), None, True, realm.pc))
-        realm.schedule_man.task_add('realm_tasks', 8, realm, 'remove_realmtext', ('new_txt',))
-        return True
+                                     (0, 0), (0, -24), None, pc, None, 120, 'def_bold', 24))
+        return False
 
     target = wins_dict['target'].mob_object
-    if target is None:
+    if target is None or not target.alive:
         return True
     if maths.get_distance(pc.x_sq, pc.y_sq, target.x_sq, target.y_sq) > skill.props['range']:
-        realm.schedule_man.task_add('realm_tasks', 1, realm, 'spawn_realmtext',
+        """realm.schedule_man.task_add('realm_tasks', 1, realm, 'spawn_realmtext',
                                     ('new_txt', "Too far!",
                                      (0, 0), (0, -24), None, True, realm.pc))
-        realm.schedule_man.task_add('realm_tasks', 8, realm, 'remove_realmtext', ('new_txt',))
+        realm.schedule_man.task_add('realm_tasks', 8, realm, 'remove_realmtext', ('new_txt',))"""
         return True
 
     rnd_attack = random.randrange(att_val_min, att_val_max + 1)
@@ -37,8 +36,8 @@ def attack_default(wins_dict, fate_rnd, pc, skill, just_values=False):
         rnd_attack *= 4
 
     damage = rnd_attack * (100 - target.stats['def_physical']) // 100  # reduce attack by percent of def
-    target.hp -= damage
-    target.check(wins_dict, fate_rnd, pc)
+
+    target.wound(damage, is_crit, wins_dict, fate_rnd, pc)
 
     pc.act(wins_dict, (target.x_sq, target.y_sq), skill)
 
@@ -57,8 +56,7 @@ def pickup(wins_dict, fate_rnd, pc, skill, just_values=False):
     if skill.props['cost_mp'] > pc.char_sheet.mp:
         realm.schedule_man.task_add('realm_tasks', 1, realm, 'spawn_realmtext',
                                     ('new_txt', "Not enough powers!",
-                                     (0, 0), (0, -24), None, True, realm.pc))
-        realm.schedule_man.task_add('realm_tasks', 8, realm, 'remove_realmtext', ('new_txt',))
+                                     (0, 0), (0, -24), None, pc, None, 120, 'def_bold', 24))
         return True
 
     x_sq, y_sq = realm.xy_pixels_to_squares(realm.mouse_pointer.xy)
@@ -72,14 +70,13 @@ def pickup(wins_dict, fate_rnd, pc, skill, just_values=False):
     if maths.get_distance(pc.x_sq, pc.y_sq, x_sq, y_sq) > skill.props['range']:
         realm.schedule_man.task_add('realm_tasks', 1, realm, 'spawn_realmtext',
                                     ('new_txt', "Too far!",
-                                     (0, 0), (0, -24), None, True, realm.pc))
-        realm.schedule_man.task_add('realm_tasks', 8, realm, 'remove_realmtext', ('new_txt',))
+                                     (0, 0), (0, -24), None, pc, None, 120, 'def_bold', 24))
         return True
 
     for lt in flags.item:
         if lt.props['treasure_id'] == 6:
             pc.char_sheet.gold_coins += lt.props['amount']
-            realm.maze.flag_array[y_sq][x_sq].item -= True
+            realm.maze.flag_array[y_sq][x_sq].item.remove(lt)
             realm.maze.loot.remove(lt)
             # realm.loot_short.remove(lt)
             wins_dict['inventory'].updated = True

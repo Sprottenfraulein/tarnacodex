@@ -7,3 +7,12 @@ class Stairs:
         self.dest = dest
         self.room = room
         self.image = image
+
+    def use(self, wins_dict, active_wins, pc):
+        if self.dest == 'up' and pc.location[1] > 0:
+            pc.location[1] -= 1
+
+            wins_dict['app_title'].location_change(wins_dict['realm'].pygame_settings, wins_dict, active_wins, pc, 'down')
+        elif self.dest == 'down' and pc.location[1] < wins_dict['realm'].maze.chapter['stage_number'] - 1:
+            pc.location[1] += 1
+            wins_dict['app_title'].location_change(wins_dict['realm'].pygame_settings, wins_dict, active_wins, pc, 'up')

@@ -31,7 +31,7 @@ class CharSheet:
         self.mp = 0
         self.food = 1000
 
-        self.exp_rate = 1.4
+        self.exp_rate = 1.6
         self.exp_rate_multiplier = 100
 
         self.experience = 0

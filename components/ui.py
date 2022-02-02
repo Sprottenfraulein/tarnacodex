@@ -101,13 +101,12 @@ class UI:
 
         new_button = button.Button(bttn_id, xy, size, text_obj=text, bttn_func=function, bttn_images=images,
                                    bttn_sounds=sounds, bttn_mode=mode, bttn_switch=switch,
-                                   pop_show=pop_show, pop_hide=pop_hide, pop_win=pop_win, page=page)
+                                   page=page)
         return new_button
 
     def edit_add(self, edit_id, xy=None, size=None, caption=None, max_len=12, h_align='left', images=None,
                  cap_font='def_bold', cap_size=None, cap_color=None, cap_shadow=False, cursor_symbol='|', sounds=None,
-                 blink=30,
-                 mode=0, pop_show=30, pop_hide=1, pop_win=None, page=0):
+                 blink=30, mode=0, page=0):
         # setting defaults if attributes not presented:
         if xy is None:
             xy = (0, 0)
@@ -120,14 +119,14 @@ class UI:
                 pydraw.square((0, 0), size,
                               (self.resources.colors['gray_light'],
                                self.resources.colors['gray_dark'],
-                               self.resources.colors['gray_mid'],
+                               self.resources.colors['gray_darker'],
                                self.resources.colors['black']),
-                              sq_outsize=1, sq_bsize=1, sq_ldir=0, sq_fill=True, sq_image=None),
+                              sq_outsize=1, sq_bsize=1, sq_ldir=2, sq_fill=True, sq_image=None),
                 pydraw.square((0, 0), size,
                               (self.resources.colors['gray_light'],
                                self.resources.colors['gray_dark'],
-                               self.resources.colors['gray_mid'],
-                               self.resources.colors['black']),
+                               self.resources.colors['gray_darker'],
+                               self.resources.colors['sun']),
                               sq_outsize=1, sq_bsize=1, sq_ldir=2, sq_fill=True, sq_image=None),
             )
         if cap_size is None:
@@ -146,12 +145,11 @@ class UI:
         inp_text = typography.Typography(self.pygame_settings, caption, text_xy, cap_font, cap_size,
                                          cap_color, text_bg_color, h_align, 'middle', size[0], size[1],
                                          shadow=cap_shadow)
-        cur_text = typography.Typography(self.pygame_settings, cursor_symbol, text_xy, cap_font, cap_size,
+        cur_text = typography.Typography(self.pygame_settings, cursor_symbol, (inp_text.rendered_rect.right, text_xy[1]), cap_font, cap_size,
                                          cap_color, text_bg_color, 'left', 'middle', size[0], size[1],
                                          shadow=cap_shadow)
-        new_edit = fieldedit.FieldEdit(edit_id, xy, size, text_obj=inp_text, cursor_obj=cur_text, fe_images=images,
-                                       fe_maxlen=max_len, fe_blink=blink, fe_sounds=sounds, fe_mode=mode,
-                                       pop_show=pop_show, pop_hide=pop_hide, pop_win=pop_win, page=page)
+        new_edit = fieldedit.FieldEdit(self, edit_id, xy, size, text_obj=inp_text, cursor_obj=cur_text, fe_images=images,
+                                       fe_maxlen=max_len, fe_blink=blink, fe_align=h_align,fe_sounds=sounds, fe_mode=mode, page=page)
         return new_edit
 
     def text_add(self, edit_id, xy=None, size=None, caption=None, h_align='left', v_align='top', images=None,

@@ -1,0 +1,55 @@
+# mob targeting window
+import pygame
+import settings
+from components import ui
+from library import pydraw, maths
+
+
+class Overlay:
+    def __init__(self, pygame_settings, resources, tilesets, animations, db, mouse_pointer, schedule_man, log=True):
+        self.db = db
+        self.pygame_settings = pygame_settings
+        self.mouse_pointer = mouse_pointer
+        self.schedule_man = schedule_man
+        self.animations = animations
+        self.offset_x = 0
+        self.offset_y = 0
+        self.width, self.height = pygame_settings.screen_res
+        self.color = (0, 0, 0)
+        self.mode = 0
+        self.timer = 0
+        self.time = 0
+
+    def event_check(self, event, pygame_settings, resources, wins_dict, active_wins, log=True):
+        # return True if interaction was made to prevent other windows from responding to this event
+        pass
+
+    def fade_out(self, active_wins, ticks_number=20, color=None):
+        if color is not None:
+            self.color = color
+        self.time = self.timer = ticks_number
+        self.mode = 0
+        active_wins.insert(0, self)
+
+    def fade_in(self, active_wins, ticks_number=20, color=None):
+        if color is not None:
+            self.color = color
+        self.time = self.timer = ticks_number
+        self.mode = 1
+        active_wins.insert(0, self)
+
+    def tick(self, pygame_settings, wins_dict, active_wins, mouse_pointer):
+        if self.timer > 0:
+            self.timer -= 1
+        else:
+            self.timer = 0
+            active_wins.remove(self)
+
+    def draw(self, surface):
+        # surface.blit(self.target_rendered, (self.offset_x, self.offset_y))
+        if self.mode:
+            surface.fill(self.color, (self.offset_x, self.offset_y + self.height * (self.time - self.timer) // self.time,
+                                      self.width, self.height * self.timer // self.time))
+        else:
+            surface.fill(self.color, (self.offset_x, self.offset_y,
+                                      self.width, self.height * (self.time - self.timer) // self.time))

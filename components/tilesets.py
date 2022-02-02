@@ -40,6 +40,7 @@ class Tilesets:
                 'door_hor_shut': self.get_image('dung_doors', (48, 24), (10,)),
                 'door_hor_open': self.get_image('dung_doors', (48, 24), (11,)),
                 'exit_up': self.get_image('dung_bricks', (48, 48), (4,)),
+                'exit_down': self.get_image('dung_bricks', (48, 48), (9,)),
             }
             return tileset
 

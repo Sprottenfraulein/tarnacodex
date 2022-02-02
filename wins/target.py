@@ -53,7 +53,7 @@ class Target:
             self.mob_object.aimed = False
         self.mob_object = monster
         self.mob_object.aimed = True
-        self.mob_title.text_obj.caption = monster.stats['label'].capitalize()
+        self.mob_title.text_obj.caption = '%s, (%s)' % (monster.stats['label'].capitalize(), monster.stats['lvl'])
         self.mob_title.render_all()
 
         self.mon_hp = monster.hp

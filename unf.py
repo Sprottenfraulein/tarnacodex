@@ -2,7 +2,7 @@
 import pygame
 from library import cursor, database, scheduler
 from components import tilesets, animations
-from wins import apptitle, realm, inventory, skillbook, context, target, hotbar, pools, charstats
+from wins import apptitle, realm, inventory, skillbook, context, target, hotbar, pools, charstats, overlay
 
 
 def launch(pygame_settings, resources, log=False):
@@ -27,6 +27,7 @@ def launch(pygame_settings, resources, log=False):
 		'hotbar': hotbar.Hotbar(pygame_settings, resources, tile_sets, anims, db, mouse_pointer, schedule_man),
 		'pools': pools.Pools(pygame_settings, resources, tile_sets, anims, db, mouse_pointer, schedule_man),
 		'charstats': charstats.CharStats(pygame_settings, resources, tile_sets, anims, db, mouse_pointer, schedule_man),
+		'overlay': overlay.Overlay(pygame_settings, resources, tile_sets, anims, db, mouse_pointer, schedule_man),
 	}
 	bigloop(pygame_settings, resources, wins_dict, mouse_pointer, schedule_man)
 
@@ -49,7 +50,7 @@ def bigloop(pygame_settings, resources, wins_dict, mouse_pointer, schedule_man, 
 			mouse_pointer.still_timer += 1
 
 		# DRAWING
-		pygame_settings.screen.fill((100,100,100))
+		pygame_settings.screen.fill((10,10,10))
 		# drawing active windows
 		for win in reversed(active_wins):
 			win.draw(pygame_settings.screen)
@@ -76,7 +77,9 @@ def events(pygame_settings, resources, wins_dict, active_wins, mouse_pointer, lo
 
 		# Checking for window resize
 		if event.type == pygame.VIDEORESIZE:
-			wins_dict['realm'].view_resize(wins_dict, event.w, event.h)
+			if wins_dict['realm'].maze is not None:
+				wins_dict['realm'].view_resize(wins_dict, event.w, event.h)
+			wins_dict['app_title'].align(event.w, event.h)
 			pygame_settings.set_display(event.w, event.h)
 
 		# checking wins for events

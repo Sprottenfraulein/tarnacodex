@@ -3,10 +3,10 @@ import pygame
 
 
 class FieldEdit:
-    def __init__(self, fe_id, fe_xy, fe_size, text_obj=None, cursor_obj=None, fe_maxlen=-1, fe_align=-1,
-                 fe_sounds=None, fe_images=None, fe_mode=0, fe_blink=30,
-                 pop_show=60, pop_hide=30, pop_win=None, page=None):
+    def __init__(self, ui, fe_id, fe_xy, fe_size, text_obj=None, cursor_obj=None, fe_maxlen=-1, fe_align='left',
+                 fe_sounds=None, fe_images=None, fe_mode=0, fe_blink=30, page=None):
         self.id = fe_id
+        self.ui = ui
         self.size = fe_size
         self.text_obj = text_obj
         self.cursor_symbol = cursor_obj
@@ -16,6 +16,7 @@ class FieldEdit:
         self.tags = []
         self.page = page
         self.maxlen = fe_maxlen
+        self.fe_align = fe_align
         self.cursor_blink_time = fe_blink
         self.blink_timer = 0
         self.cursor_visible = False
@@ -58,6 +59,7 @@ class FieldEdit:
             else:
                 self.cursor_visible = True
             self.render()
+            self.ui.updated = True
 
     def do_sound(self, sound_index=None):
         if sound_index is None:
@@ -73,7 +75,12 @@ class FieldEdit:
         if self.text_obj:
             self.text_obj.draw(self.rendered_field)
             if self.cursor_visible:
-                self.cursor_symbol.rendered_rect.left = self.text_obj.actual_width
+                if self.fe_align == 'left':
+                    self.cursor_symbol.rendered_rect.left = self.text_obj.actual_width
+                elif self.fe_align == 'right':
+                    self.cursor_symbol.rendered_rect.left = self.rendered_rect.width - self.text_obj.actual_width
+                elif self.fe_align == 'center':
+                    self.cursor_symbol.rendered_rect.left = self.rendered_rect.width // 2 + self.text_obj.actual_width // 2
                 self.cursor_symbol.draw(self.rendered_field)
         # self.rendered_rect = self.rendered_field.get_rect()
 

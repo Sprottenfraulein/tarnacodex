@@ -5,7 +5,7 @@ from components import lootgen
 
 
 class Monster:
-    def __init__(self, x_sq, y_sq, anim_set, stats, state=2):
+    def __init__(self, x_sq, y_sq, anim_set, level, stats, state=2):
         self.x_sq = x_sq
         self.y_sq = y_sq
         self.origin_x_sq = self.x_sq
@@ -18,6 +18,7 @@ class Monster:
         self.anim_timer = 0
         self.anim_timings = None
         self.frame_timing = 0
+        self.level = level
         self.state = state
         self.image = None
         self.highlight = False
@@ -230,10 +231,10 @@ class Monster:
         step_x, step_y = 1, 1
         if sq_x != round(self.x_sq) or sq_y != round(self.y_sq):
             if realm.maze.flag_array[sq_y][sq_x].mon is not None:
-                if realm.maze.flag_array[round(self.y_sq)][sq_x].mon is None:
+                if realm.maze.flag_array[round(self.y_sq)][sq_x].mon is None or not realm.maze.flag_array[round(self.y_sq)][sq_x].mon.alive:
                     step_y = 0
                     # self.move_instr_x *= -1
-                elif realm.maze.flag_array[sq_y][round(self.x_sq)].mon is None:
+                elif realm.maze.flag_array[sq_y][round(self.x_sq)].mon is None or not realm.maze.flag_array[sq_y][round(self.x_sq)].mon.alive:
                     step_x = 0
                     # self.move_instr_y *= -1
                 else:
@@ -284,6 +285,30 @@ class Monster:
         self.anim_timer = 0
         return True
 
+    def wound(self, damage, is_crit, wins_dict, fate_rnd, pc):
+        self.hp -= damage
+
+        if is_crit:
+            info_color = 'fnt_header'
+            info_size = 20
+        else:
+            info_color = 'fnt_celeb'
+            info_size = 16
+
+        inf_sp_x = maths.sign(pc.x_sq - self.x_sq) * -4
+        inf_sp_y = -3
+        inf_crit_sp_y = -2
+        if is_crit:
+            wins_dict['realm'].spawn_realmtext(None, 'Critical hit!', (0, 0), None,
+                                  color=info_color, stick_obj=self, speed_xy=(0, inf_crit_sp_y), kill_timer=25,
+                                  font='large', size=16, frict_y=0.1)
+
+        wins_dict['realm'].spawn_realmtext(None, str(damage * -1), (0, 0), None,
+                              color=info_color, stick_obj=self, speed_xy=(inf_sp_x, inf_sp_y), kill_timer=25,
+                              font='large', size=info_size, frict_x=0.1, frict_y=0.15)
+
+        self.check(wins_dict, fate_rnd, pc)
+
     def check(self, wins_dict, fate_rnd, pc):
         if self.hp <= 0:
             self.alive = False
@@ -295,6 +320,7 @@ class Monster:
             loot_total = lootgen.generate_loot(self, wins_dict['realm'], fate_rnd, pc)
             loot_total.extend(lootgen.generate_gold(self, wins_dict['realm'], fate_rnd, pc))
             lootgen.drop_loot(round(self.x_sq), round(self.y_sq), wins_dict['realm'], loot_total)
+            # wins_dict['realm'].maze.flag_array[round(self.y_sq)][round(self.x_sq)].mon = None
 
     def state_change(self, new_state):
         # check if state change is possible
@@ -317,5 +343,3 @@ class Monster:
                 self.state_change(2)
             else:
                 self.state_change(0)
-
-

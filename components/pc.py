@@ -123,13 +123,17 @@ class PC:
 
         if not (0 <= dest_x_sq < realm.maze.width) or not (0 <= dest_y_sq < realm.maze.height):
             return
-        if not realm.maze.flag_array[dest_y_sq][dest_x_sq].mov:
+        """if not realm.maze.flag_array[dest_y_sq][dest_x_sq].mov:
             if realm.maze.flag_array[round(self.y_sq)][dest_x_sq].mov:
                 step_y = 0
             elif realm.maze.flag_array[dest_y_sq][round(self.x_sq)].mov:
                 step_x = 0
             else:
-                return
+                return"""
+        may_x, may_y = self.sq_is_free(realm, dest_x_sq, dest_y_sq)
+        step_x *= may_x
+        step_y *= may_y
+
 
         # sq_flags = maze.flag_array[self.dest_y_sq][self.dest_x_sq]
         # sq_flags.mov = True
@@ -167,6 +171,30 @@ class PC:
                         flags.item.remove(itm)
                         break
 
+    def sq_is_free(self, realm, sq_x, sq_y):
+        step_x, step_y = 1, 1
+        if sq_x != round(self.x_sq) or sq_y != round(self.y_sq):
+            if realm.maze.flag_array[sq_y][sq_x].mon is not None and realm.maze.flag_array[sq_y][sq_x].mon.alive:
+                if realm.maze.flag_array[round(self.y_sq)][sq_x].mon is None or not realm.maze.flag_array[round(self.y_sq)][sq_x].mon.alive:
+                    step_y = 0
+                    # self.move_instr_x *= -1
+                elif realm.maze.flag_array[sq_y][round(self.x_sq)].mon is None or not realm.maze.flag_array[sq_y][round(self.x_sq)].mon.alive:
+                    step_x = 0
+                    # self.move_instr_y *= -1
+                else:
+                    step_x = step_y = 0
+            if not realm.maze.flag_array[sq_y][sq_x].mov:
+                if realm.maze.flag_array[round(self.y_sq)][sq_x].mov:
+                    step_y = 0
+                    # self.move_instr_x *= -1
+
+                elif realm.maze.flag_array[sq_y][round(self.x_sq)].mov:
+                    step_x = 0
+                    # self.move_instr_y *= -1
+                else:
+                    step_x = step_y = 0
+        return step_x, step_y
+
     def act(self, wins_dict, aim_xy, skill):
         self.face_point(aim_xy[0], aim_xy[1])
         self.state_change(self.state + 4)
@@ -189,20 +217,44 @@ class PC:
         pc_def += self.char_sheet.defences[self.char_sheet.att_def_dict[chosen_attack['attack_type']]]  # Sum in percents
 
         rnd_dmg = random.randrange(chosen_attack['attack_val_base'], chosen_attack['attack_val_base'] + chosen_attack['attack_val_spread'])
+        if random.randrange(1, 101) <= monster.stats['crit_chance']:
+            rnd_dmg *= 4
+            is_crit = True
+        else:
+            is_crit = False
 
-        rnd_dmg -= (rnd_dmg * pc_def // 1000)
+        damage = rnd_dmg - (rnd_dmg * pc_def // 1000)
 
         self.char_sheet.hp_get(rnd_dmg * -1)
 
         wins_dict['pools'].updated = True
 
+        if is_crit:
+            info_color = 'fnt_attent'
+            info_size = 20
+        else:
+            info_color = 'fnt_attent'
+            info_size = 16
+
+        inf_sp_x = maths.sign(monster.x_sq - self.x_sq) * -4
+        inf_sp_y = 3
+        inf_crit_sp_y = 2
+        if is_crit:
+            wins_dict['realm'].spawn_realmtext(None, 'Critical hit!', (0, 0), None,
+                                               color=info_color, stick_obj=self, speed_xy=(0, inf_crit_sp_y),
+                                               kill_timer=25,
+                                               font='large', size=16, frict_y=0.1)
+
+        wins_dict['realm'].spawn_realmtext(None, str(damage * -1), (0, 0), None,
+                                           color=info_color, stick_obj=self, speed_xy=(inf_sp_x, inf_sp_y),
+                                           kill_timer=25,
+                                           font='large', size=info_size, frict_x=0.1, frict_y=0.15)
 
     def check_cooldowns(self, wins_dict):
         hotbar = wins_dict['hotbar']
         for sckt in hotbar.hot_sockets_list:
             if sckt.tags[0][sckt.id] is not None and self.busy == sckt.tags[0][sckt.id].props:
                 self.hot_cooling_set.add(sckt)
-
 
     def state_change(self, new_state):
         # check if state change is possible
