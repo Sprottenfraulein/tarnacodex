@@ -101,7 +101,7 @@ class CharSheet:
         # Inventory list
         self.inventory = itemlist.ItemList(items_max=24, filters={
             'item_types': ['wpn_melee', 'wpn_ranged', 'wpn_magic', 'arm_head', 'arm_chest', 'acc_ring', 'orb_shield',
-                           'orb_ammo', 'orb_source', 'use_potion', 'use_wand', 'use_tools', 'light']
+                           'orb_ammo', 'orb_source', 'use_potion', 'use_wand', 'use_tools', 'light', 'aug_gem']
         })
         # Equipment dictionary
         self.equipped = [

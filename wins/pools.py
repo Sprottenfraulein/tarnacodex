@@ -153,8 +153,7 @@ class Pools:
                                    sq_outsize=1, sq_bsize=1, sq_ldir=0, sq_fill=False,
                                    sq_image=header_texture)
         self.win_header = self.win_ui.text_add('win_header', (0, 0), (self.win_w, 19),
-                                               caption='%s the %s, %s' % (self.pc.char_sheet.name.capitalize(),
-                                                                               self.pc.char_sheet.type.capitalize(),
+                                               caption='%s (%s lvl)' % (self.pc.char_sheet.name.capitalize(),
                                                                                self.pc.char_sheet.level),
                                                h_align='center', v_align='middle', cap_color='sun', cap_font='def_bold',
                                                images=(header_img,))
@@ -235,8 +234,7 @@ class Pools:
 
     def render(self):
         if self.pc_level != self.pc.char_sheet.level:
-            self.win_header.text_obj.caption = '%s the %s, %s' % (self.pc.char_sheet.name.capitalize(),
-                                                                       self.pc.char_sheet.type.capitalize(),
+            self.win_header.text_obj.caption = '%s (%s lvl)' % (self.pc.char_sheet.name.capitalize(),
                                                                        self.pc.char_sheet.level)
             self.win_header.render_all()
             self.pc_level = self.pc.char_sheet.level

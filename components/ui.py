@@ -154,7 +154,7 @@ class UI:
 
     def text_add(self, edit_id, xy=None, size=None, caption=None, h_align='left', v_align='top', images=None,
                  cap_font='def_normal', cap_size=None, cap_color='sun', cap_shadow=False, cap_bgcolor='black',
-                 pop_show=30, pop_hide=1, pop_win=None, page=None):
+                 page=None):
         # setting defaults if attributes not presented:
         if xy is None:
             xy = (0, 0)
@@ -300,8 +300,8 @@ class UI:
             if text == '':
                 del info_text[key]
 
-        new_rich = fieldrich.FieldRich(resources, context_id, xy, size, fr_images=images, text_dict=info_text, pop_show=60,
-                                       pop_hide=30, pop_win=None, page=None, img_stretch=img_stretch)
+        new_rich = fieldrich.FieldRich(resources, context_id, xy, size, fr_images=images, text_dict=info_text,
+                                       page=None, img_stretch=img_stretch)
         return new_rich
 
     def context_paragraphs(self, resources, context_id, xy=None, size=None, images=None, text_dict=None,

@@ -3,7 +3,7 @@ import pygame
 import settings
 import random
 from library import textinput, pydraw
-from components import maze, pc, charsheet, ui, skill, treasure, dbrequests
+from components import maze, pc, charsheet, ui, skill, treasure, dbrequests, gamesave
 
 
 class AppTitle:
@@ -20,6 +20,8 @@ class AppTitle:
 
         self.chars = None
         self.chapters = None
+        self.savegames = None
+        self.save_ui_blocks_list = []
         self.char_desc_string = None
         self.char_img_panel = None
         self.chapter_desc_string = None
@@ -28,6 +30,7 @@ class AppTitle:
         self.field_charname_edit = None
         self.char_selection = 0
         self.chapter_selection = 0
+        self.save_selection = None
         self.create_elements(log=True)
         self.char_name_rnd()
 
@@ -35,6 +38,7 @@ class AppTitle:
         self.schedule_man.new_schedule('realm_tasks')
 
         self.title_rendered = pygame.Surface((self.win_w, self.win_h)).convert()
+
         self.render()
 
     def event_check(self, event, pygame_settings, resources, wins_dict, active_wins, log=True):
@@ -96,8 +100,19 @@ class AppTitle:
         if element.id in ('input_name',) and m_bttn == 1 and mb_event == 'down':
             self.win_ui.key_focus = element
         elif element.id == 'new_char' and m_bttn == 1 and mb_event == 'up' and element.mode == 1:
-            self.win_ui.page = 1
             self.win_ui.key_focus = None
+            if len(self.savegames) < 6:
+                self.win_ui.page = 1
+        elif element.id == 'delete_char' and m_bttn == 1 and mb_event == 'up' and element.mode == 1:
+            self.win_ui.key_focus = None
+            if self.save_selection is not None:
+                dbrequests.char_delete(self.db, self.savegames[self.save_selection]['char_id'])
+                self.win_ui.interactives.remove(self.save_ui_blocks_list[self.save_selection][0])
+                for i in range(1, len(self.save_ui_blocks_list[self.save_selection])):
+                    self.win_ui.decoratives.remove(self.save_ui_blocks_list[self.save_selection][i])
+                self.save_ui_blocks_list[self.save_selection] = None
+                self.win_ui.updated = True
+                self.save_selection = None
         elif element.id == 'exit' and m_bttn == 1 and mb_event == 'up' and element.mode == 1:
             exit()
 
@@ -146,6 +161,18 @@ class AppTitle:
             if m_bttn == 1 and mb_event == 'up':
                 # Preventing button interaction callback from calling a mouse up in button object.
                 return True
+        # TAGGED RADIO BUTTON SWITCH GROUP
+        if 'saveswitch' in element.tags:
+            if m_bttn == 1 and mb_event == 'down' and element.mode == 0:
+                for inter in self.win_ui.interactives:
+                    if inter == element:
+                        self.save_selection = inter.id
+                    elif 'saveswitch' in inter.tags:
+                        inter.mode = 0
+                        inter.render()
+            if m_bttn == 1 and mb_event == 'up':
+                # Preventing button interaction callback from calling a mouse up in button object.
+                return True
 
         elif element.id == 'rnd_name' and m_bttn == 1 and mb_event == 'up' and element.mode == 1:
             self.char_name_rnd()
@@ -157,15 +184,19 @@ class AppTitle:
 
         elif element.id == 'begin' and m_bttn == 1 and mb_event == 'up' and element.mode == 1:
             self.win_ui.key_focus = None
-
             location = [self.chapters[self.chapter_selection], 0]
 
             if self.field_charname_edit.text_obj.caption == '':
                 self.char_name_rnd()
-            char_sheet = charsheet.CharSheet(self.db, 0, chr_name=self.field_charname_edit.text_obj.caption,
+
+            if len(self.savegames) > 0:
+                new_char_id = max([save['char_id'] for save in self.savegames]) + 1
+            else:
+                new_char_id = 0
+            char_sheet = charsheet.CharSheet(self.db, new_char_id, chr_name=self.field_charname_edit.text_obj.caption,
                                              chr_type=self.chars[self.char_selection]['char_type'], chr_level=1)
             p = pc.PC(0, 0, location, self.animations.get_animation('anthro_default'), char_sheet, state=0)
-
+            p.char_portrait_index = self.char_selection
             p.char_sheet.hotbar[-2] = skill.Skill(1, self.db.cursor, self.win_ui.tilesets, resources,
                                                   pygame_settings.audio)
             p.char_sheet.hotbar[-1] = skill.Skill(2, self.db.cursor, self.win_ui.tilesets, resources,
@@ -173,13 +204,30 @@ class AppTitle:
             p.char_sheet.equipped[2][0] = treasure.Treasure(3, self.db.cursor, self.win_ui.tilesets, resources,
                                                             pygame_settings.audio,
                                                             resources.fate_rnd)
-
             p.char_sheet.calc_stats()
             p.char_sheet.hp_get(100, percent=True)
             p.char_sheet.mp_get(100, percent=True)
             p.char_sheet.food_get(100, percent=True)
 
             self.location_change(pygame_settings, wins_dict, active_wins, p, 'up', launch=True)
+
+        elif element.id == 'load' and m_bttn == 1 and mb_event == 'up' and element.mode == 1:
+            self.win_ui.key_focus = None
+            if self.save_selection is not None:
+                char_sheet = charsheet.CharSheet(self.db, self.savegames[self.save_selection]['char_id'],
+                                                 chr_name=self.field_charname_edit.text_obj.caption,
+                                                 chr_type=self.chars[self.char_selection]['char_type'], chr_level=1)
+                p = pc.PC(0, 0, None, self.animations.get_animation('anthro_default'), char_sheet, state=0)
+                p.char_portrait_index = self.savegames[self.save_selection]['char_image_index']
+
+                gamesave.load_char(p, self.db.cursor, self.win_ui.tilesets, pygame_settings.audio)
+
+                p.char_sheet.calc_stats()
+                p.char_sheet.hp_get(100, percent=True)
+                p.char_sheet.mp_get(100, percent=True)
+                p.char_sheet.food_get(100, percent=True)
+
+                self.location_change(pygame_settings, wins_dict, active_wins, p, 'up', launch=True)
 
 
         self.win_ui.updated = True
@@ -189,18 +237,27 @@ class AppTitle:
 
     # interface creation
     def create_elements(self, log=True):
+        self.chars = dbrequests.chars_get_all(self.db.cursor)
+        self.chapters = dbrequests.chapters_get_all(self.db.cursor)
+        self.savegames = dbrequests.savegames_get_all(self.db.cursor)
+
         menu_btn_h = 40
         menu_btn_w = 256
 
         # MAIN MENU
-        main_menu = (
+        main_menu = [
             self.win_ui.button_add('new_char', caption='New Character', size=(menu_btn_w, menu_btn_h), cap_font='large',
                                    cap_size=16,cap_color='fnt_muted',
                                    sounds=self.win_ui.snd_packs['button']),
             self.win_ui.button_add('exit', caption='Exit', size=(menu_btn_w, menu_btn_h), cap_font='large', cap_size=16,
                                    cap_color='fnt_muted',
                                    sounds=self.win_ui.snd_packs['button']),
-        )
+        ]
+        if len(self.savegames) > 0:
+            main_menu.insert(-1, self.win_ui.button_add('delete_char', caption='Delete Character', size=(menu_btn_w, menu_btn_h),
+                                                    cap_font='large', cap_size=16,cap_color='fnt_muted',
+                                                    sounds=self.win_ui.snd_packs['button']))
+
         for i in range(0, len(main_menu)):
             main_menu[i].tags = ['lightup']
             main_menu[i].page = 0
@@ -210,8 +267,86 @@ class AppTitle:
         main_menu[-1].rendered_rect.centery = round(self.win_ui.pygame_settings.screen_res[1] / 2) + (
                     menu_btn_h * 1.2) * 7
 
-        self.chars = dbrequests.chars_get_all(self.db.cursor)
-        self.chapters = dbrequests.chapters_get_all(self.db.cursor)
+        # SAVED GAMES
+        saves_left = menu_btn_h + menu_btn_w + menu_btn_h
+        saves_top = self.win_h / 2 - menu_btn_h // 2
+        save_w = 160
+        save_h = 210
+        saves_per_row = 6
+        saves_total = 6
+        save_texture = self.win_ui.random_texture((save_w, save_h), 'black_rock')
+        bttn_img_up = pydraw.square((0, 0), (save_w, save_h),
+                                    (self.win_ui.resources.colors['gray_light'],
+                                     self.win_ui.resources.colors['gray_dark'],
+                                     (0,254,0),
+                                     self.win_ui.resources.colors['black']),
+                                    sq_outsize=1, sq_bsize=2, sq_ldir=0, sq_fill=True)
+        bttn_img_down = pydraw.square((0, 0), (save_w, save_h),
+                                    (self.win_ui.resources.colors['gray_light'],
+                                     self.win_ui.resources.colors['gray_dark'],
+                                     (0,254,0),
+                                     self.win_ui.resources.colors['sun']),
+                                    sq_outsize=1, sq_bsize=2, sq_ldir=0, sq_fill=True)
+        for i in range(0, min(saves_total, len(self.savegames))):
+            save_x = saves_left + (save_w + 8) * (i % saves_per_row)
+            save_y = saves_top + (save_h + 8) * (i // saves_per_row)
+
+            char_img = pygame.transform.scale(self.win_ui.tilesets.get_image('char_portraits', (60,60), (self.savegames[i]['char_image_index'],))[0], (120, 120))
+            char_panel = self.win_ui.panel_add(i, (save_x + 20, save_y + 16), (save_w, save_h), images=(char_img,), page=0)
+            self.win_ui.decoratives.append(char_panel)
+
+            char_name_string = \
+                self.win_ui.text_add('char_name',
+                                     (save_x + 8, save_y + 16 + 120 + 8),
+                                     caption='%s' % self.savegames[i]['char_name'],
+                                     h_align='center', v_align='top', size=(save_w - 16, 14), cap_color='fnt_celeb',
+                                     cap_font='def_bold', cap_size=24, page=0)
+            self.win_ui.decoratives.append(char_name_string)
+
+            char_type_string = \
+                self.win_ui.text_add('char_type',
+                                     (save_x + 8, save_y + 16 + 120 + 8 + 14),
+                                     caption='%s, level %s' % (self.savegames[i]['char_type'].capitalize(), self.savegames[i]['char_level']),
+                                     h_align='center', v_align='top', size=(save_w - 16, 14), cap_color='fnt_celeb',
+                                     cap_font='def_normal', cap_size=24, page=0)
+            self.win_ui.decoratives.append(char_type_string)
+
+            chapter_string = \
+                self.win_ui.text_add('chapter_label',
+                                     (save_x + 8, save_y + 16 + 120 + 8 + 14 + 14),
+                                     caption=self.savegames[i]['chapter_label'] + ' %s:' % (self.savegames[i]['stage_index'] + 1,),
+                                     h_align='center', v_align='top', size=(save_w - 16, 14), cap_color='fnt_celeb',
+                                     cap_font='def_normal', cap_size=24, page=0)
+            self.win_ui.decoratives.append(chapter_string)
+
+            stage_string = \
+                self.win_ui.text_add('stage_string',
+                                     (save_x + 8, save_y + 16 + 120 + 8 + 14 + 14 + 14),
+                                     caption='%s' % (self.savegames[i]['stage_label'], ),
+                                     h_align='center', v_align='top', size=(save_w - 16, 14), cap_color='fnt_celeb',
+                                     cap_font='def_normal', cap_size=24, page=0)
+            self.win_ui.decoratives.append(stage_string)
+
+            save_panel = self.win_ui.panel_add(i, (save_x, save_y), (save_w, save_h), images=(save_texture,), page=0)
+            self.win_ui.decoratives.append(save_panel)
+
+            save_bttn = self.win_ui.button_add(i, xy=(save_x, save_y),size=(save_w, save_h),
+                                               images=(bttn_img_up, bttn_img_down),
+                                               sounds=self.win_ui.snd_packs['button'], switch=True)
+            save_bttn.tags = ('saveswitch',)
+            save_bttn.rendered_button.set_colorkey((0, 254, 0))
+            self.win_ui.interactives.append(save_bttn)
+            self.save_ui_blocks_list.append((save_bttn, char_panel, save_panel, stage_string,
+                                             chapter_string, char_type_string, char_name_string))
+
+        if len(self.savegames) > 0:
+            bttn_load = self.win_ui.button_add('load', caption='Load', size=(menu_btn_w, menu_btn_h),
+                                                cap_font='large', cap_size=16,
+                                                cap_color='fnt_muted', sounds=self.win_ui.snd_packs['button'], page=0)
+            bttn_load.rendered_rect.right = round(self.win_ui.pygame_settings.screen_res[0] - menu_btn_h)
+            bttn_load.rendered_rect.centery = round(self.win_ui.pygame_settings.screen_res[1] / 2) + (
+                    menu_btn_h * 1.2) * 7
+            self.win_ui.interactives.append(bttn_load)
 
         # CHARACTER CHOICE
         char_menu = []
@@ -403,6 +538,8 @@ class AppTitle:
 
         wins_dict['realm'].maze = l
         wins_dict['realm'].pc = pc
+
+        gamesave.save_char(pc, l, self.db, self.win_ui.tilesets, pygame_settings.audio)
 
         if launch:
             wins_dict['realm'].launch(pygame_settings.audio, settings, wins_dict, active_wins)

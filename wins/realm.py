@@ -1,6 +1,6 @@
 import pygame
 from library import calc2darray, maths, logfun, typography
-from components import realmtext, skillfuncs
+from components import realmtext, skillfuncs, gamesave
 import math
 
 
@@ -143,7 +143,9 @@ class Realm:
             if event.key == pygame.K_i:
                 pass
             if event.key == pygame.K_s:
-                pass
+                gamesave.save_char(self.pc, self.maze, self.db, self.tile_sets, self.pygame_settings.audio)
+            if event.key == pygame.K_l:
+                gamesave.load_char(self.pc, self.db.cursor, self.tile_sets, self.pygame_settings.audio)
             if event.key == pygame.K_h:
                 pass
             if event.key == pygame.K_p:

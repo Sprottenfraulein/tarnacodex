@@ -1,6 +1,7 @@
 from library import maths
 import random
 
+
 class PC:
     def __init__(self, x_sq, y_sq, location, anim_set, char_sheet, state=2, speed=0.08):
         self.x_sq = x_sq

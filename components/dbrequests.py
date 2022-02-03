@@ -57,13 +57,41 @@ def chapters_get_all(cursor):
     return chapters_list
 
 
+def savegames_get_all(cursor):
+    ex_str = "SELECT * FROM savegames"
+    cursor.execute(ex_str)
+    rows = cursor.fetchall()
+    column_names = [column[0] for column in cursor.description]
+    savegame_list = []
+    for row in rows:
+        savegame_dict = {}
+        for i in range(0, len(column_names)):
+            savegame_dict[column_names[i]] = row[i]
+        savegame_list.append(savegame_dict)
+    return savegame_list
+
+
+def char_save(db, char_id, stage_index, stage_label, chapter_label, char_level, char_name, char_type, char_image_index, char_title=None):
+    """ex_str = "DELETE FROM savegames WHERE char_id=?"
+    db.cursor.execute(ex_str, (char_id,))
+    db.conn.commit()"""
+    ex_str = "INSERT OR REPLACE INTO savegames (savegame_id, char_image_index, char_type, char_name, char_level, chapter_label, stage_index, char_title, char_id, stage_label) VALUES ((SELECT savegame_id FROM savegames WHERE char_id=?), ?, ?, ?, ?, ?, ?, ?, ?, ?)"
+    db.cursor.execute(ex_str, (char_id, char_image_index, char_type, char_name, char_level, chapter_label, stage_index, char_title, char_id, stage_label))
+    db.conn.commit()
+
+
+def char_delete(db, char_id):
+    ex_str = "DELETE FROM savegames WHERE char_id=?"
+    db.cursor.execute(ex_str, (char_id,))
+    db.conn.commit()
+
+
 def char_name_get_random(cursor):
     ex_str = "SELECT * FROM names"
     cursor.execute(ex_str)
     rows = cursor.fetchall()
     rnd_index = random.randrange(0, len(rows))
     return rows[rnd_index][1]
-
 
 
 def treasure_get_by_id(cursor, key_id):

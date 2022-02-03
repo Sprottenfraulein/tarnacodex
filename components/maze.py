@@ -13,6 +13,11 @@ class Maze:
 
         self.chapter, self.stage_index = location
         self.stage_dict = get_chapter_stage(db, self.chapter, self.stage_index)
+        self.exits_list = [('up', 'exit_up')]
+
+        # adding second exit to the lower floor if there are more levels ahead.
+        if self.stage_index < self.chapter['stage_number'] - 1:
+            self.exits_list.append(('down', 'exit_down'))
 
         self.width = self.stage_dict['width']
         self.height = self.stage_dict['height']
@@ -22,7 +27,6 @@ class Maze:
         else:
             self.lvl = self.stage_dict['lvl']
 
-        self.exits_list = [('up', 'exit_up'), ('down', 'exit_down')]
         self.tile_set = tile_sets.get_maze_tiles(self.stage_dict['tile_set'])
         self.trap_rate = self.stage_dict['trap_rate']
         self.lock_rate = self.stage_dict['lock_rate']
@@ -42,7 +46,7 @@ class Maze:
         self.exits = []
         self.loot = itemlist.ItemList(filters={
                 'item_types': ['wpn_melee', 'wpn_ranged', 'wpn_magic', 'arm_head', 'arm_chest', 'acc_ring', 'orb_shield',
-                           'orb_ammo', 'orb_source', 'use_potion', 'use_wand', 'use_tools', 'light'],
+                           'orb_ammo', 'orb_source', 'use_potion', 'use_wand', 'use_tools', 'light', 'aug_gem'],
             })
         self.text = []
 

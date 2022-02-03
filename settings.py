@@ -5,8 +5,8 @@
 APP_RES = (1296, 816)
 app_scale = 2
 # Application caption (visible in window title or OS apps manager)
-APP_CAPTION = 'UNNAMED FINAL'
-tag_string = 'Unnamed final, v0.1. Copyright Senya Tarna, 2022.'
+APP_CAPTION = 'Blackrock Sliders'
+tag_string = 'Blackrock Sliders, v0.1. Copyright Senya Tarna, 2022.'
 # Frames per second (changing this affects app's run speed)
 FPS = 60
 

@@ -22,7 +22,8 @@ class Button:
         self.mouse_over = False
         self.popup_active = False
 
-        self.rendered_button = pygame.Surface(self.images[0].get_rect().size)
+        self.rendered_button = pygame.Surface(self.images[0].get_rect().size).convert()
+        # self.rendered_button.set_colorkey((0,255,0))
         self.rendered_rect = self.rendered_button.get_rect()
         self.rendered_rect.topleft = bttn_xy
         self.render()

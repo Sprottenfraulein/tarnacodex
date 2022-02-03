@@ -120,6 +120,7 @@ class CharStats:
 
     # interface creation
     def create_elements(self, log=True):
+        stats_top = 60
         # INVENTORY
         chs_texture = self.win_ui.random_texture((self.win_w, self.win_h), 'black_rock')
         chs_image = pydraw.square((0, 0), (self.win_w, self.win_h),
@@ -130,7 +131,7 @@ class CharStats:
                                   sq_outsize=1, sq_bsize=2, sq_ldir=0, sq_fill=False,
                                   sq_image=chs_texture)
         # BACKGROUND
-        chs_image = pydraw.square((12, 172),
+        chs_image = pydraw.square((12, stats_top + 144),
                                   (244, self.win_h - 172 - 12 - 32),
                                   (self.win_ui.resources.colors['gray_light'],
                                    self.win_ui.resources.colors['gray_dark'],
@@ -139,7 +140,7 @@ class CharStats:
                                   sq_outsize=0, sq_bsize=1, sq_ldir=2, sq_fill=False,
                                   sq_image=chs_image, same_surface=True)
 
-        chs_image = pydraw.square((264, 172),
+        chs_image = pydraw.square((264, stats_top + 144),
                                   (self.win_w - 256 - 8 - 12, self.win_h - 172 - 12 - 32),
                                   (self.win_ui.resources.colors['gray_light'],
                                    self.win_ui.resources.colors['gray_dark'],
@@ -162,6 +163,13 @@ class CharStats:
                                           caption='Character Sheet',
                                           h_align='center', v_align='middle', cap_color='sun', images=(header_img,))
 
+        char_title_text = self.win_ui.text_add('char_title', (12, 28), (self.win_w - 24, 38),
+                                                  caption='~ %s the %s ~' % (self.pc.char_sheet.name.capitalize(),
+                                                                          self.pc.char_sheet.type.capitalize()),
+                                                  h_align='center', v_align='top', cap_color='fnt_celeb',
+                                                  cap_font='large', cap_size=18)
+        self.win_ui.decoratives.append(char_title_text)
+
         char_img_size = (120, 120)
         if self.pc.char_sheet.type == 'champion':
             cp_index = 0
@@ -170,6 +178,7 @@ class CharStats:
         else:
             cp_index = 2
         decor_color = 'fnt_celeb'
+
         # char icon
         char_image = pygame.transform.scale(self.win_ui.tilesets.get_image('char_portraits', (60,60), (cp_index,))[0], char_img_size)
         char_img_w, char_img_h = char_img_size[0] + 16, char_img_size[1] + 16
@@ -181,10 +190,10 @@ class CharStats:
                                   sq_outsize=0, sq_bsize=1, sq_ldir=5, sq_fill=False,
                                   sq_image=None)
         char_icon.blit(char_image, (8, 8))
-        char_icon_panel = self.win_ui.panel_add('icon_panel', (12, 28), (char_img_w, char_img_h), images=(char_icon,),
+        char_icon_panel = self.win_ui.panel_add('icon_panel', (12, stats_top), (char_img_w, char_img_h), images=(char_icon,),
                                                page=None)
 
-        y = 32
+        y = stats_top + 4
         for attr_name, attr_value in self.pc.char_sheet.attributes.items():
             attr_val_mods = self.pc.char_sheet.calc_all_mods(attr_name)
             av_color = 'fnt_celeb'
@@ -212,71 +221,71 @@ class CharStats:
             self.win_ui.decoratives.append(attr_value_element)
             y += 20
 
-        pool_label_element = self.win_ui.text_add('pool', (340, 38), (124, 16),
+        pool_label_element = self.win_ui.text_add('pool', (340, stats_top + 10), (124, 16),
                                                   caption='HP:',
                                                   h_align='left', v_align='top', cap_color='fnt_celeb',
                                                   cap_font='def_bold', cap_size=24)
         self.win_ui.decoratives.append(pool_label_element)
-        pool_label_element = self.win_ui.text_add('pool', (340, 38), (159, 16),
+        pool_label_element = self.win_ui.text_add('pool', (340, stats_top + 10), (159, 16),
                                                   caption=str(self.pc.char_sheet.pools['HP']),
                                                   h_align='right', v_align='top', cap_color='fnt_celeb',
                                                   cap_font='def_bold', cap_size=24)
         self.win_ui.decoratives.append(pool_label_element)
         self.stat_elements['HP'] = pool_label_element
 
-        pool_label_element = self.win_ui.text_add('pool', (340, 52), (124, 16),
+        pool_label_element = self.win_ui.text_add('pool', (340, stats_top + 24), (124, 16),
                                                   caption='MP:',
                                                   h_align='left', v_align='top', cap_color='fnt_celeb',
                                                   cap_font='def_bold', cap_size=24)
         self.win_ui.decoratives.append(pool_label_element)
-        pool_label_element = self.win_ui.text_add('pool', (340, 52), (159, 16),
+        pool_label_element = self.win_ui.text_add('pool', (340, stats_top + 24), (159, 16),
                                                   caption=str(self.pc.char_sheet.pools['MP']),
                                                   h_align='right', v_align='top', cap_color='fnt_celeb',
                                                   cap_font='def_bold', cap_size=24)
         self.win_ui.decoratives.append(pool_label_element)
         self.stat_elements['MP'] = pool_label_element
 
-        pool_label_element = self.win_ui.text_add('pool', (340, 66), (124, 16),
+        pool_label_element = self.win_ui.text_add('pool', (340, stats_top + 38), (124, 16),
                                                   caption='FOOD:',
                                                   h_align='left', v_align='top', cap_color='fnt_celeb',
                                                   cap_font='def_bold', cap_size=24)
         self.win_ui.decoratives.append(pool_label_element)
-        pool_label_element = self.win_ui.text_add('pool', (340, 66), (159, 16),
+        pool_label_element = self.win_ui.text_add('pool', (340, stats_top + 38), (159, 16),
                                                   caption=str(self.pc.char_sheet.pools['FOOD']),
                                                   h_align='right', v_align='top', cap_color='fnt_celeb',
                                                   cap_font='def_bold', cap_size=24)
         self.win_ui.decoratives.append(pool_label_element)
         self.stat_elements['FOOD'] = pool_label_element
 
-        pool_label_element = self.win_ui.text_add('pool', (340, 94), (124, 16),
+        pool_label_element = self.win_ui.text_add('pool', (340, stats_top + 66), (124, 16),
                                                   caption='LEVEL:',
                                                   h_align='left', v_align='top', cap_color='fnt_celeb',
                                                   cap_font='def_bold', cap_size=24)
         self.win_ui.decoratives.append(pool_label_element)
-        pool_label_element = self.win_ui.text_add('pool', (340, 94), (159, 16),
+        pool_label_element = self.win_ui.text_add('pool', (340, stats_top + 66), (159, 16),
                                                   caption=str(self.pc.char_sheet.level),
                                                   h_align='right', v_align='top', cap_color='fnt_celeb',
                                                   cap_font='def_bold', cap_size=24)
         self.win_ui.decoratives.append(pool_label_element)
         self.stat_elements['level'] = pool_label_element
 
-        pool_label_element = self.win_ui.text_add('pool', (340, 108), (124, 16),
+        pool_label_element = self.win_ui.text_add('pool', (340, stats_top + 80), (124, 16),
                                                   caption='EXPERIENCE:',
                                                   h_align='left', v_align='top', cap_color='fnt_celeb',
                                                   cap_font='def_bold', cap_size=24)
         self.win_ui.decoratives.append(pool_label_element)
-        pool_label_element = self.win_ui.text_add('pool', (340, 122), (159, 16),
+        pool_label_element = self.win_ui.text_add('pool', (340, stats_top + 94), (159, 16),
                                                   caption=str(self.pc.char_sheet.experience),
                                                   h_align='right', v_align='top', cap_color='fnt_celeb',
                                                   cap_font='def_bold', cap_size=24)
         self.win_ui.decoratives.append(pool_label_element)
         self.stat_elements['experience'] = pool_label_element
-        pool_label_element = self.win_ui.text_add('pool', (340, 136), (144, 16),
+        pool_label_element = self.win_ui.text_add('pool', (340, stats_top + 108), (144, 16),
                                                   caption='EXP NEXT LEVEL:',
                                                   h_align='left', v_align='top', cap_color='fnt_celeb',
                                                   cap_font='def_bold', cap_size=24)
         self.win_ui.decoratives.append(pool_label_element)
-        pool_label_element = self.win_ui.text_add('pool', (340, 150), (159, 16),
+        pool_label_element = self.win_ui.text_add('pool', (340, stats_top + 122), (159, 16),
                                                   caption=str(self.pc.char_sheet.exp_next_lvl),
                                                   h_align='right', v_align='top', cap_color='fnt_celeb',
                                                   cap_font='def_bold', cap_size=24)
@@ -284,23 +293,23 @@ class CharStats:
         self.stat_elements['exp_next_lvl'] = pool_label_element
 
 
-        att_label_element = self.win_ui.text_add('attacks', (20, 180), (164, 16),
+        att_label_element = self.win_ui.text_add('attacks', (20, stats_top + 152), (164, 16),
                                                  caption='Attacks:',
                                                  h_align='left', v_align='top', cap_color='fnt_celeb',
                                                  cap_font='def_bold', cap_size=24)
         self.win_ui.decoratives.append(att_label_element)
-        def_label_element = self.win_ui.text_add('defences', (20, 308), (164, 16),
+        def_label_element = self.win_ui.text_add('defences', (20, stats_top + 280), (164, 16),
                                                  caption='Defences:',
                                                  h_align='left', v_align='top', cap_color='fnt_celeb',
                                                  cap_font='def_bold', cap_size=24)
         self.win_ui.decoratives.append(def_label_element)
-        prof_label_element = self.win_ui.text_add('profs', (272, 180), (164, 16),
+        prof_label_element = self.win_ui.text_add('profs', (272, stats_top + 152), (164, 16),
                                                  caption='Properties:',
                                                  h_align='left', v_align='top', cap_color='fnt_celeb',
                                                  cap_font='def_bold', cap_size=24)
         self.win_ui.decoratives.append(prof_label_element)
 
-        y = 196
+        y = stats_top + 168
         for att_name, att_value in self.pc.char_sheet.attacks.items():
             av_color = 'fnt_celeb'
             if isinstance(att_value, int):
@@ -321,7 +330,7 @@ class CharStats:
             self.win_ui.decoratives.append(att_value_element)
             y += 14
 
-        y = 324
+        y = stats_top + 298
         for def_name, def_value in self.pc.char_sheet.defences.items():
             dv_color = 'fnt_celeb'
 
@@ -345,7 +354,7 @@ class CharStats:
             self.win_ui.decoratives.append(def_value_element)
             y += 14
 
-        y = 196
+        y = stats_top + 168
         for prof_name, prof_value in self.pc.char_sheet.profs.items():
             pv_color = 'fnt_celeb'
 
