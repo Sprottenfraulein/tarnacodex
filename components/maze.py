@@ -1,17 +1,17 @@
 import random
 from library import maths
 from library import pickrandom, calc2darray, itemlist
-from components import dbrequests, progression, room, door, stairs, trap, lock, flagtile, monster
+from components import dbrequests, progression, room, door, stairs, trap, lock, flagtile, monster, gamesave
 
 
 class Maze:
-    def __init__(self, db, animations, tile_sets, pc_lvl, location):
+    def __init__(self, db, animations, tile_sets, audio, pc, use_saves=True):
         self.db = db
         self.animations = animations
 
         self.MOB_SCALE_RATE = 1.05
 
-        self.chapter, self.stage_index = location
+        self.chapter, self.stage_index = pc.location
         self.stage_dict = get_chapter_stage(db, self.chapter, self.stage_index)
         self.exits_list = [('up', 'exit_up')]
 
@@ -23,7 +23,7 @@ class Maze:
         self.height = self.stage_dict['height']
 
         if self.stage_dict['lvl'] is None:
-            self.lvl = pc_lvl
+            self.lvl = pc.char_sheet.level
         else:
             self.lvl = self.stage_dict['lvl']
 
@@ -37,7 +37,6 @@ class Maze:
 
         self.array = maze_array(self.width, self.height)
         self.decor_array = None
-        self.flag_array = None
 
         self.rooms = None
         self.doors = set()
@@ -46,7 +45,8 @@ class Maze:
         self.exits = []
         self.loot = itemlist.ItemList(filters={
                 'item_types': ['wpn_melee', 'wpn_ranged', 'wpn_magic', 'arm_head', 'arm_chest', 'acc_ring', 'orb_shield',
-                           'orb_ammo', 'orb_source', 'use_potion', 'use_wand', 'use_tools', 'light', 'aug_gem'],
+                               'orb_ammo', 'orb_source', 'use_potion', 'use_wand', 'use_tools', 'light', 'aug_gem',
+                               'sup_potion'],
             })
         self.text = []
 
@@ -55,10 +55,23 @@ class Maze:
         self.anim_timing = self.stage_dict['anim_timing']
         self.anim_timer = 0
 
-        # self.generate_1(0, 0, self.height - 1, self.width - 1, 8, 8, False)
+        # WORKING WITH PREGENERATED DATA
+        stage_progress = dbrequests.chapter_progress_get(db.cursor, pc.char_sheet.id, stage_index=self.stage_index)
+        if len(stage_progress) > 0 and use_saves:
+            gamesave.load_maze(pc, self, db, tile_sets, animations, audio)
 
-        getattr(self, self.stage_dict['maze_algorythm'])(0, 0, self.height-1, self.width-1, self.stage_dict['room_min_width'], self.stage_dict['room_min_height'], True)
-        populate(self.db, self, self.animations)
+        if len(stage_progress) == 0 or stage_progress[0]['maze_rolled'] == 0 or not use_saves:
+            # self.generate_1(0, 0, self.height - 1, self.width - 1, 8, 8, False)
+            getattr(self, self.stage_dict['maze_algorythm'])(0, 0, self.height-1, self.width-1,
+                                                             self.stage_dict['room_min_width'],
+                                                             self.stage_dict['room_min_height'], True)
+        if len(stage_progress) == 0 or stage_progress[0]['monsters_rolled'] == 0 or not use_saves:
+            populate(self.db, self, self.animations)
+
+        self.flag_array = flags_create(self, self.array)
+        self.decor_array = decor_maze(self.array, self.tile_set, self.flag_array)
+        flags_update(self, self.flag_array)
+
 
     def generate_1(self, top, left, bottom, right, min_width, min_height, prop, vert_chance=50):
         self.rooms = split_build(top, left, bottom, right, min_width, min_height, prop, r_limit=14)
@@ -73,8 +86,6 @@ class Maze:
         exits_set(self, self.exits_list)
         doors_set(self, self.tile_set, self.db)
         traps_set(self, 'monster_attacks', self.db)
-        self.decor_array = decor_maze(self.array, self.tile_set, self.flag_array)
-        flags_update(self, self.flag_array)
 
     def mob_populate_alg_1(self, maze, animations, maze_monster_pool, monster_amount_rate):
         mob_populate_alg_1(maze, animations, maze_monster_pool, monster_amount_rate)
@@ -575,7 +586,7 @@ def exits_set(maze, exits_list):
         x_sq = random.randrange(room.left + 1, room.right)
         y_sq = random.randrange(room.top + 1, room.bottom -1)
 
-        new_exit = stairs.Stairs(x_sq, y_sq, -24, -24, dest, room, maze.tile_set[exits_list[i][1]])
+        new_exit = stairs.Stairs(x_sq, y_sq, -24, -24, dest, room, maze.tile_set[exits_list[i][1]], exits_list[i][1])
 
         maze.exits.append(new_exit)
 
@@ -621,7 +632,7 @@ def mob_populate_alg_1(maze, animations, maze_monster_pool, monster_amount_rate)
 
             nmon = monster.Monster(mon_x_sq, mon_y_sq,
                                    animations.get_animation(rnd_mob['animation']), maze.lvl, rnd_mob, state=0)
-            maze.flag_array[round(mon_y_sq)][round(mon_x_sq)].mon = nmon
+
             maze.mobs.append(nmon)
 
 
@@ -638,7 +649,8 @@ def scale_mob(mob_stats, level, scale_rate):
     init_level = mob_stats['lvl']
     mob_stats['hp_max'] = round(mob_stats['hp_max'] * level / init_level * scale_rate)
     mob_stats['exp'] = round(mob_stats['exp'] * level / init_level * scale_rate)
-    mob_stats['gold'] = round(mob_stats['gold'] * level / init_level * scale_rate)
+    # Gold being scaled during drop generation.
+    # mob_stats['gold'] = round(mob_stats['gold'] * level / init_level * scale_rate)
 
     for m_a in mob_stats['attacks_melee']:
         m_a['attack_val_base'] = round(m_a['attack_val_base'] * level / init_level * scale_rate)
@@ -683,6 +695,10 @@ def flags_update(maze, flags_array):
     for tr in maze.traps:
         if tr.x_sq is not None and tr.y_sq is not None:
             flags_array[tr.y_sq][tr.x_sq].trap = tr
+    for mob in maze.mobs:
+        maze.flag_array[round(mob.y_sq)][round(mob.x_sq)].mon = mob
+    for loot in maze.loot:
+        maze.flag_array[round(loot.y_sq)][round(loot.x_sq)].item.append(loot)
 
 
 def get_chapter_stage(db, chapter, stage_index):

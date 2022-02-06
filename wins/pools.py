@@ -15,7 +15,7 @@ class Pools:
         self.schedule_man = schedule_man
         self.animations = animations
         self.win_ui = ui.UI(pygame_settings, resources, tilesets, db)
-        self.pools_rendered = None
+        self.win_rendered = None
         self.win_header = None
         self.win_w = 210
         self.win_h = 192
@@ -35,7 +35,7 @@ class Pools:
         self.pool_exp_w = 120
         self.pool_exp_h = 24
 
-        self.pools_rendered = pygame.Surface((self.win_w, self.win_h)).convert()
+        self.win_rendered = pygame.Surface((self.win_w, self.win_h)).convert()
 
         self.updated = False
 
@@ -53,8 +53,7 @@ class Pools:
         if inter_click is None:
             return
         element, m_bttn, mb_event = inter_click
-        if element.page is not None and element.page != self.win_ui.page:
-            return
+
         # dragging window
         if element.id == 'win_header' and m_bttn == 1:
             if mb_event == 'down':
@@ -219,7 +218,7 @@ class Pools:
         )
         for i in range(0, len(pools_menu)):
             pools_menu[i].tags = ['hud']
-            # pools_menu[i].page = 0
+
             pools_menu[i].rendered_rect.left = self.win_w - pools_btn_w - pools_btn_w * (i // bttns_per_col) - 3
             pools_menu[i].rendered_rect.top = 19 + (pools_btn_h * (i % bttns_per_col))
 
@@ -238,24 +237,24 @@ class Pools:
                                                                        self.pc.char_sheet.level)
             self.win_header.render_all()
             self.pc_level = self.pc.char_sheet.level
-        self.win_ui.draw(self.pools_rendered)
+        self.win_ui.draw(self.win_rendered)
         hp_rate = max(0, self.pc.char_sheet.hp / self.pc.char_sheet.pools['HP'])
         mp_rate = max(0, self.pc.char_sheet.mp / self.pc.char_sheet.pools['MP'])
         food_rate = max(0, self.pc.char_sheet.food / self.pc.char_sheet.pools['FOOD'])
         exp_rate = max(0, (self.pc.char_sheet.experience - self.pc.char_sheet.exp_prev_lvl) / (
                     self.pc.char_sheet.exp_next_lvl - self.pc.char_sheet.exp_prev_lvl))
-        self.pools_rendered.blit(self.hp_pool_img.subsurface(
+        self.win_rendered.blit(self.hp_pool_img.subsurface(
             (0, self.pool_img_h - round(hp_rate * self.pool_img_h), self.pool_img_w, round(self.pool_img_h * hp_rate))),
                                  (44, 31 + self.pool_img_h - round(self.pool_img_h * hp_rate)))
-        self.pools_rendered.blit(self.mp_pool_img.subsurface(
+        self.win_rendered.blit(self.mp_pool_img.subsurface(
             (0, self.pool_img_h - round(mp_rate * self.pool_img_h), self.pool_img_w, round(self.pool_img_h * mp_rate))),
                                  (14, 79 + self.pool_img_h - round(self.pool_img_h * mp_rate)))
-        self.pools_rendered.blit(self.food_pool_img.subsurface((0, self.pool_img_h - round(food_rate * self.pool_img_h),
-                                                                self.pool_img_w, round(self.pool_img_h * food_rate))),
-                                 (81, 83 + self.pool_img_h - round(self.pool_img_h * food_rate)))
-        self.pools_rendered.blit(
+        self.win_rendered.blit(self.food_pool_img.subsurface((0, self.pool_img_h - round(food_rate * self.pool_img_h),
+                                                              self.pool_img_w, round(self.pool_img_h * food_rate))),
+                               (81, 83 + self.pool_img_h - round(self.pool_img_h * food_rate)))
+        self.win_rendered.blit(
             self.exp_pool_img.subsurface((0, 0, round(self.pool_exp_w * exp_rate), self.pool_exp_h)), (17, 152))
         self.updated = False
 
     def draw(self, surface):
-        surface.blit(self.pools_rendered, (self.offset_x, self.offset_y))
+        surface.blit(self.win_rendered, (self.offset_x, self.offset_y))

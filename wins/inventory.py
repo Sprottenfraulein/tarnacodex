@@ -1,7 +1,7 @@
 # char inventory window
 import pygame
 from library import textinput, pydraw, maths, itemlist
-from components import ui
+from components import ui, skillfuncs
 
 
 # from components import maze, pc, charsheet
@@ -26,7 +26,7 @@ class Inventory:
 
         self.gold_sum = None
 
-        self.rendered_inv = pygame.Surface((self.win_w, self.win_h)).convert()
+        self.win_rendered = pygame.Surface((self.win_w, self.win_h)).convert()
         self.updated = False
 
     def launch(self, pc):
@@ -43,7 +43,7 @@ class Inventory:
         mouse_x, mouse_y = self.mouse_pointer.xy
         if event.type == pygame.KEYDOWN:
             if self.win_ui.key_focus is not None:
-                if self.win_ui.key_focus.page is not None and self.win_ui.key_focus.page != self.win_ui.page:
+                if self.win_ui.key_focus.page is not None and self.win_ui.page not in self.win_ui.key_focus.page:
                     return
                 if event.key in (pygame.K_RETURN, pygame.K_KP_ENTER):
                     self.win_ui.key_focus.mode = 0
@@ -73,7 +73,7 @@ class Inventory:
                 return False
             for j in (self.inv_sockets_list, self.eq_sockets_list):
                 for i in range(len(j) - 1, -1, -1):
-                    if j[i].page is not None and j[i].page != self.win_ui.page:
+                    if j[i].page is not None and self.win_ui.page not in j[i].page:
                         continue
                     if j[i].rendered_rect.collidepoint(
                             (mouse_x - self.offset_x, mouse_y - self.offset_y)):
@@ -98,10 +98,12 @@ class Inventory:
         if inter_click is None:
             return
         element, m_bttn, mb_event = inter_click
-        if element.page is not None and element.page != self.win_ui.page:
-            return
+
         if wins_dict['realm'] in active_wins and self.pc is not None:
             self.pc.move_instr_x = self.pc.move_instr_y = 0
+            in_realm = True
+        else:
+            in_realm = False
         # dragging window
         if element.id == 'win_header' and m_bttn == 1:
             if mb_event == 'down':
@@ -121,7 +123,28 @@ class Inventory:
                                                                     pygame_settings.screen_res[1])
 
         # PAGE 0
-        if m_bttn == 1 and 'itm' in element.tags:
+        if 'itm' not in element.tags:
+            self.win_ui.interaction_callback(element, mb_event, m_bttn)
+            # return True if interaction was made to prevent other windows from responding to this event
+            return True
+        for cl in self.pc.hot_cooling_set:
+            if cl[0] == element:
+                self.win_ui.interaction_callback(element, mb_event, m_bttn)
+                # return True if interaction was made to prevent other windows from responding to this event
+                return True
+
+        if m_bttn == 3 and in_realm:
+            if element.id < len(element.tags[0]) and element.tags[0][element.id] is not None:
+                if 'skill_id' in element.tags[0][element.id].props:
+                    getattr(skillfuncs, element.tags[0][element.id].props['function_name'])(
+                        wins_dict, resources.fate_rnd, self.pc, element.tags[0][element.id],
+                        element, True)
+                elif 'treasure_id' in element.tags[0][element.id].props and element.tags[0][element.id].props[
+                    'use_skill'] is not None:
+                    getattr(skillfuncs, element.tags[0][element.id].props['use_skill'].props['function_name'])(
+                        wins_dict, resources.fate_rnd, self.pc, element.tags[0][element.id].props['use_skill'],
+                        element, True)
+        elif m_bttn == 1:
             # removing popup if active
             if wins_dict['context'] in active_wins:
                 active_wins.remove(wins_dict['context'])
@@ -136,7 +159,7 @@ class Inventory:
 
             elif mb_event == 'up' and self.mouse_pointer.drag_item is not None:
                 item_dragging = self.mouse_pointer.drag_item[0][self.mouse_pointer.drag_item[1]]
-                if self.mouse_pointer.drag_item[0] == wins_dict['realm'].maze.loot:
+                if wins_dict['realm'].maze is not None and self.mouse_pointer.drag_item[0] == wins_dict['realm'].maze.loot:
                     self.mouse_pointer.catcher[0] = item_dragging
                     self.mouse_pointer.drag_item = [self.mouse_pointer.catcher, 0]
                     wins_dict['realm'].maze.loot.remove(item_dragging)
@@ -220,8 +243,7 @@ class Inventory:
             s_y = inv_sckt_top + inv_sckt_size * (i // inv_sckt_per_row)
             inv_socket = self.win_ui.panel_add(i, (s_x, s_y), (inv_sckt_size, inv_sckt_size),
                                                images=(self.inv_sckt_img,), page=None, img_stretch=True,
-                                               tags=(self.pc.char_sheet.inventory, 'itm'))
-            self.win_ui.interactives.append(inv_socket)
+                                               tags=(self.pc.char_sheet.inventory, 'itm'), win=self)
             self.inv_sockets_list.append(inv_socket)
 
         eq_sckt_img = pydraw.square((0, 0), (inv_sckt_size, inv_sckt_size),
@@ -236,25 +258,25 @@ class Inventory:
         self.eq_sockets_list = (
             self.win_ui.panel_add(0, (self.win_w // 2 - inv_sckt_size // 2, 48),
                                   (inv_sckt_size, inv_sckt_size), images=(eq_sckt_img,), page=None,
-                                  img_stretch=True, tags=(self.pc.char_sheet.equipped[0], 'itm')),
+                                  img_stretch=True, tags=(self.pc.char_sheet.equipped[0], 'itm'), win=self),
             self.win_ui.panel_add(0, (self.win_w // 2 - inv_sckt_size // 2, 108),
                                   (inv_sckt_size, inv_sckt_size), images=(eq_sckt_img,), page=None,
-                                  img_stretch=True, tags=(self.pc.char_sheet.equipped[1], 'itm')),
+                                  img_stretch=True, tags=(self.pc.char_sheet.equipped[1], 'itm'), win=self),
             self.win_ui.panel_add(0, (self.win_w // 2 - inv_sckt_size // 2 - 60, 108),
                                   (inv_sckt_size, inv_sckt_size), images=(eq_sckt_img,), page=None,
-                                  img_stretch=True, tags=(self.pc.char_sheet.equipped[2], 'itm')),
+                                  img_stretch=True, tags=(self.pc.char_sheet.equipped[2], 'itm'), win=self),
             self.win_ui.panel_add(0, (self.win_w // 2 - inv_sckt_size // 2 + 60, 108),
                                   (inv_sckt_size, inv_sckt_size), images=(eq_sckt_img,), page=None,
-                                  img_stretch=True, tags=(self.pc.char_sheet.equipped[3], 'itm')),
+                                  img_stretch=True, tags=(self.pc.char_sheet.equipped[3], 'itm'), win=self),
             self.win_ui.panel_add(0, (self.win_w // 2 - inv_sckt_size // 2 - 60, 168),
                                   (inv_sckt_size, inv_sckt_size), images=(eq_sckt_img,), page=None,
-                                  img_stretch=True, tags=(self.pc.char_sheet.equipped[4], 'itm')),
+                                  img_stretch=True, tags=(self.pc.char_sheet.equipped[4], 'itm'), win=self),
             self.win_ui.panel_add(0, (self.win_w // 2 - inv_sckt_size // 2 + 60, 168),
                                   (inv_sckt_size, inv_sckt_size), images=(eq_sckt_img,), page=None,
-                                  img_stretch=True, tags=(self.pc.char_sheet.equipped[5], 'itm')),
+                                  img_stretch=True, tags=(self.pc.char_sheet.equipped[5], 'itm'), win=self),
             self.win_ui.panel_add(0, (self.win_w // 2 - inv_sckt_size // 2 - 60, 48),
                                   (inv_sckt_size, inv_sckt_size), images=(eq_sckt_img,), page=None,
-                                  img_stretch=True, tags=(self.pc.char_sheet.equipped[6], 'itm')),
+                                  img_stretch=True, tags=(self.pc.char_sheet.equipped[6], 'itm'), win=self),
         )
 
         # window header
@@ -285,11 +307,29 @@ class Inventory:
                                                      *self.win_ui.resources.sprites['gold_coins_icon'])),
                                            page=None, img_stretch=True)
 
+        self.restore_cooling_sockets()
+
+        self.win_ui.interactives.extend(self.inv_sockets_list)
         self.win_ui.interactives.extend(self.eq_sockets_list)
         self.win_ui.interactives.append(self.gold_sum)
         self.win_ui.interactives.append(win_header)
         self.win_ui.interactives.append(coins_icon)
         self.win_ui.interactives.append(inv_panel)
+
+    def restore_cooling_sockets(self):
+        for socket, skill in self.pc.hot_cooling_set:
+            if socket.win is not self:
+                continue
+            for i in range(0, len(self.eq_sockets_list)):
+                if socket.id == self.eq_sockets_list[i].id and socket.tags[0] == self.eq_sockets_list[i].tags[0]:
+                    self.eq_sockets_list[i] = socket
+                    break
+            else:
+                for i in range(0, len(self.inv_sockets_list)):
+                    if socket.id == self.inv_sockets_list[i].id and socket.tags[0] == self.inv_sockets_list[i].tags[0]:
+                        self.inv_sockets_list[i] = socket
+                        break
+
 
     def tick(self, pygame_settings, wins_dict, active_wins, mouse_pointer):
         self.win_ui.tick(pygame_settings, mouse_pointer)
@@ -311,22 +351,42 @@ class Inventory:
             if inv:
                 for s_ind in range(0, len(self.inv_sockets_list)):
                     if s_ind >= len(self.pc.char_sheet.inventory) or self.pc.char_sheet.inventory[s_ind] is None:
-                        self.inv_sockets_list[s_ind].images = (self.inv_sckt_img,)
+                        self.inv_sockets_list[s_ind].images_update((self.inv_sckt_img,))
                     elif (self.mouse_pointer.drag_item is not None and self.mouse_pointer.drag_item[0] == self.pc.char_sheet.inventory
                         and s_ind == self.mouse_pointer.drag_item[1]):
-                        self.inv_sockets_list[s_ind].images = (self.inv_sckt_img,)
+                        self.inv_sockets_list[s_ind].images_update((self.inv_sckt_img,))
                     else:
-                        self.inv_sockets_list[s_ind].images = self.pc.char_sheet.inventory[s_ind].props[
-                            'image_inventory']
+                        self.inv_sockets_list[s_ind].images_update(self.pc.char_sheet.inventory[s_ind].props[
+                            'image_inventory'])
+
+                        if 'condition' in self.pc.char_sheet.inventory[s_ind].props:
+                            cond = self.pc.char_sheet.inventory[s_ind].props['condition']
+                            c_p_level = self.pc.char_sheet.inventory[s_ind].CONDITION_PENALTY_LEVEL
+                            if ('condition' in self.pc.char_sheet.inventory[s_ind].props
+                                    and self.pc.char_sheet.inventory[s_ind].props['condition']
+                                    <= self.pc.char_sheet.inventory[s_ind].CONDITION_PENALTY_LEVEL):
+                                cond_y = cond * 150 // c_p_level
+                                pygame.draw.rect(self.inv_sockets_list[s_ind].rendered_panel, (255,150 - cond_y,0),
+                                                 self.inv_sockets_list[s_ind].rendered_panel.get_rect(), width=1)
             if eq:
                 for s_ind in range(0, len(self.eq_sockets_list)):
                     if len(self.pc.char_sheet.equipped[s_ind]) == 0 or self.pc.char_sheet.equipped[s_ind][0] is None:
-                        self.eq_sockets_list[s_ind].images = (self.inv_sckt_img,)
+                        self.eq_sockets_list[s_ind].images_update((self.inv_sckt_img,))
                     else:
-                        self.eq_sockets_list[s_ind].images = self.pc.char_sheet.equipped[s_ind][0].props['image_inventory']
+                        self.eq_sockets_list[s_ind].images_update(self.pc.char_sheet.equipped[s_ind][0].props['image_inventory'])
 
-        self.win_ui.draw(self.rendered_inv)
+                        if 'condition' in self.pc.char_sheet.equipped[s_ind][0].props:
+                            cond = self.pc.char_sheet.equipped[s_ind][0].props['condition']
+                            c_p_level = self.pc.char_sheet.equipped[s_ind][0].CONDITION_PENALTY_LEVEL
+                            if ('condition' in self.pc.char_sheet.equipped[s_ind][0].props
+                                    and self.pc.char_sheet.equipped[s_ind][0].props['condition']
+                                    <= self.pc.char_sheet.equipped[s_ind][0].CONDITION_PENALTY_LEVEL):
+                                cond_y = cond * 150 // c_p_level
+                                pygame.draw.rect(self.eq_sockets_list[s_ind].rendered_panel, (255,150 - cond_y,0),
+                                                 self.eq_sockets_list[s_ind].rendered_panel.get_rect(), width=1)
+
+        self.win_ui.draw(self.win_rendered)
         self.updated = False
 
     def draw(self, surface):
-        surface.blit(self.rendered_inv, (self.offset_x, self.offset_y))
+        surface.blit(self.win_rendered, (self.offset_x, self.offset_y))

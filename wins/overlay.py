@@ -48,7 +48,7 @@ class Overlay:
             active_wins.remove(self)
 
     def draw(self, surface):
-        # surface.blit(self.target_rendered, (self.offset_x, self.offset_y))
+        # surface.blit(self.win_rendered, (self.offset_x, self.offset_y))
         if self.mode:
             surface.fill(self.color, (self.offset_x, self.offset_y + self.height * (self.time - self.timer) // self.time,
                                       self.width, self.height * self.timer // self.time))

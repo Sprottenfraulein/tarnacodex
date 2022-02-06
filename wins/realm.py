@@ -97,7 +97,7 @@ class Realm:
         wins_dict['pools'].render()
         active_wins.insert(0, wins_dict['pools'])
 
-        wins_dict['hotbar'].launch(self.pc)
+
         """wins_dict['hotbar'].render()
         active_wins.insert(0, wins_dict['hotbar'])"""
 
@@ -143,9 +143,9 @@ class Realm:
             if event.key == pygame.K_i:
                 pass
             if event.key == pygame.K_s:
-                gamesave.save_char(self.pc, self.maze, self.db, self.tile_sets, self.pygame_settings.audio)
+                wins_dict['app_title'].chapter_end(wins_dict, active_wins, self.maze.chapter)
             if event.key == pygame.K_l:
-                gamesave.load_char(self.pc, self.db.cursor, self.tile_sets, self.pygame_settings.audio)
+                pass
             if event.key == pygame.K_h:
                 pass
             if event.key == pygame.K_p:
@@ -168,21 +168,19 @@ class Realm:
                 self.pc.move_instr_y = 0
 
             elif event.key == pygame.K_1 and self.pc.char_sheet.hotbar[0] is not None:
-                getattr(skillfuncs, self.pc.char_sheet.hotbar[0].props['function_name'])(
-                    wins_dict, resources.fate_rnd, self.pc, self.pc.char_sheet.hotbar[0]
-                )
+                self.hot_activate(wins_dict, resources, 0, True)
             elif event.key == pygame.K_2 and self.pc.char_sheet.hotbar[1] is not None:
-                getattr(skillfuncs, self.pc.char_sheet.hotbar[1].props['function_name'])(
-                    wins_dict, resources.fate_rnd, self.pc, self.pc.char_sheet.hotbar[1]
-                )
+                self.hot_activate(wins_dict, resources, 1, True)
             elif event.key == pygame.K_3 and self.pc.char_sheet.hotbar[2] is not None:
-                getattr(skillfuncs, self.pc.char_sheet.hotbar[2].props['function_name'])(
-                    wins_dict, resources.fate_rnd, self.pc, self.pc.char_sheet.hotbar[2]
-                )
+                self.hot_activate(wins_dict, resources, 2, True)
             elif event.key == pygame.K_4 and self.pc.char_sheet.hotbar[3] is not None:
-                getattr(skillfuncs, self.pc.char_sheet.hotbar[3].props['function_name'])(
-                    wins_dict, resources.fate_rnd, self.pc, self.pc.char_sheet.hotbar[3]
-                )
+                self.hot_activate(wins_dict, resources, 3, True)
+            elif event.key == pygame.K_5 and self.pc.char_sheet.hotbar[4] is not None:
+                self.hot_activate(wins_dict, resources, 4, True)
+            elif event.key == pygame.K_6 and self.pc.char_sheet.hotbar[5] is not None:
+                self.hot_activate(wins_dict, resources, 5, True)
+            elif event.key == pygame.K_7 and self.pc.char_sheet.hotbar[6] is not None:
+                self.hot_activate(wins_dict, resources, 6, True)
 
         if event.type == pygame.MOUSEBUTTONDOWN:
             # removing popup if active
@@ -193,13 +191,9 @@ class Realm:
 
             can_move = True
             if event.button == 1 and self.pc.char_sheet.hotbar[-2] is not None:
-                can_move = getattr(skillfuncs, self.pc.char_sheet.hotbar[-2].props['function_name'])(
-                    wins_dict, resources.fate_rnd, self.pc, self.pc.char_sheet.hotbar[-2]
-                )
+                can_move = self.hot_activate(wins_dict, resources, -2, False)
             elif event.button == 3 and self.pc.char_sheet.hotbar[-1] is not None:
-                can_move = getattr(skillfuncs, self.pc.char_sheet.hotbar[-1].props['function_name'])(
-                    wins_dict, resources.fate_rnd, self.pc, self.pc.char_sheet.hotbar[-1]
-                )
+                can_move = self.hot_activate(wins_dict, resources, -1, False)
             if can_move and event.button == 1:
                 can_move = self.square_check(self.mouse_pointer.xy, wins_dict, active_wins)
             if can_move and event.button == 1:
@@ -218,6 +212,20 @@ class Realm:
             self.mob_check(self.mouse_pointer.xy, None, wins_dict, active_wins)
             if self.pc.move_instr_y != 0 or self.pc.move_instr_x != 0:
                 self.pc.move_instr_x, self.pc.move_instr_y = self.mouse_move(self.mouse_pointer.xy)
+
+    def hot_activate(self, wins_dict, resources, index, no_aim):
+        if 'skill_id' in self.pc.char_sheet.hotbar[index].props:
+            return getattr(skillfuncs, self.pc.char_sheet.hotbar[index].props['function_name'])(
+                wins_dict, resources.fate_rnd, self.pc, self.pc.char_sheet.hotbar[index],
+                wins_dict['hotbar'].hot_sockets_list[index], no_aim
+            )
+        elif ('treasure_id' in self.pc.char_sheet.hotbar[index].props
+                and self.pc.char_sheet.hotbar[index].props['use_skill'] is not None):
+            return getattr(skillfuncs, self.pc.char_sheet.hotbar[index].props['use_skill'].props['function_name'])(
+                wins_dict, resources.fate_rnd, self.pc, self.pc.char_sheet.hotbar[index].props['use_skill'],
+                wins_dict['hotbar'].hot_sockets_list[index], no_aim
+            )
+        return True
 
     def tick(self, pygame_settings, wins_dict, active_wins, mouse_pointer):
         self.maze.tick()
@@ -510,6 +518,8 @@ class Realm:
             # picking up items
             for lt in flags.item:
                 if lt.props['treasure_id'] == 6:
+                    wins_dict['realm'].spawn_realmtext('new_txt', "%s gold" % lt.props['amount'], (0, 0), (0, 0),
+                                                       'bright_gold', lt, (0, 0), 45, 'large', 16, 0, 0)
                     self.pc.char_sheet.gold_coins += lt.props['amount']
                     self.maze.flag_array[y_sq][x_sq].item.remove(lt)
                     self.maze.loot.remove(lt)

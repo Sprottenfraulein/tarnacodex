@@ -10,12 +10,12 @@ class Door:
         self.lock = lock
         self.trap = trap
         self.grate = grate
-        self.image = self.image_update()
+        self.image_update()
 
     def use(self, pc):
         if not self.shut:
             self.shut = True
-            self.image = self.image_update()
+            self.image_update()
             return True
         elif self.trap is not None:
             if not self.trap.detect():
@@ -23,11 +23,11 @@ class Door:
             return True
         elif self.lock is None:
             self.shut = False
-            self.image = self.image_update()
+            self.image_update()
             return True
         elif self.lock.unlock(pc):
             self.lock = None
-            self.image = self.image_update()
+            self.image_update()
             return True
         return False
 
@@ -54,4 +54,5 @@ class Door:
         else:
             pos = 'open'
         image_name = '%s_%s_%s' % (typ, align, pos)
-        return self.tileset[image_name]
+        self.image = self.tileset[image_name]
+

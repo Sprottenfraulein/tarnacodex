@@ -13,7 +13,7 @@ class Target:
         self.schedule_man = schedule_man
         self.animations = animations
         self.win_ui = ui.UI(pygame_settings, resources, tilesets, db)
-        self.target_rendered = None
+        self.win_rendered = None
         self.win_w = 320
         self.win_h = 64
         self.bar_color = resources.colors['bloody']
@@ -24,7 +24,7 @@ class Target:
         self.mon_hp = None
         self.mob_object = None
 
-        self.target_rendered = pygame.Surface((self.win_w, self.win_h)).convert()
+        self.win_rendered = pygame.Surface((self.win_w, self.win_h)).convert()
         self.create_elements()
 
     def event_check(self, event, pygame_settings, resources, wins_dict, active_wins, log=True):
@@ -37,8 +37,6 @@ class Target:
         if inter_click is None:
             return
         element, m_bttn, mb_event = inter_click
-        if element.page is not None and element.page != self.win_ui.page:
-            return
         # PAGE 0
 
         self.win_ui.interaction_callback(element, mb_event, m_bttn)
@@ -57,7 +55,7 @@ class Target:
         self.mob_title.render_all()
 
         self.mon_hp = monster.hp
-        self.render_ui(self.target_rendered)
+        self.win_ui.draw(self.win_rendered)
         self.progress_bar_update(monster.stats['hp_max'], self.mon_hp, self.bar_color)
 
     def drop_aim(self):
@@ -67,7 +65,7 @@ class Target:
 
     def progress_bar_update(self, maximum, current, fg_color):
         full_w = self.win_w - 10 - 6
-        self.target_rendered.fill(fg_color, (6, 34, full_w * current // maximum, 4))
+        self.win_rendered.fill(fg_color, (6, 34, full_w * current // maximum, 4))
 
     def create_elements(self):
         # INVENTORY
@@ -113,20 +111,10 @@ class Target:
         if self.mob_object is not None:
             if self.mon_hp != self.mob_object.hp:
                 self.mon_hp = self.mob_object.hp
-                self.render_ui(self.target_rendered)
+                self.win_ui.draw(self.win_rendered)
                 self.progress_bar_update(self.mob_object.stats['hp_max'], self.mon_hp, self.bar_color)
 
         self.win_ui.tick(pygame_settings, mouse_pointer)
 
-    def render_ui(self, surface):
-        for decorative in reversed(self.win_ui.decoratives):
-            if decorative.page is not None and decorative.page != self.win_ui.page:
-                continue
-            decorative.draw(surface)
-        for interactive in reversed(self.win_ui.interactives):
-            if interactive.page is not None and interactive.page != self.win_ui.page:
-                continue
-            interactive.draw(surface)
-
     def draw(self, surface):
-        surface.blit(self.target_rendered, (self.offset_x, self.offset_y))
+        surface.blit(self.win_rendered, (self.offset_x, self.offset_y))

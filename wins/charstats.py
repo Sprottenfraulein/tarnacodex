@@ -17,7 +17,7 @@ class CharStats:
         self.offset_x = 8
         self.offset_y = 8
 
-        self.rendered_chs = pygame.Surface((self.win_w, self.win_h)).convert()
+        self.win_rendered = pygame.Surface((self.win_w, self.win_h)).convert()
         self.stat_elements = {}
 
         self.updated = False
@@ -29,12 +29,13 @@ class CharStats:
     def end(self):
         self.win_ui.decoratives.clear()
         self.win_ui.interactives.clear()
+        self.stat_elements.clear()
 
     def event_check(self, event, pygame_settings, resources, wins_dict, active_wins, log=True):
         mouse_x, mouse_y = self.mouse_pointer.xy
         if event.type == pygame.KEYDOWN:
             if self.win_ui.key_focus is not None:
-                if self.win_ui.key_focus.page is not None and self.win_ui.key_focus.page != self.win_ui.page:
+                if self.win_ui.key_focus.page is not None and self.win_ui.page not in self.win_ui.key_focus.page:
                     return
                 if event.key in (pygame.K_RETURN, pygame.K_KP_ENTER):
                     self.win_ui.key_focus.mode = 0
@@ -62,23 +63,7 @@ class CharStats:
             if (not self.offset_x <= mouse_x < self.offset_x + self.win_w
                     or not self.offset_y <= mouse_y < self.offset_y + self.win_h):
                 return False
-            """for j in (self.skb_sockets_list, ):
-                for i in range(len(j) - 1, -1, -1):
-                    if j[i].page is not None and j[i].page != self.win_ui.page:
-                        continue
-                    if j[i].rendered_rect.collidepoint(
-                            (mouse_x - self.offset_x, mouse_y - self.offset_y)):
-                        if not j[i].mouse_over:
-                            j[i].mouse_over = True
-                            if not j[i].popup_active:
-                                wins_dict['context'].context_info_update(self.pc, j[i], wins_dict, active_wins)
-                    else:
-                        if j[i].mouse_over:
-                            j[i].mouse_over = False
-                            if j[i].popup_active:
-                                j[i].popup_active = False
-                                if wins_dict['context'] in active_wins:
-                                    active_wins.remove(wins_dict['context'])"""
+
             return True
 
         # return True if interaction was made to prevent other windows from responding to this event
@@ -89,8 +74,7 @@ class CharStats:
         if inter_click is None:
             return
         element, m_bttn, mb_event = inter_click
-        if element.page is not None and element.page != self.win_ui.page:
-            return
+
         if wins_dict['realm'] in active_wins and self.pc is not None:
             self.pc.move_instr_x = self.pc.move_instr_y = 0
         # dragging window
@@ -102,14 +86,14 @@ class CharStats:
                 active_wins.insert(0, wins_dict['charstats'])
             if mb_event == 'up':
                 self.mouse_pointer.drag_ui = None
-                self.offset_x, self.offset_y = maths.rect_in_bounds(self.offset_x, self.offset_y, self.win_w,
-                                                                    self.win_h,
-                                                                    0, 0, pygame_settings.screen_res[0],
-                                                                    pygame_settings.screen_res[1])
                 framed_wins = [fw for fw in (wins_dict['charstats'], wins_dict['pools'], wins_dict['hotbar'], wins_dict['inventory'], wins_dict['skillbook']) if fw in active_wins]
                 self.offset_x, self.offset_y = maths.rect_sticky_edges(
                     (self.offset_x, self.offset_y, self.win_w, self.win_h),
                     [(ow.offset_x, ow.offset_y, ow.win_w, ow.win_h) for ow in framed_wins])
+                self.offset_x, self.offset_y = maths.rect_in_bounds(self.offset_x, self.offset_y, self.win_w,
+                                                                    self.win_h,
+                                                                    0, 0, pygame_settings.screen_res[0],
+                                                                    pygame_settings.screen_res[1])
 
         # PAGE 0
 
@@ -466,9 +450,9 @@ class CharStats:
                     self.stat_elements[prof_name].text_obj.color = pv_color
                     self.stat_elements[prof_name].render_all()
 
-        self.win_ui.draw(self.rendered_chs)
+        self.win_ui.draw(self.win_rendered)
         self.updated = False
 
     def draw(self, surface):
-        surface.blit(self.rendered_chs, (self.offset_x, self.offset_y))
+        surface.blit(self.win_rendered, (self.offset_x, self.offset_y))
 

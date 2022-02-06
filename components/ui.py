@@ -24,7 +24,7 @@ class UI:
         # mouse events checking
         if event.type == pygame.MOUSEBUTTONDOWN:
             for interact in self.interactives:
-                if interact.page is not None and interact.page != self.page:
+                if interact.page is not None and self.page not in interact.page:
                     continue
                 # if interactive element is disabled then pass
                 if interact.mode == -1:
@@ -38,7 +38,7 @@ class UI:
         elif event.type == pygame.MOUSEBUTTONUP:
             inter_click = None
             for interact in self.interactives:
-                if interact.page is not None and interact.page != self.page:
+                if interact.page is not None and self.page not in interact.page:
                     continue
                 try:
                     if inter_click is None and interact.rendered_rect.collidepoint((mouse_x, mouse_y)):
@@ -60,7 +60,7 @@ class UI:
     # UI ELEMENTS CREATION
     def button_add(self, bttn_id, xy=None, size=None, caption=None, images=None,
                    cap_font='def_bold', cap_size=None, cap_color=None, cap_shadow=False, sounds=None,
-                   mode=0, switch=False, function=None, page=0, pop_show=30, pop_hide=1, pop_win=None):
+                   mode=0, switch=False, function=None, page=None):
         # setting defaults if attributes not presented:
         if xy is None:
             xy = (0, 0)
@@ -106,7 +106,7 @@ class UI:
 
     def edit_add(self, edit_id, xy=None, size=None, caption=None, max_len=12, h_align='left', images=None,
                  cap_font='def_bold', cap_size=None, cap_color=None, cap_shadow=False, cursor_symbol='|', sounds=None,
-                 blink=30, mode=0, page=0):
+                 blink=30, mode=0, page=None):
         # setting defaults if attributes not presented:
         if xy is None:
             xy = (0, 0)
@@ -188,14 +188,15 @@ class UI:
         new_text = fieldtext.FieldText(edit_id, xy, size, text_obj=inp_text, ft_images=images, page=page)
         return new_text
 
-    def panel_add(self, edit_id, xy=None, size=None, images=None, page=None, img_stretch=False, tags=None):
+    def panel_add(self, edit_id, xy=None, size=None, images=None, page=None, img_stretch=False, tags=None, win=None):
         # setting defaults if attributes not presented:
         if xy is None:
             xy = (0, 0)
         if size is None:
             size = (96, 48)
 
-        new_panel = panel.Panel(edit_id, xy, size, pan_images=images, page=page, img_stretch=img_stretch, tags=tags)
+        new_panel = panel.Panel(edit_id, xy, size, pan_images=images, page=page, img_stretch=img_stretch, tags=tags,
+                                win=win)
         return new_panel
 
     def context_headline_info(self, resources, context_id, xy=None, size=None, images=None, text_dict=None,
@@ -207,9 +208,7 @@ class UI:
             size = (96, 32)
         if text_dict is None:
             text_dict = {
-                'gradetype': 'gradetype',
-                'mainvalue': '123456',
-                'mv_caption': 'mv_caption'
+
             }
         if images is None:
             """images = (
@@ -221,21 +220,21 @@ class UI:
                               sq_outsize=0, sq_bsize=0, sq_ldir=0, sq_fill=False,
                               sq_image=None),
             )"""
-        info_text = {
-            'gradetype': typography.Typography(self.pygame_settings, text_dict['gradetype'], (0, 0), 'def_normal', 24,
+        if 'gradetype' in text_dict:
+            text_dict['gradetype'] = typography.Typography(self.pygame_settings, text_dict['gradetype'], (0, 0), 'def_normal', 24,
                                                self.resources.colors['fnt_celeb'], self.resources.colors['transparent'],
-                                               'left', 'top', size[0], 24),
-            'mainvalue': typography.Typography(self.pygame_settings, text_dict['mainvalue'], (0, 0), 'large', 18,
-                                               self.resources.colors['fnt_celeb'], self.resources.colors['black'],
-                                               'left', 'top', size[0], 48),
-            'mv_caption': typography.Typography(self.pygame_settings, text_dict['mv_caption'], (0, 0), 'def_normal', 24,
-                                                self.resources.colors['fnt_celeb'],
-                                                self.resources.colors['transparent'],
-                                                'left', 'top', size[0], 24)
-        }
-        for key, text in text_dict.items():
-            info_text[key].caption = text
-        new_rich = fieldrich.FieldRich(resources, context_id, xy, size, fr_images=images, text_dict=info_text, pop_show=60,
+                                               'left', 'top', size[0], 24)
+        if 'mainvalue' in text_dict:
+            text_dict['mainvalue'] = typography.Typography(self.pygame_settings, text_dict['mainvalue'], (0, 0), 'large', 18,
+                                           self.resources.colors['fnt_celeb'], self.resources.colors['black'],
+                                           'left', 'top', size[0], 48)
+        if 'mv_caption' in text_dict:
+            text_dict['mv_caption'] = typography.Typography(self.pygame_settings, text_dict['mv_caption'], (0, 0), 'def_normal', 24,
+                                            self.resources.colors['fnt_celeb'],
+                                            self.resources.colors['transparent'],
+                                            'left', 'top', size[0], 24)
+
+        new_rich = fieldrich.FieldRich(resources, context_id, xy, size, fr_images=images, text_dict=text_dict, pop_show=60,
                                        pop_hide=30, pop_win=None, page=None, img_stretch=img_stretch)
         return new_rich
 
@@ -248,13 +247,7 @@ class UI:
             size = (96, 32)
         if text_dict is None:
             text_dict = {
-                'modifiers': 'modifiers',
-                'de_buffs': 'de_buffs',
-                'affixes': 'affixes',
-                'affix_de_buffs': 'affix_de_buffs',
-                'desc': 'desc',
-                'sell_price': 'sell_price',
-                'condition': 'condition'
+
             }
         if images is None:
             images = (
@@ -266,41 +259,43 @@ class UI:
                               sq_outsize=1, sq_bsize=1, sq_ldir=0, sq_fill=False,
                               sq_image=None),
             )
-        info_text = {
-            'modifiers': typography.Typography(self.pygame_settings, text_dict['modifiers'], (0, 0), 'def_normal', 24,
+        if 'modifiers' in text_dict:
+            text_dict['modifiers'] = typography.Typography(self.pygame_settings, text_dict['modifiers'], (0, 0), 'def_normal', 24,
                                                self.resources.colors['fnt_celeb'],
                                                self.resources.colors['transparent'],
-                                               'left', 'top', size[0], 0),
-            'de_buffs': typography.Typography(self.pygame_settings, text_dict['de_buffs'], (0, 0), 'def_normal', 24,
+                                               'left', 'top', size[0], 0)
+        if 'de_buffs' in text_dict:
+            text_dict['de_buffs'] = typography.Typography(self.pygame_settings, text_dict['de_buffs'], (0, 0), 'def_normal', 24,
                                                self.resources.colors['fnt_celeb'],
                                                self.resources.colors['transparent'],
-                                               'left', 'top', size[0], 0),
-            'affixes': typography.Typography(self.pygame_settings, text_dict['affixes'], (0, 0), 'def_normal', 24,
+                                               'left', 'top', size[0], 0)
+        if 'affixes' in text_dict:
+            text_dict['affixes'] = typography.Typography(self.pygame_settings, text_dict['affixes'], (0, 0), 'def_normal', 24,
                                                self.resources.colors['fnt_header'],
                                                self.resources.colors['transparent'],
-                                               'left', 'top', size[0], 0),
-            'affix_de_buffs': typography.Typography(self.pygame_settings, text_dict['affix_de_buffs'], (0, 0), 'def_normal', 24,
+                                               'left', 'top', size[0], 0)
+        if 'affix_de_buffs' in text_dict:
+            text_dict['affix_de_buffs'] = typography.Typography(self.pygame_settings, text_dict['affix_de_buffs'], (0, 0), 'def_normal', 24,
                                                self.resources.colors['fnt_celeb'],
                                                self.resources.colors['transparent'],
-                                               'left', 'top', size[0], 0),
-            'desc': typography.Typography(self.pygame_settings, text_dict['desc'], (0, 0), 'def_normal', 24,
+                                               'left', 'top', size[0], 0)
+        if 'desc' in text_dict:
+            text_dict['desc'] = typography.Typography(self.pygame_settings, text_dict['desc'], (0, 0), 'def_normal', 24,
                                           self.resources.colors['fnt_celeb'],
                                           self.resources.colors['transparent'],
-                                          'left', 'top', size[0], 0),
-            'sell_price': typography.Typography(self.pygame_settings, text_dict['sell_price'], (0, 0), 'def_normal', 24,
+                                          'left', 'top', size[0], 0)
+        if 'sell_price' in text_dict:
+            text_dict['sell_price'] = typography.Typography(self.pygame_settings, text_dict['sell_price'], (0, 0), 'def_normal', 24,
                                           self.resources.colors['bright_gold'],
                                           self.resources.colors['transparent'],
-                                          'left', 'top', size[0], 0),
-            'condition': typography.Typography(self.pygame_settings, text_dict['condition'], (0, 0), 'def_normal', 24,
+                                          'left', 'top', size[0], 0)
+        if 'condition' in text_dict:
+            text_dict['condition'] = typography.Typography(self.pygame_settings, text_dict['condition'], (0, 0), 'def_normal', 24,
                                                 self.resources.colors['fnt_celeb'],
                                                 self.resources.colors['transparent'],
-                                                'left', 'top', size[0], 0),
-        }
-        for key, text in text_dict.items():
-            if text == '':
-                del info_text[key]
+                                                'left', 'top', size[0], 0)
 
-        new_rich = fieldrich.FieldRich(resources, context_id, xy, size, fr_images=images, text_dict=info_text,
+        new_rich = fieldrich.FieldRich(resources, context_id, xy, size, fr_images=images, text_dict=text_dict,
                                        page=None, img_stretch=img_stretch)
         return new_rich
 
@@ -355,18 +350,18 @@ class UI:
 
     def tick(self, pygame_settings, mouse_pointer):
         for element in self.interactives:
-            if element.page is not None and element.page != self.page:
+            if element.page is not None and self.page not in element.page:
                 continue
             if hasattr(element, 'tick'):
                 element.tick()
 
     def draw(self, surface):
         for decorative in reversed(self.decoratives):
-            if decorative.page is not None and decorative.page != self.page:
+            if decorative.page is not None and self.page not in decorative.page:
                 continue
             decorative.draw(surface)
         for interactive in reversed(self.interactives):
-            if interactive.page is not None and interactive.page != self.page:
+            if interactive.page is not None and self.page not in interactive.page:
                 continue
             interactive.draw(surface)
         self.updated = False

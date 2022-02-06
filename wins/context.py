@@ -13,7 +13,7 @@ class Context:
         self.schedule_man = schedule_man
         self.animations = animations
         self.win_ui = ui.UI(pygame_settings, resources, tilesets, db)
-        self.target_rendered = None
+        self.win_rendered = None
         self.offset_x = 0
         self.offset_y = 0
 
@@ -25,16 +25,7 @@ class Context:
         pass
 
     def ui_click(self, inter_click, pygame_settings, resources, wins_dict, active_wins):
-        """if inter_click is None:
-            return
-        element, m_bttn, mb_event = inter_click
-        if element.page is not None and element.page != self.win_ui.page:
-            return
-        # PAGE 0
 
-        self.win_ui.interaction_callback(element, mb_event, m_bttn)
-        # return True if interaction was made to prevent other windows from responding to this event
-        return True"""
         pass
 
     def context_info_update(self, pc, element, wins_dict, active_wins):
@@ -53,6 +44,10 @@ class Context:
             wins_dict['context'].update_elements_weapon(pc, itm, self.mouse_pointer.xy)
         elif itm.props['item_type'] in ('skill_melee', 'skill_ranged', 'skill_magic', 'skill_craft', 'skill_misc'):
             wins_dict['context'].update_elements_skill(pc, itm, self.mouse_pointer.xy)
+        elif itm.props['item_type'] in ('sup_potion',):
+            wins_dict['context'].update_elements_supply(pc, itm, self.mouse_pointer.xy)
+        elif itm.props['item_type'] in ('aug_gem',):
+            wins_dict['context'].update_elements_charm(pc, itm, self.mouse_pointer.xy)
         element.popup_active = True
         active_wins.insert(0, wins_dict['context'])
 
@@ -85,8 +80,9 @@ class Context:
             'affix_de_buffs': ' $n '.join([self.decorated_de_buffs(affx['de_buffs']) for affx in item.props['affixes'] if affx['de_buffs']]),
             'desc': (item.props['desc'] + ' '),
             'sell_price': str('Sell price: %s' % treasure.calc_loot_stat(item.props, 'price_sell')),
-            'condition': str('Condition: %s/%s' % (item.props['condition'], treasure.calc_loot_stat(item.props, 'condition_max')))
+            'condition': str('Condition: %s/%s' % (item.props['condition'] //10, treasure.calc_loot_stat(item.props, 'condition_max') //10))
         }
+        body_text = {k: v for k, v in body_text.items() if v}
         itm_bodylines = self.win_ui.context_body_info(self.win_ui.resources, 'body_text',
                                                       (8, 104),
                                                       (self.win_w - 16, itm_img_size[1]),
@@ -96,8 +92,8 @@ class Context:
         itm_bodylines.render_all()
 
         self.win_h = itm_bodylines.size[1] + 104 + 8
-        self.target_rendered = pygame.Surface((self.win_w, self.win_h)).convert()
-        self.target_rendered.set_colorkey(self.win_ui.resources.colors['transparent'])
+        self.win_rendered = pygame.Surface((self.win_w, self.win_h)).convert()
+        self.win_rendered.set_colorkey(self.win_ui.resources.colors['transparent'])
         # background
         bg_image = pydraw.square((0, 0), (self.win_w, self.win_h),
                                  (self.win_ui.resources.colors[decor_color],
@@ -145,7 +141,7 @@ class Context:
         self.offset_x, self.offset_y = maths.rect_in_bounds(self.offset_x, self.offset_y, self.win_w, self.win_h, 0, 0,
                                                             self.pygame_settings.screen_res[0],
                                                             self.pygame_settings.screen_res[1])
-        self.render_ui(self.target_rendered)
+        self.win_ui.draw(self.win_rendered)
 
     def update_elements_skill(self, pc, item, mouse_xy, log=True):
         self.win_ui.decoratives.clear()
@@ -153,23 +149,37 @@ class Context:
 
         win_width = 320
         itm_img_size = (48, 48)
+        itm_img_top = 32
 
         # color based on grade
         decor_color = self.win_ui.resources.grade_colors[item.props['grade']]
+        # item icon
+        item_image = pygame.transform.scale(item.props['image_inventory'][0], itm_img_size)
+        itm_img_w, itm_img_h = itm_img_size[0] + 16, itm_img_size[1] + 16
+        item_icon = pydraw.square((0, 0), (itm_img_w, itm_img_h),
+                                  (self.win_ui.resources.colors[decor_color],
+                                   self.win_ui.resources.colors['gray_dark'],
+                                   self.win_ui.resources.colors['black'],
+                                   self.win_ui.resources.colors['black']),
+                                  sq_outsize=0, sq_bsize=0, sq_ldir=4, sq_fill=False,
+                                  sq_image=None)
+        item_icon.blit(item_image, (8, 8))
+        itm_icon_panel = self.win_ui.panel_add('inv_panel', (4, itm_img_top), (itm_img_w, itm_img_h), images=(item_icon,),
+                                               page=None)
         # calculating and rendering text
         bl_text = {
-            'desc': item.props['desc'] % getattr(skillfuncs, item.props['function_name'])(None, None, pc, item.props, just_values=True)
+            'desc': item.props['desc'] % getattr(skillfuncs, item.props['function_name'])(None, None, pc, item.props, None ,just_values=True)
         }
         itm_bodylines = self.win_ui.context_paragraphs(self.win_ui.resources, 'bodylines',
-                                                       (itm_img_size[0] + 16, 32),
+                                                       (itm_img_size[0] + 16, itm_img_top),
                                                        (win_width - (itm_img_size[0] + 24), itm_img_size[1]),
                                                        images=None, text_dict=bl_text, cap_bgcolor='black',
                                                        page=None)
         itm_bodylines.render_all()
 
-        win_height = itm_bodylines.size[1] + 104 + 8
-        self.target_rendered = pygame.Surface((win_width, win_height)).convert()
-        self.target_rendered.set_colorkey(self.win_ui.resources.colors['transparent'])
+        win_height = max(itm_bodylines.size[1], itm_img_top + itm_img_h) + 8
+        self.win_rendered = pygame.Surface((win_width, win_height)).convert()
+        self.win_rendered.set_colorkey(self.win_ui.resources.colors['transparent'])
         # background
         bg_image = pydraw.square((0, 0), (win_width, win_height),
                                  (self.win_ui.resources.colors[decor_color],
@@ -191,6 +201,83 @@ class Context:
         bg_panel = self.win_ui.panel_add('inv_panel', (0, 0), (win_width, win_height), images=(bg_image,),
                                          page=None)
 
+
+
+        self.win_ui.decoratives.append(context_header)
+        self.win_ui.decoratives.append(itm_bodylines)
+        self.win_ui.decoratives.append(itm_icon_panel)
+        self.win_ui.decoratives.append(bg_panel)
+
+        self.offset_x, self.offset_y = maths.rect_to_center(mouse_xy[0], mouse_xy[1], win_width, win_height, 0, 0,
+                                                            self.pygame_settings.screen_res[0],
+                                                            self.pygame_settings.screen_res[1])
+        self.offset_x, self.offset_y = maths.rect_in_bounds(self.offset_x, self.offset_y, win_width, win_height, 0, 0,
+                                                            self.pygame_settings.screen_res[0],
+                                                            self.pygame_settings.screen_res[1])
+        self.win_ui.draw(self.win_rendered)
+
+    def update_elements_supply(self, pc, item, mouse_xy, log=True):
+        self.win_ui.decoratives.clear()
+        self.win_ui.interactives.clear()
+
+        self.win_w = 240
+        itm_img_size = (48, 48)
+
+        # color based on grade
+        decor_color = self.win_ui.resources.grade_colors[item.props['grade']]
+        # calculating and rendering text
+        hl_text = {
+            'gradetype': (
+                    self.win_ui.resources.grades_loot[item.props['grade']] + ' ' + item.props['class']).capitalize(),
+            'mainvalue': '%s' % getattr(skillfuncs, item.props['use_skill'].props['function_name'])(None, None, pc, item.props['use_skill'], None, just_values=True),
+            'mv_caption': 'Supply'
+        }
+        itm_headlines = self.win_ui.context_headline_info(self.win_ui.resources, 'headlines',
+                                                          (itm_img_size[0] + 16, 32),
+                                                          (self.win_w - (itm_img_size[0] + 24), itm_img_size[1]),
+                                                          images=None, text_dict=hl_text, cap_bgcolor='black',
+                                                          page=None)
+        body_text = {
+            'modifiers': self.decorated_modifiers(item.props['mods']),
+            'de_buffs': self.decorated_de_buffs(item.props['de_buffs']),
+            'affixes': ' $n '.join([self.decorated_modifiers(affx['mods']) for affx in item.props['affixes']]),
+            'affix_de_buffs': ' $n '.join([self.decorated_de_buffs(affx['de_buffs']) for affx in item.props['affixes'] if affx['de_buffs']]),
+            'desc': (item.props['desc'] % getattr(skillfuncs, item.props['use_skill'].props['function_name'])(None, None, pc, item.props['use_skill'], None, just_values=True) + ' '),
+            'sell_price': str('Sell price: %s' % treasure.calc_loot_stat(item.props, 'price_sell'))
+        }
+        body_text = {k: v for k, v in body_text.items() if v}
+        itm_bodylines = self.win_ui.context_body_info(self.win_ui.resources, 'body_text',
+                                                      (8, 104),
+                                                      (self.win_w - 16, itm_img_size[1]),
+                                                      images=None, text_dict=body_text, cap_bgcolor='black',
+                                                      page=None)
+        itm_headlines.render_all()
+        itm_bodylines.render_all()
+
+        self.win_h = itm_bodylines.size[1] + 104 + 8
+        self.win_rendered = pygame.Surface((self.win_w, self.win_h)).convert()
+        self.win_rendered.set_colorkey(self.win_ui.resources.colors['transparent'])
+        # background
+        bg_image = pydraw.square((0, 0), (self.win_w, self.win_h),
+                                 (self.win_ui.resources.colors[decor_color],
+                                  self.win_ui.resources.colors['gray_dark'],
+                                  self.win_ui.resources.colors['black'],
+                                  self.win_ui.resources.colors['black']),
+                                 sq_outsize=1, sq_bsize=2, sq_ldir=4, sq_fill=True, sq_image=None)
+        header_img = pydraw.square((0, 0), (self.win_w - 8, 24),
+                                   (self.win_ui.resources.colors['gray_light'],
+                                  self.win_ui.resources.colors['gray_dark'],
+                                  self.win_ui.resources.colors['black'],
+                                  self.win_ui.resources.colors[decor_color]),
+                                   sq_outsize=1, sq_bsize=0, sq_ldir=0, sq_fill=True)
+        context_header = self.win_ui.text_add('context_header', (4, 4), (self.win_w - 8, 24),
+                                              caption=treasure.loot_calc_name(item.props).upper(),
+                                              h_align='center', v_align='middle', cap_color='fnt_celeb',
+                                              cap_font='def_bold', images=(header_img,))
+
+        bg_panel = self.win_ui.panel_add('inv_panel', (0, 0), (self.win_w, self.win_h), images=(bg_image,),
+                                         page=None)
+
         # item icon
         item_image = pygame.transform.scale(item.props['image_inventory'][0], itm_img_size)
         itm_img_w, itm_img_h = itm_img_size[0] + 16, itm_img_size[1] + 16
@@ -207,16 +294,106 @@ class Context:
 
         self.win_ui.decoratives.append(context_header)
         self.win_ui.decoratives.append(itm_bodylines)
+        self.win_ui.decoratives.append(itm_headlines)
         self.win_ui.decoratives.append(itm_icon_panel)
         self.win_ui.decoratives.append(bg_panel)
 
-        self.offset_x, self.offset_y = maths.rect_to_center(mouse_xy[0], mouse_xy[1], win_width, win_height, 0, 0,
+        self.offset_x, self.offset_y = maths.rect_to_center(mouse_xy[0], mouse_xy[1], self.win_w, self.win_h, 0, 0,
                                                             self.pygame_settings.screen_res[0],
                                                             self.pygame_settings.screen_res[1])
-        self.offset_x, self.offset_y = maths.rect_in_bounds(self.offset_x, self.offset_y, win_width, win_height, 0, 0,
+        self.offset_x, self.offset_y = maths.rect_in_bounds(self.offset_x, self.offset_y, self.win_w, self.win_h, 0, 0,
                                                             self.pygame_settings.screen_res[0],
                                                             self.pygame_settings.screen_res[1])
-        self.render_ui(self.target_rendered)
+        self.win_ui.draw(self.win_rendered)
+
+    def update_elements_charm(self, pc, item, mouse_xy, log=True):
+        self.win_ui.decoratives.clear()
+        self.win_ui.interactives.clear()
+
+        self.win_w = 240
+        itm_img_size = (48, 48)
+
+        # color based on grade
+        decor_color = self.win_ui.resources.grade_colors[item.props['grade']]
+        # calculating and rendering text
+        hl_text = {
+            'gradetype': (
+                    self.win_ui.resources.grades_loot[item.props['grade']] + ' ' + item.props['class']).capitalize(),
+
+        }
+        itm_headlines = self.win_ui.context_headline_info(self.win_ui.resources, 'headlines',
+                                                          (itm_img_size[0] + 16, 32),
+                                                          (self.win_w - (itm_img_size[0] + 24), itm_img_size[1]),
+                                                          images=None, text_dict=hl_text, cap_bgcolor='black',
+                                                          page=None)
+        body_text = {
+            'modifiers': self.decorated_modifiers(item.props['mods']),
+            'de_buffs': self.decorated_de_buffs(item.props['de_buffs']),
+            'affixes': ' $n '.join([self.decorated_modifiers(affx['mods']) for affx in item.props['affixes']]),
+            'affix_de_buffs': ' $n '.join([self.decorated_de_buffs(affx['de_buffs']) for affx in item.props['affixes'] if affx['de_buffs']]),
+            'desc': (item.props['desc'] + ' '),
+            'sell_price': str('Sell price: %s' % treasure.calc_loot_stat(item.props, 'price_sell'))
+        }
+        body_text = {k: v for k, v in body_text.items() if v}
+        itm_bodylines = self.win_ui.context_body_info(self.win_ui.resources, 'body_text',
+                                                      (8, 104),
+                                                      (self.win_w - 16, itm_img_size[1]),
+                                                      images=None, text_dict=body_text, cap_bgcolor='black',
+                                                      page=None)
+        itm_headlines.render_all()
+        itm_bodylines.render_all()
+
+        self.win_h = itm_bodylines.size[1] + 104 + 8
+        self.win_rendered = pygame.Surface((self.win_w, self.win_h)).convert()
+        self.win_rendered.set_colorkey(self.win_ui.resources.colors['transparent'])
+        # background
+        bg_image = pydraw.square((0, 0), (self.win_w, self.win_h),
+                                 (self.win_ui.resources.colors[decor_color],
+                                  self.win_ui.resources.colors['gray_dark'],
+                                  self.win_ui.resources.colors['black'],
+                                  self.win_ui.resources.colors['black']),
+                                 sq_outsize=1, sq_bsize=2, sq_ldir=4, sq_fill=True, sq_image=None)
+        header_img = pydraw.square((0, 0), (self.win_w - 8, 24),
+                                   (self.win_ui.resources.colors['gray_light'],
+                                  self.win_ui.resources.colors['gray_dark'],
+                                  self.win_ui.resources.colors['black'],
+                                  self.win_ui.resources.colors[decor_color]),
+                                   sq_outsize=1, sq_bsize=0, sq_ldir=0, sq_fill=True)
+        context_header = self.win_ui.text_add('context_header', (4, 4), (self.win_w - 8, 24),
+                                              caption=treasure.loot_calc_name(item.props).upper(),
+                                              h_align='center', v_align='middle', cap_color='fnt_celeb',
+                                              cap_font='def_bold', images=(header_img,))
+
+        bg_panel = self.win_ui.panel_add('inv_panel', (0, 0), (self.win_w, self.win_h), images=(bg_image,),
+                                         page=None)
+
+        # item icon
+        item_image = pygame.transform.scale(item.props['image_inventory'][0], itm_img_size)
+        itm_img_w, itm_img_h = itm_img_size[0] + 16, itm_img_size[1] + 16
+        item_icon = pydraw.square((0, 0), (itm_img_w, itm_img_h),
+                                  (self.win_ui.resources.colors[decor_color],
+                                   self.win_ui.resources.colors['gray_dark'],
+                                   self.win_ui.resources.colors['black'],
+                                   self.win_ui.resources.colors['black']),
+                                  sq_outsize=0, sq_bsize=0, sq_ldir=4, sq_fill=False,
+                                  sq_image=None)
+        item_icon.blit(item_image, (8,8))
+        itm_icon_panel = self.win_ui.panel_add('inv_panel', (4, 32), (itm_img_w, itm_img_h), images=(item_icon,),
+                                               page=None)
+
+        self.win_ui.decoratives.append(context_header)
+        self.win_ui.decoratives.append(itm_headlines)
+        self.win_ui.decoratives.append(itm_bodylines)
+        self.win_ui.decoratives.append(itm_icon_panel)
+        self.win_ui.decoratives.append(bg_panel)
+
+        self.offset_x, self.offset_y = maths.rect_to_center(mouse_xy[0], mouse_xy[1], self.win_w, self.win_h, 0, 0,
+                                                            self.pygame_settings.screen_res[0],
+                                                            self.pygame_settings.screen_res[1])
+        self.offset_x, self.offset_y = maths.rect_in_bounds(self.offset_x, self.offset_y, self.win_w, self.win_h, 0, 0,
+                                                            self.pygame_settings.screen_res[0],
+                                                            self.pygame_settings.screen_res[1])
+        self.win_ui.draw(self.win_rendered)
 
     def decorated_modifiers(self, mods):
         mod_list = []
@@ -247,15 +424,5 @@ class Context:
     def tick(self, pygame_settings, wins_dict, active_wins, mouse_pointer):
         self.win_ui.tick(pygame_settings, mouse_pointer)
 
-    def render_ui(self, surface):
-        for decorative in reversed(self.win_ui.decoratives):
-            if decorative.page is not None and decorative.page != self.win_ui.page:
-                continue
-            decorative.draw(surface)
-        for interactive in reversed(self.win_ui.interactives):
-            if interactive.page is not None and interactive.page != self.win_ui.page:
-                continue
-            interactive.draw(surface)
-
     def draw(self, surface):
-        surface.blit(self.target_rendered, (self.offset_x, self.offset_y))
+        surface.blit(self.win_rendered, (self.offset_x, self.offset_y))

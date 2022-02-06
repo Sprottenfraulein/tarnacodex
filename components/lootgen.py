@@ -1,9 +1,9 @@
 from components import treasure, dbrequests
-from library import calc2darray
+from library import calc2darray, logfun
 import random
 
 
-def generate_loot(monster, realm, fate_rnd, pc):
+def generate_loot(monster, realm, fate_rnd, pc, log=True):
     tr_groups = [(monster.stats['treasure_group'], monster.stats['treasure_amount'])]
     if 'affixes' in monster.stats:
         for affix in monster.stats['affixes']:
@@ -18,12 +18,24 @@ def generate_loot(monster, realm, fate_rnd, pc):
         tr_ids_list = dbrequests.treasure_get(realm.db.cursor, monster.stats['lvl'], tr_group, rnd_roll)
         for i in range(0, tr_amount):
             rnd_id = tr_ids_list[random.randrange(0, len(tr_ids_list))]
-            new_tr = treasure.Treasure(rnd_id, realm.db.cursor, realm.tile_sets, realm.resources,
+            new_tr = treasure.Treasure(rnd_id, monster.stats['lvl'], realm.db.cursor, realm.tile_sets, realm.resources,
                                        realm.pygame_settings.audio, fate_rnd)
-            if monster.stats['lvl'] != new_tr.props['lvl']:
-                treasure.calc_level(monster.stats['lvl'], new_tr.props)
             treasure.loot_validate(new_tr.props)
             treasure_list.append(new_tr)
+
+    # SPECIAL BLACKROCK STATEMENT
+    if (realm.maze.stage_index == realm.maze.chapter['stage_number'] - 1
+            and not [mob for mob in realm.maze.mobs if mob.alive]):
+        new_tr = treasure.Treasure(7, monster.stats['lvl'], realm.db.cursor, realm.tile_sets, realm.resources,
+                                   realm.pygame_settings.audio, fate_rnd)
+        treasure.loot_validate(new_tr.props)
+        treasure_list.append(new_tr)
+
+        # Special Blackrock statement. If the item in player's inventory, monsters, traps and doors have to be rerolled.
+        for i in range(0, realm.maze.chapter['stage_number'] - 1):
+            dbrequests.chapter_progress_set(realm.db, pc.char_sheet.id, i, 1, 0, 1, 0, 0, 1)
+
+        logfun.put('Blackrock has been dropped!', log)
 
     return treasure_list
 
@@ -42,7 +54,7 @@ def generate_gold(monster, realm, fate_rnd, pc):
 
     treasure_list = []
     for gold_pile in gold_list:
-        new_gold = treasure.Treasure(6, realm.db.cursor, realm.tile_sets, realm.resources,
+        new_gold = treasure.Treasure(6, monster.stats['lvl'], realm.db.cursor, realm.tile_sets, realm.resources,
                                    realm.pygame_settings.audio, fate_rnd)
         amount = new_gold.props['amount'] + new_gold.props['amount'] * gold_pile // 100
         new_gold.props['amount'] = amount * monster.stats['lvl']

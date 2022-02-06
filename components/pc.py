@@ -1,4 +1,5 @@
 from library import maths
+from components import treasure
 import random
 
 
@@ -27,6 +28,7 @@ class PC:
 
         self.location = location
         self.char_sheet = char_sheet
+        self.char_portrait_index = 0
 
         self.hot_cooling_set = set()
 
@@ -93,13 +95,12 @@ class PC:
 
         set_upd = False
         for i in self.hot_cooling_set:
-            cooling_skill = i.tags[0][i.id]
-            if cooling_skill.cooldown_timer > 0:
-                cooling_skill.cooldown_timer -= 1
+            if i[1].cooldown_timer > 0:
+                i[1].cooldown_timer -= 1
             else:
                 set_upd = True
         if set_upd:
-            self.hot_cooling_set = set(filter(lambda x: x.tags[0][x.id].cooldown_timer > 0, self.hot_cooling_set))
+            self.hot_cooling_set = set(filter(lambda x: x[1].cooldown_timer > 0, self.hot_cooling_set))
 
     # movement
     def move(self, step_x, step_y, realm, wins_dict, active_wins):
@@ -164,6 +165,8 @@ class PC:
                     return
                 for itm in flags.item:
                     if itm.props['treasure_id'] == 6:
+                        wins_dict['realm'].spawn_realmtext('new_txt', "%s gold" % itm.props['amount'], (0, 0), (0, 0),
+                                                           'bright_gold', itm, (0, 0), 45, 'large', 16, 0, 0)
                         self.char_sheet.gold_coins += itm.props['amount']
                         realm.maze.loot.remove(itm)
                         # realm.loot_short.remove(itm)
@@ -196,13 +199,14 @@ class PC:
                     step_x = step_y = 0
         return step_x, step_y
 
-    def act(self, wins_dict, aim_xy, skill):
-        self.face_point(aim_xy[0], aim_xy[1])
+    def act(self, wins_dict, aim_xy, skill, socket):
+        if aim_xy is not None:
+            self.face_point(aim_xy[0], aim_xy[1])
         self.state_change(self.state + 4)
 
         self.busy = skill.props
         skill.cooldown_timer = skill.props['cooldown']
-        self.check_cooldowns(wins_dict)
+        self.add_cooldowns(wins_dict, socket)
 
         self.busy_timer = 0
 
@@ -228,6 +232,10 @@ class PC:
 
         self.char_sheet.hp_get(rnd_dmg * -1)
 
+        # 100% HP damage = 10 points of condition
+        if treasure.condition_equipment_change(self.char_sheet, round(-10 * rnd_dmg / self.char_sheet.pools['HP'])):
+            self.char_sheet.calc_stats()
+
         wins_dict['pools'].updated = True
 
         if is_crit:
@@ -251,11 +259,12 @@ class PC:
                                            kill_timer=25,
                                            font='large', size=info_size, frict_x=0.1, frict_y=0.15)
 
-    def check_cooldowns(self, wins_dict):
-        hotbar = wins_dict['hotbar']
-        for sckt in hotbar.hot_sockets_list:
-            if sckt.tags[0][sckt.id] is not None and self.busy == sckt.tags[0][sckt.id].props:
-                self.hot_cooling_set.add(sckt)
+    def add_cooldowns(self, wins_dict, socket):
+        if 'skill_id' in socket.tags[0][socket.id].props:
+            self.hot_cooling_set.add((socket, socket.tags[0][socket.id]))
+        elif ('treasure_id' in socket.tags[0][socket.id].props
+                and socket.tags[0][socket.id].props['use_skill']):
+            self.hot_cooling_set.add((socket, socket.tags[0][socket.id].props['use_skill']))
 
     def state_change(self, new_state):
         # check if state change is possible

@@ -2,7 +2,7 @@
 import pygame
 import math
 from library import textinput, pydraw, maths, itemlist
-from components import ui
+from components import ui, skillfuncs
 
 
 class Hotbar:
@@ -23,7 +23,7 @@ class Hotbar:
         self.offset_x = 0
         self.offset_y = 0
 
-        self.rendered_hot = None
+        self.win_rendered = None
 
         self.updated = False
 
@@ -32,15 +32,19 @@ class Hotbar:
         self.create_elements(log=True)
 
     def end(self):
-        self.win_ui.decoratives.clear()
+        """self.win_ui.decoratives.clear()
         self.win_ui.interactives.clear()
         self.hot_sockets_list.clear()
+        self.hot_sockets_image = None
+        self.win_rendered = None
+        self.pc = None"""
+        pass
 
     def event_check(self, event, pygame_settings, resources, wins_dict, active_wins, log=True):
         mouse_x, mouse_y = self.mouse_pointer.xy
         if event.type == pygame.KEYDOWN:
             if self.win_ui.key_focus is not None:
-                if self.win_ui.key_focus.page is not None and self.win_ui.key_focus.page != self.win_ui.page:
+                if self.win_ui.key_focus.page is not None and self.win_ui.page not in self.win_ui.key_focus.page:
                     return
                 if event.key in (pygame.K_RETURN, pygame.K_KP_ENTER):
                     self.win_ui.key_focus.mode = 0
@@ -70,7 +74,7 @@ class Hotbar:
                 return False
             for j in (self.hot_sockets_list,):
                 for i in range(len(j) - 1, -1, -1):
-                    if j[i].page is not None and j[i].page != self.win_ui.page:
+                    if j[i].page is not None and self.win_ui.page not in j[i].page:
                         continue
                     if j[i].rendered_rect.collidepoint(
                             (mouse_x - self.offset_x, mouse_y - self.offset_y)):
@@ -95,10 +99,12 @@ class Hotbar:
         if inter_click is None:
             return
         element, m_bttn, mb_event = inter_click
-        if element.page is not None and element.page != self.win_ui.page:
-            return
+
         if wins_dict['realm'] in active_wins and self.pc is not None:
             self.pc.move_instr_x = self.pc.move_instr_y = 0
+            in_realm = True
+        else:
+            in_realm = False
         # dragging window
         if element.id == 'win_header' and m_bttn == 1:
             if mb_event == 'down':
@@ -120,7 +126,27 @@ class Hotbar:
                                                                     pygame_settings.screen_res[1])
 
         # PAGE 0
-        if m_bttn == 1 and 'hot' in element.tags and element not in self.pc.hot_cooling_set:
+        if 'hot' not in element.tags:
+            self.win_ui.interaction_callback(element, mb_event, m_bttn)
+            # return True if interaction was made to prevent other windows from responding to this event
+            return True
+        for cl in self.pc.hot_cooling_set:
+            if cl[0] == element:
+                self.win_ui.interaction_callback(element, mb_event, m_bttn)
+                # return True if interaction was made to prevent other windows from responding to this event
+                return True
+
+        if m_bttn == 3 and in_realm:
+            if element.id < len(element.tags[0]) and element.tags[0][element.id] is not None:
+                if 'skill_id' in element.tags[0][element.id].props:
+                    getattr(skillfuncs, element.tags[0][element.id].props['function_name'])(
+                        wins_dict, resources.fate_rnd, self.pc, element.tags[0][element.id],
+                        element, True)
+                elif 'treasure_id' in element.tags[0][element.id].props and element.tags[0][element.id].props['use_skill'] is not None:
+                    getattr(skillfuncs, element.tags[0][element.id].props['use_skill'].props['function_name'])(
+                        wins_dict, resources.fate_rnd, self.pc, element.tags[0][element.id].props['use_skill'],
+                        element, True)
+        elif m_bttn == 1:
             # removing popup if active
             if wins_dict['context'] in active_wins:
                 active_wins.remove(wins_dict['context'])
@@ -135,7 +161,7 @@ class Hotbar:
 
             elif mb_event == 'up' and self.mouse_pointer.drag_item is not None:
                 item_dragging = self.mouse_pointer.drag_item[0][self.mouse_pointer.drag_item[1]]
-                if self.mouse_pointer.drag_item[0] == wins_dict['realm'].maze.loot:
+                if wins_dict['realm'].maze is not None and self.mouse_pointer.drag_item[0] == wins_dict['realm'].maze.loot:
                     self.mouse_pointer.catcher[0] = item_dragging
                     self.mouse_pointer.drag_item = [self.mouse_pointer.catcher, 0]
                     wins_dict['realm'].maze.loot.remove(item_dragging)
@@ -184,6 +210,12 @@ class Hotbar:
 
     # interface creation
     def create_elements(self, log=True):
+        # First, resetting hotbar
+        self.win_ui.decoratives.clear()
+        self.win_ui.interactives.clear()
+        self.hot_sockets_list.clear()
+        self.hot_sockets_image = None
+        self.win_rendered = None
 
         hot_sckt_left = 16 + 19
         hot_sckt_right = 16
@@ -194,8 +226,8 @@ class Hotbar:
         self.win_w = 511
         self.win_h = math.ceil(self.hot_sckt_total / hot_sckt_per_row) * self.hot_sckt_size + hot_sckt_top * 2
 
-        self.rendered_hot = pygame.Surface((self.win_w, self.win_h)).convert()
-        self.rendered_hot.set_colorkey(self.win_ui.resources.colors['transparent'])
+        self.win_rendered = pygame.Surface((self.win_w, self.win_h)).convert()
+        self.win_rendered.set_colorkey(self.win_ui.resources.colors['transparent'])
 
         self.offset_x = 218
         self.offset_y = self.win_ui.pygame_settings.screen_res[1] - self.win_h
@@ -244,7 +276,7 @@ class Hotbar:
             s_y = hot_sckt_top + self.hot_sckt_size * (i // hot_sckt_per_row)
             hot_socket = self.win_ui.panel_add(i, (s_x, s_y), (self.hot_sckt_size, self.hot_sckt_size),
                                                images=(self.hot_sckt_img,), page=None, img_stretch=True,
-                                               tags=(self.pc.char_sheet.hotbar, 'hot'))
+                                               tags=(self.pc.char_sheet.hotbar, 'hot'), win=self)
             self.hot_sockets_list.append(hot_socket)
             label_element = self.win_ui.text_add('shortcut', (s_x, s_y), (self.hot_sckt_size, self.hot_sckt_size),
                                                  caption=str(i + 1),
@@ -257,11 +289,11 @@ class Hotbar:
             self.win_ui.panel_add(i + 1, (self.win_w - hot_sckt_right - self.hot_sckt_size * 2,
                                           hot_sckt_top), (self.hot_sckt_size, self.hot_sckt_size),
                                   images=(self.hot_sckt_img,), page=None, img_stretch=True,
-                                  tags=(self.pc.char_sheet.hotbar, 'hot')),
+                                  tags=(self.pc.char_sheet.hotbar, 'hot'), win=self),
             self.win_ui.panel_add(i + 2, (self.win_w - hot_sckt_right - self.hot_sckt_size,
                                           hot_sckt_top), (self.hot_sckt_size, self.hot_sckt_size),
                                   images=(self.hot_sckt_img,), page=None, img_stretch=True,
-                                  tags=(self.pc.char_sheet.hotbar, 'hot'))
+                                  tags=(self.pc.char_sheet.hotbar, 'hot'), win=self)
         ))
         self.win_ui.interactives.extend(self.hot_sockets_list)
         label_element = self.win_ui.text_add('shortcut',
@@ -309,24 +341,22 @@ class Hotbar:
             if hot:
                 for s_ind in range(0, len(self.hot_sockets_list)):
                     if s_ind >= len(self.pc.char_sheet.hotbar) or self.pc.char_sheet.hotbar[s_ind] is None:
-                        self.hot_sockets_list[s_ind].images = (self.hot_sckt_img,)
+                        self.hot_sockets_list[s_ind].images_update((self.hot_sckt_img,))
                     else:
-                        self.hot_sockets_list[s_ind].images = self.pc.char_sheet.hotbar[s_ind].props[
-                            'image_inventory']
+                        self.hot_sockets_list[s_ind].images_update(self.pc.char_sheet.hotbar[s_ind].props[
+                            'image_inventory'])
 
-        """elif (self.mouse_pointer.drag_item is not None 
-                                  and self.mouse_pointer.drag_item[0] == self.pc.char_sheet.hotbar
-                                  and s_ind == self.mouse_pointer.drag_item[1]):
-                                self.hot_sockets_list[s_ind].images = (self.hot_sckt_img,)"""
+                        if 'condition' in self.pc.char_sheet.hotbar[s_ind].props:
+                            cond = self.pc.char_sheet.hotbar[s_ind].props['condition']
+                            c_p_level = self.pc.char_sheet.hotbar[s_ind].CONDITION_PENALTY_LEVEL
+                            if (self.pc.char_sheet.hotbar[s_ind].props['condition']
+                                    <= self.pc.char_sheet.hotbar[s_ind].CONDITION_PENALTY_LEVEL):
+                                cond_y = cond * 150 // c_p_level
+                                pygame.draw.rect(self.hot_sockets_list[s_ind].rendered_panel, (255,150 - cond_y,0),
+                                                 self.hot_sockets_list[s_ind].rendered_panel.get_rect(), width=1)
 
-        self.win_ui.draw(self.rendered_hot)
+        self.win_ui.draw(self.win_rendered)
         self.updated = False
 
     def draw(self, surface):
-        surface.blit(self.rendered_hot, (self.offset_x, self.offset_y))
-
-        for cl in self.pc.hot_cooling_set:
-            skill = cl.tags[0][cl.id]
-            surface.fill((1, 1, 1), (self.offset_x + cl.rendered_rect.left, self.offset_y + cl.rendered_rect.top,
-                                     self.hot_sckt_size,
-                                     self.hot_sckt_size * skill.cooldown_timer // skill.props['cooldown']))
+        surface.blit(self.win_rendered, (self.offset_x, self.offset_y))

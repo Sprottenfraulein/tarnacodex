@@ -1,18 +1,28 @@
 # game items object
-from library import logfun, maths
-from components import dbrequests
+from library import logfun
+from components import dbrequests, skill
 import random
 
 
 class Treasure:
-    def __init__(self, treasure_id, db_cursor, tile_sets, resources, audio, fate_rnd, x_sq=-1, y_sq=-1, log=True):
+    def __init__(self, treasure_id, level, db_cursor, tile_sets, resources, audio, fate_rnd, x_sq=-1, y_sq=-1, log=True):
         self.x_sq = x_sq
         self.y_sq = y_sq
         self.off_x = self.off_y = 0
 
+        self.CONDITION_PENALTY_LEVEL = 250
+        self.CONDITION_BROKEN_LEVEL = 0
+
         treasure_dict = dbrequests.treasure_get_by_id(db_cursor, treasure_id)
 
         self.props = init_props(db_cursor, fate_rnd, treasure_dict)
+
+        calc_level(level, self.props)
+
+        # Attaching a skill if an item is usable.
+        if self.props['use_skill'] is not None:
+            self.props['use_skill'] = skill.Skill(self.props['use_skill'], self.props['lvl'],
+                                                  db_cursor, tile_sets, resources, audio)
 
         # linking images and sounds
         images_update(db_cursor, self.props, tile_sets)
@@ -131,14 +141,17 @@ def calc_loot_stat(loot_props, stat_name):
 def loot_validate(loot_props):
     try:
         loot_props['condition'] = min(loot_props['condition'], calc_loot_stat(loot_props, 'condition_max'))
+        loot_props['condition'] = max(loot_props['condition'], 0)
     except KeyError:
         pass
     try:
         loot_props['charge'] = min(loot_props['charge'], calc_loot_stat(loot_props, 'charge_max'))
+        loot_props['charge'] = max(loot_props['charge'], 0)
     except KeyError:
         pass
     try:
         loot_props['amount'] = min(loot_props['amount'], calc_loot_stat(loot_props, 'amount_max'))
+        loot_props['amount'] = max(loot_props['amount'], 0)
     except KeyError:
         pass
 
@@ -214,3 +227,20 @@ def roll_affix(db_cursor, grade, loot_props, is_suffix=None):
     affix_ids = dbrequests.get_affixes(db_cursor, loot_props['lvl'], grade, (loot_props['item_type'],), rnd_roll, is_suffix=is_suffix)
     final_roll = random.randrange(0, len(affix_ids))
     return affix_ids[final_roll]
+
+
+def condition_equipment_change(char_sheet, value):
+    recalc_pc_stats = False
+    for socket in char_sheet.equipped:
+        for itm in socket:
+            if itm is None:
+                continue
+            if itm.props['condition'] is not None:
+                prev_cond = itm.props['condition']
+                itm.props['condition'] += value
+                loot_validate(itm.props)
+
+                if (prev_cond > itm.CONDITION_PENALTY_LEVEL >= itm.props['condition']
+                        or prev_cond > itm.CONDITION_BROKEN_LEVEL >= itm.props['condition']):
+                    recalc_pc_stats = True
+    return recalc_pc_stats

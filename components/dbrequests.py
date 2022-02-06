@@ -373,3 +373,37 @@ def stage_get(cursor, chapter_id, stage_index, roll):
             monster_list.append(row[0])
         stage['monsters'] = monster_list
     return stages_list
+
+
+def chapter_progress_get(cursor, char_id, stage_index=None):
+    ex_str = "SELECT * FROM character_chapter_progress ccp WHERE ccp.char_id=?"
+    bindings = [char_id]
+    if stage_index is not None:
+        ex_str += " AND stage_index=?"
+        bindings.append(stage_index)
+    cursor.execute(ex_str, bindings)
+    rows = cursor.fetchall()
+    column_names = [column[0] for column in cursor.description]
+    progress_list = []
+    for row in rows:
+        stage_progress_dict = {}
+        for i in range(0, len(column_names)):
+            stage_progress_dict[column_names[i]] = row[i]
+        progress_list.append(stage_progress_dict)
+    return progress_list
+
+
+def chapter_progress_set(db, char_id, stage_index, maze, mobs, obj, doors, traps, exits):
+    ex_str = "INSERT OR REPLACE INTO character_chapter_progress (progress_id, char_id, stage_index, maze_rolled, monsters_rolled, objects_rolled, doors_rolled, traps_rolled, exits_rolled) VALUES ((SELECT progress_id FROM character_chapter_progress WHERE char_id=? AND stage_index=?), ?, ?, ?, ?, ?, ?, ?, ?)"
+    db.cursor.execute(ex_str, (char_id, stage_index, char_id, stage_index, maze, mobs, obj, doors, traps, exits))
+    db.conn.commit()
+
+
+def chapter_progress_reset(db, char_id, stage_index=None):
+    ex_str = "DELETE FROM character_chapter_progress WHERE char_id=?"
+    bindings = [char_id]
+    if stage_index is not None:
+        ex_str += " AND stage_index=?"
+        bindings.append(stage_index)
+    db.cursor.execute(ex_str, bindings)
+    db.conn.commit()

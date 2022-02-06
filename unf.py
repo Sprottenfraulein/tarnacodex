@@ -2,7 +2,7 @@
 import pygame
 from library import cursor, database, scheduler
 from components import tilesets, animations
-from wins import apptitle, realm, inventory, skillbook, context, target, hotbar, pools, charstats, overlay
+from wins import apptitle, realm, inventory, skillbook, context, target, hotbar, pools, charstats, overlay, dialogue, demos
 
 
 def launch(pygame_settings, resources, log=False):
@@ -28,6 +28,8 @@ def launch(pygame_settings, resources, log=False):
 		'pools': pools.Pools(pygame_settings, resources, tile_sets, anims, db, mouse_pointer, schedule_man),
 		'charstats': charstats.CharStats(pygame_settings, resources, tile_sets, anims, db, mouse_pointer, schedule_man),
 		'overlay': overlay.Overlay(pygame_settings, resources, tile_sets, anims, db, mouse_pointer, schedule_man),
+		'dialogue': dialogue.Dialogue(pygame_settings, resources, tile_sets, anims, db, mouse_pointer, schedule_man),
+		'demos': demos.Demos(pygame_settings, resources, tile_sets, anims, db, mouse_pointer, schedule_man),
 	}
 	bigloop(pygame_settings, resources, wins_dict, mouse_pointer, schedule_man)
 
@@ -35,6 +37,7 @@ def launch(pygame_settings, resources, log=False):
 def bigloop(pygame_settings, resources, wins_dict, mouse_pointer, schedule_man, log=True):
 	# adding the first unit to active wins
 	active_wins = [wins_dict['app_title']]
+	title_win = wins_dict['app_title']
 
 	run = True
 
@@ -49,11 +52,23 @@ def bigloop(pygame_settings, resources, wins_dict, mouse_pointer, schedule_man, 
 		if mouse_pointer.still_timer < mouse_pointer.still_max:
 			mouse_pointer.still_timer += 1
 
+		# RENDERING COOLDOWNS
+		if title_win.pc is not None and len(title_win.pc.hot_cooling_set) > 0:
+			for socket, skill in title_win.pc.hot_cooling_set:
+				if socket.win in active_wins:
+					socket.win.win_rendered.blit(socket.rendered_panel,
+												 socket.rendered_rect.topleft)
+					socket.win.win_rendered.fill((1, 1, 1),
+							 (socket.rendered_rect.left, socket.rendered_rect.top,
+							  socket.size[0], socket.size[1] * skill.cooldown_timer // skill.props['cooldown']))
+
+
 		# DRAWING
 		pygame_settings.screen.fill((10,10,10))
 		# drawing active windows
 		for win in reversed(active_wins):
 			win.draw(pygame_settings.screen)
+
 		if mouse_pointer.visible:
 			mouse_pointer.draw(pygame_settings.screen)
 		# Final rendering for a current frame

@@ -101,7 +101,8 @@ class CharSheet:
         # Inventory list
         self.inventory = itemlist.ItemList(items_max=24, filters={
             'item_types': ['wpn_melee', 'wpn_ranged', 'wpn_magic', 'arm_head', 'arm_chest', 'acc_ring', 'orb_shield',
-                           'orb_ammo', 'orb_source', 'use_potion', 'use_wand', 'use_tools', 'light', 'aug_gem']
+                           'orb_ammo', 'orb_source', 'use_potion', 'use_wand', 'use_tools', 'light', 'aug_gem',
+                           'sup_potion']
         })
         # Equipment dictionary
         self.equipped = [
@@ -129,15 +130,14 @@ class CharSheet:
             itemlist.ItemList(all_to_none=True, items_max=1, filters={
                 'item_types': ['acc_ring'],
             }),
-            # 7 light
+            # 6 light
             itemlist.ItemList(all_to_none=True, items_max=1, filters={
                 'item_types': ['light'],
             }),
         ]
 
         self.hotbar = itemlist.ItemList(all_to_none=True, items_max=9, filters={
-            'item_types': ['skill_melee', 'skill_ranged', 'skill_magic', 'skill_craft', 'skill_misc',
-                           'wpn_melee']
+            'item_types': ['skill_melee', 'skill_ranged', 'skill_magic', 'skill_craft', 'skill_misc', 'sup_potion']
         })
 
         self.gold_coins = 1000
@@ -177,6 +177,8 @@ class CharSheet:
             try:
                 dmg_weapon_min, dmg_weapon_max = weapon['mods']['att_base']['value_base'], \
                                                  weapon['mods']['att_base']['value_base'] + weapon['mods']['att_base']['value_spread']
+                dmg_weapon_min = self.condition_mod_rate(dmg_weapon_min, weapon)
+                dmg_weapon_max = self.condition_mod_rate(dmg_weapon_max, weapon)
                 weapon_type = weapon['item_type']
             except KeyError:
                 dmg_weapon_min = dmg_weapon_max = 1
@@ -187,6 +189,8 @@ class CharSheet:
                 dmg_weapon_min, dmg_weapon_max = mainhand.props['mods']['att_base']['value_base'], \
                                                  mainhand.props['mods']['att_base']['value_base'] + mainhand.props['mods']['att_base']['value_spread']
                 weapon_type = mainhand.props['item_type']
+                dmg_weapon_min = self.condition_mod_rate(dmg_weapon_min, mainhand.props)
+                dmg_weapon_max = self.condition_mod_rate(dmg_weapon_max, mainhand.props)
             else:
                 dmg_weapon_min = dmg_weapon_max = 1
                 weapon_type = 'wpn_melee'
@@ -300,19 +304,33 @@ class CharSheet:
             for eq_itm in eq_pos:
                 if eq_itm is None:
                     continue
-                try:
-                    mod += eq_itm.props['mods'][stat_name]
-                except KeyError:
-                    pass
+                if stat_name in eq_itm.props['mods']:
+                    mod_add = eq_itm.props['mods'][stat_name]['value_base']
+                    if 'value_spread' in eq_itm.props['mods'][stat_name]:
+                        mod_add += eq_itm.props['mods'][stat_name]['value_spread']
+                    mod += self.condition_mod_rate(mod_add, eq_itm.props)
         return mod
+
+    def condition_mod_rate(self, mod_add, item_props):
+        if 'condition' in item_props:
+            cond_percent = item_props['condition'] * 100 // item_props['condition_max']
+            if cond_percent == 0:
+                result = 0
+            elif cond_percent <= 25:
+                result = mod_add // 2
+            else:
+                result = mod_add
+            return result
+        else:
+            return mod_add
 
     def buff_mod(self, stat_name):
         mod = 0
         for de_buff in self.de_buffs:
-            try:
-                mod += de_buff['mods'][stat_name]
-            except KeyError:
-                pass
+            if stat_name in de_buff['mods']:
+                mod += de_buff['mods'][stat_name]['value_base']
+                if 'value_spread' in de_buff['mods'][stat_name]:
+                    mod += de_buff['mods'][stat_name]['value_spread']
         return mod
 
     def calc_all_mods(self, stat_name):
@@ -323,8 +341,11 @@ class CharSheet:
             pass
         return mod_sum
 
-    def experience_get(self, exp_value):
+    def experience_get(self, wins_dict, pc, exp_value):
         self.experience += exp_value
+        """wins_dict['realm'].schedule_man.task_add('realm_tasks', 1, wins_dict['realm'], 'spawn_realmtext',
+                                                 ('new_txt', "%s exp" % exp_value,
+                                                  (0, 0), (0, -24), 'sun', pc, (0,0), 30, 'large', 16, 0, 0))"""
         if not self.exp_prev_lvl <= self.experience < self.exp_next_lvl:
             old_level = self.level
             self.level = self.calc_level(self.experience)
@@ -333,8 +354,11 @@ class CharSheet:
                 if self.level > old_level:
                     self.hp_get(100, True)
                     self.mp_get(100, True)
+                    wins_dict['realm'].schedule_man.task_add('realm_tasks', 1, wins_dict['realm'], 'spawn_realmtext',
+                                                             ('new_txt', "LEVEL UP!",
+                                                              (0, 0), (0, -24), 'fnt_celeb', pc, (0, -3), 60, 'large', 16, 0,
+                                                              0.15))
                 return True
-        print('+%s exp. Total: %s/%s (level %s)' % (exp_value, self.experience, self.exp_next_lvl, self.level))
         return False
 
     def calc_level(self, exp_value):
@@ -381,6 +405,7 @@ class CharSheet:
         else:
             self.hp += value
         self.hp = min(self.hp, self.pools['HP'])
+        self.hp = max(self.hp, 0)
         return hp_mod
 
     def mp_get(self, value=100, percent=False):
@@ -391,6 +416,7 @@ class CharSheet:
         else:
             self.mp += value
         self.mp = min(self.mp, self.pools['MP'])
+        self.mp = max(self.mp, 0)
         return mp_mod
 
     def food_get(self, value=100, percent=False):
@@ -401,6 +427,7 @@ class CharSheet:
         else:
             self.food += value
         self.food = min(self.food, self.pools['FOOD'])
+        self.food = max(self.food, 0)
         return food_mod
 
     # INVENTORY
@@ -414,6 +441,25 @@ class CharSheet:
                 con_itm = self.inventory_search(item_type)
                 if con_itm:
                     return con_itm
+
+    def inventory_search_by_id(self, item_id):
+        for itm in self.inventory:
+            if itm is None:
+                continue
+            if itm.props['treasure_id'] == item_id:
+                return itm
+            elif 'container' in itm.props and itm.props['container'] is not None:
+                con_itm = self.inventory_search_by_id(item_id)
+                if con_itm:
+                    return con_itm
+
+    def equipped_search_by_id(self, item_id):
+        for eq_pos in self.equipped:
+            for itm in eq_pos:
+                if itm is None:
+                    continue
+                if itm.props['treasure_id'] == item_id:
+                    return itm
 
     def inventory_remove(self, item_type):
         for itm in self.inventory[:]:
@@ -444,11 +490,15 @@ class CharSheet:
             self.inventory.clear()
 
     def itemlist_cleanall_skills(self):
-        for sckt in reversed(self.skills):
-            if sckt is None:
-                self.skills.remove(sckt)
+        for i in range(len(self.skills) - 1, -1, -1):
+            if self.skills[i] is None:
+                del self.skills[i]
+            elif self.skills[i].cooldown_timer > 0:
+                break
 
     def itemlist_cleanall_inventory(self):
-        for sckt in reversed(self.inventory):
-            if sckt is None:
-                self.inventory.remove(sckt)
+        for i in range(len(self.inventory) -1, -1, -1):
+            if self.inventory[i] is None:
+                del self.inventory[i]
+            elif self.inventory[i].props['use_skill'] is not None and self.inventory[i].props['use_skill'].cooldown_timer > 0:
+                break

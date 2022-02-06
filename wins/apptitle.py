@@ -18,15 +18,25 @@ class AppTitle:
 
         self.win_ui = ui.UI(pygame_settings, resources, tilesets, db)
 
+        self.pc = None
+
         self.chars = None
         self.chapters = None
         self.savegames = None
         self.save_ui_blocks_list = []
         self.char_desc_string = None
+        self.char_title_string = None
         self.char_img_panel = None
-        self.chapter_desc_string = None
         self.chapter_img_panel = None
-
+        self.chapter_title_string = None
+        self.chapter_desc_string = None
+        self.curr_chapter_img_panel = None
+        self.curr_chapter_title_string = None
+        self.curr_chapter_desc_string = None
+        self.curr_chapter_stage_string = None
+        self.curr_char_panel = None
+        self.curr_char_name_string = None
+        self.curr_char_type_string = None
         self.field_charname_edit = None
         self.char_selection = 0
         self.chapter_selection = 0
@@ -37,7 +47,7 @@ class AppTitle:
         # creating dedicated schedule
         self.schedule_man.new_schedule('realm_tasks')
 
-        self.title_rendered = pygame.Surface((self.win_w, self.win_h)).convert()
+        self.win_rendered = pygame.Surface((self.win_w, self.win_h)).convert()
 
         self.render()
 
@@ -45,7 +55,7 @@ class AppTitle:
         mouse_x, mouse_y = self.mouse_pointer.xy
         if event.type == pygame.KEYDOWN:
             if self.win_ui.key_focus is not None:
-                if self.win_ui.key_focus.page is not None and self.win_ui.key_focus.page != self.win_ui.page:
+                if self.win_ui.key_focus.page is not None and self.win_ui.page not in self.win_ui.key_focus.page:
                     return
                 if event.key in (pygame.K_RETURN, pygame.K_KP_ENTER):
                     self.win_ui.key_focus.mode = 0
@@ -94,25 +104,31 @@ class AppTitle:
             self.win_ui.updated = True
             return
         element, m_bttn, mb_event = inter_click
-        if element.page is not None and element.page != self.win_ui.page:
-            return
         # PAGE 0
         if element.id in ('input_name',) and m_bttn == 1 and mb_event == 'down':
             self.win_ui.key_focus = element
         elif element.id == 'new_char' and m_bttn == 1 and mb_event == 'up' and element.mode == 1:
             self.win_ui.key_focus = None
-            if len(self.savegames) < 6:
+            if len(self.savegames) < 6 or (len(self.savegames) == 6 and None in self.savegames):
                 self.win_ui.page = 1
         elif element.id == 'delete_char' and m_bttn == 1 and mb_event == 'up' and element.mode == 1:
             self.win_ui.key_focus = None
             if self.save_selection is not None:
-                dbrequests.char_delete(self.db, self.savegames[self.save_selection]['char_id'])
-                self.win_ui.interactives.remove(self.save_ui_blocks_list[self.save_selection][0])
-                for i in range(1, len(self.save_ui_blocks_list[self.save_selection])):
-                    self.win_ui.decoratives.remove(self.save_ui_blocks_list[self.save_selection][i])
-                self.save_ui_blocks_list[self.save_selection] = None
-                self.win_ui.updated = True
-                self.save_selection = None
+                wins_dict['dialogue'].dialogue_elements = {
+                    'header': 'Attention',
+                    'text': 'Are you sure you want to DELETE the character?',
+                    'bttn_cancel': 'CANCEL',
+                    'bttn_ok': 'OK'
+                }
+                wins_dict['dialogue'].delayed_action = (self, 'char_delete', [])
+                wins_dict['dialogue'].launch(pc, wins_dict, active_wins)
+            else:
+                wins_dict['dialogue'].dialogue_elements = {
+                    'header': 'Attention',
+                    'text': 'Choose a CHARACTER you want TO DELETE!',
+                    'bttn_cancel': 'OK'
+                }
+                wins_dict['dialogue'].launch(pc, wins_dict, active_wins)
         elif element.id == 'exit' and m_bttn == 1 and mb_event == 'up' and element.mode == 1:
             exit()
 
@@ -181,54 +197,107 @@ class AppTitle:
         elif element.id == 'back' and m_bttn == 1 and mb_event == 'up' and element.mode == 1:
             self.win_ui.page = 0
             self.win_ui.key_focus = None
+            self.clear_quick_view(wins_dict, active_wins)
 
-        elif element.id == 'begin' and m_bttn == 1 and mb_event == 'up' and element.mode == 1:
+        elif element.id == 'new_char_begin' and m_bttn == 1 and mb_event == 'up' and element.mode == 1:
             self.win_ui.key_focus = None
-            location = [self.chapters[self.chapter_selection], 0]
 
-            if self.field_charname_edit.text_obj.caption == '':
-                self.char_name_rnd()
+            self.char_create()
 
-            if len(self.savegames) > 0:
-                new_char_id = max([save['char_id'] for save in self.savegames]) + 1
+            self.pc.char_sheet.calc_stats()
+            self.pc.char_sheet.hp_get(100, percent=True)
+            self.pc.char_sheet.mp_get(100, percent=True)
+            self.pc.char_sheet.food_get(100, percent=True)
+
+            self.pc.location = [self.chapters[self.chapter_selection], 0]
+
+            wins_dict['hotbar'].launch(self.pc)
+
+            self.location_change(pygame_settings, wins_dict, active_wins, self.pc, 'up', launch=True)
+
+        elif element.id == 'begin_chapter' and m_bttn == 1 and mb_event == 'up' and element.mode == 1:
+            if self.pc is None:
+                wins_dict['dialogue'].dialogue_elements = {
+                    'header': 'Attention',
+                    'text': 'You have to load a character first!',
+                    'bttn_cancel': 'OK'
+                }
+                wins_dict['dialogue'].launch(pc, wins_dict, active_wins)
             else:
-                new_char_id = 0
-            char_sheet = charsheet.CharSheet(self.db, new_char_id, chr_name=self.field_charname_edit.text_obj.caption,
-                                             chr_type=self.chars[self.char_selection]['char_type'], chr_level=1)
-            p = pc.PC(0, 0, location, self.animations.get_animation('anthro_default'), char_sheet, state=0)
-            p.char_portrait_index = self.char_selection
-            p.char_sheet.hotbar[-2] = skill.Skill(1, self.db.cursor, self.win_ui.tilesets, resources,
-                                                  pygame_settings.audio)
-            p.char_sheet.hotbar[-1] = skill.Skill(2, self.db.cursor, self.win_ui.tilesets, resources,
-                                                  pygame_settings.audio)
-            p.char_sheet.equipped[2][0] = treasure.Treasure(3, self.db.cursor, self.win_ui.tilesets, resources,
-                                                            pygame_settings.audio,
-                                                            resources.fate_rnd)
-            p.char_sheet.calc_stats()
-            p.char_sheet.hp_get(100, percent=True)
-            p.char_sheet.mp_get(100, percent=True)
-            p.char_sheet.food_get(100, percent=True)
+                self.win_ui.key_focus = None
+                wins_dict['dialogue'].dialogue_elements = {
+                    'header': 'Attention',
+                    'text': 'All existing chapter progress will be erased! $n Continue?',
+                    'bttn_cancel': 'NO',
+                    'bttn_ok': 'YES'
+                }
+                wins_dict['dialogue'].delayed_action = (self, 'chapter_begin', (pygame_settings, wins_dict, active_wins))
+                wins_dict['dialogue'].launch(pc, wins_dict, active_wins)
 
-            self.location_change(pygame_settings, wins_dict, active_wins, p, 'up', launch=True)
+        elif element.id == 'continue_chapter' and m_bttn == 1 and mb_event == 'up' and element.mode == 1:
+            if self.pc is None:
+                wins_dict['dialogue'].dialogue_elements = {
+                    'header': 'Attention',
+                    'text': 'You have to load a character first!',
+                    'bttn_cancel': 'OK'
+                }
+                wins_dict['dialogue'].launch(pc, wins_dict, active_wins)
+            else:
+                self.win_ui.key_focus = None
+
+                self.pc.char_sheet.calc_stats()
+                self.pc.char_sheet.hp_get(100, percent=True)
+                self.pc.char_sheet.mp_get(100, percent=True)
+                self.pc.char_sheet.food_get(100, percent=True)
+
+                self.clear_quick_view(wins_dict, active_wins)
+
+                self.location_change(pygame_settings, wins_dict, active_wins, self.pc, 'up', launch=True)
 
         elif element.id == 'load' and m_bttn == 1 and mb_event == 'up' and element.mode == 1:
             self.win_ui.key_focus = None
-            if self.save_selection is not None:
-                char_sheet = charsheet.CharSheet(self.db, self.savegames[self.save_selection]['char_id'],
-                                                 chr_name=self.field_charname_edit.text_obj.caption,
-                                                 chr_type=self.chars[self.char_selection]['char_type'], chr_level=1)
-                p = pc.PC(0, 0, None, self.animations.get_animation('anthro_default'), char_sheet, state=0)
-                p.char_portrait_index = self.savegames[self.save_selection]['char_image_index']
+            self.char_load(pygame_settings, wins_dict, active_wins)
 
-                gamesave.load_char(p, self.db.cursor, self.win_ui.tilesets, pygame_settings.audio)
+        # PAGE 2 quickview buttons
+        if 'quick_view' in element.tags and m_bttn == 1 and element.mode == 0 and mb_event == 'down':
+            if element.id == 'quick_inv':
+                if not wins_dict['inventory'] in active_wins:
+                    wins_dict['inventory'].launch(self.pc)
+                    wins_dict['inventory'].render()
+                    active_wins.insert(0, wins_dict['inventory'])
+            elif element.id == 'quick_skb':
+                if not wins_dict['skillbook'] in active_wins:
+                    wins_dict['skillbook'].launch(self.pc)
+                    wins_dict['skillbook'].render()
+                    active_wins.insert(0, wins_dict['skillbook'])
+            elif element.id == 'quick_hot':
+                if not wins_dict['hotbar'] in active_wins:
+                    wins_dict['hotbar'].render()
+                    active_wins.insert(0, wins_dict['hotbar'])
+            elif element.id == 'quick_char':
+                if not wins_dict['charstats'] in active_wins:
+                    wins_dict['charstats'].launch(self.pc)
+                    wins_dict['charstats'].render()
+                    active_wins.insert(0, wins_dict['charstats'])
 
-                p.char_sheet.calc_stats()
-                p.char_sheet.hp_get(100, percent=True)
-                p.char_sheet.mp_get(100, percent=True)
-                p.char_sheet.food_get(100, percent=True)
-
-                self.location_change(pygame_settings, wins_dict, active_wins, p, 'up', launch=True)
-
+        elif 'quick_view' in element.tags and m_bttn == 1 and element.mode == 1 and element.sw_op is False and mb_event == 'up':
+            if element.id == 'quick_inv':
+                if wins_dict['inventory'] in active_wins:
+                    active_wins.remove(wins_dict['inventory'])
+                    self.pc.char_sheet.itemlist_cleanall_inventory()
+                    wins_dict['inventory'].end()
+            elif element.id == 'quick_skb':
+                if wins_dict['skillbook'] in active_wins:
+                    active_wins.remove(wins_dict['skillbook'])
+                    self.pc.char_sheet.itemlist_cleanall_skills()
+                    wins_dict['skillbook'].end()
+            elif element.id == 'quick_hot':
+                if wins_dict['hotbar'] in active_wins:
+                    active_wins.remove(wins_dict['hotbar'])
+            elif element.id == 'quick_char':
+                if wins_dict['charstats'] in active_wins:
+                    active_wins.remove(wins_dict['charstats'])
+                    wins_dict['charstats'].end()
 
         self.win_ui.updated = True
         self.win_ui.interaction_callback(element, mb_event, m_bttn)
@@ -260,7 +329,7 @@ class AppTitle:
 
         for i in range(0, len(main_menu)):
             main_menu[i].tags = ['lightup']
-            main_menu[i].page = 0
+            main_menu[i].page = (0,)
             main_menu[i].rendered_rect.left = round(menu_btn_h)
             main_menu[i].rendered_rect.centery = round(self.win_ui.pygame_settings.screen_res[1] / 2) + (menu_btn_h * 1.2) * i
 
@@ -272,8 +341,8 @@ class AppTitle:
         saves_top = self.win_h / 2 - menu_btn_h // 2
         save_w = 160
         save_h = 210
-        saves_per_row = 6
-        saves_total = 6
+        saves_per_row = 5
+        saves_total = 5
         save_texture = self.win_ui.random_texture((save_w, save_h), 'black_rock')
         bttn_img_up = pydraw.square((0, 0), (save_w, save_h),
                                     (self.win_ui.resources.colors['gray_light'],
@@ -291,48 +360,48 @@ class AppTitle:
             save_x = saves_left + (save_w + 8) * (i % saves_per_row)
             save_y = saves_top + (save_h + 8) * (i // saves_per_row)
 
-            char_img = pygame.transform.scale(self.win_ui.tilesets.get_image('char_portraits', (60,60), (self.savegames[i]['char_image_index'],))[0], (120, 120))
-            char_panel = self.win_ui.panel_add(i, (save_x + 20, save_y + 16), (save_w, save_h), images=(char_img,), page=0)
+            char_img = self.win_ui.tilesets.get_image('char_portraits', (60,60), (self.savegames[i]['char_image_index'],))
+            char_panel = self.win_ui.panel_add(i, (save_x + 20, save_y + 12), (120, 120), images=char_img, img_stretch=True, page=(0,))
             self.win_ui.decoratives.append(char_panel)
 
             char_name_string = \
                 self.win_ui.text_add('char_name',
-                                     (save_x + 8, save_y + 16 + 120 + 8),
+                                     (save_x + 4, save_y + 8 + 120 + 8),
                                      caption='%s' % self.savegames[i]['char_name'],
-                                     h_align='center', v_align='top', size=(save_w - 16, 14), cap_color='fnt_celeb',
-                                     cap_font='def_bold', cap_size=24, page=0)
+                                     h_align='center', v_align='top', size=(save_w - 8, 14), cap_color='fnt_celeb',
+                                     cap_font='def_bold', cap_size=24, page=(0,))
             self.win_ui.decoratives.append(char_name_string)
 
             char_type_string = \
                 self.win_ui.text_add('char_type',
-                                     (save_x + 8, save_y + 16 + 120 + 8 + 14),
+                                     (save_x + 4, save_y + 8 + 120 + 8 + 14),
                                      caption='%s, level %s' % (self.savegames[i]['char_type'].capitalize(), self.savegames[i]['char_level']),
-                                     h_align='center', v_align='top', size=(save_w - 16, 14), cap_color='fnt_celeb',
-                                     cap_font='def_normal', cap_size=24, page=0)
+                                     h_align='center', v_align='top', size=(save_w - 8, 14), cap_color='fnt_celeb',
+                                     cap_font='def_normal', cap_size=24, page=(0,))
             self.win_ui.decoratives.append(char_type_string)
 
             chapter_string = \
                 self.win_ui.text_add('chapter_label',
-                                     (save_x + 8, save_y + 16 + 120 + 8 + 14 + 14),
+                                     (save_x + 4, save_y + 8 + 120 + 8 + 14 + 14),
                                      caption=self.savegames[i]['chapter_label'] + ' %s:' % (self.savegames[i]['stage_index'] + 1,),
-                                     h_align='center', v_align='top', size=(save_w - 16, 14), cap_color='fnt_celeb',
-                                     cap_font='def_normal', cap_size=24, page=0)
+                                     h_align='center', v_align='top', size=(save_w - 8, 14), cap_color='fnt_celeb',
+                                     cap_font='def_normal', cap_size=24, page=(0,))
             self.win_ui.decoratives.append(chapter_string)
 
             stage_string = \
                 self.win_ui.text_add('stage_string',
-                                     (save_x + 8, save_y + 16 + 120 + 8 + 14 + 14 + 14),
+                                     (save_x + 4, save_y + 8 + 120 + 8 + 14 + 14 + 14),
                                      caption='%s' % (self.savegames[i]['stage_label'], ),
-                                     h_align='center', v_align='top', size=(save_w - 16, 14), cap_color='fnt_celeb',
-                                     cap_font='def_normal', cap_size=24, page=0)
+                                     h_align='center', v_align='top', size=(save_w - 8, 14), cap_color='fnt_celeb',
+                                     cap_font='def_normal', cap_size=24, page=(0,))
             self.win_ui.decoratives.append(stage_string)
 
-            save_panel = self.win_ui.panel_add(i, (save_x, save_y), (save_w, save_h), images=(save_texture,), page=0)
+            save_panel = self.win_ui.panel_add(i, (save_x, save_y), (save_w, save_h), images=(save_texture,), page=(0,))
             self.win_ui.decoratives.append(save_panel)
 
             save_bttn = self.win_ui.button_add(i, xy=(save_x, save_y),size=(save_w, save_h),
                                                images=(bttn_img_up, bttn_img_down),
-                                               sounds=self.win_ui.snd_packs['button'], switch=True)
+                                               sounds=self.win_ui.snd_packs['button'], switch=True, page=(0,))
             save_bttn.tags = ('saveswitch',)
             save_bttn.rendered_button.set_colorkey((0, 254, 0))
             self.win_ui.interactives.append(save_bttn)
@@ -342,7 +411,7 @@ class AppTitle:
         if len(self.savegames) > 0:
             bttn_load = self.win_ui.button_add('load', caption='Load', size=(menu_btn_w, menu_btn_h),
                                                 cap_font='large', cap_size=16,
-                                                cap_color='fnt_muted', sounds=self.win_ui.snd_packs['button'], page=0)
+                                                cap_color='fnt_muted', sounds=self.win_ui.snd_packs['button'], page=(0,))
             bttn_load.rendered_rect.right = round(self.win_ui.pygame_settings.screen_res[0] - menu_btn_h)
             bttn_load.rendered_rect.centery = round(self.win_ui.pygame_settings.screen_res[1] / 2) + (
                     menu_btn_h * 1.2) * 7
@@ -356,7 +425,7 @@ class AppTitle:
                                               cap_color='fnt_muted', sounds=self.win_ui.snd_packs['button'],
                                               switch=True, mode=0)
             new_bttn.tags = ['lightup', 'charswitch']
-            new_bttn.page = 1
+            new_bttn.page = (1,)
             new_bttn.rendered_rect.left = round(menu_btn_h)
             new_bttn.rendered_rect.centery = round(self.win_ui.pygame_settings.screen_res[1] / 2) + (
                         menu_btn_h * 1.2) * i
@@ -367,12 +436,12 @@ class AppTitle:
         char_menu[0].text_obj.render()
         char_menu[0].render()
 
-        bttn_begin = self.win_ui.button_add('begin', caption='Start', size=(menu_btn_w, menu_btn_h),
+        bttn_begin = self.win_ui.button_add('new_char_begin', caption='Start', size=(menu_btn_w, menu_btn_h),
                                             cap_font='large', cap_size = 16,
-                                            cap_color='fnt_muted', sounds=self.win_ui.snd_packs['button'], page=1)
+                                            cap_color='fnt_muted', sounds=self.win_ui.snd_packs['button'], page=(1,))
         bttn_back = self.win_ui.button_add('back', caption='Main menu', size=(menu_btn_w, menu_btn_h),
                                            cap_font='large', cap_size=16,
-                                           cap_color='fnt_muted', sounds=self.win_ui.snd_packs['button'], page=1)
+                                           cap_color='fnt_muted', sounds=self.win_ui.snd_packs['button'], page=(1,2))
 
         bttn_back.rendered_rect.left = round(menu_btn_h)
         bttn_back.rendered_rect.centery = round(self.win_ui.pygame_settings.screen_res[1] / 2) + (menu_btn_h * 1.2) * 7
@@ -383,7 +452,7 @@ class AppTitle:
 
         # CHAR NAME INPUT FIELD
         self.field_charname_edit = self.win_ui.edit_add('input_name', (0, 0), sounds=self.win_ui.snd_packs['text_input'], cap_font='def_normal',
-                                                        size=(round(menu_btn_w * 0.6), round(menu_btn_h * 0.7)), h_align='center', page=1)
+                                                        size=(round(menu_btn_w * 0.6), round(menu_btn_h * 0.7)), h_align='center', page=(1,))
         self.field_charname_edit.rendered_rect.centerx = round(menu_btn_h + menu_btn_w + (self.win_ui.pygame_settings.screen_res[0] / 2 - menu_btn_h - menu_btn_w) / 2)
         self.field_charname_edit.rendered_rect.centery = round(self.win_ui.pygame_settings.screen_res[1] / 2) + (
                 menu_btn_h * 1.2) * 7
@@ -408,7 +477,7 @@ class AppTitle:
         bttn_img_down.blit(rnd_img, (2, 2))
         rnd_name_bttn = self.win_ui.button_add('rnd_name', caption='/@', size=(round(menu_btn_h * 0.7), round(menu_btn_h * 0.7)),
                                cap_font='def_bold', cap_size=24, cap_color='fnt_celeb',
-                               sounds=self.win_ui.snd_packs['button'], images=(bttn_img_up, bttn_img_down), page=1)
+                               sounds=self.win_ui.snd_packs['button'], images=(bttn_img_up, bttn_img_down), page=(1,))
         rnd_name_bttn.rendered_rect.left = self.field_charname_edit.rendered_rect.right
         rnd_name_bttn.rendered_rect.top = self.field_charname_edit.rendered_rect.top
         self.win_ui.interactives.append(rnd_name_bttn)
@@ -421,7 +490,7 @@ class AppTitle:
                                               cap_color='fnt_muted', sounds=self.win_ui.snd_packs['button'],
                                               switch=True, mode=0)
             new_bttn.tags = ['lightup', 'chapterswitch']
-            new_bttn.page = 1
+            new_bttn.page = (1,2)
             new_bttn.rendered_rect.right = round(self.win_ui.pygame_settings.screen_res[0] - menu_btn_h)
             new_bttn.rendered_rect.centery = round(self.win_ui.pygame_settings.screen_res[1] / 2) + (
                     menu_btn_h * 1.2) * i
@@ -437,7 +506,7 @@ class AppTitle:
             (menu_btn_h, round(self.win_ui.pygame_settings.screen_res[1] / 2 - menu_btn_h*1.5)),
             caption='Choose a character:',
             h_align='center', v_align='top', size=char_menu[0].size, cap_color='fnt_celeb',
-            cap_font='large', cap_size=14, page=1)
+            cap_font='large', cap_size=14, page=(1,))
         self.win_ui.decoratives.append(char_string)
 
         chapter_string = \
@@ -447,28 +516,31 @@ class AppTitle:
             caption='Choose a chapter:',
             h_align='center', v_align='top', size=char_menu[0].size,
             cap_color='fnt_celeb',
-            cap_font='large', cap_size=14, page=1)
+            cap_font='large', cap_size=14, page=(1,2))
         self.win_ui.decoratives.append(chapter_string)
 
         char_imgs = self.win_ui.tilesets.get_image('char_portraits', (60,60), (0,))
         self.char_img_panel = self.win_ui.panel_add('char_img_panel', (
             menu_btn_h + menu_btn_w + (self.win_ui.pygame_settings.screen_res[0] / 2 - menu_btn_h - menu_btn_w) / 2 - 60,
             char_menu[0].rendered_rect.top
-        ), (120, 120), images=char_imgs, page=1, img_stretch=True)
+        ), (120, 120), images=char_imgs, page=(1,), img_stretch=True)
         self.win_ui.decoratives.append(self.char_img_panel)
 
+        self.char_title_string = \
+            self.win_ui.text_add('char_title',
+                                 (0, chapter_menu[0].rendered_rect.top + 120 + 8),
+                                 caption="%s's story:" % self.chars[self.char_selection]['label'].capitalize(),
+                                 h_align='center', v_align='top', size=(menu_btn_w, 32),
+                                 cap_color='fnt_celeb', cap_font='large', cap_size=14, page=(1,))
+        self.char_title_string.rendered_rect.centerx = menu_btn_h + menu_btn_w + (self.win_ui.pygame_settings.screen_res[0] / 2 - menu_btn_h - menu_btn_w) / 2
+        self.win_ui.decoratives.append(self.char_title_string)
+
         self.char_desc_string = \
-            self.win_ui.text_add('char_desc',
-                                 (menu_btn_h * 2 + menu_btn_w,
-                                  round(char_menu[0].rendered_rect.top + 120 + 32)),
-                                 caption=self.chars[0]['desc'],
-                                 h_align='left', v_align='top',
+            self.win_ui.text_add('char_desc', (menu_btn_h * 2 + menu_btn_w, round(char_menu[0].rendered_rect.top + 120 + 48)),
+                                 caption=self.chars[0]['desc'], h_align='left', v_align='top',
                                  size=(
-                                     self.win_ui.pygame_settings.screen_res[0] / 2 - menu_btn_h - menu_btn_w - 64,
-                                     120
-                                 ),
-                                 cap_color='fnt_celeb',
-                                 cap_font='def_normal', cap_size=24, page=1)
+                                     self.win_ui.pygame_settings.screen_res[0] / 2 - menu_btn_h - menu_btn_w - 64, 120
+                                 ), cap_color='fnt_celeb', cap_font='def_normal', cap_size=24, page=(1,))
         self.win_ui.decoratives.append(self.char_desc_string)
 
         input_invite_string = \
@@ -478,7 +550,7 @@ class AppTitle:
                                  h_align='center', v_align='top',
                                  size=(280, 32),
                                  cap_color='fnt_celeb',
-                                 cap_font='large', cap_size=14, page=1)
+                                 cap_font='large', cap_size=14, page=(1,))
         input_invite_string.rendered_rect.centerx = menu_btn_h + menu_btn_w + (self.win_ui.pygame_settings.screen_res[0] / 2 - menu_btn_h - menu_btn_w) / 2
         self.win_ui.decoratives.append(input_invite_string)
 
@@ -486,27 +558,184 @@ class AppTitle:
         self.chapter_img_panel = self.win_ui.panel_add('chapter_img_panel', (
             self.win_ui.pygame_settings.screen_res[0] / 2 + (self.win_ui.pygame_settings.screen_res[0] / 2 - menu_btn_h - menu_btn_w) / 2 - 60,
             chapter_menu[0].rendered_rect.top
-        ), (120, 120), images=chapter_imgs, page=1, img_stretch=True)
+        ), (120, 120), images=chapter_imgs, page=(1,2), img_stretch=True)
         self.win_ui.decoratives.append(self.chapter_img_panel)
+
+        self.chapter_title_string = \
+            self.win_ui.text_add('chapter_title',
+                                 (0,chapter_menu[0].rendered_rect.top + 120 + 8),
+                                 caption=self.chapters[0]['label'], h_align='center', v_align='top',
+                                 size=(menu_btn_w, 32),
+                                 cap_color='fnt_celeb', cap_font='large', cap_size=14, page=(1, 2))
+        self.chapter_title_string.rendered_rect.centerx = self.win_ui.pygame_settings.screen_res[0] / 2 + (self.win_ui.pygame_settings.screen_res[0] / 2 - menu_btn_h - menu_btn_w) / 2
+        self.win_ui.decoratives.append(self.chapter_title_string)
 
         self.chapter_desc_string = \
             self.win_ui.text_add('chapter_desc',
                                  (self.win_ui.pygame_settings.screen_res[0] - (menu_btn_h * 2 + menu_btn_w) - (self.win_ui.pygame_settings.screen_res[0] / 2 - menu_btn_h - menu_btn_w - 64),
-                                  round(char_menu[0].rendered_rect.top + 120 + 32)),
-                                 caption=self.chapters[0]['desc'],
-                                 h_align='left', v_align='top',
+                                  round(char_menu[0].rendered_rect.top + 120 + 48)),
+                                 caption=self.chapters[0]['desc'], h_align='left', v_align='top',
                                  size=(
-                                     self.win_ui.pygame_settings.screen_res[0] / 2 - menu_btn_h - menu_btn_w - 64,
-                                     120
+                                     self.win_ui.pygame_settings.screen_res[0] / 2 - menu_btn_h - menu_btn_w - 64, 120
                                  ),
-                                 cap_color='fnt_celeb',
-                                 cap_font='def_normal', cap_size=24, page=1)
+                                 cap_color='fnt_celeb', cap_font='def_normal', cap_size=24, page=(1,2))
         self.win_ui.decoratives.append(self.chapter_desc_string)
 
-        tag_string = self.win_ui.text_add('tag_string', (0, self.win_ui.pygame_settings.screen_res[1] - 16), caption=settings.tag_string,
-                                          h_align='left', v_align='bottom',
+        # PAGE 2
+        self.curr_chapter_img_panel = self.win_ui.panel_add('chapter_img_panel', (
+            menu_btn_h + menu_btn_w + (
+                        self.win_ui.pygame_settings.screen_res[0] / 2 - menu_btn_h - menu_btn_w) / 2 - 60,
+            char_menu[0].rendered_rect.top
+        ), (120, 120), images=chapter_imgs, page=(2,), img_stretch=True)
+        self.win_ui.decoratives.append(self.curr_chapter_img_panel)
+
+        self.curr_chapter_title_string = \
+            self.win_ui.text_add('chapter_title',
+                                 (0, chapter_menu[0].rendered_rect.top + 120 + 8),
+                                 caption=self.chapters[0]['label'], h_align='center', v_align='top',
+                                 size=(menu_btn_w, 32),
+                                 cap_color='fnt_celeb', cap_font='large', cap_size=14, page=(2,))
+        self.curr_chapter_title_string.rendered_rect.centerx = menu_btn_h + menu_btn_w + (self.win_ui.pygame_settings.screen_res[0] / 2 - menu_btn_h - menu_btn_w) / 2
+        self.win_ui.decoratives.append(self.curr_chapter_title_string)
+
+        self.curr_chapter_desc_string = \
+            self.win_ui.text_add('chapter_desc',
+                                 (menu_btn_h * 2 + menu_btn_w, round(char_menu[0].rendered_rect.top + 120 + 48)),
+                                 caption=self.chapters[0]['desc'], h_align='left', v_align='top',
+                                 size=(
+                                     self.win_ui.pygame_settings.screen_res[0] / 2 - menu_btn_h - menu_btn_w - 64, 120
+                                 ),
+                                 cap_color='fnt_celeb', cap_font='def_normal', cap_size=24, page=(2,))
+        self.win_ui.decoratives.append(self.curr_chapter_desc_string)
+
+        self.curr_chapter_stage_string = \
+            self.win_ui.text_add('chapter_stage',
+                                 (0, round(self.win_ui.pygame_settings.screen_res[1] / 2) + (
+                menu_btn_h * 1.2) * 7 - menu_btn_h * 1.9),
+                                 caption='chapter $n stage', h_align='center', v_align='top',
+                                 size=(menu_btn_w, 48),
+                                 cap_color='fnt_celeb', cap_font='large', cap_size=14, page=(2,))
+        self.curr_chapter_stage_string.rendered_rect.centerx = menu_btn_h + menu_btn_w + (
+                    self.win_ui.pygame_settings.screen_res[0] / 2 - menu_btn_h - menu_btn_w) / 2
+        self.win_ui.decoratives.append(self.curr_chapter_stage_string)
+
+        bttn_begin_chapter = self.win_ui.button_add('begin_chapter', caption='Start New Chapter', size=(menu_btn_w, menu_btn_h),
+                                            cap_font='large', cap_size=16,
+                                            cap_color='fnt_muted', sounds=self.win_ui.snd_packs['button'], page=(2,))
+        bttn_begin_chapter.rendered_rect.right = round(self.win_ui.pygame_settings.screen_res[0] - menu_btn_h)
+        bttn_begin_chapter.rendered_rect.centery = round(self.win_ui.pygame_settings.screen_res[1] / 2) + (
+                menu_btn_h * 1.2) * 7
+
+        bttn_continue_chapter = self.win_ui.button_add('continue_chapter', caption='Resume Chapter',
+                                                    size=(menu_btn_w, menu_btn_h),
+                                                    cap_font='large', cap_size=16,
+                                                    cap_color='fnt_muted', sounds=self.win_ui.snd_packs['button'],
+                                                    page=(2,))
+        bttn_continue_chapter.rendered_rect.centerx = round(menu_btn_h + menu_btn_w + (self.win_ui.pygame_settings.screen_res[0] / 2 - menu_btn_h - menu_btn_w) / 2)
+        bttn_continue_chapter.rendered_rect.centery = round(self.win_ui.pygame_settings.screen_res[1] / 2) + (
+                menu_btn_h * 1.2) * 7
+
+        curr_chapter_string = \
+            self.win_ui.text_add('chapter_string',
+                                 (menu_btn_h, round(self.win_ui.pygame_settings.screen_res[1] / 2 - menu_btn_h * 1.5)),
+                                 caption='Current Chapter:',
+                                 h_align='center', v_align='top', size=char_menu[0].size, cap_color='fnt_celeb',
+                                 cap_font='large', cap_size=14, page=(2,))
+        curr_chapter_string.rendered_rect.centerx = round(
+            menu_btn_h + menu_btn_w + (self.win_ui.pygame_settings.screen_res[0] / 2 - menu_btn_h - menu_btn_w) / 2)
+        self.win_ui.decoratives.append(curr_chapter_string)
+
+        # character windows buttons
+        quick_btn_w = 60
+        quick_btn_h = 34
+        bttns_per_row = 2
+        bttn_texture = self.win_ui.random_texture((quick_btn_w, quick_btn_h), 'red_glass')
+        bttn_icons = (
+            self.win_ui.tilesets.get_image('interface', (24, 24,), (20, 21)),
+            self.win_ui.tilesets.get_image('interface', (24, 24,), (22, 23)),
+            self.win_ui.tilesets.get_image('interface', (24, 24,), (24, 25)),
+            self.win_ui.tilesets.get_image('interface', (24, 24,), (26, 27)),
+            self.win_ui.tilesets.get_image('interface', (24, 24,), (28, 29))
+        )
+        bttn_img_list = []
+        for i in range(0, 5):
+            bttn_up_img = pydraw.square((0, 0), (quick_btn_w, quick_btn_h),
+                                        (self.win_ui.resources.colors['gray_light'],
+                                         self.win_ui.resources.colors['gray_dark'],
+                                         self.win_ui.resources.colors['gray_mid'],
+                                         self.win_ui.resources.colors['gray_darker']),
+                                        sq_outsize=1, sq_bsize=1, sq_ldir=0, sq_fill=False,
+                                        sq_image=bttn_texture)
+            bttn_up_img.blit(bttn_icons[i][0], (round(quick_btn_w / 2 - 12), round(quick_btn_h / 2 - 12)))
+            bttn_down_img = pydraw.square((0, 0), (quick_btn_w, quick_btn_h),
+                                          (self.win_ui.resources.colors['gray_light'],
+                                           self.win_ui.resources.colors['gray_dark'],
+                                           self.win_ui.resources.colors['gray_mid'],
+                                           self.win_ui.resources.colors['gray_darker']),
+                                          sq_outsize=1, sq_bsize=1, sq_ldir=2, sq_fill=False,
+                                          sq_image=bttn_texture)
+            bttn_down_img.blit(bttn_icons[i][1], (round(quick_btn_w / 2 - 12), round(quick_btn_h / 2 - 12)))
+
+            bttn_img_list.append((
+                bttn_up_img, bttn_down_img
+            ))
+        char_quick_menu = (
+            self.win_ui.button_add('quick_inv', size=(quick_btn_w, quick_btn_h), cap_size=24, cap_color='fnt_muted',
+                                   sounds=self.win_ui.snd_packs['button'], images=bttn_img_list[0], switch=True),
+            self.win_ui.button_add('quick_skb', size=(quick_btn_w, quick_btn_h), cap_size=24, cap_color='fnt_muted',
+                                   sounds=self.win_ui.snd_packs['button'], images=bttn_img_list[1], switch=True),
+            self.win_ui.button_add('quick_hot', size=(quick_btn_w, quick_btn_h), cap_size=24, cap_color='fnt_muted',
+                                   sounds=self.win_ui.snd_packs['button'], images=bttn_img_list[2], switch=True),
+            self.win_ui.button_add('quick_char', size=(quick_btn_w, quick_btn_h), cap_size=24, cap_color='fnt_muted',
+                                   sounds=self.win_ui.snd_packs['button'], images=bttn_img_list[3], switch=True),
+            # self.win_ui.button_add('opts', size=(quick_btn_w, quick_btn_h), cap_size=24, cap_color='fnt_muted',
+            #                        sounds=self.win_ui.snd_packs['button'], images=bttn_img_list[4], switch=True),
+        )
+        for i in range(0, len(char_quick_menu)):
+            char_quick_menu[i].tags = ['quick_view']
+            char_quick_menu[i].page = (2,)
+            char_quick_menu[i].rendered_rect.left = menu_btn_h + menu_btn_w // 2 - 60 + (quick_btn_w * (i % bttns_per_row))
+            char_quick_menu[i].rendered_rect.top = chapter_menu[0].rendered_rect.top + 120 + 8 + 64 + (quick_btn_h * (i // bttns_per_row))
+
+        # loaded character info
+        curr_char_string = \
+            self.win_ui.text_add('char_string',
+                                 (menu_btn_h, round(self.win_ui.pygame_settings.screen_res[1] / 2 - menu_btn_h * 1.5)),
+                                 caption='Loaded Character:',
+                                 h_align='center', v_align='top', size=char_menu[0].size, cap_color='fnt_celeb',
+                                 cap_font='large', cap_size=14, page=(2,))
+        self.win_ui.decoratives.append(curr_char_string)
+
+        curr_char_img = self.win_ui.tilesets.get_image('char_portraits', (60, 60), (0,))
+        self.curr_char_panel = self.win_ui.panel_add('curr_char_panel', (menu_btn_h + menu_btn_w // 2 - 60,
+                                                    char_menu[0].rendered_rect.top),
+                                                (120, 120), images=curr_char_img, img_stretch=True, page=(2,))
+        self.win_ui.decoratives.append(self.curr_char_panel)
+
+        self.curr_char_name_string = \
+            self.win_ui.text_add('char_name',
+                                 (menu_btn_h + 56, char_menu[0].rendered_rect.top + 120 + 8),
+                                 caption='char_name',
+                                 h_align='center', v_align='top', size=(save_w - 16, 14), cap_color='fnt_celeb',
+                                 cap_font='def_bold', cap_size=24, page=(2,))
+        self.win_ui.decoratives.append(self.curr_char_name_string)
+
+        self.curr_char_type_string = \
+            self.win_ui.text_add('char_type',
+                                 (menu_btn_h + 56, char_menu[0].rendered_rect.top + 120 + 8 + 14),
+                                 caption='char_type',
+                                 h_align='center', v_align='top', size=(save_w - 16, 14), cap_color='fnt_celeb',
+                                 cap_font='def_normal', cap_size=24, page=(2,))
+        self.win_ui.decoratives.append(self.curr_char_type_string)
+
+        # all pages
+        tag_string = self.win_ui.text_add('tag_string', (0, self.win_ui.pygame_settings.screen_res[1] - 16),
+                                          caption=settings.tag_string, h_align='left', v_align='bottom',
                                           size=(self.win_ui.pygame_settings.screen_res[0] // 4, 16), cap_color='sun')
 
+        self.win_ui.interactives.extend(char_quick_menu)
+        self.win_ui.interactives.append(bttn_continue_chapter)
+        self.win_ui.interactives.append(bttn_begin_chapter)
         self.win_ui.interactives.append(bttn_begin)
         self.win_ui.interactives.append(bttn_back)
         self.win_ui.interactives.extend(main_menu)
@@ -525,10 +754,13 @@ class AppTitle:
                                                      (active_wins, 20, None))
 
     def location_update(self, pygame_settings, wins_dict, active_wins, pc, entry, launch=False):
+
+        if not launch:
+            gamesave.save_maze(pc, wins_dict['realm'].maze, self.db, self.win_ui.tilesets, self.animations, pygame_settings.audio)
+        # dbrequests.chapter_progress_set(self.db, pc.char_sheet.id, wins_dict['realm'].maze.stage_index, 1, 1, 1, 1, 1, 1)
+
         wins_dict['realm'].maze = None
-        l = maze.Maze(self.db, self.animations, self.win_ui.tilesets, pc.char_sheet.level, pc.location)
-        """for r in l.array:
-            print(*r)"""
+        l = maze.Maze(self.db, self.animations, self.win_ui.tilesets, pygame_settings.audio, pc)
 
         for i in range(0, len(l.exits)):
             if l.exits[i].dest == entry:
@@ -536,10 +768,13 @@ class AppTitle:
                 pc.y_sq = l.exits[i].y_sq + 1
                 break
 
-        wins_dict['realm'].maze = l
-        wins_dict['realm'].pc = pc
+        gamesave.save_maze(pc, l, self.db, self.win_ui.tilesets, self.animations, pygame_settings.audio)
+        dbrequests.chapter_progress_set(self.db, pc.char_sheet.id, l.stage_index, 1, 1, 1, 1, 1, 1)
 
         gamesave.save_char(pc, l, self.db, self.win_ui.tilesets, pygame_settings.audio)
+
+        wins_dict['realm'].maze = l
+        wins_dict['realm'].pc = pc
 
         if launch:
             wins_dict['realm'].launch(pygame_settings.audio, settings, wins_dict, active_wins)
@@ -553,21 +788,138 @@ class AppTitle:
         wins_dict['pools'].render()
 
     def char_info_update(self):
-        self.char_img_panel.images = self.win_ui.tilesets.get_image('char_portraits', (60,60), (self.char_selection,))
+        self.char_img_panel.images_update(self.win_ui.tilesets.get_image('char_portraits', (60,60), (self.char_selection,)))
 
         self.char_desc_string.text_obj.caption = self.chars[self.char_selection]['desc']
         self.char_desc_string.render_all()
 
+        self.char_title_string.text_obj.caption = "%s's story:" % self.chars[self.char_selection]['label'].capitalize()
+        self.char_title_string.render_all()
+
     def chapter_info_update(self):
-        self.chapter_img_panel.images = self.win_ui.tilesets.get_image('red_glass', (60,60), (self.chapter_selection,))
+        self.chapter_img_panel.images_update(self.win_ui.tilesets.get_image('red_glass', (60,60), (self.chapters[self.chapter_selection]['chapter_image_index'],)))
 
         self.chapter_desc_string.text_obj.caption = self.chars[self.chapter_selection]['desc']
         self.chapter_desc_string.render_all()
+
+        self.chapter_title_string.text_obj.caption = self.chars[self.chapter_selection]['label'].capitalize()
+        self.chapter_title_string.render_all()
+
+    def chapter_begin(self, pygame_settings, wins_dict, active_wins):
+        self.pc.char_sheet.calc_stats()
+        self.pc.char_sheet.hp_get(100, percent=True)
+        self.pc.char_sheet.mp_get(100, percent=True)
+        self.pc.char_sheet.food_get(100, percent=True)
+
+        gamesave.chapter_wipe(self.db, self.pc)
+
+        self.pc.location = [self.chapters[self.chapter_selection], 0]
+
+        self.clear_quick_view(wins_dict, active_wins)
+
+        self.location_change(pygame_settings, wins_dict, active_wins, self.pc, 'up', launch=True)
+
+    def chapter_end(self, wins_dict, active_wins, chapter_dict):
+        wins_dict['app_title'].schedule_man.task_add('realm_tasks', 1, wins_dict['overlay'], 'fade_out',
+                                                     (active_wins, 20, None))
+        wins_dict['app_title'].schedule_man.task_add('realm_tasks', 2, wins_dict['demos'], 'ending_run',
+                                                     (wins_dict, active_wins, self.win_ui.resources, pc, chapter_dict))
+        wins_dict['app_title'].schedule_man.task_add('realm_tasks', 2, wins_dict['overlay'], 'fade_in',
+                                                     (active_wins, 20, None))
 
     def char_name_rnd(self):
         self.field_charname_edit.text_obj.caption = dbrequests.char_name_get_random(self.db.cursor)
         self.field_charname_edit.render_all()
         self.win_ui.updated = True
+
+    def char_create(self):
+        if self.field_charname_edit.text_obj.caption == '':
+            self.char_name_rnd()
+
+        valid_saves = [save for save in self.savegames if save is not None]
+        if len(valid_saves) > 0:
+            new_char_id = max([save['char_id'] for save in valid_saves]) + 1
+        else:
+            new_char_id = 0
+        char_sheet = charsheet.CharSheet(self.db, new_char_id, chr_name=self.field_charname_edit.text_obj.caption,
+                                         chr_type=self.chars[self.char_selection]['char_type'], chr_level=1)
+        p = pc.PC(0, 0, None, self.animations.get_animation('anthro_default'), char_sheet, state=0)
+        p.char_portrait_index = self.char_selection
+        p.char_sheet.hotbar[-2] = skill.Skill(1, p.char_sheet.level, self.db.cursor, self.win_ui.tilesets,
+                                              self.win_ui.resources, self.win_ui.pygame_settings.audio)
+        p.char_sheet.hotbar[-1] = skill.Skill(2, p.char_sheet.level, self.db.cursor, self.win_ui.tilesets,
+                                              self.win_ui.resources, self.win_ui.pygame_settings.audio)
+        p.char_sheet.equipped[2][0] = treasure.Treasure(3, p.char_sheet.level, self.db.cursor, self.win_ui.tilesets,
+                                                        self.win_ui.resources, self.win_ui.pygame_settings.audio,
+                                                        self.win_ui.resources.fate_rnd)
+        self.pc = p
+
+    def char_load(self, pygame_settings, wins_dict, active_wins):
+        if self.save_selection is not None:
+            char_sheet = charsheet.CharSheet(self.db, self.savegames[self.save_selection]['char_id'],
+                                             chr_name=self.field_charname_edit.text_obj.caption,
+                                             chr_type=self.chars[self.char_selection]['char_type'], chr_level=1)
+            p = pc.PC(0, 0, None, self.animations.get_animation('anthro_default'), char_sheet, state=0)
+            p.char_portrait_index = self.savegames[self.save_selection]['char_image_index']
+
+            gamesave.load_char(p, self.db.cursor, self.win_ui.tilesets, pygame_settings.audio)
+
+            self.pc = p
+
+            self.curr_chapter_img_panel.images_update(
+                self.win_ui.tilesets.get_image('red_glass', (60, 60), (self.pc.location[0]['chapter_image_index'],)))
+            self.curr_chapter_title_string.text_obj.caption = self.pc.location[0]['label'].capitalize()
+            self.curr_chapter_title_string.render_all()
+            self.curr_chapter_desc_string.text_obj.caption = self.pc.location[0]['desc']
+            self.curr_chapter_desc_string.render_all()
+            self.curr_chapter_stage_string.text_obj.caption = 'Level %s: $n %s' % (
+            self.pc.location[1] + 1, self.savegames[self.chapter_selection]['stage_label'])
+            self.curr_chapter_stage_string.render_all()
+            self.curr_char_panel.images_update(
+                self.win_ui.tilesets.get_image('char_portraits', (60, 60), (self.pc.char_portrait_index,)))
+            self.curr_char_name_string.text_obj.caption = self.pc.char_sheet.name
+            self.curr_char_name_string.render_all()
+            self.curr_char_type_string.text_obj.caption = '%s, level %s' % (
+            self.pc.char_sheet.type.capitalize(), self.pc.char_sheet.level)
+            self.curr_char_type_string.render_all()
+
+            # self.location_change(pygame_settings, wins_dict, active_wins, p, 'up', launch=True)
+            self.win_ui.page = 2
+
+            wins_dict['hotbar'].launch(self.pc)
+
+            self.win_ui.updated = True
+        else:
+            wins_dict['dialogue'].dialogue_elements = {
+                'header': 'Attention',
+                'text': 'Choose a saved character first!',
+                'bttn_cancel': 'OK'
+            }
+            wins_dict['dialogue'].launch(pc, wins_dict, active_wins)
+
+    def char_delete(self):
+        gamesave.char_wipe(self.db, self.savegames[self.save_selection]['char_id'])
+        dbrequests.char_delete(self.db, self.savegames[self.save_selection]['char_id'])
+        self.win_ui.interactives.remove(self.save_ui_blocks_list[self.save_selection][0])
+        for i in range(1, len(self.save_ui_blocks_list[self.save_selection])):
+            self.win_ui.decoratives.remove(self.save_ui_blocks_list[self.save_selection][i])
+        self.save_ui_blocks_list[self.save_selection] = None
+        self.savegames[self.save_selection] = None
+        self.win_ui.updated = True
+        self.save_selection = None
+
+    def clear_quick_view(self, wins_dict, active_wins):
+        for win in wins_dict.values():
+            if win is not self and win in active_wins:
+                active_wins.remove(win)
+                win.end()
+        for inter in self.win_ui.interactives:
+            if 'quick_view' in inter.tags:
+                inter.mode = 0
+                inter.render()
+        if self.pc is not None:
+            self.pc.char_sheet.itemlist_cleanall_inventory()
+            self.pc.char_sheet.itemlist_cleanall_skills()
 
     def tick(self, pygame_settings, wins_dict, active_wins, mouse_pointer):
         self.win_ui.tick(pygame_settings, mouse_pointer)
@@ -579,8 +931,8 @@ class AppTitle:
         self.offset_y = (height - self.win_h) // 2
 
     def render(self):
-        self.title_rendered.fill((10,10,10))
-        self.win_ui.draw(self.title_rendered)
+        self.win_rendered.fill((10, 10, 10))
+        self.win_ui.draw(self.win_rendered)
 
     def draw(self, surface):
-        surface.blit(self.title_rendered, (self.offset_x, self.offset_y))
+        surface.blit(self.win_rendered, (self.offset_x, self.offset_y))

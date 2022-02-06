@@ -4,7 +4,7 @@ class Trap:
         self.y_sq = y_sq
         self.maze_lvl = maze_lvl
         self.lvl = lvl
-        self.room = room
+        # self.room = room
         self.label = label
         self.range = rang
         self.dam_type = dam_type

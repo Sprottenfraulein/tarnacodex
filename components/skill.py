@@ -1,11 +1,9 @@
 # game skill object
-from library import logfun
 from components import dbrequests
-import random
 
 
 class Skill:
-    def __init__(self, skill_id, db_cursor, tile_sets, resources, audio, x_sq=-1, y_sq=-1, log=True):
+    def __init__(self, skill_id, level, db_cursor, tile_sets, resources, audio, x_sq=-1, y_sq=-1, log=True):
         self.x_sq = x_sq
         self.y_sq = y_sq
         self.off_x = self.off_y = 0
@@ -13,6 +11,8 @@ class Skill:
         self.cooldown_timer = 0
 
         self.props = dbrequests.skill_get_by_id(db_cursor, skill_id)
+
+        calc_level(level, self.props)
 
         # linking images and sounds
         images_update(db_cursor, self.props, tile_sets)
@@ -48,7 +48,7 @@ def sounds_update(db_cursor, skill_props, audio):
 
 def calc_level(level, skill_props):
     skill_props['price_buy'] = skill_props['price_buy'] * level // skill_props['lvl']
-    # skill_props['price_sell'] = skill_props['price_sell'] * level // skill_props['lvl']
+        # skill_props['price_sell'] = skill_props['price_sell'] * level // skill_props['lvl']
 
     skill_props['lvl'] = level
 

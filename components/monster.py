@@ -310,17 +310,22 @@ class Monster:
         self.check(wins_dict, fate_rnd, pc)
 
     def check(self, wins_dict, fate_rnd, pc):
-        if self.hp <= 0:
-            self.alive = False
-            self.anim_frame = 0
-            self.state_change(8)
-            pc.char_sheet.experience_get(self.stats['exp'])
-            wins_dict['pools'].updated = True
-            wins_dict['charstats'].updated = True
-            loot_total = lootgen.generate_loot(self, wins_dict['realm'], fate_rnd, pc)
-            loot_total.extend(lootgen.generate_gold(self, wins_dict['realm'], fate_rnd, pc))
-            lootgen.drop_loot(round(self.x_sq), round(self.y_sq), wins_dict['realm'], loot_total)
-            # wins_dict['realm'].maze.flag_array[round(self.y_sq)][round(self.x_sq)].mon = None
+        if self.hp > 0:
+            return
+        self.alive = False
+        self.anim_frame = 0
+        self.state_change(8)
+
+        pc.char_sheet.experience_get(wins_dict, pc, self.stats['exp'])
+
+        wins_dict['pools'].updated = True
+        wins_dict['charstats'].updated = True
+
+        loot_total = lootgen.generate_loot(self, wins_dict['realm'], fate_rnd, pc)
+        loot_total.extend(lootgen.generate_gold(self, wins_dict['realm'], fate_rnd, pc))
+
+        lootgen.drop_loot(round(self.x_sq), round(self.y_sq), wins_dict['realm'], loot_total)
+        # wins_dict['realm'].maze.flag_array[round(self.y_sq)][round(self.x_sq)].mon = None
 
     def state_change(self, new_state):
         # check if state change is possible

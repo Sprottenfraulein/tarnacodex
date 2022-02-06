@@ -3,8 +3,9 @@ import pygame
 
 
 class Panel:
-    def __init__(self, pan_id, pan_xy, pan_size, pan_images=None, page=None, img_stretch=False, tags=None):
+    def __init__(self, pan_id, pan_xy, pan_size, pan_images=None, page=None, img_stretch=False, tags=None, win=None):
         self.id = pan_id
+        self.win = win
         self.size = pan_size
         self.images = pan_images
         self.page = page
@@ -19,10 +20,11 @@ class Panel:
 
         self.img_stretch = img_stretch
 
-        self.rendered_panel = pygame.Surface(pan_size)
+        self.rendered_panel = pygame.Surface(pan_size).convert()
+        self.rendered_panel.set_colorkey((0,255,0))
         self.rendered_rect = self.rendered_panel.get_rect()
         self.rendered_rect.topleft = pan_xy
-        # self.render()
+        self.render()
 
     def mouse_down(self, m_button):
         if m_button == 1:
@@ -35,17 +37,16 @@ class Panel:
     def release(self, m_button):
         pass
 
-    """def render(self):
-        if self.images is None:
-            return
-       
-        self.rendered_field.blit(self.images[0], (0,0))"""
-        # self.rendered_rect = self.rendered_field.get_rect()
+    def images_update(self, images):
+        self.images = images
+        self.render()
+
+    def render(self):
+        if self.img_stretch:
+            pygame.transform.scale(self.images[self.mode], self.rendered_rect.size, self.rendered_panel)
+        else:
+            self.rendered_panel.blit(self.images[self.mode], (0,0))
 
     def draw(self, surface):
-        # surface.blit(self.rendered_field, self.rendered_rect)
-        if self.img_stretch:
-            str_img = pygame.transform.scale(self.images[self.mode], self.rendered_rect.size)
-            surface.blit(str_img, self.rendered_rect)
-        else:
-            surface.blit(self.images[self.mode], self.rendered_rect)
+        surface.blit(self.rendered_panel, self.rendered_rect)
+

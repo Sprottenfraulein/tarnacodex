@@ -1,7 +1,7 @@
 # char skillbook window
 import pygame
 from library import textinput, pydraw, maths, itemlist
-from components import ui
+from components import ui, skillfuncs
 
 
 class SkillBook:
@@ -20,7 +20,7 @@ class SkillBook:
         self.skb_sockets_list = []
         self.skb_sockets_image = None
 
-        self.rendered_skb = pygame.Surface((self.win_w, self.win_h)).convert()
+        self.win_rendered = pygame.Surface((self.win_w, self.win_h)).convert()
 
         self.updated = False
 
@@ -37,7 +37,7 @@ class SkillBook:
         mouse_x, mouse_y = self.mouse_pointer.xy
         if event.type == pygame.KEYDOWN:
             if self.win_ui.key_focus is not None:
-                if self.win_ui.key_focus.page is not None and self.win_ui.key_focus.page != self.win_ui.page:
+                if self.win_ui.key_focus.page is not None and self.win_ui.page not in self.win_ui.key_focus.page:
                     return
                 if event.key in (pygame.K_RETURN, pygame.K_KP_ENTER):
                     self.win_ui.key_focus.mode = 0
@@ -67,7 +67,7 @@ class SkillBook:
                 return False
             for j in (self.skb_sockets_list, ):
                 for i in range(len(j) - 1, -1, -1):
-                    if j[i].page is not None and j[i].page != self.win_ui.page:
+                    if j[i].page is not None and self.win_ui.page not in j[i].page:
                         continue
                     if j[i].rendered_rect.collidepoint(
                             (mouse_x - self.offset_x, mouse_y - self.offset_y)):
@@ -92,10 +92,12 @@ class SkillBook:
         if inter_click is None:
             return
         element, m_bttn, mb_event = inter_click
-        if element.page is not None and element.page != self.win_ui.page:
-            return
+
         if wins_dict['realm'] in active_wins and self.pc is not None:
             self.pc.move_instr_x = self.pc.move_instr_y = 0
+            in_realm = True
+        else:
+            in_realm = False
         # dragging window
         if element.id == 'win_header' and m_bttn == 1:
             if mb_event == 'down':
@@ -105,17 +107,38 @@ class SkillBook:
                 active_wins.insert(0, wins_dict['skillbook'])
             if mb_event == 'up':
                 self.mouse_pointer.drag_ui = None
-                self.offset_x, self.offset_y = maths.rect_in_bounds(self.offset_x, self.offset_y, self.win_w,
-                                                                    self.win_h,
-                                                                    0, 0, pygame_settings.screen_res[0],
-                                                                    pygame_settings.screen_res[1])
                 framed_wins = [fw for fw in (wins_dict['charstats'], wins_dict['pools'], wins_dict['hotbar'], wins_dict['inventory'], wins_dict['skillbook']) if fw in active_wins]
                 self.offset_x, self.offset_y = maths.rect_sticky_edges(
                     (self.offset_x, self.offset_y, self.win_w, self.win_h),
                     [(ow.offset_x, ow.offset_y, ow.win_w, ow.win_h) for ow in framed_wins])
+                self.offset_x, self.offset_y = maths.rect_in_bounds(self.offset_x, self.offset_y, self.win_w,
+                                                                    self.win_h,
+                                                                    0, 0, pygame_settings.screen_res[0],
+                                                                    pygame_settings.screen_res[1])
 
         # PAGE 0
-        if m_bttn == 1 and 'skill' in element.tags:
+        if 'skill' not in element.tags:
+            self.win_ui.interaction_callback(element, mb_event, m_bttn)
+            # return True if interaction was made to prevent other windows from responding to this event
+            return True
+        for cl in self.pc.hot_cooling_set:
+            if cl[0] == element:
+                self.win_ui.interaction_callback(element, mb_event, m_bttn)
+                # return True if interaction was made to prevent other windows from responding to this event
+                return True
+
+        if m_bttn == 3 and in_realm:
+            if element.id < len(element.tags[0]) and element.tags[0][element.id] is not None:
+                if 'skill_id' in element.tags[0][element.id].props:
+                    getattr(skillfuncs, element.tags[0][element.id].props['function_name'])(
+                        wins_dict, resources.fate_rnd, self.pc, element.tags[0][element.id],
+                        element, True)
+                elif 'treasure_id' in element.tags[0][element.id].props and element.tags[0][element.id].props[
+                    'use_skill'] is not None:
+                    getattr(skillfuncs, element.tags[0][element.id].props['use_skill'].props['function_name'])(
+                        wins_dict, resources.fate_rnd, self.pc, element.tags[0][element.id].props['use_skill'],
+                        element, True)
+        elif m_bttn == 1:
             # removing popup if active
             if wins_dict['context'] in active_wins:
                 active_wins.remove(wins_dict['context'])
@@ -130,7 +153,7 @@ class SkillBook:
 
             elif mb_event == 'up' and self.mouse_pointer.drag_item is not None:
                 item_dragging = self.mouse_pointer.drag_item[0][self.mouse_pointer.drag_item[1]]
-                if self.mouse_pointer.drag_item[0] == wins_dict['realm'].maze.loot:
+                if wins_dict['realm'].maze is not None and self.mouse_pointer.drag_item[0] == wins_dict['realm'].maze.loot:
                     self.mouse_pointer.catcher[0] = item_dragging
                     self.mouse_pointer.drag_item = [self.mouse_pointer.catcher, 0]
                     wins_dict['realm'].maze.loot.remove(item_dragging)
@@ -216,8 +239,7 @@ class SkillBook:
             s_y = skb_sckt_top + skb_sckt_size * (i // skb_sckt_per_row)
             skb_socket = self.win_ui.panel_add(i, (s_x, s_y), (skb_sckt_size, skb_sckt_size),
                                                images=(self.skb_sckt_img,), page=None, img_stretch=True,
-                                               tags=(self.pc.char_sheet.skills, 'skill'))
-            self.win_ui.interactives.append(skb_socket)
+                                               tags=(self.pc.char_sheet.skills, 'skill'), win=self)
             self.skb_sockets_list.append(skb_socket)
 
         # window header
@@ -233,14 +255,26 @@ class SkillBook:
                                           caption='Skillbook',
                                           h_align='center', v_align='middle', cap_color='sun', images=(header_img,))
 
-        help_text_element = self.win_ui.text_add('help', (12, 32), (self.win_w - 24, 128),
+        help_text_element = self.win_ui.text_add('help', (12, 64), (self.win_w - 24, 128),
                                                   caption='This is your Book of Skills. $n Drag the skills you want to use $n to the HOTBAR.',
                                                   h_align='center', v_align='middle', cap_color='gray_mid',
                                                   cap_font='def_normal', cap_size=24)
         self.win_ui.decoratives.append(help_text_element)
 
+        self.restore_cooling_sockets()
+
+        self.win_ui.interactives.extend(self.skb_sockets_list)
         self.win_ui.interactives.append(win_header)
         self.win_ui.decoratives.append(skb_panel)
+
+    def restore_cooling_sockets(self):
+        for socket, skill in self.pc.hot_cooling_set:
+            if socket.win is not self:
+                continue
+            for i in range(0, len(self.skb_sockets_list)):
+                if socket.id == self.skb_sockets_list[i].id and socket.tags[0] == self.skb_sockets_list[i].tags[0]:
+                    self.skb_sockets_list[i] = socket
+                    break
 
     def tick(self, pygame_settings, wins_dict, active_wins, mouse_pointer):
         self.win_ui.tick(pygame_settings, mouse_pointer)
@@ -258,19 +292,15 @@ class SkillBook:
             if skb:
                 for s_ind in range(0, len(self.skb_sockets_list)):
                     if s_ind >= len(self.pc.char_sheet.skills) or self.pc.char_sheet.skills[s_ind] is None:
-                        self.skb_sockets_list[s_ind].images = (self.skb_sckt_img,)
+                        self.skb_sockets_list[s_ind].images_update((self.skb_sckt_img,))
 
                     else:
-                        self.skb_sockets_list[s_ind].images = self.pc.char_sheet.skills[s_ind].props[
-                            'image_inventory']
-                    """elif (self.mouse_pointer.drag_item is not None and self.mouse_pointer.drag_item[
-                                            0] == self.pc.char_sheet.skills
-                                              and s_ind == self.mouse_pointer.drag_item[1]):
-                                            self.skb_sockets_list[s_ind].images = (self.skb_sckt_img,)"""
+                        self.skb_sockets_list[s_ind].images_update(self.pc.char_sheet.skills[s_ind].props[
+                            'image_inventory'])
 
-        self.win_ui.draw(self.rendered_skb)
+        self.win_ui.draw(self.win_rendered)
         self.updated = False
 
     def draw(self, surface):
-        surface.blit(self.rendered_skb, (self.offset_x, self.offset_y))
+        surface.blit(self.win_rendered, (self.offset_x, self.offset_y))
 
