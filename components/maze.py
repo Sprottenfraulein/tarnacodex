@@ -671,10 +671,10 @@ def flags_create(maze, array):
         for j in range(0, maze.width):
             flags_array[i][j] = flagtile.FlagTile(
                 None, None, None, None, [],
-                (array[i][j] in ('.', '+')),
-                (array[i][j] in ('.', '+')),
+                (array[i][j] in ('.', '+', '0')),
+                (array[i][j] in ('.', '+', '0')),
                 False, False,
-                (array[i][j] in ('.', '+'))
+                (array[i][j] in ('.', '+', '0'))
             )
     return flags_array
 

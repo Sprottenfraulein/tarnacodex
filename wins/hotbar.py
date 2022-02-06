@@ -352,7 +352,7 @@ class Hotbar:
                             if (self.pc.char_sheet.hotbar[s_ind].props['condition']
                                     <= self.pc.char_sheet.hotbar[s_ind].CONDITION_PENALTY_LEVEL):
                                 cond_y = cond * 150 // c_p_level
-                                pygame.draw.rect(self.hot_sockets_list[s_ind].rendered_panel, (255,150 - cond_y,0),
+                                pygame.draw.rect(self.hot_sockets_list[s_ind].rendered_panel, (255,cond_y,0),
                                                  self.hot_sockets_list[s_ind].rendered_panel.get_rect(), width=1)
 
         self.win_ui.draw(self.win_rendered)

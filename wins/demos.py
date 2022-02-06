@@ -54,8 +54,8 @@ class Demos:
                                          'center', 'top', self.width, 48)
         wins_dict['app_title'].schedule_man.task_add('realm_tasks', 2, wins_dict['demos'], 'text_add',
                                                      (text_obj, 1500, (0,-1), 120, 120))
-        wins_dict['app_title'].schedule_man.task_add('realm_tasks', 75, wins_dict['app_title'], 'char_load',
-                                                     (self.pygame_settings, wins_dict, active_wins))
+        """wins_dict['app_title'].schedule_man.task_add('realm_tasks', 75, wins_dict['app_title'], 'char_load',
+                                                     (self.pygame_settings, wins_dict, active_wins))"""
         wins_dict['app_title'].schedule_man.task_add('realm_tasks', 80, wins_dict['demos'], 'back_to_title',
                                                      (wins_dict, active_wins))
 
@@ -63,8 +63,10 @@ class Demos:
         self.picture_list.clear()
         self.text_list.clear()
         active_wins.clear()
-
+        wins_dict['app_title'].create_savegames()
+        wins_dict['app_title'].page = 2
         active_wins.append(wins_dict['app_title'])
+
 
     def tick(self, pygame_settings, wins_dict, active_wins, mouse_pointer):
         if self.pause:

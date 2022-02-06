@@ -42,7 +42,6 @@ class AppTitle:
         self.chapter_selection = 0
         self.save_selection = None
         self.create_elements(log=True)
-        self.char_name_rnd()
 
         # creating dedicated schedule
         self.schedule_man.new_schedule('realm_tasks')
@@ -198,6 +197,7 @@ class AppTitle:
             self.win_ui.page = 0
             self.win_ui.key_focus = None
             self.clear_quick_view(wins_dict, active_wins)
+            self.create_savegames()
 
         elif element.id == 'new_char_begin' and m_bttn == 1 and mb_event == 'up' and element.mode == 1:
             self.win_ui.key_focus = None
@@ -308,10 +308,19 @@ class AppTitle:
     def create_elements(self, log=True):
         self.chars = dbrequests.chars_get_all(self.db.cursor)
         self.chapters = dbrequests.chapters_get_all(self.db.cursor)
-        self.savegames = dbrequests.savegames_get_all(self.db.cursor)
+
+        self.win_ui.interactives.clear()
+        self.win_ui.decoratives.clear()
+
+        self.char_selection = 0
+        self.chapter_selection = 0
+        self.save_selection = None
 
         menu_btn_h = 40
         menu_btn_w = 256
+
+        # SAVED GAMES
+        self.create_savegames()
 
         # MAIN MENU
         main_menu = [
@@ -335,87 +344,6 @@ class AppTitle:
 
         main_menu[-1].rendered_rect.centery = round(self.win_ui.pygame_settings.screen_res[1] / 2) + (
                     menu_btn_h * 1.2) * 7
-
-        # SAVED GAMES
-        saves_left = menu_btn_h + menu_btn_w + menu_btn_h
-        saves_top = self.win_h / 2 - menu_btn_h // 2
-        save_w = 160
-        save_h = 210
-        saves_per_row = 5
-        saves_total = 5
-        save_texture = self.win_ui.random_texture((save_w, save_h), 'black_rock')
-        bttn_img_up = pydraw.square((0, 0), (save_w, save_h),
-                                    (self.win_ui.resources.colors['gray_light'],
-                                     self.win_ui.resources.colors['gray_dark'],
-                                     (0,254,0),
-                                     self.win_ui.resources.colors['black']),
-                                    sq_outsize=1, sq_bsize=2, sq_ldir=0, sq_fill=True)
-        bttn_img_down = pydraw.square((0, 0), (save_w, save_h),
-                                    (self.win_ui.resources.colors['gray_light'],
-                                     self.win_ui.resources.colors['gray_dark'],
-                                     (0,254,0),
-                                     self.win_ui.resources.colors['sun']),
-                                    sq_outsize=1, sq_bsize=2, sq_ldir=0, sq_fill=True)
-        for i in range(0, min(saves_total, len(self.savegames))):
-            save_x = saves_left + (save_w + 8) * (i % saves_per_row)
-            save_y = saves_top + (save_h + 8) * (i // saves_per_row)
-
-            char_img = self.win_ui.tilesets.get_image('char_portraits', (60,60), (self.savegames[i]['char_image_index'],))
-            char_panel = self.win_ui.panel_add(i, (save_x + 20, save_y + 12), (120, 120), images=char_img, img_stretch=True, page=(0,))
-            self.win_ui.decoratives.append(char_panel)
-
-            char_name_string = \
-                self.win_ui.text_add('char_name',
-                                     (save_x + 4, save_y + 8 + 120 + 8),
-                                     caption='%s' % self.savegames[i]['char_name'],
-                                     h_align='center', v_align='top', size=(save_w - 8, 14), cap_color='fnt_celeb',
-                                     cap_font='def_bold', cap_size=24, page=(0,))
-            self.win_ui.decoratives.append(char_name_string)
-
-            char_type_string = \
-                self.win_ui.text_add('char_type',
-                                     (save_x + 4, save_y + 8 + 120 + 8 + 14),
-                                     caption='%s, level %s' % (self.savegames[i]['char_type'].capitalize(), self.savegames[i]['char_level']),
-                                     h_align='center', v_align='top', size=(save_w - 8, 14), cap_color='fnt_celeb',
-                                     cap_font='def_normal', cap_size=24, page=(0,))
-            self.win_ui.decoratives.append(char_type_string)
-
-            chapter_string = \
-                self.win_ui.text_add('chapter_label',
-                                     (save_x + 4, save_y + 8 + 120 + 8 + 14 + 14),
-                                     caption=self.savegames[i]['chapter_label'] + ' %s:' % (self.savegames[i]['stage_index'] + 1,),
-                                     h_align='center', v_align='top', size=(save_w - 8, 14), cap_color='fnt_celeb',
-                                     cap_font='def_normal', cap_size=24, page=(0,))
-            self.win_ui.decoratives.append(chapter_string)
-
-            stage_string = \
-                self.win_ui.text_add('stage_string',
-                                     (save_x + 4, save_y + 8 + 120 + 8 + 14 + 14 + 14),
-                                     caption='%s' % (self.savegames[i]['stage_label'], ),
-                                     h_align='center', v_align='top', size=(save_w - 8, 14), cap_color='fnt_celeb',
-                                     cap_font='def_normal', cap_size=24, page=(0,))
-            self.win_ui.decoratives.append(stage_string)
-
-            save_panel = self.win_ui.panel_add(i, (save_x, save_y), (save_w, save_h), images=(save_texture,), page=(0,))
-            self.win_ui.decoratives.append(save_panel)
-
-            save_bttn = self.win_ui.button_add(i, xy=(save_x, save_y),size=(save_w, save_h),
-                                               images=(bttn_img_up, bttn_img_down),
-                                               sounds=self.win_ui.snd_packs['button'], switch=True, page=(0,))
-            save_bttn.tags = ('saveswitch',)
-            save_bttn.rendered_button.set_colorkey((0, 254, 0))
-            self.win_ui.interactives.append(save_bttn)
-            self.save_ui_blocks_list.append((save_bttn, char_panel, save_panel, stage_string,
-                                             chapter_string, char_type_string, char_name_string))
-
-        if len(self.savegames) > 0:
-            bttn_load = self.win_ui.button_add('load', caption='Load', size=(menu_btn_w, menu_btn_h),
-                                                cap_font='large', cap_size=16,
-                                                cap_color='fnt_muted', sounds=self.win_ui.snd_packs['button'], page=(0,))
-            bttn_load.rendered_rect.right = round(self.win_ui.pygame_settings.screen_res[0] - menu_btn_h)
-            bttn_load.rendered_rect.centery = round(self.win_ui.pygame_settings.screen_res[1] / 2) + (
-                    menu_btn_h * 1.2) * 7
-            self.win_ui.interactives.append(bttn_load)
 
         # CHARACTER CHOICE
         char_menu = []
@@ -716,7 +644,7 @@ class AppTitle:
             self.win_ui.text_add('char_name',
                                  (menu_btn_h + 56, char_menu[0].rendered_rect.top + 120 + 8),
                                  caption='char_name',
-                                 h_align='center', v_align='top', size=(save_w - 16, 14), cap_color='fnt_celeb',
+                                 h_align='center', v_align='top', size=(140, 14), cap_color='fnt_celeb',
                                  cap_font='def_bold', cap_size=24, page=(2,))
         self.win_ui.decoratives.append(self.curr_char_name_string)
 
@@ -724,7 +652,7 @@ class AppTitle:
             self.win_ui.text_add('char_type',
                                  (menu_btn_h + 56, char_menu[0].rendered_rect.top + 120 + 8 + 14),
                                  caption='char_type',
-                                 h_align='center', v_align='top', size=(save_w - 16, 14), cap_color='fnt_celeb',
+                                 h_align='center', v_align='top', size=(140, 14), cap_color='fnt_celeb',
                                  cap_font='def_normal', cap_size=24, page=(2,))
         self.win_ui.decoratives.append(self.curr_char_type_string)
 
@@ -743,6 +671,108 @@ class AppTitle:
         self.win_ui.interactives.extend(chapter_menu)
         self.win_ui.interactives.append(self.field_charname_edit)
         self.win_ui.interactives.append(tag_string)
+
+        self.char_name_rnd()
+
+    def create_savegames(self):
+
+        for save_block in self.save_ui_blocks_list:
+            if save_block is None:
+                continue
+            self.win_ui.interactives.remove(save_block[0])
+            for i in save_block[1:]:
+                self.win_ui.decoratives.remove(i)
+
+        self.save_ui_blocks_list.clear()
+
+        self.savegames = dbrequests.savegames_get_all(self.db.cursor)
+
+        menu_btn_h = 40
+        menu_btn_w = 256
+
+        saves_left = menu_btn_h + menu_btn_w + menu_btn_h
+        saves_top = self.win_h / 2 - menu_btn_h // 2
+        save_w = 160
+        save_h = 210
+        saves_per_row = 5
+        saves_total = 5
+        save_texture = self.win_ui.random_texture((save_w, save_h), 'black_rock')
+        bttn_img_up = pydraw.square((0, 0), (save_w, save_h),
+                                    (self.win_ui.resources.colors['gray_light'],
+                                     self.win_ui.resources.colors['gray_dark'],
+                                     (0, 254, 0),
+                                     self.win_ui.resources.colors['black']),
+                                    sq_outsize=1, sq_bsize=2, sq_ldir=0, sq_fill=True)
+        bttn_img_down = pydraw.square((0, 0), (save_w, save_h),
+                                      (self.win_ui.resources.colors['gray_light'],
+                                       self.win_ui.resources.colors['gray_dark'],
+                                       (0, 254, 0),
+                                       self.win_ui.resources.colors['sun']),
+                                      sq_outsize=1, sq_bsize=2, sq_ldir=0, sq_fill=True)
+        for i in range(0, min(saves_total, len(self.savegames))):
+            save_x = saves_left + (save_w + 8) * (i % saves_per_row)
+            save_y = saves_top + (save_h + 8) * (i // saves_per_row)
+
+            char_img = self.win_ui.tilesets.get_image('char_portraits', (60, 60),
+                                                      (self.savegames[i]['char_image_index'],))
+            char_panel = self.win_ui.panel_add(i, (save_x + 20, save_y + 12), (120, 120), images=char_img,
+                                               img_stretch=True, page=(0,))
+            self.win_ui.decoratives.append(char_panel)
+
+            char_name_string = \
+                self.win_ui.text_add('char_name',
+                                     (save_x + 4, save_y + 8 + 120 + 8),
+                                     caption='%s' % self.savegames[i]['char_name'],
+                                     h_align='center', v_align='top', size=(save_w - 8, 14), cap_color='fnt_celeb',
+                                     cap_font='def_bold', cap_size=24, page=(0,))
+            self.win_ui.decoratives.append(char_name_string)
+
+            char_type_string = \
+                self.win_ui.text_add('char_type',
+                                     (save_x + 4, save_y + 8 + 120 + 8 + 14),
+                                     caption='%s, level %s' % (
+                                     self.savegames[i]['char_type'].capitalize(), self.savegames[i]['char_level']),
+                                     h_align='center', v_align='top', size=(save_w - 8, 14), cap_color='fnt_celeb',
+                                     cap_font='def_normal', cap_size=24, page=(0,))
+            self.win_ui.decoratives.append(char_type_string)
+
+            chapter_string = \
+                self.win_ui.text_add('chapter_label',
+                                     (save_x + 4, save_y + 8 + 120 + 8 + 14 + 14),
+                                     caption=self.savegames[i]['chapter_label'] + ' %s:' % (
+                                     self.savegames[i]['stage_index'] + 1,),
+                                     h_align='center', v_align='top', size=(save_w - 8, 14), cap_color='fnt_celeb',
+                                     cap_font='def_normal', cap_size=24, page=(0,))
+            self.win_ui.decoratives.append(chapter_string)
+
+            stage_string = \
+                self.win_ui.text_add('stage_string',
+                                     (save_x + 4, save_y + 8 + 120 + 8 + 14 + 14 + 14),
+                                     caption='%s' % (self.savegames[i]['stage_label'],),
+                                     h_align='center', v_align='top', size=(save_w - 8, 14), cap_color='fnt_celeb',
+                                     cap_font='def_normal', cap_size=24, page=(0,))
+            self.win_ui.decoratives.append(stage_string)
+
+            save_panel = self.win_ui.panel_add(i, (save_x, save_y), (save_w, save_h), images=(save_texture,), page=(0,))
+            self.win_ui.decoratives.append(save_panel)
+
+            save_bttn = self.win_ui.button_add(i, xy=(save_x, save_y), size=(save_w, save_h),
+                                               images=(bttn_img_up, bttn_img_down),
+                                               sounds=self.win_ui.snd_packs['button'], switch=True, page=(0,))
+            save_bttn.tags = ('saveswitch',)
+            save_bttn.rendered_button.set_colorkey((0, 254, 0))
+            self.win_ui.interactives.append(save_bttn)
+            self.save_ui_blocks_list.append((save_bttn, char_panel, save_panel, stage_string,
+                                             chapter_string, char_type_string, char_name_string))
+
+        if len(self.savegames) > 0:
+            bttn_load = self.win_ui.button_add('load', caption='Load', size=(menu_btn_w, menu_btn_h),
+                                               cap_font='large', cap_size=16,
+                                               cap_color='fnt_muted', sounds=self.win_ui.snd_packs['button'], page=(0,))
+            bttn_load.rendered_rect.right = round(self.win_ui.pygame_settings.screen_res[0] - menu_btn_h)
+            bttn_load.rendered_rect.centery = round(self.win_ui.pygame_settings.screen_res[1] / 2) + (
+                    menu_btn_h * 1.2) * 7
+            self.win_ui.interactives.append(bttn_load)
 
     def location_change(self, pygame_settings, wins_dict, active_wins, pc, entry, launch=False):
         wins_dict['app_title'].schedule_man.task_add('realm_tasks', 1, wins_dict['overlay'], 'fade_out',
