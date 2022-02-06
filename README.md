@@ -1,5 +1,5 @@
 # Unnamed Final
- Another attempt to create a loot rpg on python and pygame.
+Your objective is to descend into dungeon and find a magical artifact, so-called 'blackrock'.
 
 v0.1
 
@@ -11,8 +11,9 @@ Click on the doors to operate them.
 
 Click on mobs to fight them. 
 
-Pickup and equip weapons.
+Pickup and equip weapons. Watch out for items' durability.
 
 Use Hud buttons to open different windows.
 
 Hover over monsters with cursor to reveal targeting window.
+
