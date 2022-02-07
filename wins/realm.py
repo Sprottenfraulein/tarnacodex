@@ -62,10 +62,13 @@ class Realm:
     def view_resize(self, wins_dict, w, h):
         self.view_maze_width_sq = math.ceil(w / self.square_scale / self.square_size)
         self.view_maze_height_sq = math.ceil(h / self.square_scale / self.square_size)
-        self.view_maze_surface = pygame.Surface(
-            ((self.view_maze_width_sq + self.view_bleed_sq * 2) * self.square_size,
-             (self.view_maze_height_sq + self.view_bleed_sq * 2) * self.square_size),
-            pygame.HWSURFACE)
+        if (self.view_maze_surface is None or self.view_maze_surface.get_rect().size
+                != ((self.view_maze_width_sq + self.view_bleed_sq * 2) * self.square_size,
+                (self.view_maze_height_sq + self.view_bleed_sq * 2) * self.square_size)):
+            self.view_maze_surface = pygame.Surface(
+                ((self.view_maze_width_sq + self.view_bleed_sq * 2) * self.square_size,
+                 (self.view_maze_height_sq + self.view_bleed_sq * 2) * self.square_size),
+                pygame.HWSURFACE).convert()
         self.view_size_scaled = (w,h)
         framed_wins = (wins_dict['charstats'], wins_dict['pools'], wins_dict['hotbar'], wins_dict['inventory'], wins_dict['skillbook'])
         for win in framed_wins:
@@ -75,39 +78,13 @@ class Realm:
                                                               0, w, h)
         self.view_maze_update(self.pc.x_sq, self.pc.y_sq)
 
-    def launch(self, audio, settings, wins_dict, active_wins):
+    def launch(self, wins_dict, active_wins):
         wins_dict['realm'].view_resize(wins_dict, self.pygame_settings.screen_res[0], self.pygame_settings.screen_res[1])
         # creating dedicated schedule
         self.schedule_man.new_schedule('realm_tasks')
         # game pack must include dungeon set, character
-        self.view_maze_surface = pygame.Surface(
-            ((self.view_maze_width_sq + self.view_bleed_sq * 2) * self.square_size,
-             (self.view_maze_height_sq + self.view_bleed_sq * 2) * self.square_size),
-            pygame.HWSURFACE)
-
         self.view_maze_follow = self.pc
         self.view_maze_update(self.pc.x_sq, self.pc.y_sq)
-        # visibility update
-        self.calc_vision_alt()
-        # creating shortlists
-        self.shortlists_update(everything=True)
-        self.render_update()
-
-        wins_dict['pools'].launch(self.pc)
-        wins_dict['pools'].render()
-        active_wins.insert(0, wins_dict['pools'])
-
-
-        """wins_dict['hotbar'].render()
-        active_wins.insert(0, wins_dict['hotbar'])"""
-
-    def stage_update(self, wins_dict):
-        self.schedule_man.new_schedule('realm_tasks')
-
-        # wins_dict['realm'].view_resize(wins_dict, self.pygame_settings.screen_res[0], self.pygame_settings.screen_res[1])
-
-        self.view_maze_update(self.pc.x_sq, self.pc.y_sq)
-
         # visibility update
         self.calc_vision_alt()
         # creating shortlists
@@ -119,8 +96,22 @@ class Realm:
         self.text_short = []
 
         self.shortlists_update(everything=True)
+        self.render_update()
+
+        if wins_dict['hotbar'].pc != self.pc:
+            wins_dict['hotbar'].launch(self.pc)
+
+        if wins_dict['pools'].pc != self.pc:
+            wins_dict['pools'].launch(self.pc)
+
+        if wins_dict['pools'] not in active_wins:
+            active_wins.insert(0, wins_dict['pools'])
+
+        self.pc.ready()
 
     def event_check(self, event, pygame_settings, resources, wins_dict, active_wins, log=True):
+        if not self.pc.alive:
+            return
         # character and gui controls
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_LEFT:
@@ -231,7 +222,7 @@ class Realm:
         self.maze.tick()
         self.pc.tick(self, self.resources.fate_rnd, wins_dict, active_wins)
         for mob in self.mobs_short:
-            mob.tick(wins_dict, self)
+            mob.tick(wins_dict, active_wins, self)
 
         for i in range(len(self.text_short) -1, -1, -1):
             self.text_short[i].tick()

@@ -74,6 +74,10 @@ class Dialogue:
 
     def ui_click(self, inter_click, pygame_settings, resources, wins_dict, active_wins):
         if inter_click is None:
+            for inter in self.win_ui.interactives:
+                inter.release(1)
+                inter.release(3)
+            self.win_ui.updated = True
             return
         element, m_bttn, mb_event = inter_click
 
@@ -113,7 +117,7 @@ class Dialogue:
         dlg_btn_w = 70
         dlg_btn_h = 24
         if 'text' in self.dialogue_elements and self.dialogue_elements['text'] is not None:
-            dlg_text = self.win_ui.text_add('dlg_text', (border_w * 2, 28), (self.win_w - border_w * 3, self.win_h - 28 - border_w),
+            dlg_text = self.win_ui.text_add('dlg_text', (border_w * 2, 28), (self.win_w - border_w * 4, 0),
                                                    caption=self.dialogue_elements['text'],
                                                    h_align='left', v_align='top', cap_color='fnt_celeb',
                                                    cap_font='def_normal', cap_size=24)

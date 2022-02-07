@@ -71,12 +71,9 @@ def savegames_get_all(cursor):
     return savegame_list
 
 
-def char_save(db, char_id, stage_index, stage_label, chapter_label, char_level, char_name, char_type, char_image_index, char_title=None):
-    """ex_str = "DELETE FROM savegames WHERE char_id=?"
-    db.cursor.execute(ex_str, (char_id,))
-    db.conn.commit()"""
-    ex_str = "INSERT OR REPLACE INTO savegames (savegame_id, char_image_index, char_type, char_name, char_level, chapter_label, stage_index, char_title, char_id, stage_label) VALUES ((SELECT savegame_id FROM savegames WHERE char_id=?), ?, ?, ?, ?, ?, ?, ?, ?, ?)"
-    db.cursor.execute(ex_str, (char_id, char_image_index, char_type, char_name, char_level, chapter_label, stage_index, char_title, char_id, stage_label))
+def char_save(db, char_id, hardcore_char, stage_index, stage_label, chapter_label, char_level, char_name, char_type, char_image_index, char_title=None):
+    ex_str = "INSERT OR REPLACE INTO savegames (savegame_id, char_image_index, char_type, char_name, char_level, chapter_label, stage_index, char_title, char_id, stage_label, hardcore_char) VALUES ((SELECT savegame_id FROM savegames WHERE char_id=?), ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
+    db.cursor.execute(ex_str, (char_id, char_image_index, char_type, char_name, char_level, chapter_label, stage_index, char_title, char_id, stage_label, hardcore_char))
     db.conn.commit()
 
 

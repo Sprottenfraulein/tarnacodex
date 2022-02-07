@@ -24,6 +24,7 @@ tilesets = (
     ('inv_skills', 'res/tilesets/inv_skills.png'),
     ('pools', 'res/tilesets/pools.png'),
     ('char_portraits', 'res/tilesets/char_portraits.png'),
+    ('char_portraits_archive', 'res/tilesets/char_portraits_archive.png'),
 )
 
 sounds = (

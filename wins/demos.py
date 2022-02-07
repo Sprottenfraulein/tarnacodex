@@ -9,6 +9,7 @@ class Demos:
     def __init__(self, pygame_settings, resources, tilesets, animations, db, mouse_pointer, schedule_man, log=True):
         self.db = db
         self.pygame_settings = pygame_settings
+        self.resources = resources
         self.mouse_pointer = mouse_pointer
         self.schedule_man = schedule_man
         self.animations = animations
@@ -19,11 +20,13 @@ class Demos:
         self.picture_list = []
         self.text_list = []
         self.pause = False
+        self.pausable = False
 
     def event_check(self, event, pygame_settings, resources, wins_dict, active_wins, log=True):
         # return True if interaction was made to prevent other windows from responding to this event
-        if event.type == pygame.MOUSEBUTTONDOWN or event.type == pygame.KEYDOWN:
+        if (event.type == pygame.MOUSEBUTTONDOWN or event.type == pygame.KEYDOWN) and self.pausable:
             self.pause = 1 - self.pause
+            self.schedule_man.pause = 1 - self.schedule_man.pause
 
     def set_picture(self, panel_obj, duration, speed=None, fade_in=0, fade_out=0):
         if speed is None:
@@ -35,9 +38,10 @@ class Demos:
             speed = (0,0)
         self.text_list.append([text_obj, duration, 0, speed, fade_in, fade_out])
 
-    def ending_run(self, wins_dict, active_wins, resources, pc, chapter_dict):
+    def ending_run(self, wins_dict, active_wins, pc, chapter_dict):
         active_wins.clear()
         active_wins.extend([wins_dict['overlay'], wins_dict['demos']])
+        self.pausable = True
 
         text_obj = typography.Typography(self.pygame_settings,
                                          """You emerge from the dungeon with hopes of bringing the mysterious stone $n
@@ -50,23 +54,57 @@ class Demos:
                                          into town - to gather strengths for your ongoing journey.
                                          """,
                                          (self.width // 2, self.height -100), 'large', 16,
-                                         resources.colors['fnt_celeb'], resources.colors['bg'],
+                                         self.resources.colors['fnt_celeb'], self.resources.colors['bg'],
                                          'center', 'top', self.width, 48)
-        wins_dict['app_title'].schedule_man.task_add('realm_tasks', 2, wins_dict['demos'], 'text_add',
+        wins_dict['app_title'].schedule_man.task_add('realm_tasks', 1, wins_dict['demos'], 'text_add',
                                                      (text_obj, 1500, (0,-1), 120, 120))
-        """wins_dict['app_title'].schedule_man.task_add('realm_tasks', 75, wins_dict['app_title'], 'char_load',
-                                                     (self.pygame_settings, wins_dict, active_wins))"""
+        wins_dict['app_title'].schedule_man.task_add('realm_tasks', 79, wins_dict['overlay'], 'fade_out',
+                                                     (active_wins, 20, None))
         wins_dict['app_title'].schedule_man.task_add('realm_tasks', 80, wins_dict['demos'], 'back_to_title',
                                                      (wins_dict, active_wins))
+        wins_dict['app_title'].schedule_man.task_add('realm_tasks', 80, wins_dict['overlay'], 'fade_in',
+                                                     (active_wins, 20, None))
 
-    def back_to_title(self, wins_dict, active_wins):
+    def death_soft(self, wins_dict, active_wins, pc, chapter_dict):
+        for mob in wins_dict['realm'].maze.mobs:
+            mob.stop()
+        pc.stop()
+
+        active_wins.clear()
+        active_wins.extend([wins_dict['demos'], wins_dict['realm']])
+        self.pausable = False
+
+        text_obj_1 = typography.Typography(self.pygame_settings,
+                                         """YOU DIED""",
+                                         (self.width // 2, self.height // 2 - 64), 'large', 64,
+                                         self.resources.colors['bloody'], self.resources.colors['bg'],
+                                         'center', 'top', self.width, 48)
+        text_obj_2 = typography.Typography(self.pygame_settings,
+                                         """Returning to hub...""",
+                                         (self.width // 2, self.height // 2 + 32), 'large', 18,
+                                         self.resources.colors['fnt_celeb'], self.resources.colors['bg'],
+                                         'center', 'top', self.width, 48)
+
+        wins_dict['app_title'].schedule_man.task_add('realm_tasks', 1, wins_dict['demos'], 'text_add',
+                                                     (text_obj_1, 240, (0, 0), 80, 80))
+        wins_dict['app_title'].schedule_man.task_add('realm_tasks', 1, wins_dict['demos'], 'text_add',
+                                                     (text_obj_2, 240, (0, 0), 80, 80))
+
+        wins_dict['app_title'].schedule_man.task_add('realm_tasks', 15, wins_dict['overlay'], 'fade_out',
+                                                     (active_wins, 20, None))
+        wins_dict['app_title'].schedule_man.task_add('realm_tasks', 16, wins_dict['demos'], 'back_to_title',
+                                                     (wins_dict, active_wins, pc, wins_dict['realm'].maze))
+        wins_dict['app_title'].schedule_man.task_add('realm_tasks', 16, wins_dict['overlay'], 'fade_in',
+                                                     (active_wins, 20, None))
+
+    def back_to_title(self, wins_dict, active_wins, pc, maze):
         self.picture_list.clear()
         self.text_list.clear()
         active_wins.clear()
+        wins_dict['app_title'].char_save(pc, maze)
         wins_dict['app_title'].create_savegames()
-        wins_dict['app_title'].page = 2
+        wins_dict['app_title'].char_loaded_info_update(wins_dict)
         active_wins.append(wins_dict['app_title'])
-
 
     def tick(self, pygame_settings, wins_dict, active_wins, mouse_pointer):
         if self.pause:

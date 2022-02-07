@@ -42,6 +42,7 @@ class Pools:
     def launch(self, pc):
         self.pc = pc
         self.create_elements()
+        self.updated = True
 
     def event_check(self, event, pygame_settings, resources, wins_dict, active_wins, log=True):
         # return True if interaction was made to prevent other windows from responding to this event
@@ -121,6 +122,9 @@ class Pools:
         return True
 
     def create_elements(self):
+        self.win_ui.decoratives.clear()
+        self.win_ui.interactives.clear()
+
         # POOLS
         pl_texture = self.tilesets.get_image('pools', (154, 192), (0,))[0]
         pl_image = pydraw.square((0, 0), (self.win_w, self.win_h),
@@ -130,16 +134,6 @@ class Pools:
                                   self.win_ui.resources.colors['black']),
                                  sq_outsize=1, sq_bsize=2, sq_ldir=0, sq_fill=False,
                                  sq_image=pl_texture)
-        # INVENTORY BACKGROUND
-        """pl_image = pydraw.square((pl_sckt_left - 1, pl_sckt_top - 1),
-                                  (pl_sckt_per_row * pl_sckt_size + 2,
-                                   self.pl_sckt_total // pl_sckt_per_row * pl_sckt_size + 2),
-                                  (self.win_ui.resources.colors['gray_light'],
-                                   self.win_ui.resources.colors['gray_dark'],
-                                   self.win_ui.resources.colors['gray_mid'],
-                                   self.win_ui.resources.colors['black']),
-                                  sq_outsize=0, sq_bsize=1, sq_ldir=2, sq_fill=False,
-                                  sq_image=pl_image, same_surface=True)"""
         pl_panel = self.win_ui.panel_add('pl_panel', (0, 0), (self.win_w, self.win_h), images=(pl_image,),
                                          page=None)
         # window header

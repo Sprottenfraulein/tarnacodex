@@ -57,6 +57,7 @@ def save_char(pc, maze, db, tileset, audio):
 
         pc_obj_vars = {
             'id': pc.char_sheet.id,
+            'hardcore_char': pc.hardcore_char,
             'name': pc.char_sheet.name,
             'type': pc.char_sheet.type,
             'level': pc.char_sheet.level,
@@ -76,8 +77,9 @@ def save_char(pc, maze, db, tileset, audio):
 
     restore_char_media(pc, db.cursor, tileset, audio)
 
-    dbrequests.char_save(db, pc.char_sheet.id, maze.stage_index, maze.stage_dict['label'], pc.location[0]['label'], pc.char_sheet.level,
-                         pc.char_sheet.name, pc.char_sheet.type, pc.char_portrait_index)
+    dbrequests.char_save(db, pc.char_sheet.id, pc.hardcore_char, maze.stage_index, maze.stage_dict['label'],
+                         pc.location[0]['label'], pc.char_sheet.level, pc.char_sheet.name, pc.char_sheet.type,
+                         pc.char_portrait_index)
 
 
 def load_char(pc, db_cursor, tileset, audio):
@@ -104,6 +106,7 @@ def load_char(pc, db_cursor, tileset, audio):
         pc_obj_vars = pickle.load(f)
 
         pc.char_sheet.id = pc_obj_vars['id']
+        pc.hardcore_char = pc_obj_vars['hardcore_char']
         pc.char_sheet.name = pc_obj_vars['name']
         pc.char_sheet.type = pc_obj_vars['type']
         pc.char_sheet.level = pc_obj_vars['level']

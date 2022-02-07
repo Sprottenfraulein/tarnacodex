@@ -8,6 +8,7 @@ class Scheduler(counter.Counter):
 
         self.schedules = {}
         self.history_size = history_size
+        self.pause = False
 
     def new_schedule(self, sch_label):
         self.schedules[sch_label] = [0, []]
@@ -29,6 +30,8 @@ class Scheduler(counter.Counter):
             schedule[1].append(new_task)
 
     def tick(self):
+        if self.pause:
+            return
         super().tick()
 
         if self.frame != 0 or self.step != 0:

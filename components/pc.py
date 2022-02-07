@@ -4,7 +4,7 @@ import random
 
 
 class PC:
-    def __init__(self, x_sq, y_sq, location, anim_set, char_sheet, state=2, speed=0.08):
+    def __init__(self, x_sq, y_sq, location, anim_set, char_sheet, hardcore_char=False, state=2, speed=0.08):
         self.x_sq = x_sq
         self.y_sq = y_sq
         self.prev_x_sq = self.x_sq
@@ -21,6 +21,8 @@ class PC:
         self.state = state
         self.image = None
         self.animate()
+        self.alive = True
+        self.hardcore_char = hardcore_char
 
         self.move_instr_x = 0
         self.move_instr_y = 0
@@ -65,10 +67,12 @@ class PC:
         self.image = anim_seq['images']
         self.anim_timings = anim_seq['timings']
         if self.anim_frame >= len(self.image):
-            self.anim_frame -= len(self.image)
+            self.anim_frame = self.anim_frame % len(self.image)
         self.frame_timing = self.anim_timings[self.anim_frame]
 
     def tick(self, realm, fate_rnd, wins_dict, active_wins):
+        if not self.alive:
+            return
         if self.busy is None and (self.move_instr_x != 0 or self.move_instr_y != 0):
             self.move(self.move_instr_x, self.move_instr_y, realm, wins_dict, active_wins)
 
@@ -213,7 +217,7 @@ class PC:
         self.anim_frame = 0
         self.anim_timer = 0
 
-    def wound(self, wins_dict, monster, chosen_attack):
+    def wound(self, wins_dict, active_wins, monster, chosen_attack):
         if chosen_attack['range'] > 0:
             pc_def = self.char_sheet.defences['def_ranged']
         else:
@@ -259,6 +263,14 @@ class PC:
                                            kill_timer=25,
                                            font='large', size=info_size, frict_x=0.1, frict_y=0.15)
 
+        if self.char_sheet.hp <= 0:
+            self.state_change(8)
+            if self.hardcore_char:
+                self.hardcore_char = 2
+                wins_dict['demos'].death_soft(wins_dict, active_wins, self, wins_dict['realm'].maze.chapter)
+            else:
+                wins_dict['demos'].death_soft(wins_dict, active_wins, self, wins_dict['realm'].maze.chapter)
+
     def add_cooldowns(self, wins_dict, socket):
         if 'skill_id' in socket.tags[0][socket.id].props:
             self.hot_cooling_set.add((socket, socket.tags[0][socket.id]))
@@ -273,6 +285,15 @@ class PC:
 
         # change state
         self.state = new_state
+        self.animate()
+
+    def stop(self):
+        self.alive = False
+        self.move_instr_x = self.move_instr_y = 0
+
+    def ready(self):
+        self.alive = True
+        self.state = 0
         self.animate()
 
     def face_point(self, x_sq, y_sq):

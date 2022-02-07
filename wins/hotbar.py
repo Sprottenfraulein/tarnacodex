@@ -30,6 +30,7 @@ class Hotbar:
     def launch(self, pc):
         self.pc = pc
         self.create_elements(log=True)
+        self.updated = True
 
     def end(self):
         """self.win_ui.decoratives.clear()
