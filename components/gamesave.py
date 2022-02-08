@@ -257,7 +257,7 @@ def restore_char_media(pc, db_cursor, tile_sets, audio, cooldown_reset=False):
         skill.images_update(db_cursor, itm.props, tile_sets)
         skill.sounds_update(db_cursor, itm.props, audio)
         if cooldown_reset:
-            skill.cooldown_timer = 0
+            itm.cooldown_timer = 0
 
     hotbar = pc.char_sheet.hotbar
     for itm in hotbar:
@@ -272,7 +272,7 @@ def restore_char_media(pc, db_cursor, tile_sets, audio, cooldown_reset=False):
             skill.images_update(db_cursor, itm.props, tile_sets)
             skill.sounds_update(db_cursor, itm.props, audio)
             if cooldown_reset:
-                skill.cooldown_timer = 0
+                itm.cooldown_timer = 0
 
 
 def restore_maze_media(pc, maze, db_cursor, tile_sets, animations, audio, cooldown_reset=False):

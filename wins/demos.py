@@ -182,6 +182,7 @@ class Demos:
         self.picture_list.clear()
         self.text_list.clear()
         active_wins.clear()
+        wins_dict['pools'].pc = None
         wins_dict['app_title'].create_savegames()
         wins_dict['app_title'].char_loaded_info_update(wins_dict)
         active_wins.append(wins_dict['app_title'])

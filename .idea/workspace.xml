@@ -26,21 +26,10 @@
     </select>
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="cc130b1c-00f5-48a7-860f-78f09248cfe9" name="Default Changelist" comment="Hardcore mode added. Bugs fixed.">
-      <change afterPath="$PROJECT_DIR$/wins/options.py" afterDir="false" />
+    <list default="true" id="cc130b1c-00f5-48a7-860f-78f09248cfe9" name="Default Changelist" comment="Demo updated. Mistakes fixed. Options win added.">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/components/dbrequests.py" beforeDir="false" afterPath="$PROJECT_DIR$/components/dbrequests.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/components/pc.py" beforeDir="false" afterPath="$PROJECT_DIR$/components/pc.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/library/scheduler.py" beforeDir="false" afterPath="$PROJECT_DIR$/library/scheduler.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/res/data/tables.db" beforeDir="false" afterPath="$PROJECT_DIR$/res/data/tables.db" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/save/1/character.pd" beforeDir="false" afterPath="$PROJECT_DIR$/save/1/character.pd" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/save/2/character.pd" beforeDir="false" afterPath="$PROJECT_DIR$/save/2/character.pd" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/save/2/dung/0.pd" beforeDir="false" afterPath="$PROJECT_DIR$/save/2/dung/0.pd" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/unf.py" beforeDir="false" afterPath="$PROJECT_DIR$/unf.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/wins/apptitle.py" beforeDir="false" afterPath="$PROJECT_DIR$/wins/apptitle.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/wins/demos.py" beforeDir="false" afterPath="$PROJECT_DIR$/wins/demos.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/wins/pools.py" beforeDir="false" afterPath="$PROJECT_DIR$/wins/pools.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/wins/realm.py" beforeDir="false" afterPath="$PROJECT_DIR$/wins/realm.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -365,7 +354,14 @@
       <option name="project" value="LOCAL" />
       <updated>1644243655659</updated>
     </task>
-    <option name="localTasksCounter" value="36" />
+    <task id="LOCAL-00036" summary="Demo updated. Mistakes fixed. Options win added.">
+      <created>1644332804154</created>
+      <option name="number" value="00036" />
+      <option name="presentableId" value="LOCAL-00036" />
+      <option name="project" value="LOCAL" />
+      <updated>1644332804154</updated>
+    </task>
+    <option name="localTasksCounter" value="37" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -393,7 +389,6 @@
     <option name="oldMeFiltersMigrated" value="true" />
   </component>
   <component name="VcsManagerConfiguration">
-    <MESSAGE value="Database reworked.&#10;Char stats math updated." />
     <MESSAGE value="Trap db request table name fixed.&#10;Testing db treasure request added." />
     <MESSAGE value="Rendering tweaked for the better.&#10;Two items added for inventory testing.&#10;Basic item management implemented (dragging and dropping, picking up, moving around).&#10;Overall improvements (or not) of various procedures." />
     <MESSAGE value="Context info window added.&#10;Rich text field object added.&#10;Text rendering half-fixed and tweaked." />
@@ -418,7 +413,8 @@
     <MESSAGE value="Savegame works fully as intended. Demo scenes implemented. Preview of character's inventory, skills and stats added. Cooldown works everywhere. A lot of bugs fixed." />
     <MESSAGE value="A lot of bugs fixed." />
     <MESSAGE value="Hardcore mode added. Bugs fixed." />
-    <option name="LAST_COMMIT_MESSAGE" value="Hardcore mode added. Bugs fixed." />
+    <MESSAGE value="Demo updated. Mistakes fixed. Options win added." />
+    <option name="LAST_COMMIT_MESSAGE" value="Demo updated. Mistakes fixed. Options win added." />
   </component>
   <component name="WindowStateProjectService">
     <state x="604" y="306" key="#com.intellij.fileTypes.FileTypeChooser" timestamp="1643884069606">
@@ -433,10 +429,10 @@
       <screen x="0" y="0" width="1680" height="1010" />
     </state>
     <state x="490" y="70" key="CommitChangelistDialog2/0.0.1680.1010@0.0.1680.1010" timestamp="1642254803053" />
-    <state width="1585" height="466" key="DebuggerActiveHint" timestamp="1644324245664">
+    <state width="1585" height="466" key="DebuggerActiveHint" timestamp="1644334704774">
       <screen x="0" y="0" width="1680" height="1010" />
     </state>
-    <state width="1585" height="466" key="DebuggerActiveHint/0.0.1680.1010@0.0.1680.1010" timestamp="1644324245664" />
+    <state width="1585" height="466" key="DebuggerActiveHint/0.0.1680.1010@0.0.1680.1010" timestamp="1644334704774" />
     <state width="540" height="442" key="Diff.GoToChangePopup" timestamp="1642697330208">
       <screen x="0" y="0" width="1680" height="1010" />
     </state>
@@ -449,42 +445,42 @@
       <screen x="0" y="0" width="1680" height="1010" />
     </state>
     <state x="630" y="259" key="FileChooserDialogImpl/0.0.1680.1010@0.0.1680.1010" timestamp="1643011903942" />
-    <state width="1659" height="244" key="GridCell.Tab.0.bottom" timestamp="1644332588833">
+    <state width="1659" height="244" key="GridCell.Tab.0.bottom" timestamp="1644334750250">
       <screen x="0" y="0" width="1680" height="1010" />
     </state>
-    <state width="1659" height="244" key="GridCell.Tab.0.bottom/0.0.1680.1010@0.0.1680.1010" timestamp="1644332588833" />
-    <state width="1659" height="244" key="GridCell.Tab.0.center" timestamp="1644332588833">
+    <state width="1659" height="244" key="GridCell.Tab.0.bottom/0.0.1680.1010@0.0.1680.1010" timestamp="1644334750250" />
+    <state width="1659" height="244" key="GridCell.Tab.0.center" timestamp="1644334750250">
       <screen x="0" y="0" width="1680" height="1010" />
     </state>
-    <state width="1659" height="244" key="GridCell.Tab.0.center/0.0.1680.1010@0.0.1680.1010" timestamp="1644332588833" />
-    <state width="1659" height="244" key="GridCell.Tab.0.left" timestamp="1644332588833">
+    <state width="1659" height="244" key="GridCell.Tab.0.center/0.0.1680.1010@0.0.1680.1010" timestamp="1644334750250" />
+    <state width="1659" height="244" key="GridCell.Tab.0.left" timestamp="1644334750250">
       <screen x="0" y="0" width="1680" height="1010" />
     </state>
-    <state width="1659" height="244" key="GridCell.Tab.0.left/0.0.1680.1010@0.0.1680.1010" timestamp="1644332588833" />
-    <state width="1659" height="244" key="GridCell.Tab.0.right" timestamp="1644332588833">
+    <state width="1659" height="244" key="GridCell.Tab.0.left/0.0.1680.1010@0.0.1680.1010" timestamp="1644334750250" />
+    <state width="1659" height="244" key="GridCell.Tab.0.right" timestamp="1644334750250">
       <screen x="0" y="0" width="1680" height="1010" />
     </state>
-    <state width="1659" height="244" key="GridCell.Tab.0.right/0.0.1680.1010@0.0.1680.1010" timestamp="1644332588833" />
-    <state width="1659" height="244" key="GridCell.Tab.1.bottom" timestamp="1644332588683">
+    <state width="1659" height="244" key="GridCell.Tab.0.right/0.0.1680.1010@0.0.1680.1010" timestamp="1644334750250" />
+    <state width="1659" height="244" key="GridCell.Tab.1.bottom" timestamp="1644334750077">
       <screen x="0" y="0" width="1680" height="1010" />
     </state>
     <state width="1579" height="154" key="GridCell.Tab.1.bottom/0.0.1600.860@0.0.1600.860" timestamp="1642792337009" />
-    <state width="1659" height="244" key="GridCell.Tab.1.bottom/0.0.1680.1010@0.0.1680.1010" timestamp="1644332588683" />
-    <state width="1659" height="244" key="GridCell.Tab.1.center" timestamp="1644332588683">
+    <state width="1659" height="244" key="GridCell.Tab.1.bottom/0.0.1680.1010@0.0.1680.1010" timestamp="1644334750077" />
+    <state width="1659" height="244" key="GridCell.Tab.1.center" timestamp="1644334750077">
       <screen x="0" y="0" width="1680" height="1010" />
     </state>
     <state width="1579" height="154" key="GridCell.Tab.1.center/0.0.1600.860@0.0.1600.860" timestamp="1642792337008" />
-    <state width="1659" height="244" key="GridCell.Tab.1.center/0.0.1680.1010@0.0.1680.1010" timestamp="1644332588683" />
-    <state width="1659" height="244" key="GridCell.Tab.1.left" timestamp="1644332588683">
+    <state width="1659" height="244" key="GridCell.Tab.1.center/0.0.1680.1010@0.0.1680.1010" timestamp="1644334750077" />
+    <state width="1659" height="244" key="GridCell.Tab.1.left" timestamp="1644334750077">
       <screen x="0" y="0" width="1680" height="1010" />
     </state>
     <state width="1579" height="154" key="GridCell.Tab.1.left/0.0.1600.860@0.0.1600.860" timestamp="1642792337008" />
-    <state width="1659" height="244" key="GridCell.Tab.1.left/0.0.1680.1010@0.0.1680.1010" timestamp="1644332588683" />
-    <state width="1659" height="244" key="GridCell.Tab.1.right" timestamp="1644332588683">
+    <state width="1659" height="244" key="GridCell.Tab.1.left/0.0.1680.1010@0.0.1680.1010" timestamp="1644334750077" />
+    <state width="1659" height="244" key="GridCell.Tab.1.right" timestamp="1644334750077">
       <screen x="0" y="0" width="1680" height="1010" />
     </state>
     <state width="1579" height="154" key="GridCell.Tab.1.right/0.0.1600.860@0.0.1600.860" timestamp="1642792337009" />
-    <state width="1659" height="244" key="GridCell.Tab.1.right/0.0.1680.1010@0.0.1680.1010" timestamp="1644332588683" />
+    <state width="1659" height="244" key="GridCell.Tab.1.right/0.0.1680.1010@0.0.1680.1010" timestamp="1644334750077" />
     <state x="351" y="149" key="SettingsEditor" timestamp="1642253657141">
       <screen x="0" y="0" width="1680" height="1010" />
     </state>
@@ -497,10 +493,10 @@
       <screen x="0" y="0" width="1680" height="1010" />
     </state>
     <state x="680" y="374" key="VCS.EditChangelistDialog/0.0.1680.1010@0.0.1680.1010" timestamp="1642255774149" />
-    <state x="442" y="241" key="Vcs.Push.Dialog.v2" timestamp="1644243663672">
+    <state x="442" y="241" key="Vcs.Push.Dialog.v2" timestamp="1644332819466">
       <screen x="0" y="0" width="1680" height="1010" />
     </state>
-    <state x="442" y="241" key="Vcs.Push.Dialog.v2/0.0.1680.1010@0.0.1680.1010" timestamp="1644243663672" />
+    <state x="442" y="241" key="Vcs.Push.Dialog.v2/0.0.1680.1010@0.0.1680.1010" timestamp="1644332819466" />
     <state width="848" height="513" key="XDebugger.FullValuePopup" timestamp="1643894724966">
       <screen x="0" y="0" width="1680" height="1010" />
     </state>
@@ -517,5 +513,16 @@
       <screen x="0" y="0" width="1680" height="1010" />
     </state>
     <state x="513" y="221" width="672" height="678" key="search.everywhere.popup/0.0.1680.1010@0.0.1680.1010" timestamp="1644137706810" />
+  </component>
+  <component name="XDebuggerManager">
+    <breakpoint-manager>
+      <breakpoints>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/components/gamesave.py</url>
+          <line>270</line>
+          <option name="timeStamp" value="873" />
+        </line-breakpoint>
+      </breakpoints>
+    </breakpoint-manager>
   </component>
 </project>
