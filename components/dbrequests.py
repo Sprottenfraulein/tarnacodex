@@ -404,3 +404,39 @@ def chapter_progress_reset(db, char_id, stage_index=None):
         bindings.append(stage_index)
     db.cursor.execute(ex_str, bindings)
     db.conn.commit()
+
+
+def chapter_demo_get(cursor, chapter_id, demo_tag):
+    # Demo get query
+    ex_str = "SELECT * FROM demo_text WHERE chapter_id=? AND demo_tag=?"
+    cursor.execute(ex_str, (chapter_id, demo_tag))
+    rows = cursor.fetchall()
+    column_names = [column[0] for column in cursor.description]
+    demo_text_list = []
+    for row in rows:
+        text_dict = debuff.DeBuff()
+        for i in range(0, len(column_names)):
+            text_dict[column_names[i]] = row[i]
+        demo_text_list.append(text_dict)
+    ex_str = "SELECT * FROM demo_images WHERE chapter_id=? AND demo_tag=?"
+    cursor.execute(ex_str, (chapter_id, demo_tag))
+    rows = cursor.fetchall()
+    column_names = [column[0] for column in cursor.description]
+    demo_image_list = []
+    for row in rows:
+        image_dict = debuff.DeBuff()
+        for i in range(0, len(column_names)):
+            image_dict[column_names[i]] = row[i]
+        demo_image_list.append(image_dict)
+    # Retrieving images by ids
+    for img in demo_image_list:
+        ex_str = "SELECT * FROM images WHERE image_id=?"
+        cursor.execute(ex_str, (img['image_id'],))
+        rows = cursor.fetchall()
+        column_names = [column[0] for column in cursor.description]
+        image_dict = {}
+        for i in range(0, len(column_names)):
+            image_dict[column_names[i]] = rows[0][i]
+        img['image'] = image_dict
+        del img['image_id']
+    return demo_text_list, demo_image_list

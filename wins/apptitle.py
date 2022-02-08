@@ -181,9 +181,9 @@ class AppTitle:
                 return True
         # TAGGED RADIO BUTTON SWITCH GROUP
         if 'saveswitch' in element.tags:
-            if m_bttn == 1 and mb_event == 'down' and element.mode == 0:
+            if m_bttn == 1 and mb_event == 'down':
                 for inter in self.win_ui.interactives:
-                    if inter == element:
+                    if inter == element and element.mode == 0:
                         self.save_selection = inter.id
                     elif 'saveswitch' in inter.tags:
                         inter.mode = 0
@@ -832,6 +832,9 @@ class AppTitle:
             self.save_ui_blocks_list.append((save_bttn, char_panel, save_panel, stage_string,
                                              chapter_string, char_type_string, char_name_string))
 
+            if self.pc is not None and self.savegames[i]['char_id'] == self.pc.char_sheet.id:
+                self.save_selection = i
+
         if len(self.savegames) > 0:
             bttn_load = self.win_ui.button_add('load', caption='Load', size=(menu_btn_w, menu_btn_h),
                                                cap_font='large', cap_size=16,
@@ -946,10 +949,11 @@ class AppTitle:
         self.location_change(pygame_settings, wins_dict, active_wins, self.pc, 'up', launch=True)
 
     def chapter_end(self, wins_dict, active_wins, chapter_dict):
+        text_list, image_list = dbrequests.chapter_demo_get(self.db.cursor, chapter_dict['chapter_id'], 'ending')
         wins_dict['app_title'].schedule_man.task_add('realm_tasks', 1, wins_dict['overlay'], 'fade_out',
                                                      (active_wins, 20, None))
-        wins_dict['app_title'].schedule_man.task_add('realm_tasks', 2, wins_dict['demos'], 'ending_run',
-                                                     (wins_dict, active_wins, pc, chapter_dict))
+        wins_dict['app_title'].schedule_man.task_add('realm_tasks', 2, wins_dict['demos'], 'demo_run',
+                                                     (wins_dict, active_wins, text_list, image_list, True))
         wins_dict['app_title'].schedule_man.task_add('realm_tasks', 2, wins_dict['overlay'], 'fade_in',
                                                      (active_wins, 20, None))
 

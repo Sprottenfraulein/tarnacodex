@@ -76,7 +76,11 @@ class Pools:
                                                                     pygame_settings.screen_res[1])
 
         # PAGE 0
-        if 'hud' in element.tags and m_bttn == 1 and element.mode == 0 and mb_event == 'down':
+        if element.id == 'opts' and m_bttn == 1 and mb_event == 'up':
+            if not wins_dict['options'] in active_wins:
+                wins_dict['options'].launch(self.pc, wins_dict, active_wins)
+                wins_dict['options'].render()
+        elif 'hud' in element.tags and m_bttn == 1 and element.mode == 0 and mb_event == 'down':
             if element.id == 'inv':
                 if not wins_dict['inventory'] in active_wins:
                     wins_dict['inventory'].launch(self.pc)
@@ -96,6 +100,10 @@ class Pools:
                     wins_dict['charstats'].launch(self.pc)
                     wins_dict['charstats'].render()
                     active_wins.insert(0, wins_dict['charstats'])
+            """elif element.id == 'opts':
+                if not wins_dict['options'] in active_wins:
+                    wins_dict['options'].launch(self.pc, wins_dict, active_wins)
+                    wins_dict['options'].render()"""
 
         elif 'hud' in element.tags and m_bttn == 1 and element.mode == 1 and element.sw_op is False and mb_event == 'up':
             if element.id == 'inv':
@@ -115,6 +123,10 @@ class Pools:
                 if wins_dict['charstats'] in active_wins:
                     active_wins.remove(wins_dict['charstats'])
                     wins_dict['charstats'].end()
+            """elif element.id == 'opts':
+                if wins_dict['options'] in active_wins:
+                    wins_dict['options'].end()"""
+
 
         self.win_ui.interaction_callback(element, mb_event, m_bttn)
         # return True if interaction was made to prevent other windows from responding to this event
@@ -208,7 +220,7 @@ class Pools:
             self.win_ui.button_add('char', size=(pools_btn_w, pools_btn_h), cap_size=24, cap_color='fnt_muted',
                                    sounds=self.win_ui.snd_packs['button'], images=bttn_img_list[3], switch=True),
             self.win_ui.button_add('opts', size=(pools_btn_w, pools_btn_h), cap_size=24, cap_color='fnt_muted',
-                                   sounds=self.win_ui.snd_packs['button'], images=bttn_img_list[4], switch=True),
+                                   sounds=self.win_ui.snd_packs['button'], images=bttn_img_list[4]),
         )
         for i in range(0, len(pools_menu)):
             pools_menu[i].tags = ['hud']

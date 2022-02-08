@@ -267,7 +267,7 @@ class PC:
             self.state_change(8)
             if self.hardcore_char:
                 self.hardcore_char = 2
-                wins_dict['demos'].death_soft(wins_dict, active_wins, self, wins_dict['realm'].maze.chapter)
+                wins_dict['demos'].death_hardcore(wins_dict, active_wins, self, monster, wins_dict['realm'].maze.chapter)
             else:
                 wins_dict['demos'].death_soft(wins_dict, active_wins, self, wins_dict['realm'].maze.chapter)
 

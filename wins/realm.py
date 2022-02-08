@@ -59,6 +59,8 @@ class Realm:
         self.dark_edges = self.tile_sets.get_image('dark_edges', (24, 24), (0, 1, 2, 3))
         self.target_mark = self.tile_sets.get_image('interface', (24, 24), (10, 11, 12, 13))
 
+        self.pause = False
+
     def view_resize(self, wins_dict, w, h):
         self.view_maze_width_sq = math.ceil(w / self.square_scale / self.square_size)
         self.view_maze_height_sq = math.ceil(h / self.square_scale / self.square_size)
@@ -108,6 +110,7 @@ class Realm:
             active_wins.insert(0, wins_dict['pools'])
 
         self.pc.ready()
+        self.pause = False
 
     def event_check(self, event, pygame_settings, resources, wins_dict, active_wins, log=True):
         if not self.pc.alive:
@@ -219,6 +222,9 @@ class Realm:
         return True
 
     def tick(self, pygame_settings, wins_dict, active_wins, mouse_pointer):
+        if self.pause:
+            return
+
         self.maze.tick()
         self.pc.tick(self, self.resources.fate_rnd, wins_dict, active_wins)
         for mob in self.mobs_short:

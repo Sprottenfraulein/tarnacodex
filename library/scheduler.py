@@ -6,6 +6,7 @@ class Scheduler(counter.Counter):
     def __init__(self, fps, spr, max_rounds, history_size=6):
         super().__init__(fps, spr, max_rounds)
 
+        self.ticks_per_round = fps * spr
         self.schedules = {}
         self.history_size = history_size
         self.pause = False
