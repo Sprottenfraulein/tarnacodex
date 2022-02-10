@@ -12,7 +12,7 @@ class Door:
         self.grate = grate
         self.image_update()
 
-    def use(self, pc):
+    def use(self, wins_dict, active_wins, pc):
         if not self.shut:
             self.shut = True
             self.image_update()
@@ -25,7 +25,7 @@ class Door:
             self.shut = False
             self.image_update()
             return True
-        elif self.lock.unlock(pc):
+        elif self.lock.unlock(wins_dict, pc):
             self.lock = None
             self.image_update()
             return True

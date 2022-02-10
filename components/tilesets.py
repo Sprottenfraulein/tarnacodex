@@ -41,6 +41,10 @@ class Tilesets:
                 'door_hor_open': self.get_image('dung_doors', (48, 24), (11,)),
                 'exit_up': self.get_image('dung_bricks', (48, 48), (4,)),
                 'exit_down': self.get_image('dung_bricks', (48, 48), (9,)),
+                'trap_triggered': self.get_image('dung_bricks', (24, 24), (90,)),
+                'trap_disarmed': self.get_image('dung_bricks', (24, 24), (91,)),
+                'trap_armed': self.get_image('dung_bricks', (24, 24), (92,)),
+                'trap_tuned': self.get_image('dung_bricks', (24, 24), (93,))
             }
             return tileset
 

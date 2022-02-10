@@ -310,6 +310,20 @@ def skill_get_by_id(cursor, skill_id):
     return skill_dict
 
 
+def skill_defaults_get(cursor, character_id):
+    ex_str = "SELECT * FROM skills s JOIN character_skill_sets css ON css.skill_id=s.skill_id WHERE css.character_id=?"
+    cursor.execute(ex_str, (character_id,))
+    rows = cursor.fetchall()
+    column_names = [column[0] for column in cursor.description]
+    skill_list = []
+    for row in rows:
+        skill_dict = {}
+        for i in range(0, len(column_names)):
+            skill_dict[column_names[i]] = row[i]
+        skill_list.append(skill_dict)
+    return skill_list
+
+
 def skill_images_get(cursor, skill_id, grade):
     ex_str = "SELECT skill_grade, image_type, tileset, width, height, `index` FROM images i JOIN skill_image_sets sis ON sis.image_id=i.image_id WHERE sis.skill_id=? AND sis.skill_grade=?"
     cursor.execute(ex_str, (skill_id, grade))

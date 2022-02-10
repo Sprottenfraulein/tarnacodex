@@ -14,9 +14,9 @@ class Stairs:
             if pc.location[1] > 0:
                 pc.location[1] -= 1
 
-                wins_dict['app_title'].location_change(wins_dict['realm'].pygame_settings, wins_dict, active_wins, pc, 'down')
-            elif pc.char_sheet.inventory_search_by_id(7) or pc.char_sheet.equipped_search_by_id(7):
-                wins_dict['app_title'].chapter_end(wins_dict, active_wins, wins_dict['realm'].maze.chapter)
+                wins_dict['app_title'].location_change(pc, 'down')
+            elif len(pc.char_sheet.inventory_search_by_id(7)) > 0 or len(pc.char_sheet.equipped_search_by_id(7)) > 0:
+                wins_dict['app_title'].chapter_end(pc, wins_dict['realm'].maze.chapter)
         elif self.dest == 'down' and pc.location[1] < wins_dict['realm'].maze.chapter['stage_number'] - 1:
             pc.location[1] += 1
-            wins_dict['app_title'].location_change(wins_dict['realm'].pygame_settings, wins_dict, active_wins, pc, 'up')
+            wins_dict['app_title'].location_change(pc, 'up')

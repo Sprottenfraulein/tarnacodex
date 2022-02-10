@@ -10,6 +10,7 @@ class Maze:
         self.animations = animations
 
         self.MOB_SCALE_RATE = 1.05
+        self.TRAP_SCALE_RATE = 1.05
 
         self.chapter, self.stage_index = pc.location
         self.stage_dict = get_chapter_stage(db, self.chapter, self.stage_index)
@@ -45,7 +46,7 @@ class Maze:
         self.exits = []
         self.loot = itemlist.ItemList(filters={
                 'item_types': ['wpn_melee', 'wpn_ranged', 'wpn_magic', 'arm_head', 'arm_chest', 'acc_ring', 'orb_shield',
-                               'orb_ammo', 'orb_source', 'use_potion', 'use_wand', 'use_tools', 'light', 'aug_gem',
+                               'orb_ammo', 'orb_source', 'use_wand', 'exp_tools', 'exp_lockpick', 'exp_food', 'light', 'aug_gem',
                                'sup_potion'],
             })
         self.text = []
@@ -62,18 +63,17 @@ class Maze:
 
         if len(stage_progress) == 0 or stage_progress[0]['maze_rolled'] == 0 or not use_saves:
             # self.generate_1(0, 0, self.height - 1, self.width - 1, 8, 8, False)
-            getattr(self, self.stage_dict['maze_algorythm'])(0, 0, self.height-1, self.width-1,
+            getattr(self, self.stage_dict['maze_algorythm'])(pc, 0, 0, self.height-1, self.width-1,
                                                              self.stage_dict['room_min_width'],
                                                              self.stage_dict['room_min_height'], True)
         if len(stage_progress) == 0 or stage_progress[0]['monsters_rolled'] == 0 or not use_saves:
-            populate(self.db, self, self.animations)
+            populate(self.db, self, pc, self.animations)
 
         self.flag_array = flags_create(self, self.array)
         self.decor_array = decor_maze(self.array, self.tile_set, self.flag_array)
         flags_update(self, self.flag_array)
 
-
-    def generate_1(self, top, left, bottom, right, min_width, min_height, prop, vert_chance=50):
+    def generate_1(self, pc, top, left, bottom, right, min_width, min_height, prop, vert_chance=50):
         self.rooms = split_build(top, left, bottom, right, min_width, min_height, prop, r_limit=14)
         random.shuffle(self.rooms)
         for i in range(0, len(self.rooms) // 10):
@@ -85,7 +85,7 @@ class Maze:
         self.flag_array = flags_create(self, self.array)
         exits_set(self, self.exits_list)
         doors_set(self, self.tile_set, self.db)
-        traps_set(self, 'monster_attacks', self.db)
+        traps_set(self, 'monster_attacks', self.db, pc)
 
     def mob_populate_alg_1(self, maze, animations, maze_monster_pool, monster_amount_rate):
         mob_populate_alg_1(maze, animations, maze_monster_pool, monster_amount_rate)
@@ -486,7 +486,16 @@ def compare_grid_pattern(maze, lab_x, lab_y, pattern_matrix, matrix_width, matri
     return True
 
 
-def traps_set(maze, attacks_table_point, db):
+def traps_set(maze, attacks_table_point, db, pc):
+    # Generic mob object to represent trap in necrologs and wound functions.
+    mob_utility_obj = monster.Monster(0,0, None, maze.lvl, {
+        'label': 'deadly trap',
+        'crit_chance': 5,
+        'hp_max': None,
+        'speed': None
+    }, 0)
+    mob_utility_obj.alive = False
+
     traps_num = round(maze.width * maze.height * progression.scale_to_lvl(maze.trap_rate, maze.lvl) // 100)
     room_rnd_list = [(rm, rm.rating) for rm in maze.rooms]
     trapped_rooms = pickrandom.items_get(room_rnd_list, items_number=traps_num)
@@ -494,7 +503,12 @@ def traps_set(maze, attacks_table_point, db):
         trap_params_list = dbrequests.trap_params_get(db.cursor, attacks_table_point, maze.lvl)
         if not trap_params_list:
             continue
-        label, rang, dam_type, dam_val_base, dam_val_spread, lvl = random.choice(trap_params_list)
+        label, rang, dam_type, dam_val_base, dam_val_spread, init_lvl = random.choice(trap_params_list)
+
+        lvl = maze.stage_dict['lvl'] or pc.char_sheet.level
+        dam_val_base = round(dam_val_base * lvl / init_lvl * maze.TRAP_SCALE_RATE)
+        dam_val_spread = round(dam_val_spread * lvl / init_lvl * maze.TRAP_SCALE_RATE)
+
         x_sq = random.randrange(trap_room.left + 1, trap_room.right)
         y_sq = random.randrange(trap_room.top + 1, trap_room.bottom)
         no_place = False
@@ -504,7 +518,9 @@ def traps_set(maze, attacks_table_point, db):
         if no_place or x_sq is None or y_sq is None:
             x_sq = random.randrange(trap_room.left + 1, trap_room.right)
             y_sq = random.randrange(trap_room.top + 1, trap_room.bottom)
-        new_trap = trap.Trap(x_sq, y_sq, maze.lvl, trap_room, label, rang, dam_type, dam_val_base, dam_val_spread, lvl)
+        new_trap = trap.Trap(x_sq, y_sq, lvl, maze.tile_set, label, rang,
+                             dam_type, dam_val_base, dam_val_spread)
+        new_trap.mob_utility_obj = mob_utility_obj
         trap_room.traps.append(new_trap)
         trap_room.rating += 25
         maze.traps.append(new_trap)
@@ -542,7 +558,7 @@ def doors_set(maze, tile_set, db):
             if not trap_params_list:
                 continue
             label, rang, dam_type, dam_val_base, dam_val_spread, lvl = random.choice(trap_params_list)
-            new_trap = trap.Trap(None, None, maze.lvl, locked_room, label, rang, dam_type, dam_val_base, dam_val_spread,
+            new_trap = trap.Trap(None, None, maze.lvl, maze.tile_set, label, rang, dam_type, dam_val_base, dam_val_spread,
                                  lvl)
             random.choice(locked_room.doors).trap = new_trap
             maze.traps.append(new_trap)
@@ -597,12 +613,12 @@ def array_pattern_apply(array, pattern, x, y):
             array[y + i][x + j] = pattern[i][j]
 
 
-def populate(db, maze, animations):
+def populate(db, maze, pc, animations):
     """mon_ids = roll_monsters(db.cursor, maze.lvl, 0, maze.monster_types, maze.monster_type_amount)"""
     monster_list = [dbrequests.monster_get_by_id(db.cursor, mon_id) for mon_id in maze.monster_ids]
 
     for mon in monster_list:
-        scale_mob(mon, maze.lvl, maze.MOB_SCALE_RATE)
+        scale_mob(mon, maze.stage_dict['lvl'] or pc.char_sheet.level, maze.MOB_SCALE_RATE)
 
     maze_rnd_pool = [(mon, mon['roll_chance']) for mon in monster_list]
     maze_monster_pool = pickrandom.items_get(maze_rnd_pool, maze.monster_type_amount, log=True)

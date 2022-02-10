@@ -5,10 +5,13 @@ from library import pydraw, typography, button, fieldedit, fieldtext, fieldrich,
 
 
 class UI:
-    def __init__(self, pygame_settings, resources, tilesets, db, log=True):
+    def __init__(self, pygame_settings, resources, tilesets, db, mouse_pointer, log=True):
         self.resources = resources
         self.tilesets = tilesets
         self.pygame_settings = pygame_settings
+        self.db = db
+        self.mouse_pointer = mouse_pointer
+
         self.interactives = []
         self.decoratives = []
         self.key_focus = None
@@ -193,7 +196,7 @@ class UI:
                                 win=win)
         return new_panel
 
-    def context_headline_info(self, resources, context_id, xy=None, size=None, images=None, text_dict=None,
+    def context_headline_info(self, context_id, xy=None, size=None, images=None, text_dict=None,
                               cap_bgcolor='black', page=None, img_stretch=False):
         # setting defaults if attributes not presented:
         if xy is None:
@@ -228,11 +231,11 @@ class UI:
                                             self.resources.colors['transparent'],
                                             'left', 'top', size[0], 24)
 
-        new_rich = fieldrich.FieldRich(resources, context_id, xy, size, fr_images=images, text_dict=text_dict, pop_show=60,
+        new_rich = fieldrich.FieldRich(self.resources, context_id, xy, size, fr_images=images, text_dict=text_dict, pop_show=60,
                                        pop_hide=30, pop_win=None, page=None, img_stretch=img_stretch)
         return new_rich
 
-    def context_body_info(self, resources, context_id, xy=None, size=None, images=None, text_dict=None,
+    def context_body_info(self, context_id, xy=None, size=None, images=None, text_dict=None,
                           cap_bgcolor='black', page=None, img_stretch=False):
         # setting defaults if attributes not presented:
         if xy is None:
@@ -289,11 +292,11 @@ class UI:
                                                 self.resources.colors['transparent'],
                                                 'left', 'top', size[0], 0)
 
-        new_rich = fieldrich.FieldRich(resources, context_id, xy, size, fr_images=images, text_dict=text_dict,
+        new_rich = fieldrich.FieldRich(self.resources, context_id, xy, size, fr_images=images, text_dict=text_dict,
                                        page=None, img_stretch=img_stretch)
         return new_rich
 
-    def context_paragraphs(self, resources, context_id, xy=None, size=None, images=None, text_dict=None,
+    def context_paragraphs(self, context_id, xy=None, size=None, images=None, text_dict=None,
                           cap_bgcolor='black', page=None, img_stretch=False):
         # setting defaults if attributes not presented:
         if xy is None:
@@ -324,7 +327,7 @@ class UI:
             if text == '':
                 del info_text[key]
 
-        new_rich = fieldrich.FieldRich(resources, context_id, xy, size, fr_images=images, text_dict=info_text, img_stretch=img_stretch)
+        new_rich = fieldrich.FieldRich(self.resources, context_id, xy, size, fr_images=images, text_dict=info_text, img_stretch=img_stretch)
         return new_rich
 
     def element_align(self, element, origin_xy, view_rect):
@@ -342,7 +345,7 @@ class UI:
         rnd_y = random.randrange(0, ts_rect.height - size[1])
         return tileset.subsurface((rnd_x, rnd_y, size[0], size[1]))
 
-    def tick(self, pygame_settings, mouse_pointer):
+    def tick(self):
         for element in self.interactives:
             if element.page is not None and self.page not in element.page:
                 continue

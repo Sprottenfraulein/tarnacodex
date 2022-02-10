@@ -8,14 +8,17 @@ from library import pydraw, maths
 
 class Pools:
     def __init__(self, pygame_settings, resources, tilesets, animations, db, mouse_pointer, schedule_man, log=True):
-        self.db = db
-        self.tilesets = tilesets
         self.pygame_settings = pygame_settings
+        self.resources = resources
+        self.tilesets = tilesets
+        self.animations = animations
+        self.db = db
         self.mouse_pointer = mouse_pointer
         self.schedule_man = schedule_man
-        self.animations = animations
-        self.win_ui = ui.UI(pygame_settings, resources, tilesets, db)
-        self.win_rendered = None
+        self.wins_dict = None
+        self.active_wins = None
+        self.win_ui = ui.UI(pygame_settings, resources, tilesets, db, mouse_pointer)
+
         self.win_header = None
         self.win_w = 210
         self.win_h = 192
@@ -44,13 +47,12 @@ class Pools:
         self.create_elements()
         self.updated = True
 
-    def event_check(self, event, pygame_settings, resources, wins_dict, active_wins, log=True):
+    def event_check(self, event, log=True):
         # return True if interaction was made to prevent other windows from responding to this event
         mouse_x, mouse_y = self.mouse_pointer.xy
-        return self.ui_click(self.win_ui.mouse_actions(mouse_x - self.offset_x, mouse_y - self.offset_y, event),
-                             pygame_settings, resources, wins_dict, active_wins)
+        return self.ui_click(self.win_ui.mouse_actions(mouse_x - self.offset_x, mouse_y - self.offset_y, event))
 
-    def ui_click(self, inter_click, pygame_settings, resources, wins_dict, active_wins):
+    def ui_click(self, inter_click):
         if inter_click is None:
             return
         element, m_bttn, mb_event = inter_click
@@ -60,78 +62,98 @@ class Pools:
             if mb_event == 'down':
                 self.mouse_pointer.drag_ui = (self, self.mouse_pointer.xy[0] - self.offset_x,
                                               self.mouse_pointer.xy[1] - self.offset_y)
-                active_wins.remove(wins_dict['pools'])
-                active_wins.insert(0, wins_dict['pools'])
+                self.active_wins.remove(self.wins_dict['pools'])
+                self.active_wins.insert(0, self.wins_dict['pools'])
             if mb_event == 'up':
                 self.mouse_pointer.drag_ui = None
                 framed_wins = [fw for fw in
-                               (wins_dict['charstats'], wins_dict['pools'], wins_dict['hotbar'], wins_dict['inventory'], wins_dict['skillbook'])
-                               if fw in active_wins]
+                               (self.wins_dict['charstats'], self.wins_dict['pools'], self.wins_dict['hotbar'], self.wins_dict['inventory'], self.wins_dict['skillbook'])
+                               if fw in self.active_wins]
                 self.offset_x, self.offset_y = maths.rect_sticky_edges(
                     (self.offset_x, self.offset_y, self.win_w, self.win_h),
                     [(ow.offset_x, ow.offset_y, ow.win_w, ow.win_h) for ow in framed_wins])
                 self.offset_x, self.offset_y = maths.rect_in_bounds(self.offset_x, self.offset_y, self.win_w,
                                                                     self.win_h,
-                                                                    0, 0, pygame_settings.screen_res[0],
-                                                                    pygame_settings.screen_res[1])
+                                                                    0, 0, self.pygame_settings.screen_res[0],
+                                                                    self.pygame_settings.screen_res[1])
 
         # PAGE 0
         if element.id == 'opts' and m_bttn == 1 and mb_event == 'up':
-            if not wins_dict['options'] in active_wins:
-                wins_dict['options'].launch(self.pc, wins_dict, active_wins)
-                wins_dict['options'].render()
+            if not self.wins_dict['options'] in self.active_wins:
+                self.wins_dict['options'].launch(self.pc)
+                self.wins_dict['options'].render()
         elif 'hud' in element.tags and m_bttn == 1 and element.mode == 0 and mb_event == 'down':
             if element.id == 'inv':
-                if not wins_dict['inventory'] in active_wins:
-                    wins_dict['inventory'].launch(self.pc)
-                    wins_dict['inventory'].render()
-                    active_wins.insert(0, wins_dict['inventory'])
+                if not self.wins_dict['inventory'] in self.active_wins:
+                    self.wins_dict['inventory'].launch(self.pc)
+                    self.wins_dict['inventory'].render()
+                    self.active_wins.insert(0, self.wins_dict['inventory'])
             elif element.id == 'skb':
-                if not wins_dict['skillbook'] in active_wins:
-                    wins_dict['skillbook'].launch(self.pc)
-                    wins_dict['skillbook'].render()
-                    active_wins.insert(0, wins_dict['skillbook'])
+                if not self.wins_dict['skillbook'] in self.active_wins:
+                    self.wins_dict['skillbook'].launch(self.pc)
+                    self.wins_dict['skillbook'].render()
+                    self.active_wins.insert(0, self.wins_dict['skillbook'])
             elif element.id == 'hot':
-                if not wins_dict['hotbar'] in active_wins:
-                    wins_dict['hotbar'].render()
-                    active_wins.insert(0, wins_dict['hotbar'])
+                if not self.wins_dict['hotbar'] in self.active_wins:
+                    self.wins_dict['hotbar'].render()
+                    self.active_wins.insert(0, self.wins_dict['hotbar'])
             elif element.id == 'char':
-                if not wins_dict['charstats'] in active_wins:
-                    wins_dict['charstats'].launch(self.pc)
-                    wins_dict['charstats'].render()
-                    active_wins.insert(0, wins_dict['charstats'])
+                if not self.wins_dict['charstats'] in self.active_wins:
+                    self.wins_dict['charstats'].launch(self.pc)
+                    self.wins_dict['charstats'].render()
+                    self.active_wins.insert(0, self.wins_dict['charstats'])
             """elif element.id == 'opts':
-                if not wins_dict['options'] in active_wins:
-                    wins_dict['options'].launch(self.pc, wins_dict, active_wins)
-                    wins_dict['options'].render()"""
+                if not self.wins_dict['options'] in self.active_wins:
+                    self.wins_dict['options'].launch(self.pc, self.wins_dict, self.active_wins)
+                    self.wins_dict['options'].render()"""
 
         elif 'hud' in element.tags and m_bttn == 1 and element.mode == 1 and element.sw_op is False and mb_event == 'up':
             if element.id == 'inv':
-                if wins_dict['inventory'] in active_wins:
-                    active_wins.remove(wins_dict['inventory'])
-                    self.pc.char_sheet.itemlist_cleanall_inventory()
-                    wins_dict['inventory'].end()
+                if self.wins_dict['inventory'] in self.active_wins:
+                    self.active_wins.remove(self.wins_dict['inventory'])
+                    self.pc.char_sheet.itemlist_cleanall_inventory(self.wins_dict, self.pc)
+                    self.wins_dict['inventory'].end()
             elif element.id == 'skb':
-                if wins_dict['skillbook'] in active_wins:
-                    active_wins.remove(wins_dict['skillbook'])
-                    self.pc.char_sheet.itemlist_cleanall_skills()
-                    wins_dict['skillbook'].end()
+                if self.wins_dict['skillbook'] in self.active_wins:
+                    self.active_wins.remove(self.wins_dict['skillbook'])
+                    self.pc.char_sheet.itemlist_cleanall_skills(self.wins_dict, self.pc)
+                    self.wins_dict['skillbook'].end()
             elif element.id == 'hot':
-                if wins_dict['hotbar'] in active_wins:
-                    active_wins.remove(wins_dict['hotbar'])
+                if self.wins_dict['hotbar'] in self.active_wins:
+                    self.active_wins.remove(self.wins_dict['hotbar'])
             elif element.id == 'char':
-                if wins_dict['charstats'] in active_wins:
-                    active_wins.remove(wins_dict['charstats'])
-                    wins_dict['charstats'].end()
+                if self.wins_dict['charstats'] in self.active_wins:
+                    self.active_wins.remove(self.wins_dict['charstats'])
+                    self.wins_dict['charstats'].end()
             """elif element.id == 'opts':
-                if wins_dict['options'] in active_wins:
-                    wins_dict['options'].end()"""
-
+                if self.wins_dict['options'] in self.active_wins:
+                    self.wins_dict['options'].end()"""
 
         self.win_ui.interaction_callback(element, mb_event, m_bttn)
         # return True if interaction was made to prevent other windows from responding to this event
         self.updated = True
         return True
+
+    def close_all_wins(self, pc):
+        if self.wins_dict['inventory'] in self.active_wins:
+            self.active_wins.remove(self.wins_dict['inventory'])
+            self.pc.char_sheet.itemlist_cleanall_inventory(self.wins_dict, pc)
+            self.wins_dict['inventory'].end()
+
+        if self.wins_dict['skillbook'] in self.active_wins:
+            self.active_wins.remove(self.wins_dict['skillbook'])
+            self.pc.char_sheet.itemlist_cleanall_skills(self.wins_dict, pc)
+            self.wins_dict['skillbook'].end()
+
+        if self.wins_dict['hotbar'] in self.active_wins:
+            self.active_wins.remove(self.wins_dict['hotbar'])
+
+        if self.wins_dict['charstats'] in self.active_wins:
+            self.active_wins.remove(self.wins_dict['charstats'])
+            self.wins_dict['charstats'].end()
+
+        if self.wins_dict['options'] in self.active_wins:
+            self.wins_dict['options'].end()
 
     def create_elements(self):
         self.win_ui.decoratives.clear()
@@ -140,10 +162,10 @@ class Pools:
         # POOLS
         pl_texture = self.tilesets.get_image('pools', (154, 192), (0,))[0]
         pl_image = pydraw.square((0, 0), (self.win_w, self.win_h),
-                                 (self.win_ui.resources.colors['gray_light'],
-                                  self.win_ui.resources.colors['gray_dark'],
-                                  self.win_ui.resources.colors['gray_mid'],
-                                  self.win_ui.resources.colors['black']),
+                                 (self.resources.colors['gray_light'],
+                                  self.resources.colors['gray_dark'],
+                                  self.resources.colors['gray_mid'],
+                                  self.resources.colors['black']),
                                  sq_outsize=1, sq_bsize=2, sq_ldir=0, sq_fill=False,
                                  sq_image=pl_texture)
         pl_panel = self.win_ui.panel_add('pl_panel', (0, 0), (self.win_w, self.win_h), images=(pl_image,),
@@ -151,10 +173,10 @@ class Pools:
         # window header
         header_texture = self.win_ui.random_texture((self.win_w, 19), 'red_glass')
         header_img = pydraw.square((0, 0), (self.win_w, 19),
-                                   (self.win_ui.resources.colors['gray_light'],
-                                    self.win_ui.resources.colors['gray_dark'],
-                                    self.win_ui.resources.colors['gray_mid'],
-                                    self.win_ui.resources.colors['gray_darker']),
+                                   (self.resources.colors['gray_light'],
+                                    self.resources.colors['gray_dark'],
+                                    self.resources.colors['gray_mid'],
+                                    self.resources.colors['gray_darker']),
                                    sq_outsize=1, sq_bsize=1, sq_ldir=0, sq_fill=False,
                                    sq_image=header_texture)
         self.win_header = self.win_ui.text_add('win_header', (0, 0), (self.win_w, 19),
@@ -190,18 +212,18 @@ class Pools:
         bttn_img_list = []
         for i in range(0, 5):
             bttn_up_img = pydraw.square((0, 0), (pools_btn_w, pools_btn_h),
-                                        (self.win_ui.resources.colors['gray_light'],
-                                         self.win_ui.resources.colors['gray_dark'],
-                                         self.win_ui.resources.colors['gray_mid'],
-                                         self.win_ui.resources.colors['gray_darker']),
+                                        (self.resources.colors['gray_light'],
+                                         self.resources.colors['gray_dark'],
+                                         self.resources.colors['gray_mid'],
+                                         self.resources.colors['gray_darker']),
                                         sq_outsize=1, sq_bsize=1, sq_ldir=0, sq_fill=False,
                                         sq_image=bttn_texture)
             bttn_up_img.blit(bttn_icons[i][0], (round(pools_btn_w / 2 - 12), round(pools_btn_h / 2 - 12)))
             bttn_down_img = pydraw.square((0, 0), (pools_btn_w, pools_btn_h),
-                                          (self.win_ui.resources.colors['gray_light'],
-                                           self.win_ui.resources.colors['gray_dark'],
-                                           self.win_ui.resources.colors['gray_mid'],
-                                           self.win_ui.resources.colors['gray_darker']),
+                                          (self.resources.colors['gray_light'],
+                                           self.resources.colors['gray_dark'],
+                                           self.resources.colors['gray_mid'],
+                                           self.resources.colors['gray_darker']),
                                           sq_outsize=1, sq_bsize=1, sq_ldir=2, sq_fill=False,
                                           sq_image=bttn_texture)
             bttn_down_img.blit(bttn_icons[i][1], (round(pools_btn_w / 2 - 12), round(pools_btn_h / 2 - 12)))
@@ -232,8 +254,8 @@ class Pools:
         self.win_ui.interactives.extend(pools_menu)
         self.win_ui.interactives.append(pl_panel)
 
-    def tick(self, pygame_settings, wins_dict, active_wins, mouse_pointer):
-        self.win_ui.tick(pygame_settings, mouse_pointer)
+    def tick(self):
+        self.win_ui.tick()
         if self.updated:
             self.render()
 

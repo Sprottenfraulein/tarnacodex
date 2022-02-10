@@ -29,6 +29,7 @@ class PC:
         self.vision_sq_list = []
 
         self.location = location
+        self.stage_entry = None
         self.char_sheet = char_sheet
         self.char_portrait_index = 0
 
@@ -158,13 +159,17 @@ class PC:
                 self.prev_x_sq = self.x_sq
                 self.prev_y_sq = self.y_sq
 
-                self.char_sheet.food -= 5
-                if not self.char_sheet.food % 20:
-                    wins_dict['pools'].updated = True
+                self.food_change(wins_dict, -5)
 
                 realm.shortlists_update(everything=True)
 
-                flags = realm.maze.flag_array[int(self.y_sq + 0.5)][int(self.x_sq + 0.5)]
+                flags = realm.maze.flag_array[int(self.y_sq + 0.4)][int(self.x_sq + 0.4)]
+
+                # Check for traps
+                if flags.trap is not None and flags.trap.mode == 1:
+                    flags.trap.trigger(wins_dict, self)
+
+                # Check for gold coins on the floor
                 if flags.item is None:
                     return
                 for itm in flags.item:
@@ -209,29 +214,49 @@ class PC:
         self.state_change(self.state + 4)
 
         self.busy = skill.props
-        skill.cooldown_timer = skill.props['cooldown']
-        self.add_cooldowns(wins_dict, socket)
+
+        self.add_cooldowns(wins_dict, socket, skill.props['skill_id'])
 
         self.busy_timer = 0
 
         self.anim_frame = 0
         self.anim_timer = 0
 
-    def wound(self, wins_dict, active_wins, monster, chosen_attack):
-        if chosen_attack['range'] > 0:
-            pc_def = self.char_sheet.defences['def_ranged']
-        else:
-            pc_def = self.char_sheet.defences['def_melee']
+    def wound(self, wins_dict, monster, chosen_attack, fate_rnd, no_crit=False, no_reflect=False, no_evade=False):
+        inf_sp_x = maths.sign(monster.x_sq - self.x_sq) * -4
+        inf_sp_y = 3
+        inf_crit_sp_y = 2
 
-        pc_def += self.char_sheet.defences[self.char_sheet.att_def_dict[chosen_attack['attack_type']]]  # Sum in percents
+        rnd_roll = random.randrange(1, 1001)
+        if not no_evade and self.char_sheet.profs['prof_evade'] >= rnd_roll:
+            wins_dict['realm'].spawn_realmtext(None, 'Miss!', (0, 0), None,
+                                               color='fnt_celeb', stick_obj=self, speed_xy=(0, inf_crit_sp_y),
+                                               kill_timer=25, font='large', size=16, frict_y=0.1)
+            return
 
-        rnd_dmg = random.randrange(chosen_attack['attack_val_base'], chosen_attack['attack_val_base'] + chosen_attack['attack_val_spread'])
-        if random.randrange(1, 101) <= monster.stats['crit_chance']:
+        rnd_dmg = random.randrange(chosen_attack['attack_val_base'], chosen_attack['attack_val_base'] + chosen_attack['attack_val_spread'] + 1)
+        if not no_crit and random.randrange(1, 101) <= monster.stats['crit_chance']:
             rnd_dmg *= 4
             is_crit = True
         else:
             is_crit = False
 
+        if chosen_attack['range'] > 0:
+            pc_def = self.char_sheet.defences['def_ranged']
+
+            if not no_reflect:
+                reflected_damage = rnd_dmg * self.char_sheet.profs['prof_reflect'] // 1000
+                if reflected_damage > 0:
+                    monster.wound(reflected_damage, chosen_attack['attack_type'], chosen_attack['range'], False, wins_dict, fate_rnd, self)
+        else:
+            pc_def = self.char_sheet.defences['def_melee']
+
+            if not no_reflect:
+                thorns_damage = rnd_dmg * self.char_sheet.profs['prof_thorns'] // 1000
+                if thorns_damage > 0:
+                    monster.wound(thorns_damage, chosen_attack['attack_type'], chosen_attack['range'], False, wins_dict, fate_rnd, self)
+
+        pc_def += self.char_sheet.defences[self.char_sheet.att_def_dict[chosen_attack['attack_type']]]  # Sum in percents
         damage = rnd_dmg - (rnd_dmg * pc_def // 1000)
 
         self.char_sheet.hp_get(rnd_dmg * -1)
@@ -242,17 +267,14 @@ class PC:
 
         wins_dict['pools'].updated = True
 
-        if is_crit:
+        if not no_crit and is_crit:
             info_color = 'fnt_attent'
             info_size = 20
         else:
             info_color = 'fnt_attent'
             info_size = 16
 
-        inf_sp_x = maths.sign(monster.x_sq - self.x_sq) * -4
-        inf_sp_y = 3
-        inf_crit_sp_y = 2
-        if is_crit:
+        if not no_crit and is_crit:
             wins_dict['realm'].spawn_realmtext(None, 'Critical hit!', (0, 0), None,
                                                color=info_color, stick_obj=self, speed_xy=(0, inf_crit_sp_y),
                                                kill_timer=25,
@@ -267,16 +289,86 @@ class PC:
             self.state_change(8)
             if self.hardcore_char:
                 self.hardcore_char = 2
-                wins_dict['demos'].death_hardcore(wins_dict, active_wins, self, monster, wins_dict['realm'].maze.chapter)
+                wins_dict['demos'].death_hardcore(self, monster.stats, wins_dict['realm'].maze.chapter)
             else:
-                wins_dict['demos'].death_soft(wins_dict, active_wins, self, wins_dict['realm'].maze.chapter)
+                wins_dict['demos'].death_soft(self, monster.stats, wins_dict['realm'].maze.chapter)
 
-    def add_cooldowns(self, wins_dict, socket):
-        if 'skill_id' in socket.tags[0][socket.id].props:
+    def add_cooldowns(self, wins_dict, socket, skill_id):
+        """if 'skill_id' in socket.tags[0][socket.id].props:
             self.hot_cooling_set.add((socket, socket.tags[0][socket.id]))
         elif ('treasure_id' in socket.tags[0][socket.id].props
                 and socket.tags[0][socket.id].props['use_skill']):
-            self.hot_cooling_set.add((socket, socket.tags[0][socket.id].props['use_skill']))
+            self.hot_cooling_set.add((socket, socket.tags[0][socket.id].props['use_skill']))"""
+
+        for i in range(0, len(self.char_sheet.skills)):
+            if self.char_sheet.skills[i] is None:
+                continue
+            if self.char_sheet.skills[i].props['skill_id'] == skill_id:
+                self.char_sheet.skills[i].cooldown_timer = self.char_sheet.skills[i].props['cooldown']
+                self.hot_cooling_set.add((wins_dict['skillbook'].skb_sockets_list[i], self.char_sheet.skills[i]))
+
+        for i in range(0, len(self.char_sheet.inventory)):
+            if self.char_sheet.inventory[i] is None:
+                continue
+            if self.char_sheet.inventory[i].props['use_skill'] is None:
+                continue
+            if self.char_sheet.inventory[i].props['use_skill'].props['skill_id'] == skill_id:
+                self.char_sheet.inventory[i].props['use_skill'].cooldown_timer = self.char_sheet.inventory[i].props['use_skill'].props['cooldown']
+                self.hot_cooling_set.add((wins_dict['inventory'].inv_sockets_list[i], self.char_sheet.inventory[i].props['use_skill']))
+
+        for i in range(0, len(self.char_sheet.equipped)):
+            if self.char_sheet.equipped[i] is None:
+                continue
+            for j in range(0, len(self.char_sheet.equipped[i])):
+                if self.char_sheet.equipped[i][j] is None:
+                    continue
+                if self.char_sheet.equipped[i][j].props['use_skill'] is None:
+                    continue
+                if self.char_sheet.equipped[i][j].props['use_skill'].props['skill_id'] == skill_id:
+                    self.char_sheet.equipped[i][j].props['use_skill'].cooldown_timer = self.char_sheet.equipped[i][j].props['use_skill'].props['cooldown']
+                    self.hot_cooling_set.add((wins_dict['equipped'].eq_sockets_list[i], self.char_sheet.equipped[i][j].props['use_skill']))
+
+        for i in range(0, len(self.char_sheet.hotbar)):
+            if self.char_sheet.hotbar[i] is None:
+                continue
+            if 'treasure_id' in self.char_sheet.hotbar[i].props:
+                if self.char_sheet.hotbar[i].props['use_skill'] is None:
+                    continue
+                if self.char_sheet.hotbar[i].props['use_skill'].props['skill_id'] == skill_id:
+                    self.char_sheet.hotbar[i].props['use_skill'].cooldown_timer = \
+                    self.char_sheet.hotbar[i].props['use_skill'].props['cooldown']
+                    self.hot_cooling_set.add(
+                        (wins_dict['hotbar'].hot_sockets_list[i], self.char_sheet.hotbar[i].props['use_skill']))
+            elif 'skill_id' in self.char_sheet.hotbar[i].props:
+                if self.char_sheet.hotbar[i].props['skill_id'] == skill_id:
+                    self.char_sheet.hotbar[i].cooldown_timer = self.char_sheet.hotbar[i].props['cooldown']
+                    self.hot_cooling_set.add((wins_dict['hotbar'].hot_sockets_list[i], self.char_sheet.hotbar[i]))
+
+    def moved_item_cooldown_check(self, item, socket):
+        if 'skill_id' in item.props:
+            for hcs in self.hot_cooling_set:
+                if item == hcs[1]:
+                    self.hot_cooling_set.remove(hcs)
+                    self.hot_cooling_set.add((socket, item))
+                    break
+            else:
+                for hcs in self.hot_cooling_set:
+                    if item.props['skill_id'] == hcs[1].props['skill_id']:
+                        item.cooldown_timer = hcs[1].cooldown_timer
+                        self.hot_cooling_set.add((socket, item))
+                        break
+        elif 'treasure_id' in item.props and item.props['use_skill'] is not None:
+            for hcs in self.hot_cooling_set:
+                if item.props['use_skill'] == hcs[1]:
+                    self.hot_cooling_set.remove(hcs)
+                    self.hot_cooling_set.add((socket, item.props['use_skill']))
+                    break
+            else:
+                for hcs in self.hot_cooling_set:
+                    if item.props['use_skill'].props['skill_id'] == hcs[1].props['skill_id']:
+                        item.props['use_skill'].cooldown_timer = hcs[1].cooldown_timer
+                        self.hot_cooling_set.add((socket, item.props['use_skill']))
+                        break
 
     def state_change(self, new_state):
         # check if state change is possible
@@ -286,6 +378,19 @@ class PC:
         # change state
         self.state = new_state
         self.animate()
+
+    def food_change(self, wins_dict, value):
+        if self.char_sheet.food > 0:
+            self.char_sheet.food_get(value)
+        else:
+            self.state_change(8)
+            if self.hardcore_char:
+                self.hardcore_char = 2
+                wins_dict['demos'].death_hardcore(self, {'label': 'hunger'}, wins_dict['realm'].maze.chapter)
+            else:
+                wins_dict['demos'].death_soft(self, {'label': 'hunger'}, wins_dict['realm'].maze.chapter)
+        if not self.char_sheet.food % 20:
+            wins_dict['pools'].updated = True
 
     def stop(self):
         self.alive = False

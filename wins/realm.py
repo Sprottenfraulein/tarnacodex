@@ -1,18 +1,21 @@
 import pygame
+import random
 from library import calc2darray, maths, logfun, typography
 from components import realmtext, skillfuncs, gamesave
 import math
 
 
 class Realm:
-    def __init__(self, pygame_settings, resources, tile_sets, anims, db, mouse_pointer, schedule_man):
+    def __init__(self, pygame_settings, resources, tilesets, animations, db, mouse_pointer, schedule_man):
         self.pygame_settings = pygame_settings
         self.resources = resources
-        self.tile_sets = tile_sets
-        self.anims = anims
+        self.tilesets = tilesets
+        self.animations = animations
         self.db = db
         self.mouse_pointer = mouse_pointer
         self.schedule_man = schedule_man
+        self.wins_dict = None
+        self.active_wins = None
 
         self.doors_short = set()
         self.traps_short = set()
@@ -56,12 +59,12 @@ class Realm:
         self.view_maze_surface = None
         self.vision_sq_prev = None
 
-        self.dark_edges = self.tile_sets.get_image('dark_edges', (24, 24), (0, 1, 2, 3))
-        self.target_mark = self.tile_sets.get_image('interface', (24, 24), (10, 11, 12, 13))
+        self.dark_edges = self.tilesets.get_image('dark_edges', (24, 24), (0, 1, 2, 3))
+        self.target_mark = self.tilesets.get_image('interface', (24, 24), (10, 11, 12, 13))
 
         self.pause = False
 
-    def view_resize(self, wins_dict, w, h):
+    def view_resize(self, w, h):
         self.view_maze_width_sq = math.ceil(w / self.square_scale / self.square_size)
         self.view_maze_height_sq = math.ceil(h / self.square_scale / self.square_size)
         if (self.view_maze_surface is None or self.view_maze_surface.get_rect().size
@@ -72,7 +75,7 @@ class Realm:
                  (self.view_maze_height_sq + self.view_bleed_sq * 2) * self.square_size),
                 pygame.HWSURFACE).convert()
         self.view_size_scaled = (w,h)
-        framed_wins = (wins_dict['charstats'], wins_dict['pools'], wins_dict['hotbar'], wins_dict['inventory'], wins_dict['skillbook'])
+        framed_wins = (self.wins_dict['charstats'], self.wins_dict['pools'], self.wins_dict['hotbar'], self.wins_dict['inventory'], self.wins_dict['skillbook'])
         for win in framed_wins:
             win.offset_x, win.offset_y = maths.rect_sticky_edges((win.offset_x, win.offset_y, win.win_w, win.win_h),
                                                                  [(ow.offset_x, ow.offset_y, ow.win_w, ow.win_h) for ow in framed_wins])
@@ -80,8 +83,8 @@ class Realm:
                                                               0, w, h)
         self.view_maze_update(self.pc.x_sq, self.pc.y_sq)
 
-    def launch(self, wins_dict, active_wins):
-        wins_dict['realm'].view_resize(wins_dict, self.pygame_settings.screen_res[0], self.pygame_settings.screen_res[1])
+    def launch(self):
+        self.wins_dict['realm'].view_resize(self.pygame_settings.screen_res[0], self.pygame_settings.screen_res[1])
         # creating dedicated schedule
         self.schedule_man.new_schedule('realm_tasks')
         # game pack must include dungeon set, character
@@ -100,19 +103,22 @@ class Realm:
         self.shortlists_update(everything=True)
         self.render_update()
 
-        if wins_dict['hotbar'].pc != self.pc:
-            wins_dict['hotbar'].launch(self.pc)
+        if self.wins_dict['hotbar'].pc != self.pc:
+            self.wins_dict['hotbar'].launch(self.pc)
+        if self.wins_dict['inventory'].pc != self.pc:
+            self.wins_dict['inventory'].launch(self.pc)
+        if self.wins_dict['skillbook'].pc != self.pc:
+            self.wins_dict['skillbook'].launch(self.pc)
+        if self.wins_dict['pools'].pc != self.pc:
+            self.wins_dict['pools'].launch(self.pc)
 
-        if wins_dict['pools'].pc != self.pc:
-            wins_dict['pools'].launch(self.pc)
-
-        if wins_dict['pools'] not in active_wins:
-            active_wins.insert(0, wins_dict['pools'])
+        if self.wins_dict['pools'] not in self.active_wins:
+            self.active_wins.insert(0, self.wins_dict['pools'])
 
         self.pc.ready()
         self.pause = False
 
-    def event_check(self, event, pygame_settings, resources, wins_dict, active_wins, log=True):
+    def event_check(self, event, log=True):
         if not self.pc.alive:
             return
         # character and gui controls
@@ -137,17 +143,17 @@ class Realm:
             if event.key == pygame.K_i:
                 pass
             if event.key == pygame.K_s:
-                wins_dict['app_title'].chapter_end(wins_dict, active_wins, self.maze.chapter)
+                self.wins_dict['app_title'].chapter_end(self.pc, self.maze.chapter)
             if event.key == pygame.K_l:
                 pass
             if event.key == pygame.K_h:
                 pass
             if event.key == pygame.K_p:
-                if wins_dict['pools'] in active_wins:
-                    active_wins.remove(wins_dict['pools'])
+                if self.wins_dict['pools'] in self.active_wins:
+                    self.active_wins.remove(self.wins_dict['pools'])
                 else:
-                    wins_dict['pools'].render()
-                    active_wins.insert(0, wins_dict['pools'])
+                    self.wins_dict['pools'].render()
+                    self.active_wins.insert(0, self.wins_dict['pools'])
             if event.key == pygame.K_m:
                 self.schedule_man.task_add('realm_tasks', 6, self, 'spawn_realmtext',
                                            ('new_txt', "I'd better have a black muffin.",
@@ -162,34 +168,34 @@ class Realm:
                 self.pc.move_instr_y = 0
 
             elif event.key == pygame.K_1 and self.pc.char_sheet.hotbar[0] is not None:
-                self.hot_activate(wins_dict, resources, 0, True)
+                self.hot_activate(0, True)
             elif event.key == pygame.K_2 and self.pc.char_sheet.hotbar[1] is not None:
-                self.hot_activate(wins_dict, resources, 1, True)
+                self.hot_activate(1, True)
             elif event.key == pygame.K_3 and self.pc.char_sheet.hotbar[2] is not None:
-                self.hot_activate(wins_dict, resources, 2, True)
+                self.hot_activate(2, True)
             elif event.key == pygame.K_4 and self.pc.char_sheet.hotbar[3] is not None:
-                self.hot_activate(wins_dict, resources, 3, True)
+                self.hot_activate(3, True)
             elif event.key == pygame.K_5 and self.pc.char_sheet.hotbar[4] is not None:
-                self.hot_activate(wins_dict, resources, 4, True)
+                self.hot_activate(4, True)
             elif event.key == pygame.K_6 and self.pc.char_sheet.hotbar[5] is not None:
-                self.hot_activate(wins_dict, resources, 5, True)
+                self.hot_activate(5, True)
             elif event.key == pygame.K_7 and self.pc.char_sheet.hotbar[6] is not None:
-                self.hot_activate(wins_dict, resources, 6, True)
+                self.hot_activate(6, True)
 
         if event.type == pygame.MOUSEBUTTONDOWN:
             # removing popup if active
-            if wins_dict['context'] in active_wins:
-                active_wins.remove(wins_dict['context'])
+            if self.wins_dict['context'] in self.active_wins:
+                self.active_wins.remove(self.wins_dict['context'])
             if self.mouse_pointer.drag_item is not None:
                 return
 
             can_move = True
             if event.button == 1 and self.pc.char_sheet.hotbar[-2] is not None:
-                can_move = self.hot_activate(wins_dict, resources, -2, False)
+                can_move = self.hot_activate(-2, False)
             elif event.button == 3 and self.pc.char_sheet.hotbar[-1] is not None:
-                can_move = self.hot_activate(wins_dict, resources, -1, False)
+                can_move = self.hot_activate(-1, False)
             if can_move and event.button == 1:
-                can_move = self.square_check(self.mouse_pointer.xy, wins_dict, active_wins)
+                can_move = self.square_check(self.mouse_pointer.xy)
             if can_move and event.button == 1:
                 self.pc.move_instr_x, self.pc.move_instr_y = self.mouse_move(self.mouse_pointer.xy)
 
@@ -200,35 +206,35 @@ class Realm:
 
             if self.mouse_pointer.drag_item is None:
                 return
-            self.pc_loot_drop(self.mouse_pointer.xy, wins_dict, active_wins, log)
+            self.pc_loot_drop(self.mouse_pointer.xy, log)
 
         elif event.type == pygame.MOUSEMOTION:
-            self.mob_check(self.mouse_pointer.xy, None, wins_dict, active_wins)
+            self.mob_check(self.mouse_pointer.xy, None)
             if self.pc.move_instr_y != 0 or self.pc.move_instr_x != 0:
                 self.pc.move_instr_x, self.pc.move_instr_y = self.mouse_move(self.mouse_pointer.xy)
 
-    def hot_activate(self, wins_dict, resources, index, no_aim):
+    def hot_activate(self, index, no_aim):
         if 'skill_id' in self.pc.char_sheet.hotbar[index].props:
             return getattr(skillfuncs, self.pc.char_sheet.hotbar[index].props['function_name'])(
-                wins_dict, resources.fate_rnd, self.pc, self.pc.char_sheet.hotbar[index],
-                wins_dict['hotbar'].hot_sockets_list[index], no_aim
+                self.wins_dict, self.resources.fate_rnd, self.pc, self.pc.char_sheet.hotbar[index],
+                self.wins_dict['hotbar'].hot_sockets_list[index], no_aim
             )
         elif ('treasure_id' in self.pc.char_sheet.hotbar[index].props
                 and self.pc.char_sheet.hotbar[index].props['use_skill'] is not None):
             return getattr(skillfuncs, self.pc.char_sheet.hotbar[index].props['use_skill'].props['function_name'])(
-                wins_dict, resources.fate_rnd, self.pc, self.pc.char_sheet.hotbar[index].props['use_skill'],
-                wins_dict['hotbar'].hot_sockets_list[index], no_aim
+                self.wins_dict, self.resources.fate_rnd, self.pc, self.pc.char_sheet.hotbar[index].props['use_skill'],
+                self.wins_dict['hotbar'].hot_sockets_list[index], no_aim
             )
         return True
 
-    def tick(self, pygame_settings, wins_dict, active_wins, mouse_pointer):
+    def tick(self):
         if self.pause:
             return
 
         self.maze.tick()
-        self.pc.tick(self, self.resources.fate_rnd, wins_dict, active_wins)
+        self.pc.tick(self, self.resources.fate_rnd, self.wins_dict, self.active_wins)
         for mob in self.mobs_short:
-            mob.tick(wins_dict, active_wins, self)
+            mob.tick(self.wins_dict, self.resources.fate_rnd, self)
 
         for i in range(len(self.text_short) -1, -1, -1):
             self.text_short[i].tick()
@@ -293,6 +299,16 @@ class Realm:
                     flags = self.maze.flag_array[ren_pos_y][ren_pos_x]
                     if flags.vis:
                         decors = self.maze.decor_array[ren_pos_y][ren_pos_x]
+
+                        if flags.trap is not None:
+                            try:
+                                surface.blit(flags.trap.images[self.maze.anim_frame],
+                                             ((flags.trap.x_sq - self.ren_x_sq) * self.square_size + flags.trap.off_x,
+                                              (flags.trap.y_sq - self.ren_y_sq) * self.square_size + flags.trap.off_y))
+                            except IndexError:
+                                surface.blit(flags.trap.images[(self.maze.anim_frame + 1) % (len(flags.trap.images))],
+                                             ((flags.trap.x_sq - self.ren_x_sq) * self.square_size + flags.trap.off_x,
+                                              (flags.trap.y_sq - self.ren_y_sq) * self.square_size + flags.trap.off_y))
 
                         # drawing doors
                         if flags.door is not None:
@@ -431,6 +447,7 @@ class Realm:
         # realm.calc_vision(realm.maze.flag_array, orig_xy, 100, (12, 8), r_max=10)
         self.vision_sq_prev = calc2darray.calc_vision_rays(self.maze.flag_array, orig_xy[0], orig_xy[1], 10,
                                                            self.vision_sq_prev)
+        self.traps_search(self.vision_sq_prev)
 
     def mouse_move(self, mouse_xy):
         rads = maths.xy_dist_to_rads(mouse_xy[0], mouse_xy[1],
@@ -463,7 +480,7 @@ class Realm:
             move_instr_y = 1
         return move_instr_x, move_instr_y
 
-    def pc_loot_drop(self, mouse_xy, wins_dict, active_wins, log=False):
+    def pc_loot_drop(self, mouse_xy, log=False):
         m_x_sq, m_y_sq = self.xy_pixels_to_squares(mouse_xy)
         if m_x_sq < 0 or m_x_sq > self.maze.width - 1 or m_y_sq < 0 or m_y_sq > self.maze.height - 1:
             return
@@ -477,19 +494,40 @@ class Realm:
         if 'skill_id' in item_dragging.props:
             self.schedule_man.task_add('realm_tasks', 1, self, 'spawn_realmtext',
                                        ('new_txt', "Don't bury talents in the ground!",
-                                        (0, 0), (0, -24), None, True, self.pc))
+                                        (0, 0), (0, -24), None, self.pc))
             self.schedule_man.task_add('realm_tasks', 8, self, 'remove_realmtext', ('new_txt',))
             return
         self.maze.spawn_loot(m_x_sq, m_y_sq, (item_dragging,))
         if not self.mouse_pointer.drag_item[0] == self.mouse_pointer.catcher:
-            wins_dict['inventory'].updated = True
-            wins_dict['hotbar'].updated = True
-            wins_dict['skillbook'].updated = True
+            self.wins_dict['inventory'].updated = True
+            self.wins_dict['hotbar'].updated = True
+            self.wins_dict['skillbook'].updated = True
+
+        self.pc.moved_item_cooldown_check(self.mouse_pointer.drag_item[0][self.mouse_pointer.drag_item[1]], None)
+
         self.mouse_pointer.drag_item[0][self.mouse_pointer.drag_item[1]] = None
         self.mouse_pointer.drag_item = None
         self.mouse_pointer.image = None
         # self.shortlists_update(loot=True)
         # self.render_update()
+
+    def traps_search(self, vision_list):
+        skill_value = self.pc.char_sheet.profs['prof_detect']
+        traps_detected = 0
+        for x_sq, y_sq in vision_list:
+            trap = self.maze.flag_array[y_sq][x_sq].trap
+            if trap is None or trap.visible != 0:
+                continue
+            lvl_dif = min(1, self.pc.char_sheet.level - trap.lvl)
+            rnd_roll = random.randrange(1, 1001)
+            if skill_value + lvl_dif * 250 >= rnd_roll:
+                trap.visible = 1
+                traps_detected = True
+            else:
+                trap.visible = -1
+        if traps_detected:
+            self.spawn_realmtext('new_txt', "Watch out for the traps!", (0, 0), (0, -24), 'fnt_attent',
+                                 self.pc, None, 120, 'def_bold', 24)
 
     def xy_pixels_to_squares(self, xy, do_round=True):
         x_sq = self.view_bleed_sq + self.view_maze_x_sq - 0.3 + xy[0] / self.square_size / self.square_scale
@@ -499,7 +537,7 @@ class Realm:
         else:
             return x_sq, y_sq
 
-    def square_check(self, xy, wins_dict, active_wins):
+    def square_check(self, xy):
         x_sq, y_sq = self.xy_pixels_to_squares(xy)
         try:
             flags = self.maze.flag_array[y_sq][x_sq]
@@ -515,13 +553,13 @@ class Realm:
             # picking up items
             for lt in flags.item:
                 if lt.props['treasure_id'] == 6:
-                    wins_dict['realm'].spawn_realmtext('new_txt', "%s gold" % lt.props['amount'], (0, 0), (0, 0),
+                    self.wins_dict['realm'].spawn_realmtext('new_txt', "%s gold" % lt.props['amount'], (0, 0), (0, 0),
                                                        'bright_gold', lt, (0, 0), 45, 'large', 16, 0, 0)
                     self.pc.char_sheet.gold_coins += lt.props['amount']
                     self.maze.flag_array[y_sq][x_sq].item.remove(lt)
                     self.maze.loot.remove(lt)
                     # self.loot_short.remove(lt)
-                    wins_dict['inventory'].updated = True
+                    self.wins_dict['inventory'].updated = True
                     return False
                 else:
                     self.maze.flag_array[y_sq][x_sq].item.remove(lt)
@@ -534,7 +572,7 @@ class Realm:
                     return False
         if flags.door is not None:
             # doors
-            if flags.door.use(self.pc):
+            if flags.door.use(self.wins_dict, self.active_wins, self.pc):
                 self.maze.flag_array[y_sq][x_sq].mov = not flags.door.shut
                 self.maze.flag_array[y_sq][x_sq].light = (not flags.door.shut) or (flags.door.grate)
                 self.calc_vision_alt()
@@ -543,11 +581,11 @@ class Realm:
             return False
         if flags.obj is not None:
             # objects
-            flags.obj.use(wins_dict, active_wins, self.pc)
+            flags.obj.use(self.wins_dict, self.active_wins, self.pc)
             return False
         return True
 
-    def mob_check(self, xy, m_bttn, wins_dict, active_wins):
+    def mob_check(self, xy, m_bttn):
         x_sq, y_sq = self.xy_pixels_to_squares(xy, do_round=False)
         for mon in self.mobs_short:
             if mon.alive == False:
@@ -555,12 +593,12 @@ class Realm:
             if not self.maze.flag_array[round(mon.y_sq)][round(mon.x_sq)].vis:
                 continue
             if mon.x_sq <= x_sq + 0.5 < mon.x_sq + 1 and mon.y_sq <= y_sq + 0.5 < mon.y_sq + 1:
-                wins_dict['target'].aim(mon, self)
-                active_wins.insert(0, wins_dict['target'])
+                self.wins_dict['target'].aim(mon, self)
+                self.active_wins.insert(0, self.wins_dict['target'])
                 return True
         try:
-            active_wins.remove(wins_dict['target'])
-            wins_dict['target'].drop_aim()
+            self.active_wins.remove(self.wins_dict['target'])
+            self.wins_dict['target'].drop_aim()
         except ValueError:
             pass
         return False
@@ -593,7 +631,7 @@ class Realm:
         # traps
         """if traps or everything:
             for tr in self.maze.traps:
-                # Somehow a few traps have None in their coordinates after all. I dont know why. Meanwhile...
+                # Traps that are on doors and chests have None coordinates.
                 if tr.x_sq is None or tr.y_sq is None:
                     continue
                 if left_sq <= tr.x_sq <= right_sq and top_sq <= tr.y_sq <= bottom_sq:
@@ -629,7 +667,7 @@ class Realm:
         new_tpg = typography.Typography(self.pygame_settings,
                                         caption,
                                         (0, 0), font, size, color,
-                                        self.resources.colors['bg'], 'center', 'bottom', 144, 64, shadow=True)
+                                        self.resources.colors['bg'], 'center', 'bottom', 160, 64, shadow=True)
         new_rt = realmtext.RealmText(self, rt_id, xy_sq, text_obj=new_tpg, stick_obj=stick_obj, offset_xy=offset_xy,
                                      speed_xy=speed_xy, kill_timer=kill_timer, frict_x=frict_x, frict_y=frict_y)
         self.maze.text.append(new_rt)

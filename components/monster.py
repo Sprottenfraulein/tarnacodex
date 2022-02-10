@@ -22,7 +22,8 @@ class Monster:
         self.state = state
         self.image = None
         self.highlight = False
-        self.animate()
+        if anim_set is not None:
+            self.animate()
 
         self.move_instr_x = 0
         self.move_instr_y = 0
@@ -80,7 +81,7 @@ class Monster:
             self.anim_frame = self.anim_frame % len(self.image)
         self.frame_timing = self.anim_timings[self.anim_frame]
 
-    def tick(self, wins_dict, active_wins, realm):
+    def tick(self, wins_dict, fate_rnd, realm):
         if not self.alive:
             return
         if not self.attacking and ((not self.rest or self.waypoints is not None) and (self.move_instr_x != 0 or self.move_instr_y != 0)):
@@ -107,7 +108,7 @@ class Monster:
         pc_distance = maths.get_distance(self.x_sq, self.y_sq, realm.pc.x_sq, realm.pc.y_sq)
         if pc_distance <= self.stats['melee_distance'] and self.attacking is None:
             self.move_instr_x = self.move_instr_y = 0
-            self.attack(wins_dict, active_wins, realm.pc)
+            self.attack(wins_dict, fate_rnd, realm.pc)
 
         if self.attacking is not None:
             return
@@ -257,7 +258,7 @@ class Monster:
                     step_x = step_y = 0
         return step_x, step_y
 
-    def attack(self, wins_dict, active_wins, pc):
+    def attack(self, wins_dict, fate_rnd, pc):
         if len(self.stats['attacks_melee']) == 0:
             return False
         self.face_point(pc.x_sq, pc.y_sq)
@@ -266,7 +267,7 @@ class Monster:
         attacks_list = [(att, att['chance']) for att in self.stats['attacks_melee']]
         self.attacking = pickrandom.items_get(attacks_list)[0]
 
-        pc.wound(wins_dict, active_wins, self, self.attacking)
+        pc.wound(wins_dict, self, self.attacking, fate_rnd)
 
         self.attack_timer = 0
 
@@ -289,7 +290,7 @@ class Monster:
         self.anim_timer = 0
         return True
 
-    def wound(self, damage, is_crit, wins_dict, fate_rnd, pc):
+    def wound(self, damage, dam_type, ranged, is_crit, wins_dict, fate_rnd, pc, no_reflect=False):
         self.hp -= damage
 
         if is_crit:
@@ -310,6 +311,17 @@ class Monster:
         wins_dict['realm'].spawn_realmtext(None, str(damage * -1), (0, 0), None,
                               color=info_color, stick_obj=self, speed_xy=(inf_sp_x, inf_sp_y), kill_timer=25,
                               font='large', size=info_size, frict_x=0.1, frict_y=0.15)
+
+        if not no_reflect and self.stats['reflect_attack'] > 0:
+            reflected_damage = damage * self.stats['reflect_attack'] // 100
+            if reflected_damage > 0:
+                attack = {
+                    'attack_type': dam_type,
+                    'attack_val_base': reflected_damage,
+                    'attack_val_spread': 0,
+                    'range': ranged
+                }
+                pc.wound(wins_dict, self, attack, fate_rnd, no_crit=True, no_reflect=True, no_evade=True)
 
         self.check(wins_dict, fate_rnd, pc)
 

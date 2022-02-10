@@ -7,11 +7,17 @@ from components import ui, skillfuncs
 
 class Hotbar:
     def __init__(self, pygame_settings, resources, tilesets, animations, db, mouse_pointer, schedule_man, log=True):
+        self.pygame_settings = pygame_settings
+        self.resources = resources
+        self.tilesets = tilesets
+        self.animations = animations
         self.db = db
         self.mouse_pointer = mouse_pointer
         self.schedule_man = schedule_man
-        self.animations = animations
-        self.win_ui = ui.UI(pygame_settings, resources, tilesets, db)
+        self.wins_dict = None
+        self.active_wins = None
+        self.win_ui = ui.UI(pygame_settings, resources, tilesets, db, mouse_pointer)
+
         self.pc = None
         self.win_w = 0
         self.win_h = 0
@@ -41,7 +47,7 @@ class Hotbar:
         self.pc = None"""
         pass
 
-    def event_check(self, event, pygame_settings, resources, wins_dict, active_wins, log=True):
+    def event_check(self, event, log=True):
         mouse_x, mouse_y = self.mouse_pointer.xy
         if event.type == pygame.KEYDOWN:
             if self.win_ui.key_focus is not None:
@@ -82,26 +88,25 @@ class Hotbar:
                         if not j[i].mouse_over:
                             j[i].mouse_over = True
                             if not j[i].popup_active:
-                                wins_dict['context'].context_info_update(self.pc, j[i], wins_dict, active_wins)
+                                self.wins_dict['context'].context_info_update(self.pc, j[i])
                     else:
                         if j[i].mouse_over:
                             j[i].mouse_over = False
                             if j[i].popup_active:
                                 j[i].popup_active = False
-                                if wins_dict['context'] in active_wins:
-                                    active_wins.remove(wins_dict['context'])
+                                if self.wins_dict['context'] in self.active_wins:
+                                    self.active_wins.remove(self.wins_dict['context'])
             return True
 
         # return True if interaction was made to prevent other windows from responding to this event
-        return self.ui_click(self.win_ui.mouse_actions(mouse_x - self.offset_x, mouse_y - self.offset_y, event),
-                             pygame_settings, resources, wins_dict, active_wins)
+        return self.ui_click(self.win_ui.mouse_actions(mouse_x - self.offset_x, mouse_y - self.offset_y, event))
 
-    def ui_click(self, inter_click, pygame_settings, resources, wins_dict, active_wins):
+    def ui_click(self, inter_click):
         if inter_click is None:
             return
         element, m_bttn, mb_event = inter_click
 
-        if wins_dict['realm'] in active_wins and self.pc is not None:
+        if self.wins_dict['realm'] in self.active_wins and self.pc is not None:
             self.pc.move_instr_x = self.pc.move_instr_y = 0
             in_realm = True
         else:
@@ -111,46 +116,41 @@ class Hotbar:
             if mb_event == 'down':
                 self.mouse_pointer.drag_ui = (self, self.mouse_pointer.xy[0] - self.offset_x,
                                               self.mouse_pointer.xy[1] - self.offset_y)
-                active_wins.remove(wins_dict['hotbar'])
-                active_wins.insert(0, wins_dict['hotbar'])
+                self.active_wins.remove(self.wins_dict['hotbar'])
+                self.active_wins.insert(0, self.wins_dict['hotbar'])
             if mb_event == 'up':
                 self.mouse_pointer.drag_ui = None
                 framed_wins = [fw for fw in (
-                wins_dict['charstats'], wins_dict['pools'], wins_dict['hotbar'], wins_dict['inventory'],
-                wins_dict['skillbook']) if fw in active_wins]
+                self.wins_dict['charstats'], self.wins_dict['pools'], self.wins_dict['hotbar'], self.wins_dict['inventory'],
+                self.wins_dict['skillbook']) if fw in self.active_wins]
                 self.offset_x, self.offset_y = maths.rect_sticky_edges(
                     (self.offset_x, self.offset_y, self.win_w, self.win_h),
                     [(ow.offset_x, ow.offset_y, ow.win_w, ow.win_h) for ow in framed_wins])
                 self.offset_x, self.offset_y = maths.rect_in_bounds(self.offset_x, self.offset_y, self.win_w,
                                                                     self.win_h,
-                                                                    0, 0, pygame_settings.screen_res[0],
-                                                                    pygame_settings.screen_res[1])
+                                                                    0, 0, self.pygame_settings.screen_res[0],
+                                                                    self.pygame_settings.screen_res[1])
 
         # PAGE 0
         if 'hot' not in element.tags:
             self.win_ui.interaction_callback(element, mb_event, m_bttn)
             # return True if interaction was made to prevent other windows from responding to this event
             return True
-        for cl in self.pc.hot_cooling_set:
-            if cl[0] == element:
-                self.win_ui.interaction_callback(element, mb_event, m_bttn)
-                # return True if interaction was made to prevent other windows from responding to this event
-                return True
 
         if m_bttn == 3 and in_realm:
             if element.id < len(element.tags[0]) and element.tags[0][element.id] is not None:
                 if 'skill_id' in element.tags[0][element.id].props:
                     getattr(skillfuncs, element.tags[0][element.id].props['function_name'])(
-                        wins_dict, resources.fate_rnd, self.pc, element.tags[0][element.id],
+                        self.wins_dict, self.resources.fate_rnd, self.pc, element.tags[0][element.id],
                         element, True)
                 elif 'treasure_id' in element.tags[0][element.id].props and element.tags[0][element.id].props['use_skill'] is not None:
                     getattr(skillfuncs, element.tags[0][element.id].props['use_skill'].props['function_name'])(
-                        wins_dict, resources.fate_rnd, self.pc, element.tags[0][element.id].props['use_skill'],
+                        self.wins_dict, self.resources.fate_rnd, self.pc, element.tags[0][element.id].props['use_skill'],
                         element, True)
         elif m_bttn == 1:
             # removing popup if active
-            if wins_dict['context'] in active_wins:
-                active_wins.remove(wins_dict['context'])
+            if self.wins_dict['context'] in self.active_wins:
+                self.active_wins.remove(self.wins_dict['context'])
             item_info = [element.tags[0], element.id]
             if mb_event == 'down' and self.mouse_pointer.drag_item is None:
                 if item_info[1] < len(item_info[0]) and item_info[0][item_info[1]] is not None:
@@ -162,28 +162,22 @@ class Hotbar:
 
             elif mb_event == 'up' and self.mouse_pointer.drag_item is not None:
                 item_dragging = self.mouse_pointer.drag_item[0][self.mouse_pointer.drag_item[1]]
-                if wins_dict['realm'].maze is not None and self.mouse_pointer.drag_item[0] == wins_dict['realm'].maze.loot:
+                if self.wins_dict['realm'].maze is not None and self.mouse_pointer.drag_item[0] == self.wins_dict['realm'].maze.loot:
                     self.mouse_pointer.catcher[0] = item_dragging
                     self.mouse_pointer.drag_item = [self.mouse_pointer.catcher, 0]
-                    wins_dict['realm'].maze.loot.remove(item_dragging)
-                if item_info[1] < len(item_info[0]):
-                    if item_info[0][item_info[1]] is None:
-                        item_info[0][item_info[1]], self.mouse_pointer.drag_item[0][
-                            self.mouse_pointer.drag_item[1]] = \
-                            self.mouse_pointer.drag_item[0][self.mouse_pointer.drag_item[1]], item_info[0][
-                                item_info[1]]
-                    else:
-                        if self.mouse_pointer.drag_item[1] >= len(self.mouse_pointer.drag_item[0]):
-                            self.mouse_pointer.drag_item[0].append(None)
-                            self.mouse_pointer.drag_item[1] = len(self.mouse_pointer.drag_item[0]) - 1
-                        item_info[0][item_info[1]], self.mouse_pointer.drag_item[0][
-                            self.mouse_pointer.drag_item[1]] = \
-                            self.mouse_pointer.drag_item[0][self.mouse_pointer.drag_item[1]], item_info[0][
-                                item_info[1]]
+                    self.wins_dict['realm'].maze.loot.remove(item_dragging)
+                if item_info[0][item_info[1]] is None:
+                    item_info[0][item_info[1]], self.mouse_pointer.drag_item[0][
+                        self.mouse_pointer.drag_item[1]] = \
+                        self.mouse_pointer.drag_item[0][self.mouse_pointer.drag_item[1]], item_info[0][
+                            item_info[1]]
                 else:
-                    item_info[0].append(item_dragging)
-                    item_info[1] = len(item_info[0]) - 1
-                    self.mouse_pointer.drag_item[0][self.mouse_pointer.drag_item[1]] = None
+                    item_info[0][item_info[1]], self.mouse_pointer.drag_item[0][
+                        self.mouse_pointer.drag_item[1]] = \
+                        self.mouse_pointer.drag_item[0][self.mouse_pointer.drag_item[1]], item_info[0][
+                            item_info[1]]
+
+                self.pc.moved_item_cooldown_check(item_info[0][item_info[1]], element)
 
                 if (item_info[0][item_info[1]].props['item_type'] not in item_info[0].filters['item_types']
                         or (self.mouse_pointer.drag_item[0][self.mouse_pointer.drag_item[1]] is not None
@@ -203,7 +197,7 @@ class Hotbar:
                     self.mouse_pointer.image = None
 
                 self.pc.char_sheet.itemlists_clean_tail()
-            self.render_slots(wins_dict, active_wins)
+            self.render_slots()
 
         self.win_ui.interaction_callback(element, mb_event, m_bttn)
         # return True if interaction was made to prevent other windows from responding to this event
@@ -326,15 +320,15 @@ class Hotbar:
         self.win_ui.interactives.append(win_header)
         self.win_ui.decoratives.append(hot_panel)
 
-    def tick(self, pygame_settings, wins_dict, active_wins, mouse_pointer):
-        self.win_ui.tick(pygame_settings, mouse_pointer)
+    def tick(self):
+        self.win_ui.tick()
         if self.win_ui.updated or self.updated:
             self.render()
 
-    def render_slots(self, wins_dict, active_wins):
+    def render_slots(self):
         for win in ('inventory', 'skillbook', 'hotbar'):
-            if wins_dict[win] in active_wins:
-                wins_dict[win].render()
+            if self.wins_dict[win] in self.active_wins:
+                self.wins_dict[win].render()
 
     def render(self, hot=True):
         # backpack update

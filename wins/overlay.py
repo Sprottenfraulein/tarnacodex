@@ -7,11 +7,16 @@ from library import pydraw, maths
 
 class Overlay:
     def __init__(self, pygame_settings, resources, tilesets, animations, db, mouse_pointer, schedule_man, log=True):
-        self.db = db
         self.pygame_settings = pygame_settings
+        self.resources = resources
+        self.tilesets = tilesets
+        self.animations = animations
+        self.db = db
         self.mouse_pointer = mouse_pointer
         self.schedule_man = schedule_man
-        self.animations = animations
+        self.wins_dict = None
+        self.active_wins = None
+
         self.offset_x = 0
         self.offset_y = 0
         self.width, self.height = pygame_settings.screen_res
@@ -20,32 +25,32 @@ class Overlay:
         self.timer = 0
         self.time = 0
 
-    def event_check(self, event, pygame_settings, resources, wins_dict, active_wins, log=True):
+    def event_check(self, event, log=True):
         # return True if interaction was made to prevent other windows from responding to this event
         pass
 
-    def fade_out(self, active_wins, ticks_number=20, color=None):
+    def fade_out(self, ticks_number=20, color=None):
         self.width, self.height = self.pygame_settings.screen_res
         if color is not None:
             self.color = color
         self.time = self.timer = ticks_number
         self.mode = 0
-        active_wins.insert(0, self)
+        self.active_wins.insert(0, self)
 
-    def fade_in(self, active_wins, ticks_number=20, color=None):
+    def fade_in(self, ticks_number=20, color=None):
         self.width, self.height = self.pygame_settings.screen_res
         if color is not None:
             self.color = color
         self.time = self.timer = ticks_number
         self.mode = 1
-        active_wins.insert(0, self)
+        self.active_wins.insert(0, self)
 
-    def tick(self, pygame_settings, wins_dict, active_wins, mouse_pointer):
+    def tick(self):
         if self.timer > 0:
             self.timer -= 1
         else:
             self.timer = 0
-            active_wins.remove(self)
+            self.active_wins.remove(self)
 
     def draw(self, surface):
         # surface.blit(self.win_rendered, (self.offset_x, self.offset_y))

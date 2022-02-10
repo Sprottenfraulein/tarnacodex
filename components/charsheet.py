@@ -67,7 +67,7 @@ class CharSheet:
         }
         # self.attack_speed = 0
 
-        self.skills = itemlist.ItemList(items_max=24, filters={
+        self.skills = itemlist.ItemList(items_max=36,  all_to_none=True, filters={
             'item_types': ['skill_melee', 'skill_ranged', 'skill_magic', 'skill_craft', 'skill_misc']
         })
 
@@ -99,10 +99,10 @@ class CharSheet:
         self.de_buffs = {}
         self.modifiers = {}
         # Inventory list
-        self.inventory = itemlist.ItemList(items_max=24, filters={
+        self.inventory = itemlist.ItemList(items_max=24, all_to_none=True, filters={
             'item_types': ['wpn_melee', 'wpn_ranged', 'wpn_magic', 'arm_head', 'arm_chest', 'acc_ring', 'orb_shield',
-                           'orb_ammo', 'orb_source', 'use_potion', 'use_wand', 'use_tools', 'light', 'aug_gem',
-                           'sup_potion']
+                           'orb_ammo', 'orb_source', 'use_wand', 'exp_lockpick', 'exp_tools', 'exp_food', 'light',
+                           'aug_gem', 'sup_potion']
         })
         # Equipment dictionary
         self.equipped = [
@@ -137,7 +137,8 @@ class CharSheet:
         ]
 
         self.hotbar = itemlist.ItemList(all_to_none=True, items_max=9, filters={
-            'item_types': ['skill_melee', 'skill_ranged', 'skill_magic', 'skill_craft', 'skill_misc', 'sup_potion']
+            'item_types': ['skill_melee', 'skill_ranged', 'skill_magic', 'skill_craft', 'skill_misc', 'sup_potion',
+                           'exp_food', 'exp_lockpick', 'exp_tools']
         })
 
         self.gold_coins = 1000
@@ -378,7 +379,7 @@ class CharSheet:
         # (self.modifiers dictionary) will be made later and are not needed here.
         chartype_stats = dbrequests.char_params_get(self.db.cursor, 'characters', self.type)
         for attr_name in self.attributes.keys():
-            self.attributes[attr_name] = chartype_stats[attr_name] + round(chartype_stats[attr_name] * (self.level - 1) * self.attr_rate)
+            self.attributes[attr_name] = chartype_stats[attr_name] + round(max((chartype_stats[attr_name] - 10), 1) * (self.level - 1) * self.attr_rate)
         # Calculating pools
         self.pools['HP'] = self.calc_hp()
         self.pools['MP'] = self.calc_mp()
@@ -432,34 +433,36 @@ class CharSheet:
 
     # INVENTORY
     def inventory_search(self, item_type):
+        found_list = []
         for itm in self.inventory:
             if itm is None:
                 continue
             if itm.props['item_type'] == item_type:
-                return itm
+                found_list.append(itm)
             elif 'container' in itm.props and itm.props['container'] is not None:
-                con_itm = self.inventory_search(item_type)
-                if con_itm:
-                    return con_itm
+                found_list.extend(self.inventory_search(item_type))
+        return found_list
 
     def inventory_search_by_id(self, item_id):
+        found_list = []
         for itm in self.inventory:
             if itm is None:
                 continue
             if itm.props['treasure_id'] == item_id:
-                return itm
+                found_list.append(itm)
             elif 'container' in itm.props and itm.props['container'] is not None:
-                con_itm = self.inventory_search_by_id(item_id)
-                if con_itm:
-                    return con_itm
+                found_list.extend(self.inventory_search_by_id(item_id))
+        return found_list
 
     def equipped_search_by_id(self, item_id):
+        found_list = []
         for eq_pos in self.equipped:
             for itm in eq_pos:
                 if itm is None:
                     continue
                 if itm.props['treasure_id'] == item_id:
-                    return itm
+                    found_list.append(itm)
+        return found_list
 
     def inventory_remove(self, item_type):
         for itm in self.inventory[:]:
@@ -474,31 +477,41 @@ class CharSheet:
                     return con_itm
 
     def itemlists_clean_tail(self):
-        for i in range(len(self.skills) - 1, -1, -1):
+        """for i in range(len(self.skills) - 1, -1, -1):
             if self.skills[i] is None:
                 del self.skills[i]
             else:
                 break
-        else:
-            self.skills.clear()
+
         for i in range(len(self.inventory) - 1, -1, -1):
             if self.inventory[i] is None:
                 del self.inventory[i]
             else:
-                break
-        else:
-            self.inventory.clear()
+                break"""
+        pass
 
-    def itemlist_cleanall_skills(self):
+    def itemlist_cleanall_skills(self, wins_dict, pc):
         for i in range(len(self.skills) - 1, -1, -1):
             if self.skills[i] is None:
                 del self.skills[i]
-            elif self.skills[i].cooldown_timer > 0:
-                break
 
-    def itemlist_cleanall_inventory(self):
+        skill_win = wins_dict['skillbook']
+        for i in range(0, len(self.skills)):
+            pc.moved_item_cooldown_check(self.skills[i], skill_win.skb_sockets_list[i])
+
+        for i in range(len(self.skills), self.skills.items_max):
+            self.skills.append(None)
+        pass
+
+    def itemlist_cleanall_inventory(self, wins_dict, pc):
         for i in range(len(self.inventory) -1, -1, -1):
             if self.inventory[i] is None:
                 del self.inventory[i]
-            elif self.inventory[i].props['use_skill'] is not None and self.inventory[i].props['use_skill'].cooldown_timer > 0:
-                break
+
+        inv_win = wins_dict['inventory']
+        for i in range(0, len(self.inventory)):
+            pc.moved_item_cooldown_check(self.inventory[i], inv_win.inv_sockets_list[i])
+
+        for i in range(len(self.inventory), self.inventory.items_max):
+            self.inventory.append(None)
+        pass

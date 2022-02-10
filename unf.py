@@ -17,28 +17,34 @@ def launch(pygame_settings, resources, log=False):
 	# creating scheduler
 	schedule_man = scheduler.Scheduler(5, 4, 9999999)
 	# declaring wins
+	win_init_args = (pygame_settings, resources, tile_sets, anims, db, mouse_pointer, schedule_man)
 	wins_dict = {
-		'app_title': apptitle.AppTitle(pygame_settings, resources, tile_sets, anims, db, mouse_pointer, schedule_man),
-		'realm': realm.Realm(pygame_settings, resources, tile_sets, anims, db, mouse_pointer, schedule_man),
-		'inventory': inventory.Inventory(pygame_settings, resources, tile_sets, anims, db, mouse_pointer, schedule_man),
-		'target': target.Target(pygame_settings, resources, tile_sets, anims, db, mouse_pointer, schedule_man),
-		'context': context.Context(pygame_settings, resources, tile_sets, anims, db, mouse_pointer, schedule_man),
-		'skillbook': skillbook.SkillBook(pygame_settings, resources, tile_sets, anims, db, mouse_pointer, schedule_man),
-		'hotbar': hotbar.Hotbar(pygame_settings, resources, tile_sets, anims, db, mouse_pointer, schedule_man),
-		'pools': pools.Pools(pygame_settings, resources, tile_sets, anims, db, mouse_pointer, schedule_man),
-		'charstats': charstats.CharStats(pygame_settings, resources, tile_sets, anims, db, mouse_pointer, schedule_man),
-		'overlay': overlay.Overlay(pygame_settings, resources, tile_sets, anims, db, mouse_pointer, schedule_man),
-		'dialogue': dialogue.Dialogue(pygame_settings, resources, tile_sets, anims, db, mouse_pointer, schedule_man),
-		'demos': demos.Demos(pygame_settings, resources, tile_sets, anims, db, mouse_pointer, schedule_man),
-		'options': options.Options(pygame_settings, resources, tile_sets, anims, db, mouse_pointer, schedule_man),
+		'app_title': apptitle.AppTitle(*win_init_args),
+		'realm': realm.Realm(*win_init_args),
+		'inventory': inventory.Inventory(*win_init_args),
+		'target': target.Target(*win_init_args),
+		'context': context.Context(*win_init_args),
+		'skillbook': skillbook.SkillBook(*win_init_args),
+		'hotbar': hotbar.Hotbar(*win_init_args),
+		'pools': pools.Pools(*win_init_args),
+		'charstats': charstats.CharStats(*win_init_args),
+		'overlay': overlay.Overlay(*win_init_args),
+		'dialogue': dialogue.Dialogue(*win_init_args),
+		'demos': demos.Demos(*win_init_args),
+		'options': options.Options(*win_init_args)
 	}
-	bigloop(pygame_settings, resources, wins_dict, mouse_pointer, schedule_man)
+	active_wins = []
+	for win in wins_dict.values():
+		win.wins_dict = wins_dict
+		win.active_wins = active_wins
+
+	bigloop(pygame_settings, resources, wins_dict, active_wins, mouse_pointer, schedule_man)
 
 
-def bigloop(pygame_settings, resources, wins_dict, mouse_pointer, schedule_man, log=True):
+def bigloop(pygame_settings, resources, wins_dict, active_wins, mouse_pointer, schedule_man, log=True):
 	# adding the first unit to active wins
-	active_wins = [wins_dict['app_title']]
 	title_win = wins_dict['app_title']
+	active_wins.append(title_win)
 
 	run = True
 
@@ -48,7 +54,7 @@ def bigloop(pygame_settings, resources, wins_dict, mouse_pointer, schedule_man, 
 
 		schedule_man.tick()
 		for win in active_wins:
-			win.tick(pygame_settings, wins_dict, active_wins, mouse_pointer)
+			win.tick()
 
 		if mouse_pointer.still_timer < mouse_pointer.still_max:
 			mouse_pointer.still_timer += 1
@@ -56,12 +62,14 @@ def bigloop(pygame_settings, resources, wins_dict, mouse_pointer, schedule_man, 
 		# RENDERING COOLDOWNS
 		if title_win.pc is not None and len(title_win.pc.hot_cooling_set) > 0:
 			for socket, skill in title_win.pc.hot_cooling_set:
+				if socket is None:
+					continue
 				if socket.win in active_wins:
-					socket.win.win_rendered.blit(socket.rendered_panel,
-												 socket.rendered_rect.topleft)
-					socket.win.win_rendered.fill((1, 1, 1),
-							 (socket.rendered_rect.left, socket.rendered_rect.top,
-							  socket.size[0], socket.size[1] * skill.cooldown_timer // skill.props['cooldown']))
+					socket.win.win_rendered.blit(socket.rendered_panel, socket.rendered_rect.topleft)
+					socket.win.win_rendered.fill(resources.colors['gray_darker'], (
+						socket.rendered_rect.left, socket.rendered_rect.top,
+						socket.size[0], socket.size[1] * skill.cooldown_timer // skill.props['cooldown']
+					))
 
 
 		# DRAWING
@@ -94,7 +102,7 @@ def events(pygame_settings, resources, wins_dict, active_wins, mouse_pointer, lo
 		# Checking for window resize
 		if event.type == pygame.VIDEORESIZE:
 			if wins_dict['realm'].maze is not None:
-				wins_dict['realm'].view_resize(wins_dict, event.w, event.h)
+				wins_dict['realm'].view_resize(event.w, event.h)
 			wins_dict['app_title'].align(event.w, event.h)
 			pygame_settings.set_display(event.w, event.h)
 
@@ -102,14 +110,7 @@ def events(pygame_settings, resources, wins_dict, active_wins, mouse_pointer, lo
 		wins_num = len(active_wins)
 		for win in active_wins:
 			# blocking interaction from other windows if one was interacted
-			if win.event_check(event, pygame_settings, resources, wins_dict, active_wins, log=True):
+			if win.event_check(event, log=True):
 				break
 			if len(active_wins) != wins_num:
 				break
-
-		"""if event.type == pygame.MOUSEBUTTONUP:
-			for win in active_wins:
-				if win == wins_dict['realm']:
-					continue
-				for inter in win.win_ui.interactives:
-					inter.release(event.buttnon)"""

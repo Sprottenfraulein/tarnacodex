@@ -18,7 +18,7 @@ def generate_loot(monster, realm, fate_rnd, pc, log=True):
         tr_ids_list = dbrequests.treasure_get(realm.db.cursor, monster.stats['lvl'], tr_group, rnd_roll)
         for i in range(0, tr_amount):
             rnd_id = tr_ids_list[random.randrange(0, len(tr_ids_list))]
-            new_tr = treasure.Treasure(rnd_id, monster.stats['lvl'], realm.db.cursor, realm.tile_sets, realm.resources,
+            new_tr = treasure.Treasure(rnd_id, monster.stats['lvl'], realm.db.cursor, realm.tilesets, realm.resources,
                                        realm.pygame_settings.audio, fate_rnd)
             treasure.loot_validate(new_tr.props)
             treasure_list.append(new_tr)
@@ -26,7 +26,7 @@ def generate_loot(monster, realm, fate_rnd, pc, log=True):
     # SPECIAL BLACKROCK STATEMENT
     if (realm.maze.stage_index == realm.maze.chapter['stage_number'] - 1
             and not [mob for mob in realm.maze.mobs if mob.alive]):
-        new_tr = treasure.Treasure(7, monster.stats['lvl'], realm.db.cursor, realm.tile_sets, realm.resources,
+        new_tr = treasure.Treasure(7, monster.stats['lvl'], realm.db.cursor, realm.tilesets, realm.resources,
                                    realm.pygame_settings.audio, fate_rnd)
         treasure.loot_validate(new_tr.props)
         treasure_list.append(new_tr)
@@ -54,7 +54,7 @@ def generate_gold(monster, realm, fate_rnd, pc):
 
     treasure_list = []
     for gold_pile in gold_list:
-        new_gold = treasure.Treasure(6, monster.stats['lvl'], realm.db.cursor, realm.tile_sets, realm.resources,
+        new_gold = treasure.Treasure(6, monster.stats['lvl'], realm.db.cursor, realm.tilesets, realm.resources,
                                    realm.pygame_settings.audio, fate_rnd)
         amount = new_gold.props['amount'] + new_gold.props['amount'] * gold_pile // 100
         new_gold.props['amount'] = amount * monster.stats['lvl']
@@ -66,7 +66,7 @@ def generate_gold(monster, realm, fate_rnd, pc):
         elif new_gold.props['amount'] >= 10000:
             new_gold.props['grade'] = 1
         if new_gold.props['grade'] > 0:
-            treasure.images_update(realm.db.cursor, new_gold.props, realm.tile_sets)
+            treasure.images_update(realm.db.cursor, new_gold.props, realm.tilesets)
             treasure.sounds_update(realm.db.cursor, new_gold.props, realm.pygame_settings.audio)
 
         treasure_list.append(new_gold)

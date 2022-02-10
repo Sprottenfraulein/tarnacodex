@@ -7,12 +7,17 @@ from library import pydraw, maths
 
 class Target:
     def __init__(self, pygame_settings, resources, tilesets, animations, db, mouse_pointer, schedule_man, log=True):
-        self.db = db
         self.pygame_settings = pygame_settings
+        self.resources = resources
+        self.tilesets = tilesets
+        self.animations = animations
+        self.db = db
         self.mouse_pointer = mouse_pointer
         self.schedule_man = schedule_man
-        self.animations = animations
-        self.win_ui = ui.UI(pygame_settings, resources, tilesets, db)
+        self.wins_dict = None
+        self.active_wins = None
+        self.win_ui = ui.UI(pygame_settings, resources, tilesets, db, mouse_pointer)
+
         self.win_rendered = None
         self.win_w = 320
         self.win_h = 64
@@ -27,13 +32,12 @@ class Target:
         self.win_rendered = pygame.Surface((self.win_w, self.win_h)).convert()
         self.create_elements()
 
-    def event_check(self, event, pygame_settings, resources, wins_dict, active_wins, log=True):
+    def event_check(self, event, log=True):
         # return True if interaction was made to prevent other windows from responding to this event
         mouse_x, mouse_y = self.mouse_pointer.xy
-        return self.ui_click(self.win_ui.mouse_actions(mouse_x - self.offset_x, mouse_y - self.offset_y, event),
-                             pygame_settings, resources, wins_dict, active_wins)
+        return self.ui_click(self.win_ui.mouse_actions(mouse_x - self.offset_x, mouse_y - self.offset_y, event))
 
-    def ui_click(self, inter_click, pygame_settings, resources, wins_dict, active_wins):
+    def ui_click(self, inter_click):
         if inter_click is None:
             return
         element, m_bttn, mb_event = inter_click
@@ -71,18 +75,18 @@ class Target:
         # INVENTORY
         tar_texture = self.win_ui.random_texture((self.win_w, self.win_h), 'black_rock')
         tar_image = pydraw.square((0, 0), (self.win_w, self.win_h),
-                                  (self.win_ui.resources.colors['gray_light'],
-                                   self.win_ui.resources.colors['gray_dark'],
-                                   self.win_ui.resources.colors['gray_mid'],
-                                   self.win_ui.resources.colors['black']),
+                                  (self.resources.colors['gray_light'],
+                                   self.resources.colors['gray_dark'],
+                                   self.resources.colors['gray_mid'],
+                                   self.resources.colors['black']),
                                   sq_outsize=1, sq_bsize=2, sq_ldir=0, sq_fill=False,
                                   sq_image=tar_texture)
         tar_image = pydraw.square((4, 32),
                                   (self.win_w - 8, 8),
-                                  (self.win_ui.resources.colors['gray_light'],
-                                   self.win_ui.resources.colors['gray_dark'],
-                                   self.win_ui.resources.colors['bg'],
-                                   self.win_ui.resources.colors['black']),
+                                  (self.resources.colors['gray_light'],
+                                   self.resources.colors['gray_dark'],
+                                   self.resources.colors['bg'],
+                                   self.resources.colors['black']),
                                   sq_outsize=0, sq_bsize=1, sq_ldir=2, sq_fill=True,
                                   sq_image=tar_image, same_surface=True)
 
@@ -90,10 +94,10 @@ class Target:
                                           page=None)
         """header_texture = self.win_ui.random_texture((19, self.win_h), 'red_glass')
         header_img = pydraw.square((0, 0), (19, self.win_h),
-                                   (self.win_ui.resources.colors['gray_light'],
-                                    self.win_ui.resources.colors['gray_dark'],
-                                    self.win_ui.resources.colors['gray_mid'],
-                                    self.win_ui.resources.colors['gray_darker']),
+                                   (self.resources.colors['gray_light'],
+                                    self.resources.colors['gray_dark'],
+                                    self.resources.colors['gray_mid'],
+                                    self.resources.colors['gray_darker']),
                                    sq_outsize=1, sq_bsize=1, sq_ldir=0, sq_fill=False,
                                    sq_image=header_texture)
         tar_header = self.win_ui.panel_add('tar_header', (0, 0), (self.win_w, self.win_h), images=(header_img,),
@@ -107,14 +111,14 @@ class Target:
         self.win_ui.decoratives.append(self.mob_title)
         self.win_ui.decoratives.append(tar_panel)
 
-    def tick(self, pygame_settings, wins_dict, active_wins, mouse_pointer):
+    def tick(self):
         if self.mob_object is not None:
             if self.mon_hp != self.mob_object.hp:
                 self.mon_hp = self.mob_object.hp
                 self.win_ui.draw(self.win_rendered)
                 self.progress_bar_update(self.mob_object.stats['hp_max'], self.mon_hp, self.bar_color)
 
-        self.win_ui.tick(pygame_settings, mouse_pointer)
+        self.win_ui.tick()
 
     def draw(self, surface):
         surface.blit(self.win_rendered, (self.offset_x, self.offset_y))
