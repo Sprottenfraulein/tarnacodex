@@ -141,12 +141,12 @@ class Inventory:
                 if 'skill_id' in element.tags[0][element.id].props:
                     getattr(skillfuncs, element.tags[0][element.id].props['function_name'])(
                         self.wins_dict, self.resources.fate_rnd, self.pc, element.tags[0][element.id],
-                        element, True)
+                        (element.tags[0], element.id), True)
                 elif 'treasure_id' in element.tags[0][element.id].props and element.tags[0][element.id].props[
                     'use_skill'] is not None:
                     getattr(skillfuncs, element.tags[0][element.id].props['use_skill'].props['function_name'])(
                         self.wins_dict, self.resources.fate_rnd, self.pc, element.tags[0][element.id].props['use_skill'],
-                        element, True)
+                        (element.tags[0], element.id), True)
         elif m_bttn == 1:
             # removing popup if active
             if self.wins_dict['context'] in self.active_wins:

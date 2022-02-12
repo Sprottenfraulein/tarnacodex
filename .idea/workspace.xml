@@ -26,9 +26,23 @@
     </select>
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="cc130b1c-00f5-48a7-860f-78f09248cfe9" name="Default Changelist" comment="Readme updated">
+    <list default="true" id="cc130b1c-00f5-48a7-860f-78f09248cfe9" name="Default Changelist" comment="Tables updated">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/components/pc.py" beforeDir="false" afterPath="$PROJECT_DIR$/components/pc.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/components/skillfuncs.py" beforeDir="false" afterPath="$PROJECT_DIR$/components/skillfuncs.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/components/treasure.py" beforeDir="false" afterPath="$PROJECT_DIR$/components/treasure.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/res/data/tables.db" beforeDir="false" afterPath="$PROJECT_DIR$/res/data/tables.db" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/res/tilesets/floor_items.png" beforeDir="false" afterPath="$PROJECT_DIR$/res/tilesets/floor_items.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/res/tilesets/inv_items.png" beforeDir="false" afterPath="$PROJECT_DIR$/res/tilesets/inv_items.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/resman.py" beforeDir="false" afterPath="$PROJECT_DIR$/resman.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/save/0/character.pd" beforeDir="false" afterPath="$PROJECT_DIR$/save/0/character.pd" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/save/0/dung/0.pd" beforeDir="false" afterPath="$PROJECT_DIR$/save/0/dung/0.pd" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/save/0/dung/1.pd" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/wins/context.py" beforeDir="false" afterPath="$PROJECT_DIR$/wins/context.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/wins/hotbar.py" beforeDir="false" afterPath="$PROJECT_DIR$/wins/hotbar.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/wins/inventory.py" beforeDir="false" afterPath="$PROJECT_DIR$/wins/inventory.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/wins/realm.py" beforeDir="false" afterPath="$PROJECT_DIR$/wins/realm.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/wins/skillbook.py" beforeDir="false" afterPath="$PROJECT_DIR$/wins/skillbook.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -388,7 +402,14 @@
       <option name="project" value="LOCAL" />
       <updated>1644508479552</updated>
     </task>
-    <option name="localTasksCounter" value="41" />
+    <task id="LOCAL-00041" summary="Tables updated">
+      <created>1644509144446</created>
+      <option name="number" value="00041" />
+      <option name="presentableId" value="LOCAL-00041" />
+      <option name="project" value="LOCAL" />
+      <updated>1644509144446</updated>
+    </task>
+    <option name="localTasksCounter" value="42" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -416,7 +437,6 @@
     <option name="oldMeFiltersMigrated" value="true" />
   </component>
   <component name="VcsManagerConfiguration">
-    <MESSAGE value="Context info has been developed further, now affixes and (de)buffs showing up properly (mostly). &#10;Database requests updated with more functions.&#10;Database updated.&#10;Loot sounds and images resource managing has been optimised.&#10;Character stats reworked a bit.&#10;Some images edited." />
     <MESSAGE value="Gitignore updated." />
     <MESSAGE value="Monster object added with basic movement calculations.&#10;Targeting window added (appear on mouse over monsters).&#10;Rendering reworked. All my &quot;fancy&quot; shenanigans has been cut. &#10;More in readme." />
     <MESSAGE value="Readme update" />
@@ -441,7 +461,8 @@
     <MESSAGE value="More names added." />
     <MESSAGE value="Traps, burglary skills for Kingslayer, food added. Fixed mistakes, optimised code, reworked some things." />
     <MESSAGE value="Readme updated" />
-    <option name="LAST_COMMIT_MESSAGE" value="Readme updated" />
+    <MESSAGE value="Tables updated" />
+    <option name="LAST_COMMIT_MESSAGE" value="Tables updated" />
   </component>
   <component name="WindowStateProjectService">
     <state x="604" y="306" key="#com.intellij.fileTypes.FileTypeChooser" timestamp="1643884069606">
@@ -456,10 +477,10 @@
       <screen x="0" y="0" width="1680" height="1010" />
     </state>
     <state x="490" y="70" key="CommitChangelistDialog2/0.0.1680.1010@0.0.1680.1010" timestamp="1642254803053" />
-    <state width="1585" height="466" key="DebuggerActiveHint" timestamp="1644507309671">
+    <state width="1585" height="466" key="DebuggerActiveHint" timestamp="1644591114639">
       <screen x="0" y="0" width="1680" height="1010" />
     </state>
-    <state width="1585" height="466" key="DebuggerActiveHint/0.0.1680.1010@0.0.1680.1010" timestamp="1644507309671" />
+    <state width="1585" height="466" key="DebuggerActiveHint/0.0.1680.1010@0.0.1680.1010" timestamp="1644591114639" />
     <state width="540" height="442" key="Diff.GoToChangePopup" timestamp="1642697330208">
       <screen x="0" y="0" width="1680" height="1010" />
     </state>
@@ -472,42 +493,42 @@
       <screen x="0" y="0" width="1680" height="1010" />
     </state>
     <state x="630" y="259" key="FileChooserDialogImpl/0.0.1680.1010@0.0.1680.1010" timestamp="1643011903942" />
-    <state width="1659" height="178" key="GridCell.Tab.0.bottom" timestamp="1644508994924">
+    <state width="1659" height="182" key="GridCell.Tab.0.bottom" timestamp="1644591227292">
       <screen x="0" y="0" width="1680" height="1010" />
     </state>
-    <state width="1659" height="178" key="GridCell.Tab.0.bottom/0.0.1680.1010@0.0.1680.1010" timestamp="1644508994924" />
-    <state width="1659" height="178" key="GridCell.Tab.0.center" timestamp="1644508994924">
+    <state width="1659" height="182" key="GridCell.Tab.0.bottom/0.0.1680.1010@0.0.1680.1010" timestamp="1644591227292" />
+    <state width="1659" height="182" key="GridCell.Tab.0.center" timestamp="1644591227292">
       <screen x="0" y="0" width="1680" height="1010" />
     </state>
-    <state width="1659" height="178" key="GridCell.Tab.0.center/0.0.1680.1010@0.0.1680.1010" timestamp="1644508994924" />
-    <state width="1659" height="178" key="GridCell.Tab.0.left" timestamp="1644508994924">
+    <state width="1659" height="182" key="GridCell.Tab.0.center/0.0.1680.1010@0.0.1680.1010" timestamp="1644591227292" />
+    <state width="1659" height="182" key="GridCell.Tab.0.left" timestamp="1644591227292">
       <screen x="0" y="0" width="1680" height="1010" />
     </state>
-    <state width="1659" height="178" key="GridCell.Tab.0.left/0.0.1680.1010@0.0.1680.1010" timestamp="1644508994924" />
-    <state width="1659" height="178" key="GridCell.Tab.0.right" timestamp="1644508994924">
+    <state width="1659" height="182" key="GridCell.Tab.0.left/0.0.1680.1010@0.0.1680.1010" timestamp="1644591227292" />
+    <state width="1659" height="182" key="GridCell.Tab.0.right" timestamp="1644591227292">
       <screen x="0" y="0" width="1680" height="1010" />
     </state>
-    <state width="1659" height="178" key="GridCell.Tab.0.right/0.0.1680.1010@0.0.1680.1010" timestamp="1644508994924" />
-    <state width="1659" height="178" key="GridCell.Tab.1.bottom" timestamp="1644508994740">
+    <state width="1659" height="182" key="GridCell.Tab.0.right/0.0.1680.1010@0.0.1680.1010" timestamp="1644591227292" />
+    <state width="1659" height="182" key="GridCell.Tab.1.bottom" timestamp="1644591352510">
       <screen x="0" y="0" width="1680" height="1010" />
     </state>
     <state width="1579" height="154" key="GridCell.Tab.1.bottom/0.0.1600.860@0.0.1600.860" timestamp="1642792337009" />
-    <state width="1659" height="178" key="GridCell.Tab.1.bottom/0.0.1680.1010@0.0.1680.1010" timestamp="1644508994740" />
-    <state width="1659" height="178" key="GridCell.Tab.1.center" timestamp="1644508994740">
+    <state width="1659" height="182" key="GridCell.Tab.1.bottom/0.0.1680.1010@0.0.1680.1010" timestamp="1644591352510" />
+    <state width="1659" height="182" key="GridCell.Tab.1.center" timestamp="1644591352510">
       <screen x="0" y="0" width="1680" height="1010" />
     </state>
     <state width="1579" height="154" key="GridCell.Tab.1.center/0.0.1600.860@0.0.1600.860" timestamp="1642792337008" />
-    <state width="1659" height="178" key="GridCell.Tab.1.center/0.0.1680.1010@0.0.1680.1010" timestamp="1644508994740" />
-    <state width="1659" height="178" key="GridCell.Tab.1.left" timestamp="1644508994739">
+    <state width="1659" height="182" key="GridCell.Tab.1.center/0.0.1680.1010@0.0.1680.1010" timestamp="1644591352510" />
+    <state width="1659" height="182" key="GridCell.Tab.1.left" timestamp="1644591352510">
       <screen x="0" y="0" width="1680" height="1010" />
     </state>
     <state width="1579" height="154" key="GridCell.Tab.1.left/0.0.1600.860@0.0.1600.860" timestamp="1642792337008" />
-    <state width="1659" height="178" key="GridCell.Tab.1.left/0.0.1680.1010@0.0.1680.1010" timestamp="1644508994739" />
-    <state width="1659" height="178" key="GridCell.Tab.1.right" timestamp="1644508994740">
+    <state width="1659" height="182" key="GridCell.Tab.1.left/0.0.1680.1010@0.0.1680.1010" timestamp="1644591352510" />
+    <state width="1659" height="182" key="GridCell.Tab.1.right" timestamp="1644591352510">
       <screen x="0" y="0" width="1680" height="1010" />
     </state>
     <state width="1579" height="154" key="GridCell.Tab.1.right/0.0.1600.860@0.0.1600.860" timestamp="1642792337009" />
-    <state width="1659" height="178" key="GridCell.Tab.1.right/0.0.1680.1010@0.0.1680.1010" timestamp="1644508994740" />
+    <state width="1659" height="182" key="GridCell.Tab.1.right/0.0.1680.1010@0.0.1680.1010" timestamp="1644591352510" />
     <state x="351" y="149" key="SettingsEditor" timestamp="1642253657141">
       <screen x="0" y="0" width="1680" height="1010" />
     </state>
@@ -520,10 +541,10 @@
       <screen x="0" y="0" width="1680" height="1010" />
     </state>
     <state x="680" y="374" key="VCS.EditChangelistDialog/0.0.1680.1010@0.0.1680.1010" timestamp="1642255774149" />
-    <state x="442" y="241" key="Vcs.Push.Dialog.v2" timestamp="1644508483242">
+    <state x="442" y="241" key="Vcs.Push.Dialog.v2" timestamp="1644509147781">
       <screen x="0" y="0" width="1680" height="1010" />
     </state>
-    <state x="442" y="241" key="Vcs.Push.Dialog.v2/0.0.1680.1010@0.0.1680.1010" timestamp="1644508483242" />
+    <state x="442" y="241" key="Vcs.Push.Dialog.v2/0.0.1680.1010@0.0.1680.1010" timestamp="1644509147781" />
     <state width="848" height="513" key="XDebugger.FullValuePopup" timestamp="1644426063569">
       <screen x="0" y="0" width="1680" height="1010" />
     </state>

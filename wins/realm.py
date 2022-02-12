@@ -217,13 +217,13 @@ class Realm:
         if 'skill_id' in self.pc.char_sheet.hotbar[index].props:
             return getattr(skillfuncs, self.pc.char_sheet.hotbar[index].props['function_name'])(
                 self.wins_dict, self.resources.fate_rnd, self.pc, self.pc.char_sheet.hotbar[index],
-                self.wins_dict['hotbar'].hot_sockets_list[index], no_aim
+                (self.pc.char_sheet.hotbar, index), no_aim
             )
         elif ('treasure_id' in self.pc.char_sheet.hotbar[index].props
                 and self.pc.char_sheet.hotbar[index].props['use_skill'] is not None):
             return getattr(skillfuncs, self.pc.char_sheet.hotbar[index].props['use_skill'].props['function_name'])(
                 self.wins_dict, self.resources.fate_rnd, self.pc, self.pc.char_sheet.hotbar[index].props['use_skill'],
-                self.wins_dict['hotbar'].hot_sockets_list[index], no_aim
+                (self.pc.char_sheet.hotbar, index), no_aim
             )
         return True
 

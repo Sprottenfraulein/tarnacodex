@@ -45,20 +45,20 @@ class Context:
 
     def context_define(self, pc, itm, element):
         if itm.props['item_type'] in ('wpn_melee', 'wpn_ranged'):
-            self.wins_dict['context'].update_elements_weapon(pc, itm, self.mouse_pointer.xy)
+            self.wins_dict['context'].update_elements_weapon(pc, itm, element, self.mouse_pointer.xy)
         elif itm.props['item_type'] in ('skill_melee', 'skill_ranged', 'skill_magic', 'skill_craft', 'skill_misc'):
-            self.wins_dict['context'].update_elements_skill(pc, itm, self.mouse_pointer.xy)
-        elif itm.props['item_type'] in ('sup_potion',):
-            self.wins_dict['context'].update_elements_supply(pc, itm, self.mouse_pointer.xy)
-        elif itm.props['item_type'] in ('exp_lockpick','exp_tools', 'exp_food'):
-            self.wins_dict['context'].update_elements_lockpick(pc, itm, self.mouse_pointer.xy)
+            self.wins_dict['context'].update_elements_skill(pc, itm, element, self.mouse_pointer.xy)
+        elif itm.props['item_type'] in ('sup_potion', 'exp_food'):
+            self.wins_dict['context'].update_elements_supply(pc, itm, element, self.mouse_pointer.xy)
+        elif itm.props['item_type'] in ('exp_lockpick','exp_tools'):
+            self.wins_dict['context'].update_elements_lockpick(pc, itm, element, self.mouse_pointer.xy)
         elif itm.props['item_type'] in ('aug_gem',):
-            self.wins_dict['context'].update_elements_charm(pc, itm, self.mouse_pointer.xy)
+            self.wins_dict['context'].update_elements_charm(pc, itm, element, self.mouse_pointer.xy)
         element.popup_active = True
         self.active_wins.insert(0, self.wins_dict['context'])
 
     # interface creation
-    def update_elements_weapon(self, pc, item, mouse_xy, log=True):
+    def update_elements_weapon(self, pc, item, element, mouse_xy, log=True):
         self.win_ui.decoratives.clear()
         self.win_ui.interactives.clear()
 
@@ -149,7 +149,7 @@ class Context:
                                                             self.pygame_settings.screen_res[1])
         self.win_ui.draw(self.win_rendered)
 
-    def update_elements_skill(self, pc, item, mouse_xy, log=True):
+    def update_elements_skill(self, pc, item, element, mouse_xy, log=True):
         self.win_ui.decoratives.clear()
         self.win_ui.interactives.clear()
 
@@ -174,7 +174,7 @@ class Context:
                                                page=None)
         # calculating and rendering text
         bl_text = {
-            'desc': item.props['desc'] % getattr(skillfuncs, item.props['function_name'])(None, None, pc, item.props, None ,just_values=True)
+            'desc': item.props['desc'] % getattr(skillfuncs, item.props['function_name'])(None, None, pc, item.props, (element.tags[0], element.id) ,just_values=True)
         }
         itm_bodylines = self.win_ui.context_paragraphs('bodylines',
                                                        (itm_img_size[0] + 16, itm_img_top),
@@ -222,7 +222,7 @@ class Context:
                                                             self.pygame_settings.screen_res[1])
         self.win_ui.draw(self.win_rendered)
 
-    def update_elements_supply(self, pc, item, mouse_xy, log=True):
+    def update_elements_supply(self, pc, item, element, mouse_xy, log=True):
         self.win_ui.decoratives.clear()
         self.win_ui.interactives.clear()
 
@@ -235,7 +235,7 @@ class Context:
         hl_text = {
             'gradetype': (
                     self.resources.grades_loot[item.props['grade']] + ' ' + item.props['class']).capitalize(),
-            'mainvalue': '%s' % getattr(skillfuncs, item.props['use_skill'].props['function_name'])(None, None, pc, item.props['use_skill'], None, just_values=True),
+            'mainvalue': '%s' % getattr(skillfuncs, item.props['use_skill'].props['function_name'])(None, None, pc, item.props['use_skill'], (element.tags[0], element.id), just_values=True),
             'mv_caption': 'Supply'
         }
         itm_headlines = self.win_ui.context_headline_info('headlines',
@@ -248,7 +248,7 @@ class Context:
             'de_buffs': self.decorated_de_buffs(item.props['de_buffs']),
             'affixes': ' $n '.join([self.decorated_modifiers(affx['mods']) for affx in item.props['affixes']]),
             'affix_de_buffs': ' $n '.join([self.decorated_de_buffs(affx['de_buffs']) for affx in item.props['affixes'] if affx['de_buffs']]),
-            'desc': (item.props['desc'] % getattr(skillfuncs, item.props['use_skill'].props['function_name'])(None, None, pc, item.props['use_skill'], None, just_values=True) + ' '),
+            'desc': (item.props['desc'] % getattr(skillfuncs, item.props['use_skill'].props['function_name'])(None, None, pc, item.props['use_skill'], (element.tags[0], element.id), just_values=True) + ' '),
             'sell_price': str('Sell price: %s' % treasure.calc_loot_stat(item.props, 'price_sell'))
         }
         body_text = {k: v for k, v in body_text.items() if v}
@@ -312,7 +312,7 @@ class Context:
                                                             self.pygame_settings.screen_res[1])
         self.win_ui.draw(self.win_rendered)
 
-    def update_elements_lockpick(self, pc, item, mouse_xy, log=True):
+    def update_elements_lockpick(self, pc, item, element, mouse_xy, log=True):
         self.win_ui.decoratives.clear()
         self.win_ui.interactives.clear()
 
@@ -402,7 +402,7 @@ class Context:
                                                             self.pygame_settings.screen_res[1])
         self.win_ui.draw(self.win_rendered)
 
-    def update_elements_charm(self, pc, item, mouse_xy, log=True):
+    def update_elements_charm(self, pc, item, element, mouse_xy, log=True):
         self.win_ui.decoratives.clear()
         self.win_ui.interactives.clear()
 

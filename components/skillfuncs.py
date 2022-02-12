@@ -3,7 +3,7 @@ from components import treasure
 import random
 
 
-def attack_default(wins_dict, fate_rnd, pc, skill, socket, no_aim=False, just_values=False):
+def attack_default(wins_dict, fate_rnd, pc, skill, item_adress, no_aim=False, just_values=False):
     att_val_min, att_val_max = pc.char_sheet.attacks['att_base']
     att_mods = pc.char_sheet.calc_attack_mod('att_physical')
     att_val_min += (att_val_min * att_mods // 100)  # att_mods comprehended as procents
@@ -39,13 +39,54 @@ def attack_default(wins_dict, fate_rnd, pc, skill, socket, no_aim=False, just_va
     target.wound(damage, 'att_physical', False, is_crit, wins_dict, fate_rnd, pc)
 
     pc.food_change(wins_dict, -5)
-    pc.act(wins_dict, (target.x_sq, target.y_sq), skill, socket)
+    pc.act(wins_dict, (target.x_sq, target.y_sq), skill)
 
     return False
 
 
-def potion_heal(wins_dict, fate_rnd, pc, skill, socket, no_aim=False, just_values=False):
-    heal_hp_value = skill.props['lvl'] * 10
+def shot_default(wins_dict, fate_rnd, pc, skill, item_adress, no_aim=False, just_values=False):
+    att_val_min, att_val_max = pc.char_sheet.attacks['att_base']
+    att_mods = pc.char_sheet.calc_attack_mod('att_physical')
+    att_val_min += (att_val_min * att_mods // 100)  # att_mods comprehended as procents
+    att_val_max += (att_val_min * att_mods // 100)  # att_mods comprehended as procents
+    if just_values:
+        return att_val_min, att_val_max
+
+    realm = wins_dict['realm']
+
+    target = wins_dict['target'].mob_object
+    if target is None or not target.alive:
+        if no_aim:
+            realm.spawn_realmtext('new_txt', "Shoot what?", (0, 0), (0, -24), None, pc, None, 120, 'def_bold', 24)
+        return True
+
+    if not skill_reqs_check(realm, skill, pc):
+        return True
+
+    if maths.get_distance(pc.x_sq, pc.y_sq, target.x_sq, target.y_sq) > skill.props['range']:
+        """realm.schedule_man.task_add('realm_tasks', 1, realm, 'spawn_realmtext',
+                                    ('new_txt', "Too far!",
+                                     (0, 0), (0, -24), None, True, realm.pc))
+        realm.schedule_man.task_add('realm_tasks', 8, realm, 'remove_realmtext', ('new_txt',))"""
+        return True
+
+    rnd_attack = random.randrange(att_val_min, att_val_max + 1)
+    is_crit = (random.randrange(1, 1001) <= pc.char_sheet.profs['prof_crit'])
+    if is_crit:
+        rnd_attack *= 4
+
+    damage = rnd_attack * (100 - target.stats['def_physical']) // 100  # reduce attack by percent of def
+
+    target.wound(damage, 'att_physical', False, is_crit, wins_dict, fate_rnd, pc)
+
+    pc.food_change(wins_dict, -5)
+    pc.act(wins_dict, (target.x_sq, target.y_sq), skill)
+
+    return False
+
+
+def potion_heal(wins_dict, fate_rnd, pc, skill, item_adress, no_aim=False, just_values=False):
+    heal_hp_value = item_adress[0][item_adress[1]].props['mods']['hp_pool']['value_base']
     if just_values:
         return heal_hp_value
 
@@ -57,13 +98,13 @@ def potion_heal(wins_dict, fate_rnd, pc, skill, socket, no_aim=False, just_value
     pc.char_sheet.hp_get(heal_hp_value)
     wins_dict['pools'].updated = True
 
-    pc.act(wins_dict, None, skill, socket)
+    pc.act(wins_dict, None, skill)
 
     return False
 
 
-def potion_power(wins_dict, fate_rnd, pc, skill, socket, no_aim=False, just_values=False):
-    heal_mp_value = skill.props['lvl'] * 10
+def potion_power(wins_dict, fate_rnd, pc, skill, item_adress, no_aim=False, just_values=False):
+    heal_mp_value = item_adress[0][item_adress[1]].props['mods']['mp_pool']['value_base']
     if just_values:
         return heal_mp_value
 
@@ -75,15 +116,13 @@ def potion_power(wins_dict, fate_rnd, pc, skill, socket, no_aim=False, just_valu
     pc.char_sheet.mp_get(heal_mp_value)
     wins_dict['pools'].updated = True
 
-    pc.act(wins_dict, None, skill, socket)
+    pc.act(wins_dict, None, skill)
 
     return False
 
 
-def eat(wins_dict, fate_rnd, pc, skill, socket, no_aim=False, just_values=False):
-    food_value = 0
-    if socket.tags[0][socket.id].props['treasure_id'] == 12:    # APPLE
-        food_value = 100
+def eat(wins_dict, fate_rnd, pc, skill, item_adress, no_aim=False, just_values=False):
+    food_value = item_adress[0][item_adress[1]].props['mods']['food_pool']['value_base']
     if just_values:
         return food_value
 
@@ -94,18 +133,18 @@ def eat(wins_dict, fate_rnd, pc, skill, socket, no_aim=False, just_values=False)
 
     pc.char_sheet.food_get(food_value)
 
-    socket.tags[0][socket.id] = None
+    item_adress[0][item_adress[1]] = None
 
     wins_dict['pools'].updated = True
     wins_dict['inventory'].updated = True
     wins_dict['hotbar'].updated = True
 
-    pc.act(wins_dict, None, skill, socket)
+    pc.act(wins_dict, None, skill)
 
     return False
 
 
-def picklock(wins_dict, fate_rnd, pc, skill, socket, no_aim=False, just_values=False):
+def picklock(wins_dict, fate_rnd, pc, skill, item_adress, no_aim=False, just_values=False):
     if just_values:
         lockpicks = pc.char_sheet.inventory_search('exp_lockpick')
         if len(lockpicks) == 0:
@@ -114,14 +153,7 @@ def picklock(wins_dict, fate_rnd, pc, skill, socket, no_aim=False, just_values=F
         return (lockpick_mod + pc.char_sheet.profs['prof_picklock']) // 10
 
     realm = wins_dict['realm']
-    lockpicks = pc.char_sheet.inventory_search('exp_lockpick')
-    if len(lockpicks) == 0:
-        realm.spawn_realmtext('new_txt', "I have no lockpicks!", (0, 0), (0, -24), None, pc, None, 120, 'def_bold', 24)
-        return True
-    lockpick, lockpick_mod = get_highest(lockpicks, 'prof_picklock')
 
-    if not skill_reqs_check(realm, skill, pc):
-        return True
 
     if no_aim:
         for i in range(round(pc.y_sq) - (skill.props['range'] - 1),
@@ -166,18 +198,27 @@ def picklock(wins_dict, fate_rnd, pc, skill, socket, no_aim=False, just_values=F
             realm.spawn_realmtext('new_txt', "Too far!", (0, 0), (0, -24), None, pc, None, 120, 'def_bold', 24)
             return True
 
+    lockpicks = pc.char_sheet.inventory_search('exp_lockpick')
+    if len(lockpicks) == 0:
+        realm.spawn_realmtext('new_txt', "I have no lockpicks!", (0, 0), (0, -24), None, pc, None, 120, 'def_bold', 24)
+        return True
+    lockpick, lockpick_mod = get_highest(lockpicks, 'prof_picklock')
+
+    if not skill_reqs_check(realm, skill, pc):
+        return True
+
     pl_result = pl_object.lock.unlock(wins_dict, pc, lockpick_mod=lockpick_mod)
     if pl_result:
         pl_object.lock = None
         pl_object.image_update()
 
     pc.food_change(wins_dict, -10)
-    pc.act(wins_dict, (x_sq, y_sq), skill, socket)
+    pc.act(wins_dict, (x_sq, y_sq), skill)
 
     return False
 
 
-def disarm_trap(wins_dict, fate_rnd, pc, skill, socket, no_aim=False, just_values=False):
+def disarm_trap(wins_dict, fate_rnd, pc, skill, item_adress, no_aim=False, just_values=False):
     if just_values:
         tools = pc.char_sheet.inventory_search('exp_tools')
         if len(tools) == 0:
@@ -186,14 +227,6 @@ def disarm_trap(wins_dict, fate_rnd, pc, skill, socket, no_aim=False, just_value
         return (tool_mod + pc.char_sheet.profs['prof_disarm']) // 10
 
     realm = wins_dict['realm']
-    tools = pc.char_sheet.inventory_search('exp_tools')
-    if len(tools) == 0:
-        realm.spawn_realmtext('new_txt', "I have no tools!", (0, 0), (0, -24), None, pc, None, 120, 'def_bold', 24)
-        return True
-    tool, tool_mod = get_highest(tools, 'prof_disarm')
-
-    if not skill_reqs_check(realm, skill, pc):
-        return True
 
     if no_aim:
         for i in range(round(pc.y_sq) - (skill.props['range'] - 1),
@@ -206,11 +239,11 @@ def disarm_trap(wins_dict, fate_rnd, pc, skill, socket, no_aim=False, just_value
                     continue
                 if not flags.vis:
                     continue
-                if flags.trap is not None and flags.trap.visible:
+                if flags.trap is not None and flags.trap.visible == 1:
                     trap = flags.trap
                     x_sq, y_sq = j, i
                     break
-                elif flags.obj is not None and hasattr(flags.obj, 'trap') and flags.obj.trap is not None and flags.obj.trap.visible:
+                elif flags.obj is not None and hasattr(flags.obj, 'trap') and flags.obj.trap is not None and flags.obj.trap.visible == 1:
                     trap = flags.obj.trap
                     x_sq, y_sq = j, i
                     break
@@ -228,15 +261,24 @@ def disarm_trap(wins_dict, fate_rnd, pc, skill, socket, no_aim=False, just_value
             return True
         if not flags.vis:
             return True
-        if flags.trap is not None and flags.trap.visible:
+        if flags.trap is not None and flags.trap.visible == 1:
             trap = flags.trap
-        elif flags.obj is not None and hasattr(flags.obj, 'trap') and flags.obj.trap is not None and flags.obj.trap.visible:
+        elif flags.obj is not None and hasattr(flags.obj, 'trap') and flags.obj.trap is not None and flags.obj.trap.visible == 1:
             trap = flags.obj.trap
         else:
             return True
         if maths.get_distance(pc.x_sq, pc.y_sq, x_sq, y_sq) > skill.props['range']:
             realm.spawn_realmtext('new_txt', "Too far!", (0, 0), (0, -24), None, pc, None, 120, 'def_bold', 24)
             return True
+
+    tools = pc.char_sheet.inventory_search('exp_tools')
+    if len(tools) == 0:
+        realm.spawn_realmtext('new_txt', "I have no tools!", (0, 0), (0, -24), None, pc, None, 120, 'def_bold', 24)
+        return True
+    tool, tool_mod = get_highest(tools, 'prof_disarm')
+
+    if not skill_reqs_check(realm, skill, pc):
+        return True
 
     if trap.mode != 1:
         realm.spawn_realmtext('new_txt', "The trap's safe!", (0, 0), (0, -24), None, pc, None, 120, 'def_bold', 24)
@@ -248,12 +290,12 @@ def disarm_trap(wins_dict, fate_rnd, pc, skill, socket, no_aim=False, just_value
         trap.image_update()
 
     pc.food_change(wins_dict, -10)
-    pc.act(wins_dict, (x_sq, y_sq), skill, socket)
+    pc.act(wins_dict, (x_sq, y_sq), skill)
 
     return False
 
 
-def pickup(wins_dict, fate_rnd, pc, skill, socket, no_aim=False, just_values=False):
+def pickup(wins_dict, fate_rnd, pc, skill, item_adress, no_aim=False, just_values=False):
     if just_values:
         return ()
     realm = wins_dict['realm']
@@ -313,7 +355,7 @@ def pickup(wins_dict, fate_rnd, pc, skill, socket, no_aim=False, just_values=Fal
         break
 
     pc.food_change(wins_dict, -5)
-    pc.act(wins_dict, (x_sq, y_sq), skill, socket)
+    pc.act(wins_dict, (x_sq, y_sq), skill)
 
     return False
 

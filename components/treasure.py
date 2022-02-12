@@ -17,7 +17,8 @@ class Treasure:
 
         self.props = init_props(db_cursor, fate_rnd, treasure_dict)
 
-        calc_level(level, self.props)
+        if self.props['lvl'] is not None:
+            calc_level(level, self.props)
 
         # Attaching a skill if an item is usable.
         if self.props['use_skill'] is not None:

@@ -208,14 +208,14 @@ class PC:
                     step_x = step_y = 0
         return step_x, step_y
 
-    def act(self, wins_dict, aim_xy, skill, socket):
+    def act(self, wins_dict, aim_xy, skill):
         if aim_xy is not None:
             self.face_point(aim_xy[0], aim_xy[1])
         self.state_change(self.state + 4)
 
         self.busy = skill.props
 
-        self.add_cooldowns(wins_dict, socket, skill.props['skill_id'])
+        self.add_cooldowns(wins_dict, skill.props['skill_id'])
 
         self.busy_timer = 0
 
@@ -293,7 +293,7 @@ class PC:
             else:
                 wins_dict['demos'].death_soft(self, monster.stats, wins_dict['realm'].maze.chapter)
 
-    def add_cooldowns(self, wins_dict, socket, skill_id):
+    def add_cooldowns(self, wins_dict, skill_id):
         """if 'skill_id' in socket.tags[0][socket.id].props:
             self.hot_cooling_set.add((socket, socket.tags[0][socket.id]))
         elif ('treasure_id' in socket.tags[0][socket.id].props
