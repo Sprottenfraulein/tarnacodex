@@ -17,4 +17,7 @@ Use Hud buttons to open different windows.
 
 Hover over monsters with cursor to reveal targeting window.
 
+Visit Trading Post in Options (button with the door on HUD). 
+It not yet delivers!!! But soon will do.
+
 Don't forget to eat!
