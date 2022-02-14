@@ -125,8 +125,8 @@ def treasure_get_by_id(cursor, key_id):
     return treasure_dict, modifiers_list, de_buffs_list
 
 
-def treasure_get(cursor, lvl, treasure_group, roll, item_type=None, char_type=None, equipment_type=None):
-    ex_str = "SELECT treasure_id FROM treasure WHERE lvl<=? AND treasure_group=? AND roll_chance>=?"
+def treasure_get(cursor, lvl, treasure_group, roll, item_type=None, char_type=None, equipment_type=None, shop=None):
+    ex_str = "SELECT treasure_id FROM treasure WHERE (lvl is Null OR lvl<=?) AND treasure_group=? AND roll_chance>=?"
     if item_type is not None:
         itm_str = ','.join(item_type)
         itm_query = ' AND item_type IN (%s)' % itm_str
@@ -138,6 +138,9 @@ def treasure_get(cursor, lvl, treasure_group, roll, item_type=None, char_type=No
     if equipment_type is not None:
         eq_str = ','.join(equipment_type)
         eq_query = ' AND eq_type IN (%s)' % eq_str
+        ex_str += eq_query
+    if shop is not None:
+        eq_query = ' AND shop=%s' % shop
         ex_str += eq_query
     cursor.execute(ex_str, (lvl, treasure_group, roll))
     rows = cursor.fetchall()

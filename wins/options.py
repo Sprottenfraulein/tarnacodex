@@ -19,7 +19,7 @@ class Options:
 
         self.pc = None
         self.win_w = 272
-        self.win_h = 28 + 8 + 40 + 8 + 40 + 8
+        self.win_h = 28 + 8 + 40 + 8 + 40 + 8 + 40 + 8
         self.offset_x = 8
         self.offset_y = 8
 
@@ -102,6 +102,10 @@ class Options:
                                                          ())
             self.wins_dict['app_title'].schedule_man.task_add('realm_tasks', 2, self.wins_dict['overlay'], 'fade_in',
                                                          (20, None))
+        elif element.id == 'bttn_trade' and m_bttn == 1 and mb_event == 'up':
+            self.end()
+            self.wins_dict['realm'].pause = False
+            self.wins_dict['trade'].launch(self.pc)
         elif element.id == 'bttn_continue' and m_bttn == 1 and mb_event == 'up':
             self.end()
             self.wins_dict['realm'].pause = False
@@ -125,17 +129,24 @@ class Options:
         border_w = 8
         menu_btn_h = 40
         menu_btn_w = 256
-        bttn_save_exit = self.win_ui.button_add('bttn_save_exit', xy=(0,0), caption='Save and exit',
+        bttn_save_exit = self.win_ui.button_add('bttn_save_exit', xy=(0,0), caption='Save and Exit',
                                          size=(menu_btn_w, menu_btn_h), cap_font='large', cap_size=16,
                                          cap_color='fnt_muted', sounds=self.win_ui.snd_packs['button'], page=None)
         bttn_save_exit.rendered_rect.midtop = (self.win_w // 2, 28)
         self.win_ui.interactives.append(bttn_save_exit)
 
-        bttn_continue = self.win_ui.button_add('bttn_continue', xy=(0, 0), caption='Continue',
+        bttn_trade = self.win_ui.button_add('bttn_trade', xy=(0, 0), caption='Trading Post',
                                                 size=(menu_btn_w, menu_btn_h), cap_font='large', cap_size=16,
                                                 cap_color='fnt_muted', sounds=self.win_ui.snd_packs['button'],
                                                 page=None)
-        bttn_continue.rendered_rect.midtop = (self.win_w // 2, 28 + 8 + menu_btn_h)
+        bttn_trade.rendered_rect.midtop = (self.win_w // 2, 28 + 8 + menu_btn_h)
+        self.win_ui.interactives.append(bttn_trade)
+
+        bttn_continue = self.win_ui.button_add('bttn_continue', xy=(0, 0), caption='Continue',
+                                               size=(menu_btn_w, menu_btn_h), cap_font='large', cap_size=16,
+                                               cap_color='fnt_muted', sounds=self.win_ui.snd_packs['button'],
+                                               page=None)
+        bttn_continue.rendered_rect.midtop = (self.win_w // 2, 28 + (8 + menu_btn_h) * 2)
         self.win_ui.interactives.append(bttn_continue)
 
         opt_texture = self.win_ui.random_texture((self.win_w, self.win_h), 'black_rock')

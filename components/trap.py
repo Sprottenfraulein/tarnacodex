@@ -46,6 +46,7 @@ class Trap:
                                                    'attack_val_base': self.dam_val_base,
                                                    'attack_val_spread': self.dam_val_spread}, None, no_reflect=True, no_evade=True)
         self.mode = -1
+        self.visible = 1
         wins_dict['realm'].spawn_realmtext(None, 'Trap!', (0, 0), None,
                                            color='fnt_attent', stick_obj=self,
                                            speed_xy=(0, 0), kill_timer=25, font='large', size=16, frict_y=0)

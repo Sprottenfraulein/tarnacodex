@@ -2,7 +2,7 @@
 import pygame
 from library import cursor, database, scheduler
 from components import tilesets, animations
-from wins import apptitle, realm, inventory, skillbook, context, target, hotbar, pools, charstats, overlay, dialogue, demos, options
+from wins import apptitle, realm, inventory, skillbook, context, target, hotbar, pools, charstats, overlay, dialogue, demos, options, trade
 
 
 def launch(pygame_settings, resources, log=False):
@@ -31,7 +31,8 @@ def launch(pygame_settings, resources, log=False):
 		'overlay': overlay.Overlay(*win_init_args),
 		'dialogue': dialogue.Dialogue(*win_init_args),
 		'demos': demos.Demos(*win_init_args),
-		'options': options.Options(*win_init_args)
+		'options': options.Options(*win_init_args),
+		'trade': trade.Trade(*win_init_args)
 	}
 	active_wins = []
 	for win in wins_dict.values():

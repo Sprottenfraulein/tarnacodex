@@ -1,7 +1,7 @@
 import pygame
 import random
 from library import calc2darray, maths, logfun, typography
-from components import realmtext, skillfuncs, gamesave
+from components import realmtext, skillfuncs, projectile, gamesave
 import math
 
 
@@ -23,6 +23,7 @@ class Realm:
         self.mobs_short = set()
 
         self.text_short = []
+        self.missiles_list = []
 
         self.draw_view_maze = False
 
@@ -31,6 +32,7 @@ class Realm:
         self.redraw_maze_loot = True
         self.redraw_maze_mobs = True
         self.redraw_maze_text = True
+        self.redraw_missiles = True
 
         self.redraw_pc = True
         self.square_size = 24
@@ -55,6 +57,11 @@ class Realm:
         self.view_maze_follow = None
         self.maze = None
         self.pc = None
+
+        self.location_label = typography.Typography(self.pygame_settings, 'Player character location', (
+            self.view_size_scaled[0], 0
+        ), 'def_normal', 24, self.resources.colors['sun'], self.resources.colors['bg'],
+        'right', 'top', self.view_size_scaled[0] // 2, 24, shadow=True)
 
         self.view_maze_surface = None
         self.vision_sq_prev = None
@@ -101,6 +108,7 @@ class Realm:
         self.text_short = []
 
         self.shortlists_update(everything=True)
+        self.location_label_update()
         self.render_update()
 
         if self.wins_dict['hotbar'].pc != self.pc:
@@ -239,6 +247,10 @@ class Realm:
         for i in range(len(self.text_short) -1, -1, -1):
             self.text_short[i].tick()
 
+        for i in range(len(self.missiles_list) -1, -1, -1):
+            if not self.missiles_list[i].tick(self.wins_dict, self.resources.fate_rnd):
+                del self.missiles_list[i]
+
         self.render_update()
 
     def draw(self, surface):
@@ -263,6 +275,8 @@ class Realm:
                  (txt.x_sq - self.view_maze_x_sq - self.view_bleed_sq) * self.square_size * self.square_scale + txt.off_x,
                  (txt.y_sq - self.view_maze_y_sq - self.view_bleed_sq) * self.square_size * self.square_scale + txt.off_y)
 
+        screen.blit(self.location_label.rendered_text, self.location_label.rendered_rect)
+
     def view_maze_update(self, x_sq, y_sq):
         self.view_maze_x_sq = x_sq + self.view_offset_x_sq
         self.view_maze_y_sq = y_sq + self.view_offset_y_sq
@@ -275,6 +289,18 @@ class Realm:
         self.stage_render(self.view_maze_surface, r_vm_y_sq, r_vm_x_sq,
                           r_vm_y_sq + self.view_maze_height_sq + self.view_bleed_sq * 3,
                           r_vm_x_sq + self.view_maze_width_sq + self.view_bleed_sq * 3)
+
+        if self.redraw_missiles:
+            for missile in self.missiles_list:
+                try:
+                    self.view_maze_surface.blit(missile.images[self.maze.anim_frame],
+                                 ((missile.x_sq - self.ren_x_sq) * self.square_size + missile.off_x,
+                                  (missile.y_sq - self.ren_y_sq) * self.square_size + missile.off_y))
+                except IndexError:
+                    self.view_maze_surface.blit(missile.images[(self.maze.anim_frame + 1) % (len(missile.images))],
+                                                ((missile.x_sq - self.ren_x_sq) * self.square_size + missile.off_x,
+                                                 (missile.y_sq - self.ren_y_sq) * self.square_size + missile.off_y))
+
         self.draw_view_maze = True
 
     def stage_render(self, surface, top_sq, left_sq, bottom_sq, right_sq, clear=True):
@@ -300,7 +326,7 @@ class Realm:
                     if flags.vis:
                         decors = self.maze.decor_array[ren_pos_y][ren_pos_x]
 
-                        if flags.trap is not None:
+                        if flags.trap is not None and flags.trap.visible == 1:
                             try:
                                 surface.blit(flags.trap.images[self.maze.anim_frame],
                                              ((flags.trap.x_sq - self.ren_x_sq) * self.square_size + flags.trap.off_x,
@@ -450,34 +476,34 @@ class Realm:
         self.traps_search(self.vision_sq_prev)
 
     def mouse_move(self, mouse_xy):
-        rads = maths.xy_dist_to_rads(mouse_xy[0], mouse_xy[1],
-                                     (self.pc.x_sq - self.view_maze_x_sq - 0.4) * self.square_size * self.square_scale,
-                                     (self.pc.y_sq - self.view_maze_y_sq - 0.4) * self.square_size * self.square_scale)
+        rads = maths.xy_dist_to_rads((self.pc.x_sq - self.view_maze_x_sq - 0.4) * self.square_size * self.square_scale,
+                                     (self.pc.y_sq - self.view_maze_y_sq - 0.4) * self.square_size * self.square_scale,
+                                     mouse_xy[0], mouse_xy[1])
 
-        if -1.9 < rads <= -1.1:
-            move_instr_x = 0
-            move_instr_y = 1
-        elif 1.9 > rads > 1.1:
+        if -1.95 < rads <= -1.17:
             move_instr_x = 0
             move_instr_y = -1
-        elif rads < -2.7 or rads > 2.7:
-            move_instr_x = 1
-            move_instr_y = 0
-        elif -0.3 < rads <= 0.3:
+        elif 1.95 > rads > 1.17:
+            move_instr_x = 0
+            move_instr_y = 1
+        elif rads < -2.73 or rads > 2.73:
             move_instr_x = -1
             move_instr_y = 0
-        elif 0.3 < rads <= 1.1:
-            move_instr_x = -1
-            move_instr_y = -1
-        elif 1.9 < rads <= 2.7:
+        elif -0.39 < rads <= 0.39:
             move_instr_x = 1
-            move_instr_y = -1
-        elif -1.9 > rads >= -2.7:
+            move_instr_y = 0
+        elif 0.39 < rads <= 1.17:
             move_instr_x = 1
             move_instr_y = 1
+        elif 1.95 < rads <= 2.73:
+            move_instr_x = -1
+            move_instr_y = 1
+        elif -1.95 > rads >= -2.73:
+            move_instr_x = -1
+            move_instr_y = -1
         else:  # -0.3 > rads >= -1.1
-            move_instr_x = -1
-            move_instr_y = 1
+            move_instr_x = 1
+            move_instr_y = -1
         return move_instr_x, move_instr_y
 
     def pc_loot_drop(self, mouse_xy, log=False):
@@ -496,6 +522,8 @@ class Realm:
                                        ('new_txt', "Don't bury talents in the ground!",
                                         (0, 0), (0, -24), None, self.pc))
             self.schedule_man.task_add('realm_tasks', 8, self, 'remove_realmtext', ('new_txt',))
+            self.mouse_pointer.drag_item = None
+            self.mouse_pointer.image = None
             return
         self.maze.spawn_loot(m_x_sq, m_y_sq, (item_dragging,))
         if not self.mouse_pointer.drag_item[0] == self.mouse_pointer.catcher:
@@ -685,3 +713,49 @@ class Realm:
             if txt.id == text_id:
                 self.text_short.remove(txt)
                 return
+
+    def spawn_projectile(self, origin_xy, dest_xy, attack, speed, image_pack, collision_limit=1, blast_radius=0):
+        distance = maths.get_distance(origin_xy[0], origin_xy[1], dest_xy[0], dest_xy[1])
+        direction = maths.xy_dist_to_rads(origin_xy[0], origin_xy[1], dest_xy[0], dest_xy[1])
+        speed_step_x_sq, speed_step_y_sq = maths.rads_dist_to_xy(origin_xy[0], origin_xy[1], direction, speed)
+        speed_xy = speed_step_x_sq - origin_xy[0], speed_step_y_sq - origin_xy[1]
+        duration = math.ceil(distance / speed)
+
+        if 0.39 <= direction < 1.17:
+            # NW
+            images = [pygame.transform.rotate(img, 180) for img in image_pack[0]]
+        elif 1.17 <= direction < 1.95:
+            # N
+            images = [pygame.transform.rotate(img, 90) for img in image_pack[1]]
+        elif 1.95 <= direction < 2.73:
+            # NE
+            images = [pygame.transform.rotate(img, 90) for img in image_pack[0]]
+        elif 2.73 <= direction or -2.73 >= direction:
+            # E
+            images = image_pack[1]
+        elif -0.39 >= direction > -1.17:
+            # SW
+            images = [pygame.transform.rotate(img, -90) for img in image_pack[0]]
+        elif -1.17 >= direction > -1.95:
+            # S
+            images = [pygame.transform.rotate(img, -90) for img in image_pack[1]]
+        elif -1.95 >= direction > -2.73:
+            # SE
+            images = image_pack[0]
+        elif 0.39 > direction > -0.39:
+            # W
+            images = [pygame.transform.rotate(img, -180) for img in image_pack[1]]
+
+
+        new_missile = projectile.Projectile(origin_xy, (0,0), duration, speed_xy, images, attack,
+                                            collision_limit=1, blast_radius=0)
+        self.missiles_list.append(new_missile)
+
+    def location_label_update(self):
+        if self.pc.stage_entry == 'up':
+            venture_direction = 'descended'
+        else:
+            venture_direction = 'ascended'
+        self.location_label.caption = '%s (%s, stage %s, level %s), %s.' % (self.maze.stage_dict['label'], self.maze.chapter['label'],
+                                                                  self.pc.location[1] + 1, self.maze.lvl, venture_direction)
+        self.location_label.render()

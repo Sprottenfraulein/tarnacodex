@@ -26,6 +26,7 @@ class RealmText:
         self.popup_active = False
 
         self.x_sq, self.y_sq = dt_xy_sq
+        self.stick_to_obj()
         self.render()
 
     def mouse_down(self, m_button):
@@ -44,8 +45,9 @@ class RealmText:
         self.off_y += self.speed_xy[1]
         self.speed_xy[0] -= self.speed_xy[0] * self.frict_x
         self.speed_xy[1] -= self.speed_xy[1] * self.frict_y
-        if self.stick_obj is not None:
-            self.x_sq, self.y_sq = self.stick_obj.x_sq + 0.5, self.stick_obj.y_sq + 0.5
+
+        self.stick_to_obj()
+
         if self.kill_timer is not None:
             if self.kill_timer > 0:
                 self.kill_timer -= 1
@@ -54,6 +56,9 @@ class RealmText:
                 if self in self.realm.maze.text:
                     self.realm.maze.text.remove(self)
 
+    def stick_to_obj(self):
+        if self.stick_obj is not None:
+            self.x_sq, self.y_sq = self.stick_obj.x_sq + 0.5, self.stick_obj.y_sq + 0.5
 
     def render(self):
         self.text_obj.render()

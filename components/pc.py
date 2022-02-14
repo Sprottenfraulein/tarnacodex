@@ -22,6 +22,7 @@ class PC:
         self.image = None
         self.animate()
         self.alive = True
+        self.food_delta = 0
         self.hardcore_char = hardcore_char
 
         self.move_instr_x = 0
@@ -382,6 +383,7 @@ class PC:
     def food_change(self, wins_dict, value):
         if self.char_sheet.food > 0:
             self.char_sheet.food_get(value)
+            self.food_delta += abs(value)
         else:
             self.state_change(8)
             if self.hardcore_char:
@@ -389,8 +391,9 @@ class PC:
                 wins_dict['demos'].death_hardcore(self, {'label': 'hunger'}, wins_dict['realm'].maze.chapter)
             else:
                 wins_dict['demos'].death_soft(self, {'label': 'hunger'}, wins_dict['realm'].maze.chapter)
-        if not self.char_sheet.food % 20:
+        if self.food_delta >= 20:
             wins_dict['pools'].updated = True
+            self.food_delta = 0
 
     def stop(self):
         self.alive = False

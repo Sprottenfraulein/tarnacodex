@@ -29,7 +29,7 @@ class Dialogue:
             'bttn_ok': None,
             'bttn_cancel': None
         }
-        self.delayed_action = None
+        self.delayed_action = {}
 
         self.updated = False
         self.win_rendered = None
@@ -45,7 +45,10 @@ class Dialogue:
     def end(self):
         self.win_ui.decoratives.clear()
         self.win_ui.interactives.clear()
-        self.active_wins.remove(self.wins_dict['dialogue'])
+        self.dialogue_elements.clear()
+        self.delayed_action.clear()
+        if self in self.active_wins:
+            self.active_wins.remove(self)
 
     def event_check(self, event, log=True):
         mouse_x, mouse_y = self.mouse_pointer.xy
@@ -103,11 +106,16 @@ class Dialogue:
 
         # PAGE 0
         if element.id == 'bttn_cancel' and m_bttn == 1 and mb_event == 'up':
+            if 'bttn_cancel' in self.delayed_action:
+                getattr(self.delayed_action['bttn_cancel'][0],
+                        self.delayed_action['bttn_cancel'][1])(*self.delayed_action['bttn_cancel'][2])
             self.end()
         elif element.id == 'bttn_ok' and m_bttn == 1 and mb_event == 'up':
             # running delayed action
+            if 'bttn_ok' in self.delayed_action:
+                getattr(self.delayed_action['bttn_ok'][0], 
+                        self.delayed_action['bttn_ok'][1])(*self.delayed_action['bttn_ok'][2])
             self.end()
-            getattr(self.delayed_action[0], self.delayed_action[1])(*self.delayed_action[2])
 
         self.win_ui.updated = True
         self.win_ui.interaction_callback(element, mb_event, m_bttn)
@@ -160,6 +168,9 @@ class Dialogue:
         dlg_panel = self.win_ui.panel_add('dlg_panel', (0, 0), (self.win_w, self.win_h), images=(dlg_image,), page=None)
 
         # window header
+        header_text = 'Message'
+        if 'header' in self.dialogue_elements and self.dialogue_elements['header'] is not None:
+            header_text = self.dialogue_elements['header']
         header_texture = self.win_ui.random_texture((self.win_w, 19), 'red_glass')
         header_img = pydraw.square((0, 0), (self.win_w, 19),
                                    (self.win_ui.resources.colors['gray_light'],
@@ -169,7 +180,7 @@ class Dialogue:
                                    sq_outsize=1, sq_bsize=1, sq_ldir=0, sq_fill=False,
                                    sq_image=header_texture)
         win_header = self.win_ui.text_add('win_header', (0, 0), (self.win_w, 19),
-                                          caption=self.dialogue_elements['header'],
+                                          caption=header_text,
                                           h_align='center', v_align='middle', cap_color='sun', images=(header_img,))
 
         self.win_ui.interactives.append(win_header)

@@ -45,6 +45,9 @@ class Demos:
     def demo_run(self, pc, text_list, image_list, gameover=False):
         self.width, self.height = self.pygame_settings.screen_res
 
+        self.wins_dict['app_title'].char_save(pc, self.wins_dict['realm'].maze)
+        self.wins_dict['app_title'].maze_save(pc, self.wins_dict['realm'].maze)
+
         self.wins_dict['pools'].close_all_wins(pc)
         self.active_wins.clear()
         self.active_wins.extend([self.wins_dict['overlay'], self.wins_dict['demos']])
@@ -111,6 +114,7 @@ class Demos:
         self.wins_dict['realm'].pause = True
 
         self.wins_dict['app_title'].char_save(pc, self.wins_dict['realm'].maze)
+        self.wins_dict['app_title'].maze_save(pc, self.wins_dict['realm'].maze)
 
         self.wins_dict['pools'].close_all_wins(pc)
         self.active_wins.clear()
@@ -146,6 +150,7 @@ class Demos:
         self.wins_dict['realm'].pause = True
 
         self.wins_dict['app_title'].char_save(pc, self.wins_dict['realm'].maze)
+        self.wins_dict['app_title'].maze_save(pc, self.wins_dict['realm'].maze)
 
         self.wins_dict['pools'].close_all_wins(pc)
         self.active_wins.clear()
@@ -190,7 +195,6 @@ class Demos:
         self.picture_list.clear()
         self.text_list.clear()
         self.active_wins.clear()
-        self.wins_dict['app_title'].char_save(pc, self.wins_dict['realm'].maze)
         self.wins_dict['app_title'].create_savegames()
         self.wins_dict['app_title'].char_loaded_info_update()
         self.active_wins.append(self.wins_dict['app_title'])

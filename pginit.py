@@ -31,6 +31,8 @@ class PG:
 		self.fps = settings.FPS
 		# Creating pygame Clock object for maintaining stable framerate.
 		self.clock = pygame.time.Clock()
+		# Set Font resolution
+		pygame.freetype.set_default_resolution(96)
 		logfun.put('Pygame initialized successfully.', log)
 
 	def set_display(self, w, h, mode=pygame.RESIZABLE):

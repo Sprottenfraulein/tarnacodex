@@ -28,6 +28,8 @@ class Maze:
         else:
             self.lvl = self.stage_dict['lvl']
 
+        self.tradepost_update = False
+
         self.tile_set = tile_sets.get_maze_tiles(self.stage_dict['tile_set'])
         self.trap_rate = self.stage_dict['trap_rate']
         self.lock_rate = self.stage_dict['lock_rate']
@@ -60,6 +62,9 @@ class Maze:
         stage_progress = dbrequests.chapter_progress_get(db.cursor, pc.char_sheet.id, stage_index=self.stage_index)
         if len(stage_progress) > 0 and use_saves:
             gamesave.load_maze(pc, self, db, tile_sets, animations, audio)
+        else:
+            self.tradepost_update = True
+
 
         if len(stage_progress) == 0 or stage_progress[0]['maze_rolled'] == 0 or not use_saves:
             # self.generate_1(0, 0, self.height - 1, self.width - 1, 8, 8, False)

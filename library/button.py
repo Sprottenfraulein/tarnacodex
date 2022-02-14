@@ -4,7 +4,7 @@ import pygame
 
 class Button:
     def __init__(self, bttn_id, bttn_xy, bttn_size, text_obj=None,
-                 bttn_func=None, bttn_images=None, bttn_sounds=None, bttn_mode=0, bttn_switch=False,
+                 bttn_func=None, bttn_images=None, bttn_sounds=None, bttn_mode=0, bttn_switch=False, tags=None,
                  page=None):
         self.id = bttn_id
         self.size = bttn_size
@@ -16,7 +16,10 @@ class Button:
         self.switch = bttn_switch
         self.sw_op = False
         self.page = page
-        self.tags = []
+        if tags is None:
+            self.tags = []
+        else:
+            self.tags = tags
         self.enabled = True
 
         self.mouse_over = False

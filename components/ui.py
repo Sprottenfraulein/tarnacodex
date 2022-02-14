@@ -63,7 +63,7 @@ class UI:
     # UI ELEMENTS CREATION
     def button_add(self, bttn_id, xy=None, size=None, caption=None, images=None,
                    cap_font='def_bold', cap_size=None, cap_color=None, cap_shadow=False, sounds=None,
-                   mode=0, switch=False, function=None, page=None):
+                   mode=0, switch=False, function=None, tags=None, page=None):
         # setting defaults if attributes not presented:
         if xy is None:
             xy = (0, 0)
@@ -103,7 +103,7 @@ class UI:
                                          text_bg_color, 'center', 'middle', size[0], size[1], shadow=cap_shadow)
 
         new_button = button.Button(bttn_id, xy, size, text_obj=text, bttn_func=function, bttn_images=images,
-                                   bttn_sounds=sounds, bttn_mode=mode, bttn_switch=switch,
+                                   bttn_sounds=sounds, bttn_mode=mode, bttn_switch=switch, tags=tags,
                                    page=page)
         return new_button
 
@@ -281,8 +281,8 @@ class UI:
                                           self.resources.colors['fnt_celeb'],
                                           self.resources.colors['transparent'],
                                           'left', 'top', size[0], 0)
-        if 'sell_price' in text_dict:
-            text_dict['sell_price'] = typography.Typography(self.pygame_settings, text_dict['sell_price'], (0, 0), 'def_normal', 24,
+        if 'price' in text_dict:
+            text_dict['price'] = typography.Typography(self.pygame_settings, text_dict['price'], (0, 0), 'def_normal', 24,
                                           self.resources.colors['bright_gold'],
                                           self.resources.colors['transparent'],
                                           'left', 'top', size[0], 0)
@@ -341,8 +341,8 @@ class UI:
     def random_texture(self, size, tileset_name):
         tileset = self.tilesets.sets_dict[tileset_name]
         ts_rect = tileset.get_rect()
-        rnd_x = random.randrange(0, ts_rect.width - size[0])
-        rnd_y = random.randrange(0, ts_rect.height - size[1])
+        rnd_x = random.randrange(0, ts_rect.width - size[0] + 1)
+        rnd_y = random.randrange(0, ts_rect.height - size[1] + 1)
         return tileset.subsurface((rnd_x, rnd_y, size[0], size[1]))
 
     def tick(self):

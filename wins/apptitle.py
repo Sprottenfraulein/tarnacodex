@@ -126,7 +126,7 @@ class AppTitle:
                     'bttn_cancel': 'CANCEL',
                     'bttn_ok': 'OK'
                 }
-                self.wins_dict['dialogue'].delayed_action = (self, 'char_delete', [])
+                self.wins_dict['dialogue'].delayed_action['bttn_ok'] = (self, 'char_delete', [])
                 self.wins_dict['dialogue'].launch(pc)
             else:
                 self.wins_dict['dialogue'].dialogue_elements = {
@@ -244,7 +244,7 @@ class AppTitle:
                     'bttn_cancel': 'NO',
                     'bttn_ok': 'YES'
                 }
-                self.wins_dict['dialogue'].delayed_action = (self, 'chapter_begin', ())
+                self.wins_dict['dialogue'].delayed_action['bttn_ok'] = (self, 'chapter_begin', ())
                 self.wins_dict['dialogue'].launch(pc)
 
         elif element.id == 'continue_chapter' and m_bttn == 1 and mb_event == 'up' and element.mode == 1:
@@ -852,7 +852,7 @@ class AppTitle:
 
     def location_update(self, pc, entry, launch=False):
         if not launch:
-            gamesave.save_maze(pc, self.wins_dict['realm'].maze, self.db, self.win_ui.tilesets, self.animations, self.pygame_settings.audio)
+            self.maze_save(pc, self.wins_dict['realm'].maze)
         # dbrequests.chapter_progress_set(self.db, pc.char_sheet.id, self.wins_dict['realm'].maze.stage_index, 1, 1, 1, 1, 1, 1)
 
         self.wins_dict['realm'].maze = None
@@ -865,13 +865,20 @@ class AppTitle:
                 break
         pc.stage_entry = entry
 
-        gamesave.save_maze(pc, l, self.db, self.win_ui.tilesets, self.animations, self.pygame_settings.audio)
+        self.maze_save(pc, l)
         dbrequests.chapter_progress_set(self.db, pc.char_sheet.id, l.stage_index, 1, 1, 1, 1, 1, 1)
 
         self.char_save(pc, l)
 
         self.wins_dict['realm'].maze = l
         self.wins_dict['realm'].pc = pc
+
+        if l.tradepost_update:
+            self.wins_dict['trade'].goods_generate(pc.char_sheet.level)
+            self.wins_dict['trade'].updated = True
+            l.tradepost_update = False
+            self.wins_dict['realm'].spawn_realmtext('new_txt', "I would like to visit a Trading Post sometime soon.", (0, 0), (0, -24), 'bright_gold', pc, None, 120,
+                                  'def_bold', 24)
 
         self.wins_dict['realm'].launch()
         if self.wins_dict['realm'] not in self.active_wins:
@@ -996,6 +1003,10 @@ class AppTitle:
 
     def char_save(self, pc, maze):
         gamesave.save_char(pc, maze, self.db, self.win_ui.tilesets, self.pygame_settings.audio)
+
+    def maze_save(self, pc, maze):
+        gamesave.save_maze(pc, maze, self.db, self.win_ui.tilesets, self.animations,
+                           self.pygame_settings.audio)
 
     def char_load(self):
         if self.save_selection is not None:

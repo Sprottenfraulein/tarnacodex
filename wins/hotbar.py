@@ -99,7 +99,8 @@ class Hotbar:
             return True
 
         # return True if interaction was made to prevent other windows from responding to this event
-        return self.ui_click(self.win_ui.mouse_actions(mouse_x - self.offset_x, mouse_y - self.offset_y, event))
+        if event.type == pygame.MOUSEBUTTONUP or event.type == pygame.MOUSEBUTTONDOWN:
+            return self.ui_click(self.win_ui.mouse_actions(mouse_x - self.offset_x, mouse_y - self.offset_y, event))
 
     def ui_click(self, inter_click):
         if inter_click is None:

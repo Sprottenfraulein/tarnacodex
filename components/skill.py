@@ -12,7 +12,8 @@ class Skill:
 
         self.props = dbrequests.skill_get_by_id(db_cursor, skill_id)
 
-        calc_level(level, self.props)
+        if level is not None:
+            calc_level(level, self.props)
 
         # linking images and sounds
         images_update(db_cursor, self.props, tile_sets)

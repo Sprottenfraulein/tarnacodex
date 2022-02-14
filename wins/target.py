@@ -22,6 +22,7 @@ class Target:
         self.win_w = 320
         self.win_h = 64
         self.bar_color = resources.colors['bloody']
+        self.bar_top = 36
         self.offset_x = pygame_settings.screen_res[0] // 2 - self.win_w // 2
         self.offset_y = 0
 
@@ -68,8 +69,8 @@ class Target:
             self.mob_object = None
 
     def progress_bar_update(self, maximum, current, fg_color):
-        full_w = self.win_w - 10 - 6
-        self.win_rendered.fill(fg_color, (6, 34, full_w * current // maximum, 4))
+        full_w = self.win_w - 32
+        self.win_rendered.blit(self.tilesets.get_image('red_glass', (full_w * current // maximum, 12), (0,))[0], (16,self.bar_top))
 
     def create_elements(self):
         # INVENTORY
@@ -81,8 +82,8 @@ class Target:
                                    self.resources.colors['black']),
                                   sq_outsize=1, sq_bsize=2, sq_ldir=0, sq_fill=False,
                                   sq_image=tar_texture)
-        tar_image = pydraw.square((4, 32),
-                                  (self.win_w - 8, 8),
+        tar_image = pydraw.square((14, self.bar_top - 2),
+                                  (self.win_w - 28, 16),
                                   (self.resources.colors['gray_light'],
                                    self.resources.colors['gray_dark'],
                                    self.resources.colors['bg'],

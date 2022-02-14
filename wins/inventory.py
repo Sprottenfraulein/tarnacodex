@@ -1,10 +1,7 @@
 # char inventory window
 import pygame
-from library import textinput, pydraw, maths, itemlist
+from library import textinput, pydraw, maths
 from components import ui, skillfuncs
-
-
-# from components import maze, pc, charsheet
 
 
 class Inventory:
@@ -95,7 +92,8 @@ class Inventory:
             return True
 
         # return True if interaction was made to prevent other windows from responding to this event
-        return self.ui_click(self.win_ui.mouse_actions(mouse_x - self.offset_x, mouse_y - self.offset_y, event))
+        if event.type == pygame.MOUSEBUTTONUP or event.type == pygame.MOUSEBUTTONDOWN:
+            return self.ui_click(self.win_ui.mouse_actions(mouse_x - self.offset_x, mouse_y - self.offset_y, event))
 
     def ui_click(self, inter_click):
         if inter_click is None:
@@ -124,6 +122,32 @@ class Inventory:
                                                                     self.win_h,
                                                                     0, 0, self.pygame_settings.screen_res[0],
                                                                     self.pygame_settings.screen_res[1])
+
+        if element.id == 'sell_panel' and m_bttn == 1 and mb_event == 'up' and self.mouse_pointer.drag_item is not None:
+            item = self.mouse_pointer.drag_item[0][self.mouse_pointer.drag_item[1]]
+            if 'treasure_id' in item.props:
+                price = item.props['price_sell'] + item.props['price_sell'] * self.pc.char_sheet.profs['prof_trade'] // 1000
+                self.wins_dict['dialogue'].dialogue_elements = {
+                    'header': 'Trade confirmation',
+                    'text': 'Sell %s for %s gp.? $n (You may get back recently sold items '
+                            'in Buy Back tab of Trading Post window)' % (item.props['label'], price),
+                    'bttn_cancel': 'CANCEL',
+                    'bttn_ok': 'OK'
+                }
+                self.wins_dict['dialogue'].delayed_action['bttn_ok'] = (self, 'item_sell', (self.mouse_pointer.drag_item[0],
+                                                                                 self.mouse_pointer.drag_item[1], price))
+                self.wins_dict['dialogue'].delayed_action['bttn_cancel'] = (self, 'item_to_cursor', (self.mouse_pointer.drag_item[0],
+                                                                                            self.mouse_pointer.drag_item[1]))
+                self.mouse_pointer.drag_item = None
+                self.mouse_pointer.image = None
+                self.wins_dict['dialogue'].launch(self.pc)
+            else:
+                self.wins_dict['dialogue'].dialogue_elements = {
+                    'header': 'Attention',
+                    'text': "It is impossible to sell %s's skills!" % self.pc.char_sheet.name,
+                    'bttn_cancel': 'OK',
+                }
+                self.wins_dict['dialogue'].launch(self.pc)
 
         # PAGE 0
         if 'itm' not in element.tags:
@@ -208,7 +232,7 @@ class Inventory:
 
         inv_sckt_size = 48
         inv_sckt_left = 16
-        inv_sckt_top = 256
+        inv_sckt_top = 240
         inv_sckt_per_row = 6
         # INVENTORY
         inv_texture = self.win_ui.random_texture((self.win_w, self.win_h), 'black_rock')
@@ -281,6 +305,26 @@ class Inventory:
                                   img_stretch=True, tags=(self.pc.char_sheet.equipped[6], 'itm'), win=self),
         )
 
+        inv_sell_img = pydraw.square((0, 0), (inv_sckt_size, inv_sckt_size),
+                                          (self.resources.colors['gray_light'],
+                                           self.resources.colors['gray_dark'],
+                                           self.resources.colors['gray_mid'],
+                                           self.resources.colors['gray_darker']),
+                                          sq_outsize=1, sq_bsize=2, sq_ldir=2, sq_fill=False, img_stretch=True,
+                                          sq_image=self.tilesets.get_image('interface', (24, 24), (3,))[0])
+        inv_sell_img = pydraw.square((0, 0), (inv_sckt_size, inv_sckt_size),
+                                     (self.resources.colors['gray_light'],
+                                      self.resources.colors['gray_dark'],
+                                      self.resources.colors['gray_mid'],
+                                      self.resources.colors['gray_darker']),
+                                     sq_outsize=0, sq_bsize=1, sq_ldir=0, sq_fill=False, same_surface=True,
+                                     sq_image=inv_sell_img)
+        sell_panel = self.win_ui.panel_add('sell_panel',
+                                           (inv_sckt_left + (inv_sckt_per_row - 1) * inv_sckt_size,
+                                            inv_sckt_top + self.inv_sckt_total // inv_sckt_per_row * inv_sckt_size + 12),
+                                           (48, 48), images=(inv_sell_img,), page=None, img_stretch=True)
+        self.win_ui.interactives.append(sell_panel)
+
         # window header
         header_texture = self.win_ui.random_texture((self.win_w, 19), 'red_glass')
         header_img = pydraw.square((0, 0), (self.win_w, 19),
@@ -332,21 +376,32 @@ class Inventory:
                         self.inv_sockets_list[i] = socket
                         break
 
+    def item_sell(self, item_container, item_index, price):
+        self.pc.moved_item_cooldown_check(item_container[item_index], None)
+        self.wins_dict['trade'].trade_buyback.append(item_container[item_index])
+        item_container[item_index].props['price_buy'] = item_container[item_index].props['price_sell']
+        item_container[item_index] = None
+        self.pc.char_sheet.gold_coins += price
+        self.render_slots()
+
+    def item_to_cursor(self, item_container, item_index):
+        self.mouse_pointer.drag_item = [item_container, item_index]
+        self.mouse_pointer.image = item_container[item_index].props['image_inventory'][0]
+
     def tick(self):
         self.win_ui.tick()
         if self.win_ui.updated or self.updated:
             self.render()
 
     def render_slots(self):
-        for win in ('inventory','skillbook', 'hotbar'):
-            if self.wins_dict[win] in self.active_wins:
-                self.wins_dict[win].render()
+        for win in ('inventory','skillbook', 'hotbar', 'trade'):
+            self.wins_dict[win].updated = True
 
     def render(self, inv=True, eq=True, gold=True):
         # backpack update
         if self.pc is not None:
             if gold:
-                self.gold_sum.text_obj.caption = str(self.pc.char_sheet.gold_coins)
+                self.gold_sum.text_obj.caption = '%s gp.' % self.pc.char_sheet.gold_coins
                 self.gold_sum.text_obj.render()
                 self.gold_sum.render()
             if inv:

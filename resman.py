@@ -132,3 +132,9 @@ class ResMan:
         self.sprites = {
             'gold_coins_icon': ('interface', (24,24), (0,))
         }
+
+        self.fonts = {
+            'def_bold': './res/fonts/Cloude_Regular_Bold_1.02.ttf',
+            'def_normal': './res/fonts/Cloude_Regular_1.02.ttf',
+            'large': './res/fonts/NimbusRomNo9L-Med.otf'
+        }

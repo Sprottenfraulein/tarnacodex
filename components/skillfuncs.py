@@ -4,14 +4,20 @@ import random
 
 
 def attack_default(wins_dict, fate_rnd, pc, skill, item_adress, no_aim=False, just_values=False):
+    realm = wins_dict['realm']
+
     att_val_min, att_val_max = pc.char_sheet.attacks['att_base']
     att_mods = pc.char_sheet.calc_attack_mod('att_physical')
     att_val_min += (att_val_min * att_mods // 100)  # att_mods comprehended as procents
     att_val_max += (att_val_min * att_mods // 100)  # att_mods comprehended as procents
     if just_values:
-        return att_val_min, att_val_max
+        if not skill_reqs_check(realm, skill, pc):
+            return '-', '-'
+        else:
+            return att_val_min, att_val_max
 
-    realm = wins_dict['realm']
+    if not skill_reqs_check(realm, skill, pc):
+        return True
 
     target = wins_dict['target'].mob_object
     if target is None or not target.alive:
@@ -19,14 +25,14 @@ def attack_default(wins_dict, fate_rnd, pc, skill, item_adress, no_aim=False, ju
             realm.spawn_realmtext('new_txt', "Attack what?", (0, 0), (0, -24), None, pc, None, 120, 'def_bold', 24)
         return True
 
-    if not skill_reqs_check(realm, skill, pc):
-        return True
-
     if maths.get_distance(pc.x_sq, pc.y_sq, target.x_sq, target.y_sq) > skill.props['range']:
         """realm.schedule_man.task_add('realm_tasks', 1, realm, 'spawn_realmtext',
                                     ('new_txt', "Too far!",
                                      (0, 0), (0, -24), None, True, realm.pc))
         realm.schedule_man.task_add('realm_tasks', 8, realm, 'remove_realmtext', ('new_txt',))"""
+        return True
+
+    if not skill_costs_check(realm, skill, pc):
         return True
 
     rnd_attack = random.randrange(att_val_min, att_val_max + 1)
@@ -45,14 +51,20 @@ def attack_default(wins_dict, fate_rnd, pc, skill, item_adress, no_aim=False, ju
 
 
 def shot_default(wins_dict, fate_rnd, pc, skill, item_adress, no_aim=False, just_values=False):
+    realm = wins_dict['realm']
+
     att_val_min, att_val_max = pc.char_sheet.attacks['att_base']
     att_mods = pc.char_sheet.calc_attack_mod('att_physical')
     att_val_min += (att_val_min * att_mods // 100)  # att_mods comprehended as procents
     att_val_max += (att_val_min * att_mods // 100)  # att_mods comprehended as procents
     if just_values:
-        return att_val_min, att_val_max
+        if not skill_reqs_check(realm, skill, pc):
+            return '-', '-'
+        else:
+            return att_val_min, att_val_max
 
-    realm = wins_dict['realm']
+    if not skill_reqs_check(realm, skill, pc):
+        return True
 
     target = wins_dict['target'].mob_object
     if target is None or not target.alive:
@@ -70,14 +82,21 @@ def shot_default(wins_dict, fate_rnd, pc, skill, item_adress, no_aim=False, just
         realm.schedule_man.task_add('realm_tasks', 8, realm, 'remove_realmtext', ('new_txt',))"""
         return True
 
+    if not skill_costs_check(realm, skill, pc):
+        return True
+
     rnd_attack = random.randrange(att_val_min, att_val_max + 1)
     is_crit = (random.randrange(1, 1001) <= pc.char_sheet.profs['prof_crit'])
     if is_crit:
         rnd_attack *= 4
 
-    damage = rnd_attack * (100 - target.stats['def_physical']) // 100  # reduce attack by percent of def
-
-    target.wound(damage, 'att_physical', False, is_crit, wins_dict, fate_rnd, pc)
+    image_pack = (
+        realm.tilesets.get_image('item_effects', (16, 16), (0,)),
+        realm.tilesets.get_image('item_effects', (16, 16), (1,))
+    )
+    speed = 0.25
+    realm.spawn_projectile((pc.x_sq, pc.y_sq), (target.x_sq, target.y_sq), (rnd_attack, 'att_physical', is_crit, pc),
+                           speed, image_pack, collision_limit=1, blast_radius=0)
 
     pc.food_change(wins_dict, -5)
     pc.act(wins_dict, (target.x_sq, target.y_sq), skill)
@@ -122,7 +141,7 @@ def potion_power(wins_dict, fate_rnd, pc, skill, item_adress, no_aim=False, just
 
 
 def eat(wins_dict, fate_rnd, pc, skill, item_adress, no_aim=False, just_values=False):
-    food_value = item_adress[0][item_adress[1]].props['mods']['food_pool']['value_base']
+    food_value = item_adress[0][item_adress[1]].props['mods']['food_pool']['value_base'] * skill.props['lvl']
     if just_values:
         return food_value
 
@@ -148,12 +167,13 @@ def picklock(wins_dict, fate_rnd, pc, skill, item_adress, no_aim=False, just_val
     if just_values:
         lockpicks = pc.char_sheet.inventory_search('exp_lockpick')
         if len(lockpicks) == 0:
-            return pc.char_sheet.profs['prof_picklock'] // 10
+            return '-'
         lockpick, lockpick_mod = get_highest(lockpicks, 'prof_picklock')
         return (lockpick_mod + pc.char_sheet.profs['prof_picklock']) // 10
 
     realm = wins_dict['realm']
-
+    if not skill_reqs_check(realm, skill, pc):
+        return True
 
     if no_aim:
         for i in range(round(pc.y_sq) - (skill.props['range'] - 1),
@@ -204,7 +224,7 @@ def picklock(wins_dict, fate_rnd, pc, skill, item_adress, no_aim=False, just_val
         return True
     lockpick, lockpick_mod = get_highest(lockpicks, 'prof_picklock')
 
-    if not skill_reqs_check(realm, skill, pc):
+    if not skill_costs_check(realm, skill, pc):
         return True
 
     pl_result = pl_object.lock.unlock(wins_dict, pc, lockpick_mod=lockpick_mod)
@@ -222,11 +242,13 @@ def disarm_trap(wins_dict, fate_rnd, pc, skill, item_adress, no_aim=False, just_
     if just_values:
         tools = pc.char_sheet.inventory_search('exp_tools')
         if len(tools) == 0:
-            return pc.char_sheet.profs['prof_disarm'] // 10
+            return '-'
         tool, tool_mod = get_highest(tools, 'prof_disarm')
         return (tool_mod + pc.char_sheet.profs['prof_disarm']) // 10
 
     realm = wins_dict['realm']
+    if not skill_reqs_check(realm, skill, pc):
+        return True
 
     if no_aim:
         for i in range(round(pc.y_sq) - (skill.props['range'] - 1),
@@ -277,7 +299,7 @@ def disarm_trap(wins_dict, fate_rnd, pc, skill, item_adress, no_aim=False, just_
         return True
     tool, tool_mod = get_highest(tools, 'prof_disarm')
 
-    if not skill_reqs_check(realm, skill, pc):
+    if not skill_costs_check(realm, skill, pc):
         return True
 
     if trap.mode != 1:
@@ -365,6 +387,34 @@ def skill_reqs_check(realm, skill, pc):
         return False
     if skill.cooldown_timer > 0:
         return False
+
+    if skill.props['required_char_type'] not in (None, pc.char_sheet.type):
+        realm.spawn_realmtext('new_txt', "I have no skills for this task!", (0, 0), (0, -24), None, pc, None, 120, 'def_bold', 24)
+        return False
+
+    if (skill.props['required_head'] is not None
+            and not equipment_types_check((pc.char_sheet.equipped[0],), skill.props['required_head'])):
+        return False
+    if (skill.props['required_chest'] is not None
+            and not equipment_types_check((pc.char_sheet.equipped[1],), skill.props['required_chest'])):
+        return False
+    if (skill.props['required_hand1'] is not None
+            and not equipment_types_check((pc.char_sheet.equipped[2], pc.char_sheet.equipped[3]), skill.props['required_hand1'])):
+        return False
+    if (skill.props['required_hand2'] is not None
+            and not equipment_types_check((pc.char_sheet.equipped[2], pc.char_sheet.equipped[3]), skill.props['required_hand2'])):
+        return False
+    if (skill.props['required_ring'] is not None
+            and not equipment_types_check((pc.char_sheet.equipped[4], pc.char_sheet.equipped[5]), skill.props['required_ring'])):
+        return False
+    if (skill.props['required_light'] is not None
+            and not equipment_types_check((pc.char_sheet.equipped[6],), skill.props['required_light'])):
+        return False
+
+    return True
+
+
+def skill_costs_check(realm, skill, pc):
     if skill.props['cost_mp'] > pc.char_sheet.mp:
         realm.spawn_realmtext('new_txt', "Not enough powers!", (0, 0), (0, -24), None, pc, None, 120, 'def_bold', 24)
         return False
@@ -393,29 +443,6 @@ def skill_reqs_check(realm, skill, pc):
     else:
         pc.char_sheet.gold_coins += (skill.props['cost_gold'] * -1)
         realm.wins_dict['inventory'].updated = True
-
-    if skill.props['required_char_type'] not in (None, pc.char_sheet.type):
-        realm.spawn_realmtext('new_txt', "I have no skills for this task!", (0, 0), (0, -24), None, pc, None, 120, 'def_bold', 24)
-        return False
-
-    if (skill.props['required_head'] is not None
-            and not equipment_types_check((pc.char_sheet.equipped[0],), skill.props['required_head'])):
-        return False
-    if (skill.props['required_chest'] is not None
-            and not equipment_types_check((pc.char_sheet.equipped[1],), skill.props['required_chest'])):
-        return False
-    if (skill.props['required_hand1'] is not None
-            and not equipment_types_check((pc.char_sheet.equipped[2], pc.char_sheet.equipped[3]), skill.props['required_hand1'])):
-        return False
-    if (skill.props['required_hand2'] is not None
-            and not equipment_types_check((pc.char_sheet.equipped[2], pc.char_sheet.equipped[3]), skill.props['required_hand2'])):
-        return False
-    if (skill.props['required_ring'] is not None
-            and not equipment_types_check((pc.char_sheet.equipped[4], pc.char_sheet.equipped[5]), skill.props['required_ring'])):
-        return False
-    if (skill.props['required_light'] is not None
-            and not equipment_types_check((pc.char_sheet.equipped[6],), skill.props['required_light'])):
-        return False
 
     return True
 

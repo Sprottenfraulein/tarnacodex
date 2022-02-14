@@ -2,7 +2,7 @@
 import pygame
 
 
-def square(sq_xy, sq_size, sq_cols, sq_outsize=1, sq_bsize=1, sq_ldir=0, sq_fill=True, sq_image=None, same_surface=False):
+def square(sq_xy, sq_size, sq_cols, sq_outsize=1, sq_bsize=1, sq_ldir=0, sq_fill=True, sq_image=None, img_stretch=False, same_surface=False):
     if same_surface:
         sq_surface = sq_image
     else:
@@ -30,7 +30,10 @@ def square(sq_xy, sq_size, sq_cols, sq_outsize=1, sq_bsize=1, sq_ldir=0, sq_fill
     if sq_fill:
         sq_surface.fill(col_bg, (sq_xy, sq_size))
     if sq_image is not None and not same_surface:
-        sq_surface.blit(sq_image, (0,0))
+        if img_stretch:
+            pygame.transform.scale(sq_image, sq_size, sq_surface)
+        else:
+            sq_surface.blit(sq_image, (0,0))
 
     left, top = sq_xy
 

@@ -89,7 +89,8 @@ class SkillBook:
             return True
 
         # return True if interaction was made to prevent other windows from responding to this event
-        return self.ui_click(self.win_ui.mouse_actions(mouse_x - self.offset_x, mouse_y - self.offset_y, event))
+        if event.type == pygame.MOUSEBUTTONUP or event.type == pygame.MOUSEBUTTONDOWN:
+            return self.ui_click(self.win_ui.mouse_actions(mouse_x - self.offset_x, mouse_y - self.offset_y, event))
 
     def ui_click(self, inter_click):
         if inter_click is None:
@@ -266,7 +267,7 @@ class SkillBook:
 
     def restore_cooling_sockets(self):
         for socket, skill in self.pc.hot_cooling_set:
-            if socket.win is not self:
+            if socket is None or socket.win is not self:
                 continue
             for i in range(0, len(self.skb_sockets_list)):
                 if socket.id == self.skb_sockets_list[i].id and socket.tags[0] == self.skb_sockets_list[i].tags[0]:
