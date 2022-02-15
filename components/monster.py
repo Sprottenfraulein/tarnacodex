@@ -124,14 +124,7 @@ class Monster:
                 wp_x, wp_y = self.waypoints[self.wp_index]
                 self.move_instr_x, self.move_instr_y = maths.sign(wp_x - self.x_sq), maths.sign(wp_y - self.y_sq)
         elif self.bhvr_timer == 0 and self.stats['melee_distance'] < pc_distance <= self.stats['aggro_distance']:
-            if calc2darray.cast_ray(realm.maze.flag_array, self.x_sq, self.y_sq, realm.pc.x_sq, realm.pc.y_sq, True):
-                if self.attack_ranged(realm.pc, pc_distance):
-                    return
-                self.move_instr_x, self.move_instr_y = maths.sign(round(realm.pc.x_sq) - round(self.x_sq)), maths.sign(
-                    round(realm.pc.y_sq) - round(self.y_sq))
-                self.go()
-            elif self.stats['xray'] == 1:
-                self.calc_path(realm, (round(realm.pc.x_sq), round(realm.pc.y_sq)))
+            self.intercept(realm, pc_distance)
         else:
             if self.bhvr_timer == 0:
                 self.direction_change(realm)
@@ -186,6 +179,16 @@ class Monster:
         elif not self.calc_path(realm, (round(self.origin_x_sq), round(self.origin_y_sq))):
                 self.move_instr_x = random.randrange(-1, 2)
                 self.move_instr_y = random.randrange(-1, 2)
+
+    def intercept(self, realm, pc_distance):
+        if calc2darray.cast_ray(realm.maze.flag_array, self.x_sq, self.y_sq, realm.pc.x_sq, realm.pc.y_sq, True):
+            if self.attack_ranged(realm.pc, pc_distance):
+                return
+            self.move_instr_x, self.move_instr_y = maths.sign(round(realm.pc.x_sq) - round(self.x_sq)), maths.sign(
+                round(realm.pc.y_sq) - round(self.y_sq))
+            self.go()
+        elif self.stats['xray'] == 1:
+            self.calc_path(realm, (round(realm.pc.x_sq), round(realm.pc.y_sq)))
 
     # movement
     def move(self, step_x, step_y, realm):
@@ -324,6 +327,7 @@ class Monster:
                 pc.wound(wins_dict, self, attack, fate_rnd, no_crit=True, no_reflect=True, no_evade=True)
 
         self.check(wins_dict, fate_rnd, pc)
+        self.intercept(wins_dict['realm'], maths.get_distance(self.x_sq, self.y_sq, pc.x_sq, pc.y_sq))
 
     def check(self, wins_dict, fate_rnd, pc):
         if self.hp > 0:

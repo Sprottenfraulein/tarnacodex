@@ -160,7 +160,7 @@ class PC:
                 self.prev_x_sq = self.x_sq
                 self.prev_y_sq = self.y_sq
 
-                self.food_change(wins_dict, -5)
+                self.food_change(wins_dict, -2)
 
                 realm.shortlists_update(everything=True)
 
@@ -180,8 +180,8 @@ class PC:
                         self.char_sheet.gold_coins += itm.props['amount']
                         realm.maze.loot.remove(itm)
                         # realm.loot_short.remove(itm)
-                        if wins_dict['inventory'] in active_wins:
-                            wins_dict['inventory'].render()
+                        wins_dict['inventory'].updated = True
+                        wins_dict['trade'].updated = True
                         flags.item.remove(itm)
                         break
 

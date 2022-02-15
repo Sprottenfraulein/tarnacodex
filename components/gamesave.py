@@ -3,7 +3,7 @@ import pickle
 from components import treasure, skill, dbrequests
 
 
-def save_char(pc, maze, db, tileset, audio):
+def save_char(wins_dict, pc, maze, db, tileset, audio):
     filename = "./save/%s/character.pd" % pc.char_sheet.id
     os.makedirs(os.path.dirname(filename), exist_ok=True)
     with open(filename, "wb") as f:
@@ -86,6 +86,12 @@ def save_char(pc, maze, db, tileset, audio):
             'gold_coins': pc.char_sheet.gold_coins
         }
         pickle.dump(pc_obj_vars, f)
+
+        wins_offsets = {}
+        for win in ('charstats', 'hotbar','inventory','pools', 'skillbook', 'trade'):
+            wins_offsets[win] = wins_dict[win].offset_x, wins_dict[win].offset_y
+        pickle.dump(wins_offsets, f)
+
         f.truncate()
 
     restore_char_media(pc, db.cursor, tileset, audio)
@@ -95,7 +101,7 @@ def save_char(pc, maze, db, tileset, audio):
                          pc.char_portrait_index)
 
 
-def load_char(pc, db_cursor, tileset, audio):
+def load_char(wins_dict, pc, db_cursor, tileset, audio):
     filename = "./save/%s/character.pd" % pc.char_sheet.id
     if not os.path.exists(filename):
         return
@@ -117,6 +123,9 @@ def load_char(pc, db_cursor, tileset, audio):
         pc.location = pickle.load(f)
         pc.char_portrait_index = pickle.load(f)
         pc_obj_vars = pickle.load(f)
+        wins_offsets = pickle.load(f)
+        for win in ('charstats', 'hotbar', 'inventory', 'pools', 'skillbook', 'trade'):
+            wins_dict[win].offset_x, wins_dict[win].offset_y = wins_offsets[win]
 
         pc.char_sheet.id = pc_obj_vars['id']
         pc.hardcore_char = pc_obj_vars['hardcore_char']
@@ -182,6 +191,21 @@ def save_maze(pc, maze, db, tile_sets, animations, audio):
         for door in maze.doors:
             door.tileset = None
             door.image = None
+        for chest in maze.chests:
+            chest.tileset = None
+            chest.image = None
+            if chest.container is None:
+                continue
+            for itm in chest.container:
+                if itm is None:
+                    continue
+                for key in itm.props.keys():
+                    if 'image_' in key or 'sound_' in key:
+                        itm.props[key] = None
+                if 'treasure_id' in itm.props and itm.props['use_skill'] is not None:
+                    for key in itm.props['use_skill'].props.keys():
+                        if 'image_' in key or 'sound_' in key:
+                            itm.props['use_skill'].props[key] = None
         for trap in maze.traps:
             trap.tileset = None
             trap.images = None
@@ -204,6 +228,7 @@ def save_maze(pc, maze, db, tile_sets, animations, audio):
 
         pickle.dump(maze.rooms, f)
         pickle.dump(maze.doors, f)
+        pickle.dump(maze.chests, f)
         pickle.dump(maze.mobs, f)
         pickle.dump(maze.traps, f)
         pickle.dump(maze.exits, f)
@@ -242,6 +267,7 @@ def load_maze(pc, maze, db, tile_sets, animations, audio):
 
         maze.rooms = pickle.load(f)
         maze.doors = pickle.load(f)
+        maze.chests = pickle.load(f)
         maze.mobs = pickle.load(f)
         maze.traps = pickle.load(f)
         maze.exits = pickle.load(f)
@@ -314,6 +340,21 @@ def restore_maze_media(pc, maze, db_cursor, tile_sets, animations, audio, cooldo
     for door in maze.doors:
         door.tileset = maze.tile_set
         door.image_update()
+    for chest in maze.chests:
+        chest.tileset = maze.tile_set
+        chest.image_update()
+        if chest.container is None:
+            continue
+        for itm in chest.container:
+            if itm is None:
+                continue
+            treasure.images_update(db_cursor, itm.props, tile_sets)
+            treasure.sounds_update(db_cursor, itm.props, audio)
+            if itm.props['use_skill'] is not None:
+                if cooldown_reset:
+                    itm.props['use_skill'].cooldown_timer = 0
+                skill.images_update(db_cursor, itm.props['use_skill'].props, tile_sets)
+                skill.sounds_update(db_cursor, itm.props['use_skill'].props, audio)
     for trap in maze.traps:
         trap.tileset = maze.tile_set
         trap.image_update()

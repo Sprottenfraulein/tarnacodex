@@ -17,6 +17,7 @@ tilesets = (
     ('black_rock', 'res/tilesets/texture02.png'),
     ('dung_bricks', 'res/tilesets/dung_bricks.png'),
     ('dung_doors', 'res/tilesets/dung_doors.png'),
+    ('dung_chests', 'res/tilesets/dung_chests.png'),
     ('dark_edges', 'res/tilesets/darkedges.png'),
     ('interface', 'res/tilesets/interface.png'),
     ('inv_items', 'res/tilesets/inv_items.png'),

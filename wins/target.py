@@ -70,7 +70,7 @@ class Target:
 
     def progress_bar_update(self, maximum, current, fg_color):
         full_w = self.win_w - 32
-        self.win_rendered.blit(self.tilesets.get_image('red_glass', (full_w * current // maximum, 12), (0,))[0], (16,self.bar_top))
+        self.win_rendered.blit(self.tilesets.get_image('red_glass', (max(1, full_w * current // maximum), 12), (0,))[0], (16,self.bar_top))
 
     def create_elements(self):
         # INVENTORY

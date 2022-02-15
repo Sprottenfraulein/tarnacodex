@@ -1,8 +1,8 @@
 # trade window
 import pygame
 import math
-from library import textinput, pydraw, maths, itemlist
-from components import ui, treasure, dbrequests
+from library import textinput, pydraw, maths, itemlist, calc2darray
+from components import ui, treasure, dbrequests, chest
 
 
 class Trade:
@@ -32,7 +32,6 @@ class Trade:
         self.trade_list = []
         self.trade_buyback = []
         self.selected_index_list = {}
-        self.ordered_goods = []
         self.filters_last = []
         self.cost_value = 0
         self.gold_sum = None
@@ -145,6 +144,8 @@ class Trade:
                                                                     0, 0, self.pygame_settings.screen_res[0],
                                                                     self.pygame_settings.screen_res[1])
 
+        if element.id == 'bttn_close' and m_bttn == 1 and mb_event == 'up':
+            self.end()
         if element.id == 'bttn_order' and m_bttn == 1 and mb_event == 'up':
             if len(self.selected_index_list) == 0:
                 self.wins_dict['dialogue'].dialogue_elements = {
@@ -346,10 +347,14 @@ class Trade:
                 inv_sckt_top - fb_height * math.ceil(len(filter_menu) / fb_per_row) + fb_height * (i // fb_per_row))
         self.win_ui.interactives.extend(filter_menu)
 
-        bttn_order = self.win_ui.button_add('bttn_order', xy=(self.win_w - 128 - 16, self.win_h - 32 - 16),
-                                            caption='PAY & ORDER', size=(128, 32), cap_font='def_bold', cap_size=24,
+        bttn_order = self.win_ui.button_add('bttn_order', xy=(self.win_w - 96 * 2 - 16 - 8, self.win_h - 32 - 16),
+                                            caption='PURCHASE', size=(96, 32), cap_font='def_bold', cap_size=24,
                                             cap_color='fnt_muted', sounds=self.win_ui.snd_packs['button'], page=None)
         self.win_ui.interactives.append(bttn_order)
+        bttn_close = self.win_ui.button_add('bttn_close', xy=(self.win_w - 96 - 16, self.win_h - 32 - 16),
+                                            caption='CLOSE', size=(96, 32), cap_font='def_bold', cap_size=24,
+                                            cap_color='fnt_muted', sounds=self.win_ui.snd_packs['button'], page=None)
+        self.win_ui.interactives.append(bttn_close)
 
         # window header
         header_texture = self.win_ui.random_texture((self.win_w, 19), 'red_glass')
@@ -406,16 +411,36 @@ class Trade:
         self.filters_last = filter_menu[0].tags
 
     def order_set(self):
+        ordered_goods = []
         self.pc.char_sheet.gold_coins -= self.cost_value
         for itm in self.selected_index_list.keys():
-            self.ordered_goods.append(itm)
-            self.trade_bank.remove(itm)
+            ordered_goods.append(itm)
+            if itm in self.trade_bank:
+                self.trade_bank.remove(itm)
+            elif itm in self.trade_buyback:
+                self.trade_buyback.remove(itm)
 
         self.selected_index_list.clear()
         self.filter_list()
-        self.updated = True
+
+        x_sq = self.pc.x_sq
+        y_sq = self.pc.y_sq
+        for ex in self.wins_dict['realm'].maze.exits:
+            if ex.dest == 'up':
+                x_sq, y_sq = ex.x_sq, ex.y_sq
+        space_list = calc2darray.fill2d(self.wins_dict['realm'].maze.flag_array, {'mov': False, 'obj': 'True', 'floor': False},
+                                        (x_sq, y_sq), (x_sq, y_sq), 2, 3, r_max=5)
+        x_sq, y_sq = space_list[1]
+        new_chest = chest.Chest(x_sq, y_sq, 0, None, self.wins_dict['realm'].maze.tile_set, off_x=-4, off_y=-4,
+                                container=ordered_goods, disappear=True)
+        self.wins_dict['realm'].maze.chests.append(new_chest)
+        self.wins_dict['realm'].maze.flag_array[y_sq][x_sq].obj = new_chest
+        self.wins_dict['realm'].maze.flag_array[y_sq][x_sq].mov = False
+        # self.updated = True
+        self.end()
 
     def goods_generate(self, goods_level_cap):
+        self.trade_bank.clear()
         good_ids = dbrequests.treasure_get(self.db.cursor, goods_level_cap, 0, 1000, shop=1)
         for j in good_ids:
             for i in range(-2, 1):

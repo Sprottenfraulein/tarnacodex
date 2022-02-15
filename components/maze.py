@@ -1,7 +1,7 @@
 import random
 from library import maths
 from library import pickrandom, calc2darray, itemlist
-from components import dbrequests, progression, room, door, stairs, trap, lock, flagtile, monster, gamesave
+from components import dbrequests, progression, room, door, stairs, trap, lock, flagtile, monster, gamesave, chest
 
 
 class Maze:
@@ -43,6 +43,7 @@ class Maze:
 
         self.rooms = None
         self.doors = set()
+        self.chests = []
         self.mobs = []
         self.traps = []
         self.exits = []
@@ -546,6 +547,7 @@ def doors_set(maze, tile_set, db):
                 for dr in locked_room.doors:
                     if dr.lock is None:
                         dr.lock = lock.Lock(maze.lvl, magical=True)
+                        chest_set(maze, locked_room, tile_set, 1)
                     dr.shut = True
                 locked_room.rating += 150
                 square(maze.array, locked_room.top + 1, locked_room.left + 1, locked_room.bottom, locked_room.right,
@@ -554,6 +556,7 @@ def doors_set(maze, tile_set, db):
                 for dr in locked_room.doors:
                     if dr.lock is None:
                         dr.lock = lock.Lock(maze.lvl)
+                        chest_set(maze, locked_room, tile_set, 1)
                     dr.shut = True
                 locked_room.rating += 100
                 square(maze.array, locked_room.top + 1, locked_room.left + 1, locked_room.bottom, locked_room.right,
@@ -563,8 +566,7 @@ def doors_set(maze, tile_set, db):
             if not trap_params_list:
                 continue
             label, rang, dam_type, dam_val_base, dam_val_spread, lvl = random.choice(trap_params_list)
-            new_trap = trap.Trap(None, None, maze.lvl, maze.tile_set, label, rang, dam_type, dam_val_base, dam_val_spread,
-                                 lvl)
+            new_trap = trap.Trap(None, None, maze.lvl, maze.tile_set, label, rang, dam_type, dam_val_base, dam_val_spread)
             random.choice(locked_room.doors).trap = new_trap
             maze.traps.append(new_trap)
             locked_room.rating += 50
@@ -610,6 +612,21 @@ def exits_set(maze, exits_list):
         new_exit = stairs.Stairs(x_sq, y_sq, -24, -24, dest, room, maze.tile_set[exits_list[i][1]], exits_list[i][1])
 
         maze.exits.append(new_exit)
+
+
+def chest_set(maze, room, tileset, chest_number):
+    for i in range(0, chest_number):
+        x_sq, y_sq = random.choice(
+            ((random.randrange(room.left + 1, room.right - 1), random.choice((room.top + 1, room.bottom - 1))),
+             (random.choice((room.left + 1, room.right - 1)), random.randrange(room.top + 1, room.bottom - 1)))
+        )
+        space_list = calc2darray.fill2d(maze.flag_array, {'mov': False, 'obj': 'True', 'floor': False},
+                                        (x_sq, y_sq), (x_sq, y_sq), 1, 5, r_max=5)
+        x_sq, y_sq = space_list[0]
+        alignment = random.choice((0, 1))
+        new_chest = chest.Chest(x_sq, y_sq, alignment, room, tileset, off_x=-4, off_y=-4, lvl=maze.lvl, items_number=3,
+                                 treasure_group=0, item_type=None, char_type=None, container=None, disappear=False)
+        maze.chests.append(new_chest)
 
 
 def array_pattern_apply(array, pattern, x, y):
@@ -713,6 +730,10 @@ def flags_update(maze, flags_array):
         fl.mov = False
         fl.obj = ex
         # fl.light = True
+    for ch in maze.chests:
+        fl = flags_array[ch.y_sq][ch.x_sq]
+        fl.mov = False
+        fl.obj = ch
     for tr in maze.traps:
         if tr.x_sq is not None and tr.y_sq is not None:
             flags_array[tr.y_sq][tr.x_sq].trap = tr

@@ -873,7 +873,7 @@ class AppTitle:
         self.wins_dict['realm'].maze = l
         self.wins_dict['realm'].pc = pc
 
-        if l.tradepost_update:
+        if l.tradepost_update or launch:
             self.wins_dict['trade'].goods_generate(pc.char_sheet.level)
             self.wins_dict['trade'].updated = True
             l.tradepost_update = False
@@ -999,10 +999,13 @@ class AppTitle:
         p.char_sheet.equipped[2][0] = treasure.Treasure(3, p.char_sheet.level, self.db.cursor, self.win_ui.tilesets,
                                                         self.win_ui.resources, self.pygame_settings.audio,
                                                         self.win_ui.resources.fate_rnd)
+        """p.char_sheet.inventory[0] = treasure.Treasure(9, p.char_sheet.level, self.db.cursor, self.win_ui.tilesets,
+                                                        self.win_ui.resources, self.pygame_settings.audio,
+                                                        self.win_ui.resources.fate_rnd)"""
         self.pc = p
 
     def char_save(self, pc, maze):
-        gamesave.save_char(pc, maze, self.db, self.win_ui.tilesets, self.pygame_settings.audio)
+        gamesave.save_char(self.wins_dict, pc, maze, self.db, self.win_ui.tilesets, self.pygame_settings.audio)
 
     def maze_save(self, pc, maze):
         gamesave.save_maze(pc, maze, self.db, self.win_ui.tilesets, self.animations,
@@ -1016,7 +1019,7 @@ class AppTitle:
             p = pc.PC(0, 0, None, self.animations.get_animation('anthro_default'), char_sheet, state=0)
             p.char_portrait_index = self.savegames[self.save_selection]['char_image_index']
 
-            gamesave.load_char(p, self.db.cursor, self.win_ui.tilesets, self.pygame_settings.audio)
+            gamesave.load_char(self.wins_dict, p, self.db.cursor, self.win_ui.tilesets, self.pygame_settings.audio)
             self.pc = p
 
             self.char_loaded_info_update()

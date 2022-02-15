@@ -554,8 +554,8 @@ class Realm:
             else:
                 trap.visible = -1
         if traps_detected:
-            self.spawn_realmtext('new_txt', "Watch out for the traps!", (0, 0), (0, -24), 'fnt_attent',
-                                 self.pc, None, 120, 'def_bold', 24)
+            self.spawn_realmtext('new_txt', "Watch out for the traps!", (0, 0), (0, 24), 'fnt_attent',
+                                 self.pc, None, 180, 'def_bold', 24)
 
     def xy_pixels_to_squares(self, xy, do_round=True):
         x_sq = self.view_bleed_sq + self.view_maze_x_sq - 0.3 + xy[0] / self.square_size / self.square_scale
@@ -588,6 +588,7 @@ class Realm:
                     self.maze.loot.remove(lt)
                     # self.loot_short.remove(lt)
                     self.wins_dict['inventory'].updated = True
+                    self.wins_dict['trade'].updated = True
                     return False
                 else:
                     self.maze.flag_array[y_sq][x_sq].item.remove(lt)
