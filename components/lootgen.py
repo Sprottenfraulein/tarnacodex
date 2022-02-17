@@ -63,7 +63,7 @@ def generate_gold(monster, realm, fate_rnd, pc):
             new_gold.props['grade'] = 3
         elif new_gold.props['amount'] >= 10000:
             new_gold.props['grade'] = 2
-        elif new_gold.props['amount'] >= 10000:
+        elif new_gold.props['amount'] >= 1000:
             new_gold.props['grade'] = 1
         if new_gold.props['grade'] > 0:
             treasure.images_update(realm.db.cursor, new_gold.props, realm.tilesets)

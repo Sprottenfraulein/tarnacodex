@@ -120,6 +120,7 @@ class Options:
         self.active_wins.clear()
         self.wins_dict['pools'].pc = None
         self.wins_dict['app_title'].char_save(self.pc, self.wins_dict['realm'].maze)
+        self.wins_dict['app_title'].maze_save(self.pc, self.wins_dict['realm'].maze)
         self.wins_dict['app_title'].create_savegames()
         self.wins_dict['app_title'].char_loaded_info_update()
         self.active_wins.append(self.wins_dict['app_title'])

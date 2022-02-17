@@ -116,6 +116,10 @@ class Trade:
 
     def ui_click(self, inter_click):
         if inter_click is None:
+            for inter in self.win_ui.interactives:
+                inter.release(1)
+                inter.release(3)
+            self.win_ui.updated = True
             return
         element, m_bttn, mb_event = inter_click
 
@@ -226,6 +230,7 @@ class Trade:
                 self.selected_index_list[key_obj] = 1"""
             self.selected_index_list[key_obj] = 1
             self.updated = True
+            self.wins_dict['context'].end()
         if 'itm' in element.tags and m_bttn == 3 and mb_event == 'down' and element.id < len(self.trade_list):
             key_obj = self.trade_list[element.id]
             if key_obj in self.selected_index_list:
@@ -234,6 +239,7 @@ class Trade:
                 else:
                     del self.selected_index_list[key_obj]
             self.updated = True
+            self.wins_dict['context'].end()
 
         self.win_ui.updated = True
         self.win_ui.interaction_callback(element, mb_event, m_bttn)
@@ -303,41 +309,41 @@ class Trade:
                 'bttn_filter', caption='All Items', size=(80, 24), cap_font='def_bold', cap_size=24,
                 cap_color='fnt_muted', sounds=self.win_ui.snd_packs['button'], page=None, mode=1, tags=(
                     'wpn_melee', 'wpn_ranged', 'wpn_magic', 'arm_head', 'arm_chest', 'acc_ring', 'orb_shield',
-                    'orb_ammo', 'orb_source', 'use_wand', 'exp_tools', 'exp_lockpick', 'exp_food', 'light', 'aug_gem',
-                    'sup_potion')
+                    'orb_ammo', 'orb_source', 'use_wand', 'exp_tools', 'exp_lockpick', 'exp_food', 'exp_key',
+                    'light', 'aug_gem', 'sup_potion'), switch=True
             ),
             self.win_ui.button_add(
                 'bttn_filter', caption='Weapons', size=(80, 24), cap_font='def_bold', cap_size=24,
                 cap_color='fnt_muted', sounds=self.win_ui.snd_packs['button'], page=None, tags=(
-                    'wpn_melee', 'wpn_ranged')),
+                    'wpn_melee', 'wpn_ranged'), switch=True),
             self.win_ui.button_add(
                 'bttn_filter', caption='Armor', size=(80, 24), cap_font='def_bold', cap_size=24,
                 cap_color='fnt_muted', sounds=self.win_ui.snd_packs['button'], page=None, tags=(
-                    'arm_head', 'arm_chest', 'acc_ring')),
+                    'arm_head', 'arm_chest', 'acc_ring'), switch=True),
             self.win_ui.button_add(
                 'bttn_filter', caption='Magical', size=(80, 24), cap_font='def_bold', cap_size=24,
                 cap_color='fnt_muted', sounds=self.win_ui.snd_packs['button'], page=None, tags=(
-                    'wpn_magic', 'orb_source', 'use_wand')),
+                    'wpn_magic', 'orb_source', 'use_wand'), switch=True),
             self.win_ui.button_add(
                 'bttn_filter', caption='Potions', size=(80, 24), cap_font='def_bold', cap_size=24,
                 cap_color='fnt_muted', sounds=self.win_ui.snd_packs['button'], page=None, tags=(
-                    'sup_potion',)),
+                    'sup_potion',), switch=True),
             self.win_ui.button_add(
                 'bttn_filter', caption='Tools', size=(80, 24), cap_font='def_bold', cap_size=24,
                 cap_color='fnt_muted', sounds=self.win_ui.snd_packs['button'], page=None, tags=(
-                    'exp_tools', 'exp_lockpick')),
+                    'exp_key', 'exp_tools', 'exp_lockpick'), switch=True),
             self.win_ui.button_add(
                 'bttn_filter', caption='Food', size=(80, 24), cap_font='def_bold', cap_size=24,
                 cap_color='fnt_muted', sounds=self.win_ui.snd_packs['button'], page=None, tags=(
-                    'exp_food',)),
+                    'exp_food',), switch=True),
             self.win_ui.button_add(
                 'bttn_filter', caption='Skills', size=(80, 24), cap_font='def_bold', cap_size=24,
                 cap_color='fnt_muted', sounds=self.win_ui.snd_packs['button'], page=None, tags=(
-                    'skill_melee', 'skill_ranged', 'skill_magic', 'skill_craft', 'skill_misc')),
+                    'skill_melee', 'skill_ranged', 'skill_magic', 'skill_craft', 'skill_misc'), switch=True),
 
             self.win_ui.button_add(
                 'bttn_buyback', caption='Buy Back', size=(80, 24), cap_font='def_bold', cap_size=24,
-                cap_color='fnt_muted', sounds=self.win_ui.snd_packs['button'], page=None),
+                cap_color='fnt_muted', sounds=self.win_ui.snd_packs['button'], page=None, switch=True),
         )
         fb_per_row = 6
         fb_width = 80
@@ -441,7 +447,7 @@ class Trade:
 
     def goods_generate(self, goods_level_cap):
         self.trade_bank.clear()
-        good_ids = dbrequests.treasure_get(self.db.cursor, goods_level_cap, 0, 1000, shop=1)
+        good_ids = dbrequests.treasure_get(self.db.cursor, goods_level_cap, 0, 999, shop=1)
         for j in good_ids:
             for i in range(-2, 1):
                 self.trade_bank.append(treasure.Treasure(j, max(1, goods_level_cap + i), self.db.cursor,

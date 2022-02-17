@@ -5,7 +5,7 @@ from library import pydraw
 
 class FieldRich:
     def __init__(self, resources, fr_id, fr_xy, fr_size, fr_images=None, text_dict=None,
-                 pop_show=60, pop_hide=30, pop_win=None, page=None, img_stretch=True):
+                 par_div_height=4, page=None, img_stretch=True):
         self.resources = resources
         self.id = fr_id
         self.xy = fr_xy
@@ -22,7 +22,7 @@ class FieldRich:
         self.mouse_over = False
         self.popup_active = False
 
-        self.par_div_height = 0
+        self.par_div_height = par_div_height
 
         self.rendered_field = None
         self.rendered_rect = None
@@ -60,7 +60,7 @@ class FieldRich:
         # rendering in sequence
         for par in self.text_dict.values():
             par.draw(self.rendered_field, offset=(0, origin_y))
-            origin_y += par.max_height
+            origin_y += (par.max_height + self.par_div_height)
 
     def render_bg(self):
         """self.rendered_field = pydraw.square((0, 0), self.rendered_rect.size,

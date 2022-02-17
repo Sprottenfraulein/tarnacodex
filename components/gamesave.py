@@ -70,6 +70,7 @@ def save_char(wins_dict, pc, maze, db, tileset, audio):
         pc_obj_vars = {
             'id': pc.char_sheet.id,
             'stage_entry': pc.stage_entry,
+            'tradepost_level': pc.tradepost_level,
             'hardcore_char': pc.hardcore_char,
             'name': pc.char_sheet.name,
             'type': pc.char_sheet.type,
@@ -130,6 +131,7 @@ def load_char(wins_dict, pc, db_cursor, tileset, audio):
         pc.char_sheet.id = pc_obj_vars['id']
         pc.hardcore_char = pc_obj_vars['hardcore_char']
         pc.stage_entry = pc_obj_vars['stage_entry']
+        pc.tradepost_level = pc_obj_vars['tradepost_level']
         pc.char_sheet.name = pc_obj_vars['name']
         pc.char_sheet.type = pc_obj_vars['type']
         pc.char_sheet.level = pc_obj_vars['level']
@@ -186,6 +188,7 @@ def save_maze(pc, maze, db, tile_sets, animations, audio):
         pickle.dump(maze.array, f)
 
         for mob in maze.mobs:
+            mob.aimed = False
             mob.anim_set = None
             mob.image = None
         for door in maze.doors:

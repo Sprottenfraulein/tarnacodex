@@ -867,14 +867,14 @@ class AppTitle:
 
         self.maze_save(pc, l)
         dbrequests.chapter_progress_set(self.db, pc.char_sheet.id, l.stage_index, 1, 1, 1, 1, 1, 1)
-
+        pc.tradepost_level = max(l.lvl - 1, pc.tradepost_level)
         self.char_save(pc, l)
 
         self.wins_dict['realm'].maze = l
         self.wins_dict['realm'].pc = pc
 
         if l.tradepost_update or launch:
-            self.wins_dict['trade'].goods_generate(pc.char_sheet.level)
+            self.wins_dict['trade'].goods_generate(pc.tradepost_level)
             self.wins_dict['trade'].updated = True
             l.tradepost_update = False
             self.wins_dict['realm'].spawn_realmtext('new_txt', "I would like to visit a Trading Post sometime soon.", (0, 0), (0, -24), 'bright_gold', pc, None, 120,

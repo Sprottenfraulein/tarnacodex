@@ -3,7 +3,7 @@ import math, random
 
 
 def exponential(ratio, value, multiplier):
-    return round(ratio ** value * multiplier)
+    return round(value ** ratio * multiplier)
 
 
 def sign(x):

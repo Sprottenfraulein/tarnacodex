@@ -27,7 +27,6 @@ class Trap:
         skill = pc.char_sheet.profs['prof_disarm'] + lvl_dif * 250 + tool_mod  # 25% per level penalty
         rnd_roll = random.randrange(0, 1001)
         if rnd_roll - skill >= 500:
-            pc.char_sheet.inventory_remove('exp_tool')
             wins_dict['realm'].spawn_realmtext('new_txt', "Oh no!", (0, 0), (0, -24), None, pc, None,
                                                120, 'def_bold', 24)
             self.trigger(wins_dict, pc)
@@ -35,6 +34,15 @@ class Trap:
         if skill >= rnd_roll:
             wins_dict['realm'].spawn_realmtext('new_txt', "Easy as pie!", (0, 0), (0, -24), None, pc, None, 120,
                                                'def_bold', 24)
+
+            exp = self.lvl * 100
+            pc.char_sheet.experience_get(wins_dict, pc, exp)
+            wins_dict['pools'].updated = True
+            wins_dict['charstats'].updated = True
+            wins_dict['realm'].spawn_realmtext('new_txt', '%s exp.' % (exp),
+                                               (0, 0), (0, -24), 'sun', pc, (0, -2), 60, 'large', 16, 0,
+                                               0.17)
+
             return True
         else:
             wins_dict['realm'].spawn_realmtext('new_txt', "Too hard!", (0, 0), (0, -24), None, pc, None, 120,
@@ -51,6 +59,7 @@ class Trap:
                                            color='fnt_attent', stick_obj=self,
                                            speed_xy=(0, 0), kill_timer=25, font='large', size=16, frict_y=0)
         self.image_update()
+        pc.state_change(8)
 
     def image_update(self):
         if self.mode == -1:

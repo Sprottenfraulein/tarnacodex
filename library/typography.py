@@ -30,7 +30,6 @@ class Typography:
         self.line_height = self.text_font.get_rect('O').height
         self.line_spacing = round(self.line_height * 1.5)
         self.actual_width, self.max_height = 0, 0
-        self.size_update()
 
         self.x, self.y = xy
         self.h_align = h_align
@@ -39,16 +38,12 @@ class Typography:
         self.rendered_rect = None
         self.render()
 
-    def size_update(self):
-        self.actual_width, self.max_height = self.get_text_height()
-
     def update_and_render(self):
-        self.size_update()
         self.render()
 
     def get_text_height(self):
         text = self.caption.split()
-        x, y = 0, round(self.line_height / 2)
+        x, y = 0, self.line_spacing * 1.5
         max_x = 0
         for text_word in text:
             if text_word == '$n':
@@ -59,7 +54,7 @@ class Typography:
                 x, y = 0, y + self.line_spacing
             x = x + word_bounds.width + self.space_size.width + word_bounds.x
             max_x = max(x, max_x)
-        text_height = y + self.line_spacing
+        text_height = y
         return max_x + self.sh_dist_x, text_height + self.sh_dist_y
 
     def align(self, h_align, v_align, rect):
@@ -94,14 +89,14 @@ class Typography:
         self.rendered_text.blit(txt_image, txt_rect)
 
     def blit_text(self, text, color, offset_x, offset_y):
+        lined_text, self.max_width, self.max_height = self.split_text(text)
         text_canvas = pygame.Surface((self.max_width, self.max_height)).convert()
         text_canvas.fill(self.bg_color)
         colorkey = text_canvas.get_at((0, 0))
         text_canvas.set_colorkey(colorkey, pygame.RLEACCEL)
         self.text_font.origin = True
 
-        lined_text = self.split_text(text)
-        y = self.line_spacing
+        y = (self.line_height + self.line_spacing) // 2
         for i in range(0, len(lined_text)):
             line_bounds = self.text_font.get_rect(lined_text[i])
             # line_bounds.left = self.space_size.width
@@ -110,35 +105,39 @@ class Typography:
             elif self.h_align == 'right':
                 line_bounds.right = self.max_width - self.space_size.width
             # line_bounds.top = (self.line_spacing * 0.96) * (i + 1)
-            self.text_font.render_to(text_canvas, (line_bounds.left, y // 1), None, color)
-            y += max(line_bounds.height, self.line_spacing)
+            self.text_font.render_to(text_canvas, (line_bounds.left, y), None, color)
+           # y += max(line_bounds.height, self.line_spacing)
+            y += self.line_spacing
         return text_canvas
 
     def split_text(self, text):
         splitted_text = text.split()
-        x = 0
+        x, y = 0, 0
+        max_x = 0
         lined_text = []
         text_line = []
         for text_word in splitted_text:
             if text_word == '$n':
-                x = 0
+                x, y = 0, y + self.line_spacing
                 merged_line = ' '.join(text_line)
                 lined_text.append(merged_line)
                 text_line.clear()
                 continue
             word_bounds = self.text_font.get_rect(text_word)
-            if x + word_bounds.width + self.space_size.width * 4 + word_bounds.x >= self.max_width:
-                x = 0
+            if x + word_bounds.width + self.space_size.width + word_bounds.x >= self.max_width:
+                x, y = 0, y + self.line_spacing
                 merged_line = ' '.join(text_line)
                 lined_text.append(merged_line)
                 text_line.clear()
             x = x + word_bounds.width + self.space_size.width + word_bounds.x
+            max_x = max(x, max_x)
             text_line.append(text_word)
         if len(text_line) > 0:
+            x, y = 0, y + self.line_spacing
             merged_line = ' '.join(text_line)
             lined_text.append(merged_line)
             text_line.clear()
-        return lined_text
+        return lined_text, max(self.max_width, max_x + self.sh_dist_x), int(round(y)) + self.sh_dist_y
 
     def draw(self, surface, offset=None):
         # Draw the piece at its current location.

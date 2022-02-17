@@ -1,8 +1,9 @@
 from components import lootgen, dbrequests, treasure
+import random
 
 
 class Chest:
-    def __init__(self, x_sq, y_sq, alignment, room, tileset, off_x=0, off_y=0, lvl=None, items_number=0,
+    def __init__(self, x_sq, y_sq, alignment, room, tileset, off_x=0, off_y=0, lvl=None, items_number=0, gp_number=0,
                  treasure_group=None, item_type=None, char_type=None, container=None, disappear=False):
         self.x_sq = x_sq
         self.y_sq = y_sq
@@ -19,6 +20,7 @@ class Chest:
 
         self.lvl = lvl
         self.items_number = items_number
+        self.gp_number = gp_number
         self.treasure_group = treasure_group
         self.item_type = item_type
         self.char_type = char_type
@@ -72,17 +74,38 @@ class Chest:
         if self.items_number > 0:
             if self.container is None:
                 self.container = []
-            roll = 1
+            roll = 1000
             goods_level_cap = self.lvl or pc.char_sheet.level
             good_ids = dbrequests.treasure_get(realm.db.cursor, goods_level_cap,
                                                self.treasure_group, roll, item_type=self.item_type,
                                                char_type=self.char_type)
-            for j in good_ids:
-                self.container.append(treasure.Treasure(j, goods_level_cap, realm.db.cursor,
+            for i in range(0, self.items_number):
+                rnd_index = random.choice(good_ids)
+                self.container.append(treasure.Treasure(rnd_index, goods_level_cap, realm.db.cursor,
                                                         realm.tilesets, realm.resources,
                                                         realm.pygame_settings.audio,
                                                         realm.resources.fate_rnd))
             self.items_number = 0
+        if self.gp_number > 0:
+            if self.container is None:
+                self.container = []
+            goods_level_cap = self.lvl or pc.char_sheet.level
+            for i in range(0, self.gp_number):
+                new_gold = treasure.Treasure(6, goods_level_cap, realm.db.cursor, realm.tilesets, realm.resources,
+                                             realm.pygame_settings.audio, realm.resources.fate_rnd)
+                amount = new_gold.props['amount']
+                new_gold.props['amount'] = amount * goods_level_cap * 10
+                if new_gold.props['amount'] >= 100000:
+                    new_gold.props['grade'] = 3
+                elif new_gold.props['amount'] >= 10000:
+                    new_gold.props['grade'] = 2
+                elif new_gold.props['amount'] >= 1000:
+                    new_gold.props['grade'] = 1
+                if new_gold.props['grade'] > 0:
+                    treasure.images_update(realm.db.cursor, new_gold.props, realm.tilesets)
+                    treasure.sounds_update(realm.db.cursor, new_gold.props, realm.pygame_settings.audio)
+                self.container.append(new_gold)
+            self.gp_number = 0
         if len(self.container) > 0:
             lootgen.drop_loot(self.x_sq, self.y_sq, realm, self.container)
             self.container.clear()

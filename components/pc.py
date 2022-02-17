@@ -30,6 +30,7 @@ class PC:
         self.vision_sq_list = []
 
         self.location = location
+        self.tradepost_level = 1
         self.stage_entry = None
         self.char_sheet = char_sheet
         self.char_portrait_index = 0
@@ -81,7 +82,7 @@ class PC:
         elif self.busy is not None:
             if self.busy_timer > self.busy['time']:
                 self.busy = None
-                if self.state > 3:
+                if 3 < self.state < 8:
                     self.state_change(self.state - 4)
             else:
                 self.busy_timer += 1
@@ -212,7 +213,8 @@ class PC:
     def act(self, wins_dict, aim_xy, skill):
         if aim_xy is not None:
             self.face_point(aim_xy[0], aim_xy[1])
-        self.state_change(self.state + 4)
+        if 0 <= self.state < 4:
+            self.state_change(self.state + 4)
 
         self.busy = skill.props
 
@@ -236,8 +238,8 @@ class PC:
             return
 
         rnd_dmg = random.randrange(chosen_attack['attack_val_base'], chosen_attack['attack_val_base'] + chosen_attack['attack_val_spread'] + 1)
-        if not no_crit and random.randrange(1, 101) <= monster.stats['crit_chance']:
-            rnd_dmg *= 4
+        if not no_crit and random.randrange(1, 101) <= monster.stats['crit_chance'] and rnd_dmg * 2 < self.char_sheet.hp:
+            rnd_dmg *= 2
             is_crit = True
         else:
             is_crit = False
@@ -260,7 +262,11 @@ class PC:
         pc_def += self.char_sheet.defences[self.char_sheet.att_def_dict[chosen_attack['attack_type']]]  # Sum in percents
         damage = rnd_dmg - (rnd_dmg * pc_def // 1000)
 
-        self.char_sheet.hp_get(rnd_dmg * -1)
+        # Last HP last chance.
+        if damage > self.char_sheet.hp > 1:
+            damage = self.char_sheet.hp - 1
+
+        self.char_sheet.hp_get(damage * -1)
 
         # 100% HP damage = 10 points of condition
         if treasure.condition_equipment_change(self.char_sheet, round(-10 * rnd_dmg / self.char_sheet.pools['HP'])):

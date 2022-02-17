@@ -49,8 +49,8 @@ class Maze:
         self.exits = []
         self.loot = itemlist.ItemList(filters={
                 'item_types': ['wpn_melee', 'wpn_ranged', 'wpn_magic', 'arm_head', 'arm_chest', 'acc_ring', 'orb_shield',
-                               'orb_ammo', 'orb_source', 'use_wand', 'exp_tools', 'exp_lockpick', 'exp_food', 'light', 'aug_gem',
-                               'sup_potion'],
+                               'orb_ammo', 'orb_source', 'use_wand', 'exp_tools', 'exp_lockpick', 'exp_food', 'exp_key',
+                               'light', 'aug_gem', 'sup_potion'],
             })
         self.text = []
 
@@ -65,7 +65,6 @@ class Maze:
             gamesave.load_maze(pc, self, db, tile_sets, animations, audio)
         else:
             self.tradepost_update = True
-
 
         if len(stage_progress) == 0 or stage_progress[0]['maze_rolled'] == 0 or not use_saves:
             # self.generate_1(0, 0, self.height - 1, self.width - 1, 8, 8, False)
@@ -624,8 +623,9 @@ def chest_set(maze, room, tileset, chest_number):
                                         (x_sq, y_sq), (x_sq, y_sq), 1, 5, r_max=5)
         x_sq, y_sq = space_list[0]
         alignment = random.choice((0, 1))
-        new_chest = chest.Chest(x_sq, y_sq, alignment, room, tileset, off_x=-4, off_y=-4, lvl=maze.lvl, items_number=3,
-                                 treasure_group=0, item_type=None, char_type=None, container=None, disappear=False)
+        new_chest = chest.Chest(x_sq, y_sq, alignment, room, tileset, off_x=-4, off_y=-4, lvl=maze.lvl, items_number=2,
+                                gp_number=3, treasure_group=0, item_type=None, char_type=None, container=None,
+                                disappear=False)
         maze.chests.append(new_chest)
 
 

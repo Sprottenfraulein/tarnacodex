@@ -101,8 +101,8 @@ class CharSheet:
         # Inventory list
         self.inventory = itemlist.ItemList(items_max=24, all_to_none=True, filters={
             'item_types': ['wpn_melee', 'wpn_ranged', 'wpn_magic', 'arm_head', 'arm_chest', 'acc_ring', 'orb_shield',
-                           'orb_ammo', 'orb_source', 'use_wand', 'exp_lockpick', 'exp_tools', 'exp_food', 'light',
-                           'aug_gem', 'sup_potion']
+                           'orb_ammo', 'orb_source', 'use_wand', 'exp_lockpick', 'exp_tools', 'exp_food', 'exp_key',
+                           'light', 'aug_gem', 'sup_potion']
         })
         # Equipment dictionary
         self.equipped = [
@@ -138,7 +138,7 @@ class CharSheet:
 
         self.hotbar = itemlist.ItemList(all_to_none=True, items_max=9, filters={
             'item_types': ['skill_melee', 'skill_ranged', 'skill_magic', 'skill_craft', 'skill_misc', 'sup_potion',
-                           'exp_food', 'exp_lockpick', 'exp_tools']
+                           'exp_food', 'exp_lockpick', 'exp_key', 'exp_tools']
         })
 
         self.gold_coins = 1000
@@ -355,10 +355,9 @@ class CharSheet:
                 if self.level > old_level:
                     self.hp_get(100, True)
                     self.mp_get(100, True)
-                    wins_dict['realm'].schedule_man.task_add('realm_tasks', 1, wins_dict['realm'], 'spawn_realmtext',
-                                                             ('new_txt', "LEVEL UP!",
-                                                              (0, 0), (0, -24), 'fnt_celeb', pc, (0, -3), 60, 'large', 16, 0,
-                                                              0.15))
+                    wins_dict['realm'].spawn_realmtext('new_txt', "LEVEL UP!",
+                                                      (0, 0), (0, -24), 'fnt_celeb', pc, (0, -3), 60, 'large', 16, 0,
+                                                      0.15)
                 return True
         return False
 
@@ -475,6 +474,23 @@ class CharSheet:
                 con_itm = self.inventory_remove(item_type)
                 if con_itm:
                     return con_itm
+
+    def item_remove(self, wins_dict, item):
+        if item in self.inventory:
+            self.inventory[self.inventory.index(item)] = None
+            wins_dict['inventory'].updated = True
+            return True
+        elif item in self.hotbar:
+            self.hotbar[self.hotbar.index(item)] = None
+            wins_dict['hotbar'].updated = True
+            return True
+        else:
+            for socket in self.equipped:
+                if item in socket:
+                    socket[socket.index(item)] = None
+                    wins_dict['inventory'].updated = True
+                    return True
+        return False
 
     def itemlists_clean_tail(self):
         """for i in range(len(self.skills) - 1, -1, -1):

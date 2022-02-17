@@ -116,6 +116,7 @@ def potion_heal(wins_dict, fate_rnd, pc, skill, item_adress, no_aim=False, just_
 
     pc.char_sheet.hp_get(heal_hp_value)
     wins_dict['pools'].updated = True
+    wins_dict['context'].end()
 
     pc.act(wins_dict, None, skill)
 
@@ -134,6 +135,7 @@ def potion_power(wins_dict, fate_rnd, pc, skill, item_adress, no_aim=False, just
 
     pc.char_sheet.mp_get(heal_mp_value)
     wins_dict['pools'].updated = True
+    wins_dict['context'].end()
 
     pc.act(wins_dict, None, skill)
 
@@ -152,11 +154,9 @@ def eat(wins_dict, fate_rnd, pc, skill, item_adress, no_aim=False, just_values=F
 
     pc.char_sheet.food_get(food_value)
 
-    item_adress[0][item_adress[1]] = None
-
     wins_dict['pools'].updated = True
-    wins_dict['inventory'].updated = True
-    wins_dict['hotbar'].updated = True
+    pc.char_sheet.item_remove(wins_dict, item_adress[0][item_adress[1]])
+    wins_dict['context'].end()
 
     pc.act(wins_dict, None, skill)
 
@@ -218,19 +218,27 @@ def picklock(wins_dict, fate_rnd, pc, skill, item_adress, no_aim=False, just_val
             realm.spawn_realmtext('new_txt', "Too far!", (0, 0), (0, -24), None, pc, None, 120, 'def_bold', 24)
             return True
 
-    lockpicks = pc.char_sheet.inventory_search('exp_lockpick')
-    if len(lockpicks) == 0:
-        realm.spawn_realmtext('new_txt', "I have no lockpicks!", (0, 0), (0, -24), None, pc, None, 120, 'def_bold', 24)
-        return True
-    lockpick, lockpick_mod = get_highest(lockpicks, 'prof_picklock')
+    item = item_adress[0][item_adress[1]]
+    if 'use_skill' in item.props and skill == item.props['use_skill']:
+        lockpick_mod = item_adress[0][item_adress[1]].props['mods']['prof_picklock']['value_base']
+        lockpick = item_adress[0][item_adress[1]]
+    else:
+        lockpicks = pc.char_sheet.inventory_search('exp_lockpick')
+        if len(lockpicks) == 0:
+            realm.spawn_realmtext('new_txt', "I have no lockpicks!", (0, 0), (0, -24), None, pc, None, 120, 'def_bold', 24)
+            return True
+        lockpick, lockpick_mod = get_highest(lockpicks, 'prof_picklock')
 
     if not skill_costs_check(realm, skill, pc):
         return True
 
-    pl_result = pl_object.lock.unlock(wins_dict, pc, lockpick_mod=lockpick_mod)
+    pl_result = pl_object.lock.unlock(wins_dict, pc, lockpick=lockpick, lockpick_mod=lockpick_mod)
     if pl_result:
         pl_object.lock = None
         pl_object.image_update()
+
+    pc.char_sheet.item_remove(wins_dict, lockpick)
+    wins_dict['context'].end()
 
     pc.food_change(wins_dict, -10)
     pc.act(wins_dict, (x_sq, y_sq), skill)
@@ -293,11 +301,16 @@ def disarm_trap(wins_dict, fate_rnd, pc, skill, item_adress, no_aim=False, just_
             realm.spawn_realmtext('new_txt', "Too far!", (0, 0), (0, -24), None, pc, None, 120, 'def_bold', 24)
             return True
 
-    tools = pc.char_sheet.inventory_search('exp_tools')
-    if len(tools) == 0:
-        realm.spawn_realmtext('new_txt', "I have no tools!", (0, 0), (0, -24), None, pc, None, 120, 'def_bold', 24)
-        return True
-    tool, tool_mod = get_highest(tools, 'prof_disarm')
+    item = item_adress[0][item_adress[1]]
+    if 'use_skill' in item.props and skill == item.props['use_skill']:
+        tool_mod = item_adress[0][item_adress[1]].props['mods']['prof_disarm']['value_base']
+        tool = item_adress[0][item_adress[1]]
+    else:
+        tools = pc.char_sheet.inventory_search('exp_tools')
+        if len(tools) == 0:
+            realm.spawn_realmtext('new_txt', "I have no tools!", (0, 0), (0, -24), None, pc, None, 120, 'def_bold', 24)
+            return True
+        tool, tool_mod = get_highest(tools, 'prof_disarm')
 
     if not skill_costs_check(realm, skill, pc):
         return True
@@ -310,6 +323,9 @@ def disarm_trap(wins_dict, fate_rnd, pc, skill, item_adress, no_aim=False, just_
     if disarm_result:
         trap.mode = 0
         trap.image_update()
+
+    pc.char_sheet.item_remove(wins_dict, tool)
+    wins_dict['context'].end()
 
     pc.food_change(wins_dict, -10)
     pc.act(wins_dict, (x_sq, y_sq), skill)
@@ -356,6 +372,8 @@ def pickup(wins_dict, fate_rnd, pc, skill, item_adress, no_aim=False, just_value
 
     for lt in flags.item:
         if lt.props['treasure_id'] == 6:
+            realm.spawn_realmtext('new_txt', "%s gold" % lt.props['amount'], (0, 0), (0, 0),
+                                                    'bright_gold', lt, (0, 0), 45, 'large', 16, 0, 0)
             pc.char_sheet.gold_coins += lt.props['amount']
             realm.maze.flag_array[y_sq][x_sq].item.remove(lt)
             realm.maze.loot.remove(lt)
@@ -378,6 +396,7 @@ def pickup(wins_dict, fate_rnd, pc, skill, item_adress, no_aim=False, just_value
 
     pc.food_change(wins_dict, -5)
     pc.act(wins_dict, (x_sq, y_sq), skill)
+    wins_dict['context'].end()
 
     return False
 

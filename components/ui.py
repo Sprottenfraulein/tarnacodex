@@ -197,7 +197,7 @@ class UI:
         return new_panel
 
     def context_headline_info(self, context_id, xy=None, size=None, images=None, text_dict=None,
-                              cap_bgcolor='black', page=None, img_stretch=False):
+                              cap_bgcolor='black', page=None, par_div_height=4, img_stretch=False):
         # setting defaults if attributes not presented:
         if xy is None:
             xy = (0, 0)
@@ -231,12 +231,12 @@ class UI:
                                             self.resources.colors['transparent'],
                                             'left', 'top', size[0], 24)
 
-        new_rich = fieldrich.FieldRich(self.resources, context_id, xy, size, fr_images=images, text_dict=text_dict, pop_show=60,
-                                       pop_hide=30, pop_win=None, page=None, img_stretch=img_stretch)
+        new_rich = fieldrich.FieldRich(self.resources, context_id, xy, size, fr_images=images, text_dict=text_dict,
+                                        par_div_height=par_div_height, page=None, img_stretch=img_stretch)
         return new_rich
 
     def context_body_info(self, context_id, xy=None, size=None, images=None, text_dict=None,
-                          cap_bgcolor='black', page=None, img_stretch=False):
+                          cap_bgcolor='black', page=None, par_div_height=4, img_stretch=False):
         # setting defaults if attributes not presented:
         if xy is None:
             xy = (0, 0)
@@ -293,11 +293,11 @@ class UI:
                                                 'left', 'top', size[0], 0)
 
         new_rich = fieldrich.FieldRich(self.resources, context_id, xy, size, fr_images=images, text_dict=text_dict,
-                                       page=None, img_stretch=img_stretch)
+                                       par_div_height=par_div_height, page=None, img_stretch=img_stretch)
         return new_rich
 
     def context_paragraphs(self, context_id, xy=None, size=None, images=None, text_dict=None,
-                          cap_bgcolor='black', page=None, img_stretch=False):
+                          cap_bgcolor='black', page=None, par_div_height=4, img_stretch=False):
         # setting defaults if attributes not presented:
         if xy is None:
             xy = (0, 0)
@@ -327,7 +327,8 @@ class UI:
             if text == '':
                 del info_text[key]
 
-        new_rich = fieldrich.FieldRich(self.resources, context_id, xy, size, fr_images=images, text_dict=info_text, img_stretch=img_stretch)
+        new_rich = fieldrich.FieldRich(self.resources, context_id, xy, size, fr_images=images, text_dict=info_text,
+                                       par_div_height=par_div_height, img_stretch=img_stretch)
         return new_rich
 
     def element_align(self, element, origin_xy, view_rect):

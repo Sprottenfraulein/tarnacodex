@@ -15,7 +15,7 @@ class Treasure:
 
         treasure_dict = dbrequests.treasure_get_by_id(db_cursor, treasure_id)
 
-        self.props = init_props(db_cursor, fate_rnd, treasure_dict)
+        self.props, add_price_expos = init_props(db_cursor, fate_rnd, treasure_dict)
 
         if self.props['lvl'] is not None:
             calc_level(level, self.props)
@@ -24,6 +24,9 @@ class Treasure:
         if self.props['use_skill'] is not None:
             self.props['use_skill'] = skill.Skill(self.props['use_skill'], self.props['lvl'],
                                                   db_cursor, tile_sets, resources, audio)
+
+        # Correcting price based on modifiers buffs and affixes
+        item_expo_price(self.props, add_price_expos)
 
         # linking images and sounds
         images_update(db_cursor, self.props, tile_sets)
@@ -64,21 +67,22 @@ def init_props(db_cursor, fate_rnd, treasure_dicts):
 
     # inserting modifiers
     base_props['mods'] = {}
+    add_price_expos = []
     for mod_dict in modifier_list:
-        init_modifier(base_props, mod_dict, fate_rnd)
+        add_price_expos.append(init_modifier(base_props, mod_dict, fate_rnd))
 
     # inserting de_buffs
     for db_dict in de_buff_list:
         modifier_list = dbrequests.de_buff_get_mods(db_cursor, db_dict['de_buff_id'])
 
         for mod_dict in modifier_list:
-            init_modifier(db_dict, mod_dict, fate_rnd)
+            add_price_expos.append(init_modifier(db_dict, mod_dict, fate_rnd))
 
     base_props['de_buffs'] = de_buff_list
 
     base_props['affixes'] = []
 
-    return base_props
+    return base_props, add_price_expos
 
 
 def affix_add(db_cursor, loot_props, affix_dicts, fate_rnd):
@@ -109,6 +113,12 @@ def init_modifier(parent_dict, mod_dict, fate_rnd):
     if mod_dict['value_spread_min'] is not None and mod_dict['value_spread_max'] is not None:
         mod_value_spread = fate_rnd.expo_rnd(mod_dict['value_spread_min'], mod_dict['value_spread_max'])
         parent_dict['mods'][mod_dict['parameter_name']]['value_spread'] = mod_value_spread
+    else:
+        mod_value_spread = 0
+
+    per_base = mod_dict['value_base_min'] + (mod_dict['value_spread_min'] or 0) / 2
+    price_expo_rate = 1 + (mod_value_base + mod_value_spread / 2 - per_base) / ((mod_dict['value_base_max'] + (mod_dict['value_spread_max'] or 0) / 2) - per_base)
+    return price_expo_rate
 
 
 def calc_loot_stat(loot_props, stat_name):
@@ -206,7 +216,7 @@ def calc_level(level, loot_props):
     loot_props['lvl'] = level
 
 
-def calc_grade(db_cursor, grade, loot_props, tile_sets, audio):
+def calc_grade(db_cursor, grade, loot_props, tile_sets, audio, fate_rnd):
     affix_ids = set()
     if grade >= 2:
         affix_ids.add(roll_affix(db_cursor, grade, loot_props, is_suffix=0))
@@ -215,7 +225,7 @@ def calc_grade(db_cursor, grade, loot_props, tile_sets, audio):
     if grade > 0:
         affix_ids.add(roll_affix(db_cursor, grade, loot_props))
     for aff in affix_ids:
-        affix_add(db_cursor, loot_props, dbrequests.affix_loot_get_by_id(db_cursor, aff))
+        affix_add(db_cursor, loot_props, dbrequests.affix_loot_get_by_id(db_cursor, aff), fate_rnd)
 
     images_update(db_cursor, loot_props, tile_sets)
     sounds_update(db_cursor, loot_props, audio)
@@ -245,3 +255,13 @@ def condition_equipment_change(char_sheet, value):
                         or prev_cond > itm.CONDITION_BROKEN_LEVEL >= itm.props['condition']):
                     recalc_pc_stats = True
     return recalc_pc_stats
+
+
+def item_expo_price(loot_props, add_price_expos):
+    additional_price_buy = 0
+    additional_price_sell = 0
+    for ape in add_price_expos:
+        additional_price_buy += loot_props['price_buy'] * (10 ** ape * 10) // 100
+        additional_price_sell += loot_props['price_sell'] * (10 ** ape * 10) // 100
+    loot_props['price_buy'] = int(round(loot_props['price_buy'] + additional_price_buy))
+    loot_props['price_sell'] = int(round(loot_props['price_sell'] + additional_price_sell))

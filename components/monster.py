@@ -44,6 +44,7 @@ class Monster:
         self.waypoints = None
         self.wp_ind_list = None
         self.wp_index = None
+        self.wp_parent_index = None
 
     def animate(self):
         # PC states:
@@ -123,7 +124,7 @@ class Monster:
             else:
                 wp_x, wp_y = self.waypoints[self.wp_index]
                 self.move_instr_x, self.move_instr_y = maths.sign(wp_x - self.x_sq), maths.sign(wp_y - self.y_sq)
-        elif self.bhvr_timer == 0 and self.stats['melee_distance'] < pc_distance <= self.stats['aggro_distance']:
+        elif self.bhvr_timer == 0 and self.stats['melee_distance'] < pc_distance <= self.stats['aggro_distance'] * realm.pc.char_sheet.profs['prof_provoke'] // 1000:
             self.intercept(realm, pc_distance)
         else:
             if self.bhvr_timer == 0:
@@ -337,7 +338,6 @@ class Monster:
         self.state_change(8)
 
         pc.char_sheet.experience_get(wins_dict, pc, self.stats['exp'])
-
         wins_dict['pools'].updated = True
         wins_dict['charstats'].updated = True
 
