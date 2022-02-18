@@ -124,7 +124,7 @@ class Typography:
                 text_line.clear()
                 continue
             word_bounds = self.text_font.get_rect(text_word)
-            if x + word_bounds.width + self.space_size.width + word_bounds.x >= self.max_width:
+            if x + word_bounds.width + self.space_size.width * 2 + word_bounds.x >= self.max_width:
                 x, y = 0, y + self.line_spacing
                 merged_line = ' '.join(text_line)
                 lined_text.append(merged_line)

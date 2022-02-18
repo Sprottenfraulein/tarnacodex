@@ -1,4 +1,5 @@
 import random
+from library import particle
 
 
 class Trap:
@@ -42,11 +43,12 @@ class Trap:
             wins_dict['realm'].spawn_realmtext('new_txt', '%s exp.' % (exp),
                                                (0, 0), (0, -24), 'sun', pc, (0, -2), 60, 'large', 16, 0,
                                                0.17)
-
+            wins_dict['realm'].pygame_settings.audio.sound('trap_operate')
             return True
         else:
             wins_dict['realm'].spawn_realmtext('new_txt', "Too hard!", (0, 0), (0, -24), None, pc, None, 120,
                                                'def_bold', 24)
+            wins_dict['realm'].pygame_settings.audio.sound('mech_hard')
             return False
 
     def trigger(self, wins_dict, pc):
@@ -60,6 +62,9 @@ class Trap:
                                            speed_xy=(0, 0), kill_timer=25, font='large', size=16, frict_y=0)
         self.image_update()
         pc.state_change(8)
+
+        wins_dict['realm'].particle_list.append(particle.Particle((self.x_sq, self.y_sq), (self.off_x, self.off_y),
+                                               wins_dict['realm'].animations.get_animation('effect_dust_cloud')['default'], 16))
 
     def image_update(self):
         if self.mode == -1:

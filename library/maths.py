@@ -22,7 +22,7 @@ def xy_dist_to_rads(x1, y1, x2, y2):
 
 
 def get_distance(x1, y1, x2, y2):
-    dist = math.sqrt((abs(x2 - x1)) ** 2 + (abs(y2 - y1)) ** 2)
+    dist = round(math.sqrt((abs(x2 - x1)) ** 2 + (abs(y2 - y1)) ** 2), 2)
     return dist
 
 

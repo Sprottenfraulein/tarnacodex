@@ -18,15 +18,8 @@ class Lock:
         elif self.jammed:
             wins_dict['realm'].spawn_realmtext('new_txt', "The lock is jammed!", (0, 0), (0, -24), None, pc, None,
                                                120, 'def_bold', 24)
+            wins_dict['realm'].pygame_settings.audio.sound('mech_hard')
             return False
-        elif len(pc_keys) > 0:
-            for i in range(len(pc_keys) - 1, -1, -1):
-                if pc_keys[i].props['lvl'] == self.lvl:
-                    pc.char_sheet.inventory[pc.char_sheet.inventory.index(pc_keys[i])] = None
-                    wins_dict['inventory'].updated = True
-                    wins_dict['realm'].spawn_realmtext('new_txt', "I have a key $n for this one!", (0, 0), (0, -24),
-                                                       None, pc, None, 120, 'def_bold', 24)
-                    return True
         elif lockpick is not None:
             lvl_dif = min(1, pc.char_sheet.level - self.lvl)
             skill = pc.char_sheet.profs['prof_picklock'] + lvl_dif * 250 + lockpick_mod     # 25% per level penalty
@@ -35,6 +28,7 @@ class Lock:
                 self.jammed = True
                 wins_dict['realm'].spawn_realmtext('new_txt', "I've jammed $n the lock!", (0, 0), (0, -24), None, pc, None,
                                                    120, 'def_bold', 24)
+                wins_dict['realm'].pygame_settings.audio.sound('lock_jam')
                 return False
             if skill >= rnd_roll:
                 wins_dict['realm'].spawn_realmtext('new_txt', "Easy as pie!", (0, 0), (0, -24), None, pc, None, 120,
@@ -47,9 +41,20 @@ class Lock:
                 wins_dict['realm'].spawn_realmtext('new_txt', '%s exp.' % (exp),
                                                    (0, 0), (0, -24), 'sun', pc, (0, -2), 60, 'large', 16, 0,
                                                    0.17)
-
+                wins_dict['realm'].pygame_settings.audio.sound('lock_operate')
                 return True
             else:
                 wins_dict['realm'].spawn_realmtext('new_txt', "Too hard!", (0, 0), (0, -24), None, pc, None, 120,
                                                    'def_bold', 24)
+                wins_dict['realm'].pygame_settings.audio.sound('mech_hard')
                 return False
+        elif len(pc_keys) > 0:
+            for i in range(len(pc_keys) - 1, -1, -1):
+                if pc_keys[i].props['lvl'] == self.lvl:
+                    pc.char_sheet.inventory[pc.char_sheet.inventory.index(pc_keys[i])] = None
+                    wins_dict['inventory'].updated = True
+                    wins_dict['realm'].spawn_realmtext('new_txt', "I have a key $n for this one!", (0, 0), (0, -24),
+                                                       None, pc, None, 120, 'def_bold', 24)
+                    wins_dict['realm'].pygame_settings.audio.sound('lock_operate')
+                    wins_dict['realm'].pygame_settings.audio.sound(pc_keys[i].props['sound_pickup'])
+                    return True

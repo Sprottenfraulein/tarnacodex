@@ -119,13 +119,15 @@ class ResMan:
         # preset packs
         self.sound_presets = {
             'text_input': (
-                'bttn_click_down',
+                'switch_click_push',
                 'input_key_press',
                 'input_enter',
             ),
             'button': (
-                'bttn_click_up',
-                'bttn_click_down',
+                'button_click_push',
+                'button_click_release',
+                'switch_click_push',
+                'switch_click_release',
             )
         }
 

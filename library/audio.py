@@ -1,5 +1,6 @@
 import pygame
 import random
+from library import logfun
 
 
 class Audio:
@@ -27,6 +28,10 @@ class Audio:
         pygame.mixer.music.stop()
         self.music_playing = None
 
-    def sound(self, name):
+    def sound(self, name, log=True):
         if not self.mute_snd:
+            if name is None or name not in self.bank_sounds:
+                logfun.put('Can not find sound "%s"!' % name, log)
+                return False
             self.bank_sounds[name].play()
+            return True

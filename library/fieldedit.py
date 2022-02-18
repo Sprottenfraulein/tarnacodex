@@ -3,8 +3,9 @@ import pygame
 
 
 class FieldEdit:
-    def __init__(self, ui, fe_id, fe_xy, fe_size, text_obj=None, cursor_obj=None, fe_maxlen=-1, fe_align='left',
+    def __init__(self, ui, fe_id, fe_xy, fe_size, audio, text_obj=None, cursor_obj=None, fe_maxlen=-1, fe_align='left',
                  fe_sounds=None, fe_images=None, fe_mode=0, fe_blink=30, page=None):
+        self.audio = audio
         self.id = fe_id
         self.ui = ui
         self.size = fe_size
@@ -69,13 +70,8 @@ class FieldEdit:
             self.render()
             self.ui.updated = True
 
-    def do_sound(self, sound_index=None):
-        if sound_index is None:
-            sound_index = self.mode
-        try:
-            self.sounds[sound_index].play()
-        except TypeError or IndexError:
-            pass
+    def do_sound(self, sound_index):
+        self.audio.sound(self.sounds[sound_index])
 
     def render_all(self):
         self.text_obj.update_and_render()

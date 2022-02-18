@@ -3,9 +3,10 @@ import pygame
 
 
 class Button:
-    def __init__(self, bttn_id, bttn_xy, bttn_size, text_obj=None,
+    def __init__(self, bttn_id, bttn_xy, bttn_size, audio, text_obj=None,
                  bttn_func=None, bttn_images=None, bttn_sounds=None, bttn_mode=0, bttn_switch=False, tags=None,
                  page=None):
+        self.audio = audio
         self.id = bttn_id
         self.size = bttn_size
         self.text_obj = text_obj
@@ -41,10 +42,10 @@ class Button:
                 else:
                     self.mode = 1
                     self.sw_op = True
-                    self.do_sound()
+                    self.do_sound(2)
             else:
                 self.mode = 1
-                self.do_sound()
+                self.do_sound(0)
 
             self.render()
 
@@ -57,12 +58,12 @@ class Button:
                     self.sw_op = False
                 elif not outside:
                     self.mode = 0
-                    self.do_sound()
+                    self.do_sound(3)
                     self.render()
             else:
                 self.mode = 0
                 if not outside:
-                    self.do_sound()
+                    self.do_sound(1)
                 self.render()
                 return self.func
 
@@ -73,13 +74,8 @@ class Button:
             self.mode = 0
             self.render()
 
-    def do_sound(self, sound_index=None):
-        if sound_index is None:
-            sound_index = self.mode
-        try:
-            self.sounds[sound_index].play()
-        except TypeError or IndexError:
-            pass
+    def do_sound(self, sound_index):
+        self.audio.sound(self.sounds[sound_index])
 
     def render(self):
         self.rendered_button.fill((0,0,0))

@@ -9,7 +9,7 @@ def launch(pygame_settings, resources, log=False):
 	# creating tilesets components
 	tile_sets = tilesets.Tilesets()
 	# creating animations
-	anims = animations.Animations()
+	anims = animations.Animations(tile_sets)
 	# connecting to the database
 	db = database.DB('res/data/tables.db')
 	# creating mouse pointer object

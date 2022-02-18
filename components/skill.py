@@ -18,7 +18,7 @@ class Skill:
         # linking images and sounds
         images_update(db_cursor, self.props, tile_sets)
 
-        sounds_update(db_cursor, self.props, audio)
+        sounds_update(db_cursor, self.props)
 
 
 def images_update(db_cursor, skill_props, tile_sets):
@@ -37,14 +37,13 @@ def images_update(db_cursor, skill_props, tile_sets):
         pass
 
 
-def sounds_update(db_cursor, skill_props, audio):
+def sounds_update(db_cursor, skill_props):
     sounds_dict = dbrequests.skill_sounds_get(db_cursor, skill_props['skill_id'], skill_props['grade'])
-    try:
-        skill_props['sound_drop'] = audio.bank_sounds[sounds_dict[0]]
-        skill_props['sound_pickup'] = audio.bank_sounds[sounds_dict[1]]
-        skill_props['sound_use'] = audio.bank_sounds[sounds_dict[2]]
-    except KeyError:
-        pass
+    for snd in ('sound_drop', 'sound_pickup', 'sound_use'):
+        if snd in sounds_dict:
+            skill_props[snd] = sounds_dict[snd]
+        else:
+            skill_props[snd] = None
 
 
 def calc_level(level, skill_props):
@@ -58,6 +57,6 @@ def calc_grade(db_cursor, grade, skill_props, tile_sets, audio):
     # set grade according to skill level. I left this mostly for a way to change skill icon appearance
 
     images_update(db_cursor, skill_props, tile_sets)
-    sounds_update(db_cursor, skill_props, audio)
+    sounds_update(db_cursor, skill_props)
 
     skill_props['grade'] = grade

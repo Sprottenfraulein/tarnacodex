@@ -1,13 +1,6 @@
-import pygame
-
-
 class Animations:
-    def __init__(self):
-        self.sets_dict = {
-            'anthro_ragdoll': pygame.image.load('res/tilesets/anthro_ragdoll.png').convert()
-        }
-        for ts in self.sets_dict.values():
-            ts.set_colorkey((0, 255, 0), pygame.RLEACCEL)
+    def __init__(self, tilesets):
+        self.sets_dict = tilesets.sets_dict
 
     def get_animation(self, anim_id):
         if anim_id == 'anthro_default':
@@ -47,6 +40,14 @@ class Animations:
                 'lay_down': {
                     'images': self.get_image('anthro_ragdoll', (24, 24), (20,)),
                     'timings': (18,)
+                }
+            }
+            return animation
+        elif anim_id == 'effect_dust_cloud':
+            animation = {
+                'default': {
+                    'images': self.get_image('item_effects', (24, 24), (56, 57, 58, 59)),
+                    'timings': (4, 4, 4, 4)
                 }
             }
             return animation

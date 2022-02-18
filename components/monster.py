@@ -116,7 +116,7 @@ class Monster:
 
         if self.waypoints is not None:
             if maths.get_distance(self.x_sq, self.y_sq, self.waypoints[self.wp_index][0],
-                                  self.waypoints[self.wp_index][1]) <= self.stats['melee_distance']:
+                                  self.waypoints[self.wp_index][1]) < self.speed / 100:
                 if self.wp_index == 0:
                     self.waypoints = None
                 else:
@@ -231,8 +231,8 @@ class Monster:
 
         realm.maze.flag_array[round(self.y_sq)][round(self.x_sq)].mon = None
 
-        self.x_sq += step_x * self.speed / 100
-        self.y_sq += step_y * self.speed / 100
+        self.x_sq = round(self.x_sq + step_x * self.speed / 100, 2)
+        self.y_sq = round(self.y_sq + step_y * self.speed / 100, 2)
 
         realm.maze.flag_array[round(self.y_sq)][round(self.x_sq)].mon = self
 
@@ -297,6 +297,10 @@ class Monster:
     def wound(self, damage, dam_type, ranged, is_crit, wins_dict, fate_rnd, pc, no_reflect=False):
         self.hp -= damage
 
+        wins_dict['realm'].pygame_settings.audio.sound('hit_physical')
+        # wins_dict['realm'].schedule_man.task_add('realm_tasks', 1, wins_dict['realm'].pygame_settings.audio, 'sound',
+        #                             ('hit_physical',))
+
         if is_crit:
             info_color = 'fnt_header'
             info_size = 20
@@ -308,6 +312,7 @@ class Monster:
         inf_sp_y = -3
         inf_crit_sp_y = -2
         if is_crit:
+            wins_dict['realm'].pygame_settings.audio.sound('hit_blast')
             wins_dict['realm'].spawn_realmtext(None, 'Critical hit!', (0, 0), None,
                                   color=info_color, stick_obj=self, speed_xy=(0, inf_crit_sp_y), kill_timer=25,
                                   font='large', size=16, frict_y=0.1)

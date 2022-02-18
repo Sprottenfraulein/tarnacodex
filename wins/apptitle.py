@@ -418,7 +418,7 @@ class AppTitle:
                                     sq_image=bttn_texture)
         bttn_img_up.blit(rnd_img, (2, 2))
         bttn_img_down.blit(rnd_img, (2, 2))
-        rnd_name_bttn = self.win_ui.button_add('rnd_name', caption='/@', size=(round(menu_btn_h * 0.7), round(menu_btn_h * 0.7)),
+        rnd_name_bttn = self.win_ui.button_add('rnd_name', caption=None, size=(round(menu_btn_h * 0.7), round(menu_btn_h * 0.7)),
                                cap_font='def_bold', cap_size=24, cap_color='fnt_celeb',
                                sounds=self.win_ui.snd_packs['button'], images=(bttn_img_up, bttn_img_down), page=(1,))
         rnd_name_bttn.rendered_rect.left = self.field_charname_edit.rendered_rect.right
@@ -502,7 +502,7 @@ class AppTitle:
                 'hc_checkbox_string',
                 (self.pygame_settings.screen_res[0] - (menu_btn_h * 2 + menu_btn_w) -
                  (self.pygame_settings.screen_res[0] / 2 - menu_btn_h - menu_btn_w - 64) + 32 + 8, 0),
-                caption="Hardcore character", h_align='left', v_align='top', size=(280, 32), cap_color='fnt_celeb',
+                caption="Hardcore character", h_align='left', v_align='top', size=(280, 20), cap_color='fnt_celeb',
                 cap_font='large', cap_size=14, page=(1,))
         hardcore_char_checkbox_string.rendered_rect.centery = round(self.pygame_settings.screen_res[1] / 2) + (
                     menu_btn_h * 1.2) * 7
@@ -1005,11 +1005,10 @@ class AppTitle:
         self.pc = p
 
     def char_save(self, pc, maze):
-        gamesave.save_char(self.wins_dict, pc, maze, self.db, self.win_ui.tilesets, self.pygame_settings.audio)
+        gamesave.save_char(self.wins_dict, pc, maze, self.db, self.win_ui.tilesets)
 
     def maze_save(self, pc, maze):
-        gamesave.save_maze(pc, maze, self.db, self.win_ui.tilesets, self.animations,
-                           self.pygame_settings.audio)
+        gamesave.save_maze(pc, maze, self.db, self.win_ui.tilesets, self.animations)
 
     def char_load(self):
         if self.save_selection is not None:
@@ -1019,7 +1018,7 @@ class AppTitle:
             p = pc.PC(0, 0, None, self.animations.get_animation('anthro_default'), char_sheet, state=0)
             p.char_portrait_index = self.savegames[self.save_selection]['char_image_index']
 
-            gamesave.load_char(self.wins_dict, p, self.db.cursor, self.win_ui.tilesets, self.pygame_settings.audio)
+            gamesave.load_char(self.wins_dict, p, self.db.cursor, self.win_ui.tilesets)
             self.pc = p
 
             self.char_loaded_info_update()
@@ -1046,7 +1045,8 @@ class AppTitle:
         for win in self.wins_dict.values():
             if win is not self and win in self.active_wins:
                 self.active_wins.remove(win)
-        self.pc.char_sheet.itemlist_cleanall_inventory(self.wins_dict, self.pc)
+        if self.pc is not None:
+            self.pc.char_sheet.itemlist_cleanall_inventory(self.wins_dict, self.pc)
         for inter in self.win_ui.interactives:
             if 'quick_view' in inter.tags:
                 inter.mode = 0

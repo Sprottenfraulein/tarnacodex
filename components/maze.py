@@ -62,7 +62,7 @@ class Maze:
         # WORKING WITH PREGENERATED DATA
         stage_progress = dbrequests.chapter_progress_get(db.cursor, pc.char_sheet.id, stage_index=self.stage_index)
         if len(stage_progress) > 0 and use_saves:
-            gamesave.load_maze(pc, self, db, tile_sets, animations, audio)
+            gamesave.load_maze(pc, self, db, tile_sets, animations)
         else:
             self.tradepost_update = True
 

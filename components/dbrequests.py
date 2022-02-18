@@ -215,17 +215,12 @@ def treasure_images_get(cursor, treasure_id, grade):
 
 
 def treasure_sounds_get(cursor, treasure_id, grade):
-    ex_str = "SELECT treasure_grade, filename FROM sounds s JOIN treasure_sound_sets tss ON tss.sound_id=s.sound_id WHERE tss.treasure_id=? AND tss.treasure_grade=?"
+    ex_str = "SELECT sound_type, sound_name FROM sounds s JOIN treasure_sound_sets tss ON tss.sound_id=s.sound_id WHERE tss.treasure_id=? AND (tss.treasure_grade is Null OR tss.treasure_grade=?)"
     cursor.execute(ex_str, (treasure_id, grade))
     rows = cursor.fetchall()
-    column_names = [column[0] for column in cursor.description]
     sounds_dict = {}
-    s_ind = 0
     for row in rows:
-        sound_dict = {}
-        sound_dict[column_names[1]] = row[1]
-        sounds_dict[row[0]] = sound_dict
-        s_ind += 1
+        sounds_dict[row[0]] = row[1]
     return sounds_dict
 
 
@@ -342,17 +337,12 @@ def skill_images_get(cursor, skill_id, grade):
 
 
 def skill_sounds_get(cursor, skill_id, grade):
-    ex_str = "SELECT skill_grade, filename FROM sounds s JOIN skill_sound_sets sss ON sss.sound_id=s.sound_id WHERE sss.skill_id=? AND sss.skill_grade=?"
+    ex_str = "SELECT sound_type, sound_name FROM sounds s JOIN skill_sound_sets sss ON sss.sound_id=s.sound_id WHERE sss.skill_id=? AND sss.skill_grade=?"
     cursor.execute(ex_str, (skill_id, grade))
     rows = cursor.fetchall()
-    column_names = [column[0] for column in cursor.description]
     sounds_dict = {}
-    s_ind = 0
     for row in rows:
-        sound_dict = {}
-        sound_dict[column_names[1]] = row[1]
-        sounds_dict[row[0]] = sound_dict
-        s_ind += 1
+        sounds_dict[row[0]] = row[1]
     return sounds_dict
 
 

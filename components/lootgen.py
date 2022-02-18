@@ -67,7 +67,7 @@ def generate_gold(monster, realm, fate_rnd, pc):
             new_gold.props['grade'] = 1
         if new_gold.props['grade'] > 0:
             treasure.images_update(realm.db.cursor, new_gold.props, realm.tilesets)
-            treasure.sounds_update(realm.db.cursor, new_gold.props, realm.pygame_settings.audio)
+            treasure.sounds_update(realm.db.cursor, new_gold.props)
 
         treasure_list.append(new_gold)
 
@@ -76,9 +76,10 @@ def generate_gold(monster, realm, fate_rnd, pc):
 
 def drop_loot(x_sq, y_sq, realm, loot_list):
     space_list = calc2darray.fill2d(realm.maze.flag_array, {'mov': False, 'obj': 'True', 'floor': False},
-                                      (x_sq, y_sq), (x_sq, y_sq), len(loot_list) + 1, 5, r_max=20)
+                                          (x_sq, y_sq), (x_sq, y_sq), len(loot_list) + 1, 5, r_max=20)
     for i in range(0, len(loot_list)):
         lt_x_sq, lt_y_sq = space_list[min(1 + i, len(space_list) - 1)]
 
-        realm.maze.spawn_loot(lt_x_sq, lt_y_sq, (loot_list[i],))
+        realm.loot_spawn_list.append((loot_list[i], lt_x_sq, lt_y_sq))
+
     # realm.shortlists_update(loot=True)

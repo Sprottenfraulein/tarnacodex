@@ -1,7 +1,7 @@
 import pygame
 import random
-from library import calc2darray, maths, logfun, typography
-from components import realmtext, skillfuncs, projectile, gamesave
+from library import calc2darray, maths, logfun, typography, particle
+from components import realmtext, skillfuncs, projectile
 import math
 
 
@@ -22,8 +22,11 @@ class Realm:
         self.loot_short = set()
         self.mobs_short = set()
 
+        self.loot_spawn_list = []
         self.text_short = []
         self.missiles_list = []
+        self.jumping_objects = []
+        self.particle_list = []
 
         self.draw_view_maze = False
 
@@ -33,6 +36,7 @@ class Realm:
         self.redraw_maze_mobs = True
         self.redraw_maze_text = True
         self.redraw_missiles = True
+        self.redraw_particles = True
 
         self.redraw_pc = True
         self.square_size = 24
@@ -251,6 +255,15 @@ class Realm:
             if not self.missiles_list[i].tick(self.wins_dict, self.resources.fate_rnd):
                 del self.missiles_list[i]
 
+        for i in range(len(self.particle_list) -1, -1, -1):
+            if not self.particle_list[i].tick():
+                del self.particle_list[i]
+
+        if len(self.loot_spawn_list) > 0 and self.schedule_man.frame == 0:
+            self.loot_spawn_add(*self.loot_spawn_list.pop())
+
+        self.obj_jump(self.jumping_objects)
+
         self.render_update()
 
     def draw(self, surface):
@@ -300,6 +313,12 @@ class Realm:
                     self.view_maze_surface.blit(missile.images[(self.maze.anim_frame + 1) % (len(missile.images))],
                                                 ((missile.x_sq - self.ren_x_sq) * self.square_size + missile.off_x,
                                                  (missile.y_sq - self.ren_y_sq) * self.square_size + missile.off_y))
+
+        if self.redraw_particles:
+            for part in self.particle_list:
+                self.view_maze_surface.blit(part.image_strip[part.frame_index],
+                                            (round((part.x - self.ren_x_sq) * self.square_size + part.off_x),
+                                             round((part.y - self.ren_y_sq) * self.square_size + part.off_y)))
 
         self.draw_view_maze = True
 
@@ -525,7 +544,9 @@ class Realm:
             self.mouse_pointer.drag_item = None
             self.mouse_pointer.image = None
             return
+        self.obj_jump_add(item_dragging)
         self.maze.spawn_loot(m_x_sq, m_y_sq, (item_dragging,))
+        self.pygame_settings.audio.sound('item_throw')
         if not self.mouse_pointer.drag_item[0] == self.mouse_pointer.catcher:
             self.wins_dict['inventory'].updated = True
             self.wins_dict['hotbar'].updated = True
@@ -581,14 +602,7 @@ class Realm:
             # picking up items
             for lt in flags.item:
                 if lt.props['treasure_id'] == 6:
-                    self.wins_dict['realm'].spawn_realmtext('new_txt', "%s gold" % lt.props['amount'], (0, 0), (0, 0),
-                                                       'bright_gold', lt, (0, 0), 45, 'large', 16, 0, 0)
-                    self.pc.char_sheet.gold_coins += lt.props['amount']
-                    self.maze.flag_array[y_sq][x_sq].item.remove(lt)
-                    self.maze.loot.remove(lt)
-                    # self.loot_short.remove(lt)
-                    self.wins_dict['inventory'].updated = True
-                    self.wins_dict['trade'].updated = True
+                    self.coins_collect(lt, flags.item, self.pc)
                     return False
                 else:
                     self.maze.flag_array[y_sq][x_sq].item.remove(lt)
@@ -596,6 +610,7 @@ class Realm:
                     self.mouse_pointer.drag_item = [self.mouse_pointer.catcher, 0]
                     self.mouse_pointer.image = lt.props['image_floor'][0]
                     self.maze.loot.remove(lt)
+                    self.pygame_settings.audio.sound('item_move')
                     # self.loot_short.remove(lt)
                     # self.render_update()
                     return False
@@ -760,3 +775,36 @@ class Realm:
         self.location_label.caption = '%s (%s, stage %s, level %s), %s.' % (self.maze.stage_dict['label'], self.maze.chapter['label'],
                                                                   self.pc.location[1] + 1, self.maze.lvl, venture_direction)
         self.location_label.render()
+
+    def obj_jump(self, obj_list):
+        for i in range(len(obj_list) - 1, -1, -1):
+            if obj_list[i][1] > 0:
+                obj_list[i][1] -= 1
+            else:
+                self.particle_list.append(particle.Particle((obj_list[i][0].x_sq, obj_list[i][0].y_sq),
+                                           (obj_list[i][0].off_x, obj_list[i][0].off_y),
+                                           self.animations.get_animation('effect_dust_cloud')['default'], 16, speed_xy=(-0.25,-0.25)))
+                self.pygame_settings.audio.sound(obj_list[i][0].props['sound_drop'])
+                del obj_list[i]
+                continue
+            obj_list[i][0].off_x = math.sin(obj_list[i][1] / obj_list[i][2] * 3.14) * (self.square_size * self.square_scale) * -1
+            obj_list[i][0].off_y = math.sin(obj_list[i][1] / obj_list[i][2] * 3.14) * (self.square_size * self.square_scale) * -1
+
+    def obj_jump_add(self, object):
+        self.jumping_objects.append([object, 20, 20])
+
+    def coins_collect(self, itm, flag_items, pc):
+        self.spawn_realmtext('new_txt', "%s gold" % itm.props['amount'], (0, 0), (0, 0),
+                                           'bright_gold', itm, (0, 0), 45, 'large', 16, 0, 0)
+        pc.char_sheet.gold_coins += itm.props['amount']
+        self.pygame_settings.audio.sound(itm.props['sound_pickup'])
+        self.maze.loot.remove(itm)
+        # realm.loot_short.remove(itm)
+        self.wins_dict['inventory'].updated = True
+        self.wins_dict['trade'].updated = True
+        flag_items.remove(itm)
+
+    def loot_spawn_add(self, item, x_sq, y_sq):
+        self.obj_jump_add(item)
+        self.maze.spawn_loot(x_sq, y_sq, (item,))
+        self.pygame_settings.audio.sound('item_throw')

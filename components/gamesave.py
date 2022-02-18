@@ -3,7 +3,7 @@ import pickle
 from components import treasure, skill, dbrequests
 
 
-def save_char(wins_dict, pc, maze, db, tileset, audio):
+def save_char(wins_dict, pc, maze, db, tileset):
     filename = "./save/%s/character.pd" % pc.char_sheet.id
     os.makedirs(os.path.dirname(filename), exist_ok=True)
     with open(filename, "wb") as f:
@@ -95,14 +95,14 @@ def save_char(wins_dict, pc, maze, db, tileset, audio):
 
         f.truncate()
 
-    restore_char_media(pc, db.cursor, tileset, audio)
+    restore_char_media(pc, db.cursor, tileset)
 
     dbrequests.char_save(db, pc.char_sheet.id, pc.hardcore_char, maze.stage_index, maze.stage_dict['label'],
                          pc.location[0]['label'], pc.char_sheet.level, pc.char_sheet.name, pc.char_sheet.type,
                          pc.char_portrait_index)
 
 
-def load_char(wins_dict, pc, db_cursor, tileset, audio):
+def load_char(wins_dict, pc, db_cursor, tileset):
     filename = "./save/%s/character.pd" % pc.char_sheet.id
     if not os.path.exists(filename):
         return
@@ -146,7 +146,7 @@ def load_char(wins_dict, pc, db_cursor, tileset, audio):
         pc.char_sheet.exp_prev_lvl = pc_obj_vars['exp_prev_lvl']
         pc.char_sheet.gold_coins = pc_obj_vars['gold_coins']
 
-    restore_char_media(pc, db_cursor, tileset, audio, cooldown_reset=True)
+    restore_char_media(pc, db_cursor, tileset, cooldown_reset=True)
 
 
 def chapter_wipe(db, pc):
@@ -165,7 +165,7 @@ def char_wipe(db, char_id):
     dbrequests.chapter_progress_reset(db, char_id)
 
 
-def save_maze(pc, maze, db, tile_sets, animations, audio):
+def save_maze(pc, maze, db, tile_sets, animations):
     filename = "./save/%s/dung/%s.pd" % (pc.char_sheet.id, maze.stage_index)
     os.makedirs(os.path.dirname(filename), exist_ok=True)
     with open(filename, "wb") as f:
@@ -240,10 +240,10 @@ def save_maze(pc, maze, db, tile_sets, animations, audio):
 
         f.truncate()
 
-    restore_maze_media(pc, maze, db.cursor, tile_sets, animations, audio, cooldown_reset=True)
+    restore_maze_media(pc, maze, db.cursor, tile_sets, animations, cooldown_reset=True)
 
 
-def load_maze(pc, maze, db, tile_sets, animations, audio):
+def load_maze(pc, maze, db, tile_sets, animations):
     filename = "./save/%s/dung/%s.pd" % (pc.char_sheet.id, pc.location[1])
     if not os.path.exists(filename):
         return
@@ -279,41 +279,41 @@ def load_maze(pc, maze, db, tile_sets, animations, audio):
 
         maze.tile_set = tile_sets.get_maze_tiles(maze.stage_dict['tile_set'])
 
-    restore_maze_media(pc, maze, db.cursor, tile_sets, animations, audio, cooldown_reset=True)
+    restore_maze_media(pc, maze, db.cursor, tile_sets, animations, cooldown_reset=True)
 
 
-def restore_char_media(pc, db_cursor, tile_sets, audio, cooldown_reset=False):
+def restore_char_media(pc, db_cursor, tile_sets, cooldown_reset=False):
     equipped = pc.char_sheet.equipped
     for socket in equipped:
         for itm in socket:
             if itm is None:
                 continue
             treasure.images_update(db_cursor, itm.props, tile_sets)
-            treasure.sounds_update(db_cursor, itm.props, audio)
+            treasure.sounds_update(db_cursor, itm.props)
             if itm.props['use_skill'] is not None:
                 if cooldown_reset:
                     itm.props['use_skill'].cooldown_timer = 0
                 skill.images_update(db_cursor, itm.props['use_skill'].props, tile_sets)
-                skill.sounds_update(db_cursor, itm.props['use_skill'].props, audio)
+                skill.sounds_update(db_cursor, itm.props['use_skill'].props)
 
     inventory = pc.char_sheet.inventory
     for itm in inventory:
         if itm is None:
             continue
         treasure.images_update(db_cursor, itm.props, tile_sets)
-        treasure.sounds_update(db_cursor, itm.props, audio)
+        treasure.sounds_update(db_cursor, itm.props)
         if itm.props['use_skill'] is not None:
             if cooldown_reset:
                 itm.props['use_skill'].cooldown_timer = 0
             skill.images_update(db_cursor, itm.props['use_skill'].props, tile_sets)
-            skill.sounds_update(db_cursor, itm.props['use_skill'].props, audio)
+            skill.sounds_update(db_cursor, itm.props['use_skill'].props)
 
     skills = pc.char_sheet.skills
     for itm in skills:
         if itm is None:
             continue
         skill.images_update(db_cursor, itm.props, tile_sets)
-        skill.sounds_update(db_cursor, itm.props, audio)
+        skill.sounds_update(db_cursor, itm.props)
         if cooldown_reset:
             itm.cooldown_timer = 0
 
@@ -323,20 +323,20 @@ def restore_char_media(pc, db_cursor, tile_sets, audio, cooldown_reset=False):
             continue
         if 'treasure_id' in itm.props:
             treasure.images_update(db_cursor, itm.props, tile_sets)
-            treasure.sounds_update(db_cursor, itm.props, audio)
+            treasure.sounds_update(db_cursor, itm.props)
             if itm.props['use_skill'] is not None:
                 if cooldown_reset:
                     itm.props['use_skill'].cooldown_timer = 0
                 skill.images_update(db_cursor, itm.props['use_skill'].props, tile_sets)
-                skill.sounds_update(db_cursor, itm.props['use_skill'].props, audio)
+                skill.sounds_update(db_cursor, itm.props['use_skill'].props)
         elif 'skill_id' in itm.props:
             skill.images_update(db_cursor, itm.props, tile_sets)
-            skill.sounds_update(db_cursor, itm.props, audio)
+            skill.sounds_update(db_cursor, itm.props)
             if cooldown_reset:
                 itm.cooldown_timer = 0
 
 
-def restore_maze_media(pc, maze, db_cursor, tile_sets, animations, audio, cooldown_reset=False):
+def restore_maze_media(pc, maze, db_cursor, tile_sets, animations, cooldown_reset=False):
     for mob in maze.mobs:
         mob.anim_set = animations.get_animation(mob.stats['animation'])
         mob.animate()
@@ -352,12 +352,12 @@ def restore_maze_media(pc, maze, db_cursor, tile_sets, animations, audio, cooldo
             if itm is None:
                 continue
             treasure.images_update(db_cursor, itm.props, tile_sets)
-            treasure.sounds_update(db_cursor, itm.props, audio)
+            treasure.sounds_update(db_cursor, itm.props)
             if itm.props['use_skill'] is not None:
                 if cooldown_reset:
                     itm.props['use_skill'].cooldown_timer = 0
                 skill.images_update(db_cursor, itm.props['use_skill'].props, tile_sets)
-                skill.sounds_update(db_cursor, itm.props['use_skill'].props, audio)
+                skill.sounds_update(db_cursor, itm.props['use_skill'].props)
     for trap in maze.traps:
         trap.tileset = maze.tile_set
         trap.image_update()
@@ -367,9 +367,9 @@ def restore_maze_media(pc, maze, db_cursor, tile_sets, animations, audio, cooldo
         if itm is None:
             continue
         treasure.images_update(db_cursor, itm.props, tile_sets)
-        treasure.sounds_update(db_cursor, itm.props, audio)
+        treasure.sounds_update(db_cursor, itm.props)
         if itm.props['use_skill'] is not None:
             if cooldown_reset:
                 itm.props['use_skill'].cooldown_timer = 0
             skill.images_update(db_cursor, itm.props['use_skill'].props, tile_sets)
-            skill.sounds_update(db_cursor, itm.props['use_skill'].props, audio)
+            skill.sounds_update(db_cursor, itm.props['use_skill'].props)

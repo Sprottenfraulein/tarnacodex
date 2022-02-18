@@ -1,6 +1,6 @@
 # char skillbook window
 import pygame
-from library import textinput, pydraw, maths, itemlist
+from library import textinput, pydraw, maths, itemlist, draganddrop
 from components import ui, skillfuncs
 
 
@@ -126,68 +126,7 @@ class SkillBook:
             # return True if interaction was made to prevent other windows from responding to this event
             return True
 
-        if m_bttn == 3 and in_realm:
-            if element.id < len(element.tags[0]) and element.tags[0][element.id] is not None:
-                if 'skill_id' in element.tags[0][element.id].props:
-                    getattr(skillfuncs, element.tags[0][element.id].props['function_name'])(
-                        self.wins_dict, self.resources.fate_rnd, self.pc, element.tags[0][element.id],
-                        (element.tags[0], element.id), True)
-                elif 'treasure_id' in element.tags[0][element.id].props and element.tags[0][element.id].props[
-                    'use_skill'] is not None:
-                    getattr(skillfuncs, element.tags[0][element.id].props['use_skill'].props['function_name'])(
-                        self.wins_dict, self.resources.fate_rnd, self.pc, element.tags[0][element.id].props['use_skill'],
-                        (element.tags[0], element.id), True)
-        elif m_bttn == 1:
-            # removing popup if active
-            if self.wins_dict['context'] in self.active_wins:
-                self.active_wins.remove(self.wins_dict['context'])
-            item_info = [element.tags[0], element.id]
-            if mb_event == 'down' and self.mouse_pointer.drag_item is None:
-                if item_info[1] < len(item_info[0]) and item_info[0][item_info[1]] is not None:
-                    self.mouse_pointer.drag_item = item_info
-                    # exchange between inventory socket and mouse
-
-                    item_down = self.mouse_pointer.drag_item[0][self.mouse_pointer.drag_item[1]]
-                    self.mouse_pointer.image = item_down.props['image_inventory'][0]
-
-            elif mb_event == 'up' and self.mouse_pointer.drag_item is not None:
-                item_dragging = self.mouse_pointer.drag_item[0][self.mouse_pointer.drag_item[1]]
-                if self.wins_dict['realm'].maze is not None and self.mouse_pointer.drag_item[0] == self.wins_dict['realm'].maze.loot:
-                    self.mouse_pointer.catcher[0] = item_dragging
-                    self.mouse_pointer.drag_item = [self.mouse_pointer.catcher, 0]
-                    self.wins_dict['realm'].maze.loot.remove(item_dragging)
-
-                if item_info[0][item_info[1]] is None:
-                    item_info[0][item_info[1]], self.mouse_pointer.drag_item[0][
-                        self.mouse_pointer.drag_item[1]] = \
-                        self.mouse_pointer.drag_item[0][self.mouse_pointer.drag_item[1]], item_info[0][
-                            item_info[1]]
-                else:
-                    item_info[0][item_info[1]], self.mouse_pointer.drag_item[0][
-                        self.mouse_pointer.drag_item[1]] = \
-                        self.mouse_pointer.drag_item[0][self.mouse_pointer.drag_item[1]], item_info[0][
-                            item_info[1]]
-
-                self.pc.moved_item_cooldown_check(item_info[0][item_info[1]], element)
-
-                if (item_info[0][item_info[1]].props['item_type'] not in item_info[0].filters['item_types']
-                        or (self.mouse_pointer.drag_item[0][self.mouse_pointer.drag_item[1]] is not None
-                            and self.mouse_pointer.drag_item[0][self.mouse_pointer.drag_item[1]].props['item_type']
-                            not in self.mouse_pointer.drag_item[0].filters['item_types'])):
-                    item_info[0][item_info[1]], self.mouse_pointer.drag_item[0][
-                        self.mouse_pointer.drag_item[1]] = \
-                        self.mouse_pointer.drag_item[0][self.mouse_pointer.drag_item[1]], item_info[0][
-                            item_info[1]]
-
-                if self.mouse_pointer.catcher[0] is not None:
-                    self.mouse_pointer.drag_item = [self.mouse_pointer.catcher, 0]
-                    self.mouse_pointer.image = self.mouse_pointer.drag_item[0][self.mouse_pointer.drag_item[1]].props['image_inventory'][0]
-                else:
-                    self.mouse_pointer.drag_item = None
-                    self.mouse_pointer.image = None
-
-                self.pc.char_sheet.itemlists_clean_tail()
-            self.render_slots()
+        draganddrop.item_move(self, element, mb_event, m_bttn, in_realm, skillfuncs)
 
         self.win_ui.interaction_callback(element, mb_event, m_bttn)
         # return True if interaction was made to prevent other windows from responding to this event

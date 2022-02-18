@@ -1,4 +1,5 @@
 from components import lootgen, dbrequests, treasure
+from library import particle
 import random
 
 
@@ -53,6 +54,7 @@ class Chest:
         if not self.closed:
             self.closed = True
             self.image_update()
+            wins_dict['realm'].pygame_settings.audio.sound('chest_shut')
             return True
         elif self.trap is not None:
             if not self.trap.detect():
@@ -62,6 +64,7 @@ class Chest:
             self.closed = False
             self.container_unpack(wins_dict, active_wins, pc)
             self.image_update()
+            wins_dict['realm'].pygame_settings.audio.sound('chest_open')
             return True
         elif self.lock.unlock(wins_dict, pc):
             self.lock = None
@@ -103,7 +106,7 @@ class Chest:
                     new_gold.props['grade'] = 1
                 if new_gold.props['grade'] > 0:
                     treasure.images_update(realm.db.cursor, new_gold.props, realm.tilesets)
-                    treasure.sounds_update(realm.db.cursor, new_gold.props, realm.pygame_settings.audio)
+                    treasure.sounds_update(realm.db.cursor, new_gold.props)
                 self.container.append(new_gold)
             self.gp_number = 0
         if len(self.container) > 0:
@@ -113,3 +116,7 @@ class Chest:
             realm.maze.chests.remove(self)
             realm.maze.flag_array[self.y_sq][self.x_sq].obj = None
             realm.maze.flag_array[self.y_sq][self.x_sq].mov = True
+            realm.particle_list.append(particle.Particle((self.x_sq, self.y_sq),
+                                                        (self.off_x, self.off_y),
+                                                        realm.animations.get_animation('effect_dust_cloud')['default'],
+                                                        16))

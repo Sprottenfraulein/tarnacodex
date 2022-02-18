@@ -141,7 +141,7 @@ class CharSheet:
                            'exp_food', 'exp_lockpick', 'exp_key', 'exp_tools']
         })
 
-        self.gold_coins = 1000
+        self.gold_coins = 2000
 
     def calc_hp(self):
         con_mods = self.equipment_mod('attr_con') + self.buff_mod('attr_con')

@@ -31,7 +31,7 @@ class Treasure:
         # linking images and sounds
         images_update(db_cursor, self.props, tile_sets)
 
-        sounds_update(db_cursor, self.props, audio)
+        sounds_update(db_cursor, self.props)
 
 
 def init_props(db_cursor, fate_rnd, treasure_dicts):
@@ -193,15 +193,13 @@ def images_update(db_cursor, loot_props, tile_sets):
         pass
 
 
-def sounds_update(db_cursor, loot_props, audio):
+def sounds_update(db_cursor, loot_props):
     sounds_dict = dbrequests.treasure_sounds_get(db_cursor, loot_props['treasure_id'], loot_props['grade'])
-    try:
-        loot_props['sound_drop'] = audio.bank_sounds[sounds_dict[0]]
-        loot_props['sound_pickup'] = audio.bank_sounds[sounds_dict[1]]
-        loot_props['sound_use'] = audio.bank_sounds[sounds_dict[2]]
-        loot_props['sound_swing'] = audio.bank_sounds[sounds_dict[3]]
-    except KeyError:
-        pass
+    for snd in ('sound_drop', 'sound_pickup', 'sound_use', 'sound_swing'):
+        if snd in sounds_dict:
+            loot_props[snd] = sounds_dict[snd]
+        else:
+            loot_props[snd] = None
 
 
 def calc_level(level, loot_props):

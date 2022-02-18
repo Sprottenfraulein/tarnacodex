@@ -46,7 +46,7 @@ def attack_default(wins_dict, fate_rnd, pc, skill, item_adress, no_aim=False, ju
 
     pc.food_change(wins_dict, -5)
     pc.act(wins_dict, (target.x_sq, target.y_sq), skill)
-
+    # realm.pygame_settings.audio.sound(skill.props['sound_use'])
     return False
 
 
@@ -100,7 +100,7 @@ def shot_default(wins_dict, fate_rnd, pc, skill, item_adress, no_aim=False, just
 
     pc.food_change(wins_dict, -5)
     pc.act(wins_dict, (target.x_sq, target.y_sq), skill)
-
+    realm.pygame_settings.audio.sound(skill.props['sound_use'])
     return False
 
 
@@ -116,6 +116,7 @@ def potion_heal(wins_dict, fate_rnd, pc, skill, item_adress, no_aim=False, just_
 
     pc.char_sheet.hp_get(heal_hp_value)
     wins_dict['pools'].updated = True
+    realm.pygame_settings.audio.sound(item_adress[0][item_adress[1]].props['sound_use'])
     wins_dict['context'].end()
 
     pc.act(wins_dict, None, skill)
@@ -135,6 +136,7 @@ def potion_power(wins_dict, fate_rnd, pc, skill, item_adress, no_aim=False, just
 
     pc.char_sheet.mp_get(heal_mp_value)
     wins_dict['pools'].updated = True
+    realm.pygame_settings.audio.sound(item_adress[0][item_adress[1]].props['sound_use'])
     wins_dict['context'].end()
 
     pc.act(wins_dict, None, skill)
@@ -155,6 +157,7 @@ def eat(wins_dict, fate_rnd, pc, skill, item_adress, no_aim=False, just_values=F
     pc.char_sheet.food_get(food_value)
 
     wins_dict['pools'].updated = True
+    realm.pygame_settings.audio.sound(item_adress[0][item_adress[1]].props['sound_use'])
     pc.char_sheet.item_remove(wins_dict, item_adress[0][item_adress[1]])
     wins_dict['context'].end()
 
@@ -372,13 +375,7 @@ def pickup(wins_dict, fate_rnd, pc, skill, item_adress, no_aim=False, just_value
 
     for lt in flags.item:
         if lt.props['treasure_id'] == 6:
-            realm.spawn_realmtext('new_txt', "%s gold" % lt.props['amount'], (0, 0), (0, 0),
-                                                    'bright_gold', lt, (0, 0), 45, 'large', 16, 0, 0)
-            pc.char_sheet.gold_coins += lt.props['amount']
-            realm.maze.flag_array[y_sq][x_sq].item.remove(lt)
-            realm.maze.loot.remove(lt)
-            # realm.loot_short.remove(lt)
-            wins_dict['inventory'].updated = True
+            realm.coins_collect(lt, flags.item, pc)
             break
         for i in range(0, pc.char_sheet.inventory.items_max):
             if pc.char_sheet.inventory[i] is None:
@@ -392,6 +389,7 @@ def pickup(wins_dict, fate_rnd, pc, skill, item_adress, no_aim=False, just_value
         realm.maze.loot.remove(lt)
         # realm.loot_short.remove(lt)
         wins_dict['inventory'].updated = True
+        realm.pygame_settings.audio.sound(lt.props['sound_pickup'])
         break
 
     pc.food_change(wins_dict, -5)

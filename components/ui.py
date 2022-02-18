@@ -21,7 +21,7 @@ class UI:
         # sound collections. REMOVE THIS , REMOVE SOUND FROM UI . GENERATE SOUNDS IN WINS
         self.snd_packs = {}
         for preset_name, preset_pack in self.resources.sound_presets.items():
-            self.snd_packs[preset_name] = [pygame_settings.audio.bank_sounds[snd_name] for snd_name in preset_pack]
+            self.snd_packs[preset_name] = [snd_name for snd_name in preset_pack]
 
     def mouse_actions(self, mouse_x, mouse_y, event):
         # mouse events checking
@@ -102,7 +102,7 @@ class UI:
             text = typography.Typography(self.pygame_settings, caption, text_xy, cap_font, cap_size, cap_color,
                                          text_bg_color, 'center', 'middle', size[0], size[1], shadow=cap_shadow)
 
-        new_button = button.Button(bttn_id, xy, size, text_obj=text, bttn_func=function, bttn_images=images,
+        new_button = button.Button(bttn_id, xy, size, self.pygame_settings.audio, text_obj=text, bttn_func=function, bttn_images=images,
                                    bttn_sounds=sounds, bttn_mode=mode, bttn_switch=switch, tags=tags,
                                    page=page)
         return new_button
@@ -151,8 +151,9 @@ class UI:
         cur_text = typography.Typography(self.pygame_settings, cursor_symbol, (0, text_xy[1]), cap_font, cap_size,
                                          cap_color, text_bg_color, 'left', 'middle', size[0], size[1],
                                          shadow=cap_shadow)
-        new_edit = fieldedit.FieldEdit(self, edit_id, xy, size, text_obj=inp_text, cursor_obj=cur_text, fe_images=images,
-                                       fe_maxlen=max_len, fe_blink=blink, fe_align=h_align,fe_sounds=sounds, fe_mode=mode, page=page)
+        new_edit = fieldedit.FieldEdit(self, edit_id, xy, size, self.pygame_settings.audio, text_obj=inp_text,
+                                       cursor_obj=cur_text, fe_images=images, fe_maxlen=max_len, fe_blink=blink,
+                                       fe_align=h_align,fe_sounds=sounds, fe_mode=mode, page=page)
         return new_edit
 
     def text_add(self, edit_id, xy=None, size=None, caption=None, h_align='left', v_align='top', images=None,

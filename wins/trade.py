@@ -443,6 +443,8 @@ class Trade:
         self.wins_dict['realm'].maze.flag_array[y_sq][x_sq].obj = new_chest
         self.wins_dict['realm'].maze.flag_array[y_sq][x_sq].mov = False
         # self.updated = True
+        self.pygame_settings.audio.sound('coins_trade')
+
         self.end()
 
     def goods_generate(self, goods_level_cap):

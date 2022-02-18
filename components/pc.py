@@ -176,14 +176,7 @@ class PC:
                     return
                 for itm in flags.item:
                     if itm.props['treasure_id'] == 6:
-                        wins_dict['realm'].spawn_realmtext('new_txt', "%s gold" % itm.props['amount'], (0, 0), (0, 0),
-                                                           'bright_gold', itm, (0, 0), 45, 'large', 16, 0, 0)
-                        self.char_sheet.gold_coins += itm.props['amount']
-                        realm.maze.loot.remove(itm)
-                        # realm.loot_short.remove(itm)
-                        wins_dict['inventory'].updated = True
-                        wins_dict['trade'].updated = True
-                        flags.item.remove(itm)
+                        realm.coins_collect(itm, flags.item, self)
                         break
 
     def sq_is_free(self, realm, sq_x, sq_y):
