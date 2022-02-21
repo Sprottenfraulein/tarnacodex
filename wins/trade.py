@@ -48,6 +48,7 @@ class Trade:
         self.filter_list()
         self.render()
         self.active_wins.insert(0, self)
+        self.pygame_settings.audio.sound('trader_cart')
 
     def end(self):
         self.pc = None
@@ -434,7 +435,7 @@ class Trade:
         for ex in self.wins_dict['realm'].maze.exits:
             if ex.dest == 'up':
                 x_sq, y_sq = ex.x_sq, ex.y_sq
-        space_list = calc2darray.fill2d(self.wins_dict['realm'].maze.flag_array, {'mov': False, 'obj': 'True', 'floor': False},
+        space_list = calc2darray.fill2d(self.wins_dict['realm'].maze.flag_array, {'mov': False, 'obj': 'True', 'door': 'True', 'floor': False},
                                         (x_sq, y_sq), (x_sq, y_sq), 2, 3, r_max=5)
         x_sq, y_sq = space_list[1]
         new_chest = chest.Chest(x_sq, y_sq, 0, None, self.wins_dict['realm'].maze.tile_set, off_x=-4, off_y=-4,
@@ -442,10 +443,23 @@ class Trade:
         self.wins_dict['realm'].maze.chests.append(new_chest)
         self.wins_dict['realm'].maze.flag_array[y_sq][x_sq].obj = new_chest
         self.wins_dict['realm'].maze.flag_array[y_sq][x_sq].mov = False
+        self.wins_dict['realm'].obj_jump_add(new_chest)
+        self.wins_dict['realm'].sound_inrealm('item_throw', x_sq, y_sq)
         # self.updated = True
         self.pygame_settings.audio.sound('coins_trade')
 
         self.end()
+
+        if not self.wins_dict['realm'].maze.flag_array[y_sq][x_sq].vis:
+            self.wins_dict['realm'].schedule_man.task_add('realm_tasks', 1, self.wins_dict['trade'], 'shipment_reminder', ())
+
+    def shipment_reminder(self):
+        self.wins_dict['dialogue'].dialogue_elements = {
+            'header': 'Attention',
+            'text': 'Your package awaits you near the upstairs of the current floor!',
+            'bttn_cancel': 'OK'
+        }
+        self.wins_dict['dialogue'].launch(self.pc)
 
     def goods_generate(self, goods_level_cap):
         self.trade_bank.clear()

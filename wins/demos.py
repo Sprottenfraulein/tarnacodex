@@ -25,10 +25,17 @@ class Demos:
         self.text_list = []
         self.pause = False
         self.pausable = False
+        self.end_mark = None
 
     def event_check(self, event, log=True):
+        pressed = pygame.key.get_pressed()
+        if pressed[pygame.K_ESCAPE] or pressed[pygame.K_RETURN]:
+            self.schedule_man.rounds = self.end_mark
+            self.pause = 0
+            self.schedule_man.pause = 0
+
         # return True if interaction was made to prevent other windows from responding to this event
-        if (event.type == pygame.MOUSEBUTTONDOWN or event.type == pygame.KEYDOWN) and self.pausable:
+        if (event.type == pygame.MOUSEBUTTONDOWN or (event.type == pygame.KEYDOWN and event.key == pygame.K_SPACE)) and self.pausable:
             self.pause = 1 - self.pause
             self.schedule_man.pause = 1 - self.schedule_man.pause
 
@@ -97,11 +104,12 @@ class Demos:
             time_ending = max(time_ending, img['schedule_delta'] * self.schedule_man.ticks_per_round + img['duration'])
 
         schedule_delta_ending = time_ending // self.schedule_man.ticks_per_round + 3
+        self.end_mark = self.schedule_man.rounds + schedule_delta_ending - 1
         self.wins_dict['app_title'].schedule_man.task_add('realm_tasks', schedule_delta_ending, self.wins_dict['overlay'], 'fade_out',
                                                      (self.schedule_man.ticks_per_round, None))
         if gameover:
             self.wins_dict['app_title'].schedule_man.task_add('realm_tasks', schedule_delta_ending + 1, self.wins_dict['demos'],
-                                                         'back_to_title', (pc,))
+                                                         'back_to_title', ())
         else:
             self.wins_dict['app_title'].schedule_man.task_add('realm_tasks', schedule_delta_ending + 1, self.wins_dict['demos'],
                                                          'back_to_game', ())
@@ -133,6 +141,8 @@ class Demos:
                                          self.resources.colors['fnt_celeb'], self.resources.colors['bg'],
                                          'center', 'top', self.width, 48)
 
+        self.end_mark = self.schedule_man.rounds + 17
+
         self.wins_dict['app_title'].schedule_man.task_add('realm_tasks', 1, self.wins_dict['demos'], 'text_add',
                                                      (text_obj_1, 360, (0, 0), 80, 80))
         self.wins_dict['app_title'].schedule_man.task_add('realm_tasks', 1, self.wins_dict['demos'], 'text_add',
@@ -141,11 +151,12 @@ class Demos:
         self.wins_dict['app_title'].schedule_man.task_add('realm_tasks', 18, self.wins_dict['overlay'], 'fade_out',
                                                      (20, None))
         self.wins_dict['app_title'].schedule_man.task_add('realm_tasks', 19, self.wins_dict['demos'], 'back_to_title',
-                                                     (pc,))
+                                                     ())
         self.wins_dict['app_title'].schedule_man.task_add('realm_tasks', 19, self.wins_dict['overlay'], 'fade_in',
                                                      (20, None))
 
     def death_hardcore(self, pc, death_cause, chapter_dict):
+        self.demo_to_title = True
         self.width, self.height = self.pygame_settings.screen_res
         self.wins_dict['realm'].pause = True
 
@@ -184,14 +195,16 @@ class Demos:
         """self.wins_dict['app_title'].schedule_man.task_add('realm_tasks', 1, self.wins_dict['demos'], 'text_add',
                                                      (text_obj_2, 240, (0, 0), 80, 80))"""
 
+        self.end_mark = self.schedule_man.rounds + 78
+
         self.wins_dict['app_title'].schedule_man.task_add('realm_tasks', 79, self.wins_dict['overlay'], 'fade_out',
                                                      (20, None))
         self.wins_dict['app_title'].schedule_man.task_add('realm_tasks', 80, self.wins_dict['demos'], 'back_to_title',
-                                                     (pc,))
+                                                     ())
         self.wins_dict['app_title'].schedule_man.task_add('realm_tasks', 80, self.wins_dict['overlay'], 'fade_in',
                                                      (20, None))
 
-    def back_to_title(self, pc):
+    def back_to_title(self):
         self.picture_list.clear()
         self.text_list.clear()
         self.active_wins.clear()
@@ -204,7 +217,7 @@ class Demos:
         self.picture_list.clear()
         self.text_list.clear()
         self.active_wins.clear()
-        self.active_wins.append(self.wins_dict['pools'], self.wins_dict['realm'])
+        self.active_wins.extend((self.wins_dict['pools'], self.wins_dict['realm']))
 
     def tick(self):
         if self.pause:

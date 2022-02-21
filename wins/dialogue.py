@@ -41,6 +41,7 @@ class Dialogue:
         self.offset_x = (self.pygame_settings.screen_res[0] - self.win_w) // 2
         self.offset_y = (self.pygame_settings.screen_res[1] - self.win_h) // 2
         self.active_wins.insert(0, self.wins_dict['dialogue'])
+        self.pygame_settings.audio.sound('paper_show')
 
     def end(self):
         self.win_ui.decoratives.clear()

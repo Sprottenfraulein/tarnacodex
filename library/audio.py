@@ -5,6 +5,9 @@ from library import logfun
 
 class Audio:
     def __init__(self, resources):
+        pygame.mixer.set_num_channels(16)
+        """pygame.mixer.set_reserved(4)
+        # 0 - music channel, 1 - pc action sounds, 2 - ui sounds"""
 
         self.bank_sounds = {}
         for snd_name, snd_path in resources.sounds.items():
@@ -36,7 +39,7 @@ class Audio:
             return
         return self.bank_sounds[name].play()
 
-    def sound_panned(self, name, direction, volume, log=True):
+    def sound_panned(self, name, direction, volume, forced, log=True):
         if self.mute_snd:
             return
         if name is None or name not in self.bank_sounds:
@@ -45,5 +48,10 @@ class Audio:
         sc_right = round((3.14 - abs(direction)) / 3.14, 2)
         sc_left = round(abs(direction) / 3.14, 2)
         vol_mod = round(volume / 2, 2)
-        snd_channel = self.bank_sounds[name].play()
-        snd_channel.set_volume((vol_mod + sc_left * (1 - vol_mod)) * volume, (vol_mod + sc_right * (1 - vol_mod)) * volume)
+        snd_channel = pygame.mixer.find_channel(forced)
+        if snd_channel is None:
+            return
+        snd_channel.set_volume((vol_mod + sc_left * (1 - vol_mod)) * volume,
+                               (vol_mod + sc_right * (1 - vol_mod)) * volume)
+        snd_channel.play(self.bank_sounds[name])
+

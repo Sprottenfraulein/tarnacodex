@@ -312,7 +312,7 @@ class Monster:
     def wound(self, damage, dam_type, ranged, is_crit, wins_dict, fate_rnd, pc, no_reflect=False):
         self.hp -= damage
 
-        wins_dict['realm'].sound_inrealm(wins_dict['realm'].resources.sound_presets['damage'][dam_type], self.x_sq, self.y_sq)
+        wins_dict['realm'].sound_inrealm(wins_dict['realm'].resources.sound_presets['damage'][dam_type], self.x_sq, self.y_sq, forced=True)
         # wins_dict['realm'].schedule_man.task_add('realm_tasks', 1, wins_dict['realm'].pygame_settings.audio, 'sound',
         #                             ('hit_physical',))
 

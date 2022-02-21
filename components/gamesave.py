@@ -191,12 +191,15 @@ def save_maze(pc, maze, db, tile_sets, animations):
             mob.aimed = False
             mob.anim_set = None
             mob.image = None
+            mob.sound_channel = None
         for door in maze.doors:
             door.tileset = None
             door.image = None
+            door.sound_channel = None
         for chest in maze.chests:
             chest.tileset = None
             chest.image = None
+            chest.sound_channel = None
             if chest.container is None:
                 continue
             for itm in chest.container:
@@ -366,6 +369,7 @@ def restore_maze_media(pc, maze, db_cursor, tile_sets, animations, cooldown_rese
     for itm in maze.loot:
         if itm is None:
             continue
+        itm.off_x = itm.off_y = 0
         treasure.images_update(db_cursor, itm.props, tile_sets)
         treasure.sounds_update(db_cursor, itm.props)
         if itm.props['use_skill'] is not None:

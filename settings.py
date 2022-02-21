@@ -15,6 +15,7 @@ tilesets = (
     ('default', 'res/tilesets/default01.png'),
     ('red_glass', 'res/tilesets/texture01.png'),
     ('black_rock', 'res/tilesets/texture02.png'),
+    ('paper', 'res/tilesets/texture03.png'),
     ('dung_bricks', 'res/tilesets/dung_bricks.png'),
     ('dung_doors', 'res/tilesets/dung_doors.png'),
     ('dung_chests', 'res/tilesets/dung_chests.png'),
@@ -37,6 +38,12 @@ sounds = (
     ('switch_click_release', 'res/sounds/click_03.wav'),
     ('input_key_press', 'res/sounds/singlesharptick01.wav'),
     ('input_enter', 'res/sounds/singlelowtick01.wav'),
+
+    ('news_bell', 'res/sounds/bell_01.wav'),
+    ('trader_cart', 'res/sounds/cart_01.wav'),
+    ('paper_show', 'res/sounds/paper_03.wav'),
+    ('paper_hide', 'res/sounds/paper_02.wav'),
+    ('realmtext_noise', 'res/sounds/stone_01.wav'),
 
     ('coins_pickup', 'res/sounds/coins_01.wav'),
     ('coins_drop', 'res/sounds/coins_02.wav'),
@@ -72,6 +79,7 @@ sounds = (
     ('wood_pickup', 'res/sounds/wood_pickup_01.wav'),
     ('metal_drop', 'res/sounds/metal_drop_01.wav'),
     ('wood_drop', 'res/sounds/wood_drop_01.wav'),
+
     ('melee_swipe', 'res/sounds/swipe_01.wav'),
     ('bow_shot', 'res/sounds/shot_01.wav'),
     ('hit_physical', 'res/sounds/hit_physical_01.wav'),

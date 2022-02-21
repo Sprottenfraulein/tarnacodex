@@ -78,6 +78,7 @@ class CharSheet:
             'prof_thorns': 0,      # in  tenths of percents (1000 is 100%)
             'prof_reflect': 0,     # in  tenths of percents (1000 is 100%)
                                    # in  tenths of percents (1000 is 100%)
+            'prof_range': 0,       # in  tenths of percents (1000 is 100%)
             'prof_picklock': 0,    # in  tenths of percents (1000 is 100%)
             'prof_detect': 0,      # in  tenths of percents (1000 is 100%)
             'prof_disarm': 0,      # in  tenths of percents (1000 is 100%)
@@ -87,13 +88,14 @@ class CharSheet:
             'prof_findammo': 0,    # in  tenths of percents (1000 is 100%)
             'prof_findore': 0,     # in  tenths of percents (1000 is 100%intelligence
             'prof_findmagic': 0,   # in  tenths of percents (1000 is 100%)
+
+            'prof_light': 0,  # in  tenths of percents (1000 is 100%)
                                    # in  tenths of percents (1000 is 100%)
             'prof_lore': 0,        # in  tenths of percents (1000 is 100%)
             'prof_trade': 0,       # in  tenths of percents (1000 is 100%)
             'prof_craft': 0,       # in  tenths of percents (1000 is 100%)
                                    # in  tenths of percents (1000 is 100%)
-            'prof_bonusexp': 0,    # in  tenths of percents (1000 is 100%)
-            'prof_range': 0        # in  tenths of percents (1000 is 100%)
+            'prof_bonusexp': 0    # in  tenths of percents (1000 is 100%)
         }
         # dictionary of stat alterations. pairs "stat: value" added during game.
         self.de_buffs = {}
@@ -142,6 +144,7 @@ class CharSheet:
         })
 
         self.gold_coins = 2000
+        self.base_light = 6
 
     def calc_hp(self):
         con_mods = self.equipment_mod('attr_con') + self.buff_mod('attr_con')

@@ -52,6 +52,10 @@ class AppTitle:
         # creating dedicated schedule
         self.schedule_man.new_schedule('realm_tasks')
 
+        self.logo = pygame.image.load('./res/tilesets/logo.png').convert()
+        self.logo.set_colorkey((0,0,0))
+        self.logo_w, self.logo_h = self.logo.get_size()
+
         self.win_rendered = pygame.Surface((self.win_w, self.win_h)).convert()
 
         self.render()
@@ -219,7 +223,7 @@ class AppTitle:
 
             self.pc.location = [self.chapters[self.chapter_selection], 0]
 
-            self.location_change(self.pc, 'up', launch=True)
+            self.location_change(self.pc, 'up', launch=True, new_chapter=True)
 
         elif element.id == 'begin_chapter' and m_bttn == 1 and mb_event == 'up' and element.mode == 1:
             if self.pc is None:
@@ -842,13 +846,20 @@ class AppTitle:
                     menu_btn_h * 1.2) * 7
             self.win_ui.interactives.append(bttn_load)
 
-    def location_change(self, pc, entry, launch=False):
-        self.wins_dict['app_title'].schedule_man.task_add('realm_tasks', 1, self.wins_dict['overlay'], 'fade_out',
-                                                     (20, None))
-        self.wins_dict['app_title'].schedule_man.task_add('realm_tasks', 2, self.wins_dict['app_title'], 'location_update',
-                                                     (pc, entry, launch))
-        self.wins_dict['app_title'].schedule_man.task_add('realm_tasks', 2, self.wins_dict['overlay'], 'fade_in',
-                                                     (20, None))
+    def location_change(self, pc, entry, launch=False, new_chapter=False):
+        self.wins_dict['app_title'].schedule_man.task_add('realm_tasks', 1, self.wins_dict['overlay'],
+                                                          'fade_out', (20, None))
+        self.wins_dict['app_title'].schedule_man.task_add('realm_tasks', 2, self.wins_dict['app_title'],
+                                                          'location_update', (pc, entry, launch))
+        if not new_chapter:
+            self.wins_dict['app_title'].schedule_man.task_add('realm_tasks', 2, self.wins_dict['overlay'], 'fade_in',
+                                                         (20, None))
+        else:
+            text_list, image_list = dbrequests.chapter_demo_get(self.db.cursor, pc.location[0]['chapter_id'], 'intro')
+            self.wins_dict['app_title'].schedule_man.task_add('realm_tasks', 2, self.wins_dict['demos'], 'demo_run',
+                                                              (pc, text_list, image_list, False))
+            self.wins_dict['app_title'].schedule_man.task_add('realm_tasks', 2, self.wins_dict['overlay'], 'fade_in',
+                                                              (20, None))
 
     def location_update(self, pc, entry, launch=False):
         if not launch:
@@ -877,8 +888,9 @@ class AppTitle:
             self.wins_dict['trade'].goods_generate(pc.tradepost_level)
             self.wins_dict['trade'].updated = True
             l.tradepost_update = False
-            self.wins_dict['realm'].spawn_realmtext('new_txt', "I would like to visit a Trading Post sometime soon.", (0, 0), (0, -24), 'bright_gold', pc, None, 120,
-                                  'def_bold', 24)
+            self.wins_dict['realm'].spawn_realmtext('new_txt', "I would like to visit a Trading Post sometime soon.",
+                                                    (0, 0), (0, -24), 'bright_gold', pc, None, 240, 'def_bold', 24)
+            self.wins_dict['realm'].pygame_settings.audio.sound('news_bell')
 
         self.wins_dict['realm'].launch()
         if self.wins_dict['realm'] not in self.active_wins:
@@ -955,7 +967,7 @@ class AppTitle:
 
         self.clear_quick_view()
 
-        self.location_change(self.pc, 'up', launch=True)
+        self.location_change(self.pc, 'up', launch=True, new_chapter=True)
 
     def chapter_end(self, pc, chapter_dict):
         text_list, image_list = dbrequests.chapter_demo_get(self.db.cursor, chapter_dict['chapter_id'], 'ending')
@@ -1066,6 +1078,9 @@ class AppTitle:
 
     def render(self):
         self.win_rendered.fill((10, 10, 10))
+        logo_x = (self.pygame_settings.screen_res[0] - self.logo_w) // 2
+        logo_y = (self.pygame_settings.screen_res[1] // 2 - self.logo_h)
+        self.win_rendered.blit(self.logo, (logo_x, logo_y))
         self.win_ui.draw(self.win_rendered)
 
     def draw(self, surface):

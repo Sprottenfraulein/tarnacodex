@@ -20,7 +20,7 @@ class Realm:
         self.doors_short = set()
         self.traps_short = set()
         self.loot_short = set()
-        self.mobs_short = set()
+        self.mobs_short = []
 
         self.loot_spawn_list = []
         self.text_short = []
@@ -107,7 +107,7 @@ class Realm:
         self.doors_short = set()
         self.traps_short = set()
         self.loot_short = set()
-        self.mobs_short = set()
+        self.mobs_short = []
 
         self.text_short = []
 
@@ -491,9 +491,12 @@ class Realm:
 
     def calc_vision_alt(self):
         orig_xy = round(self.pc.x_sq), round(self.pc.y_sq)
-        # realm.calc_vision(realm.maze.flag_array, orig_xy, 100, (12, 8), r_max=10)
-        self.vision_sq_prev = calc2darray.calc_vision_rays(self.maze.flag_array, orig_xy[0], orig_xy[1], 10,
-                                                           self.vision_sq_prev)
+
+        self.vision_sq_prev = calc2darray.calc_vision_rays(
+            self.maze.flag_array, orig_xy[0], orig_xy[1],
+            max(self.maze.stage_dict['base_light'], round(self.pc.char_sheet.base_light + self.pc.char_sheet.base_light * self.pc.char_sheet.profs['prof_light'] // 1000)),
+            self.vision_sq_prev
+        )
         self.traps_search(self.vision_sq_prev)
 
     def mouse_move(self, mouse_xy):
@@ -577,6 +580,7 @@ class Realm:
         if traps_detected:
             self.spawn_realmtext('new_txt', "Watch out for the traps!", (0, 0), (0, 24), 'fnt_attent',
                                  self.pc, None, 180, 'def_bold', 24)
+            self.sound_inrealm('realmtext_noise', self.pc.x_sq, self.pc.y_sq)
 
     def xy_pixels_to_squares(self, xy, do_round=True):
         x_sq = self.view_bleed_sq + self.view_maze_x_sq - 0.3 + xy[0] / self.square_size / self.square_scale
@@ -632,7 +636,7 @@ class Realm:
     def mob_check(self, xy, m_bttn):
         x_sq, y_sq = self.xy_pixels_to_squares(xy, do_round=False)
         for mon in self.mobs_short:
-            if mon.alive == False:
+            if not mon.alive:
                 continue
             if not self.maze.flag_array[round(mon.y_sq)][round(mon.x_sq)].vis:
                 continue
@@ -686,9 +690,9 @@ class Realm:
         # mobs
         if mobs or everything:
             for mob in self.maze.mobs:
-                # Mobs have to live in darkness, but freeze outside drawing canvas. So...
                 if left_sq <= mob.x_sq <= right_sq and top_sq <= mob.y_sq <= bottom_sq:
-                    self.mobs_short.add(mob)
+                    if mob not in self.mobs_short:
+                        self.mobs_short.append(mob)
                 elif mob in self.mobs_short:
                     self.mobs_short.remove(mob)
 
@@ -783,7 +787,11 @@ class Realm:
                 self.particle_list.append(particle.Particle((obj_list[i][0].x_sq, obj_list[i][0].y_sq),
                                            (obj_list[i][0].off_x, obj_list[i][0].off_y),
                                            self.animations.get_animation('effect_dust_cloud')['default'], 16, speed_xy=(-0.25,-0.25)))
-                self.sound_inrealm(obj_list[i][0].props['sound_drop'], obj_list[i][0].x_sq, obj_list[i][0].y_sq)
+                try:
+                    sound = obj_list[i][0].props['sound_drop']
+                except AttributeError:
+                    sound = 'bag_drop'
+                self.sound_inrealm(sound, obj_list[i][0].x_sq, obj_list[i][0].y_sq)
                 del obj_list[i]
                 continue
             obj_list[i][0].off_x = math.sin(obj_list[i][1] / obj_list[i][2] * 3.14) * (self.square_size * self.square_scale) * -1
@@ -808,19 +816,23 @@ class Realm:
         self.maze.spawn_loot(x_sq, y_sq, (item,))
         self.sound_inrealm('item_throw', x_sq, y_sq)
 
-    def sound_inrealm(self, sound_name, x_sq, y_sq):
+    def sound_inrealm(self, sound_name, x_sq, y_sq, forced=False):
         max_distance = 17
         distance = maths.get_distance(self.pc.x_sq, self.pc.y_sq, x_sq, y_sq)
         if distance > max_distance:
             return
         volume = 1 - round(distance / max_distance, 2)
         direction = maths.xy_dist_to_rads(self.pc.x_sq, self.pc.y_sq, x_sq, y_sq)
-        self.pygame_settings.audio.sound_panned(sound_name, direction, volume)
+        self.pygame_settings.audio.sound_panned(sound_name, direction, volume, forced)
 
     def monster_sound_ambience(self):
         if self.maze.anim_frame != 0 or self.maze.anim_timer != 0:
             return
-        random_monster = random.choice(self.maze.mobs)
+        if random.randrange(0, 4) > 0:
+            return
+        if len(self.mobs_short) == 0:
+            return
+        random_monster = random.choice(self.mobs_short)
         if random_monster.aggred:
             return
         self.sound_inrealm(random_monster.stats['sound_amb'], random_monster.x_sq, random_monster.y_sq)

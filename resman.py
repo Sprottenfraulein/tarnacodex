@@ -62,6 +62,7 @@ class ResMan:
             'prof_findore': 'Find ores',
             # number competes against ore deposit level x10 to successfully drop an ore. based on intelligence
             'prof_findmagic': 'Find magical items',  # increases quality of drop items
+            'prof_light': 'Illumination',  # increases quality of drop items
 
             'prof_lore': 'Lore',  # identify an item
             'prof_trade': 'Trade',  # buy cheaper

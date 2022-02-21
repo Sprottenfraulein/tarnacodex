@@ -19,17 +19,38 @@
     <select>
       <path>
         <item name="ROOT" type="e8cecc67:BranchNodeDescriptor" />
-        <item name="REMOTE_ROOT" type="e8cecc67:BranchNodeDescriptor" />
-        <item name="GROUP_NODE:origin" type="e8cecc67:BranchNodeDescriptor" />
-        <item name="BRANCH:origin/main" type="e8cecc67:BranchNodeDescriptor" />
+        <item name="LOCAL_ROOT" type="e8cecc67:BranchNodeDescriptor" />
+        <item name="BRANCH:main" type="e8cecc67:BranchNodeDescriptor" />
       </path>
     </select>
   </component>
   <component name="ChangeListManager">
     <list default="true" id="cc130b1c-00f5-48a7-860f-78f09248cfe9" name="Default Changelist" comment="Tables updated">
-      <change beforePath="$PROJECT_DIR$/.idea/modules.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/modules.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/unnamedfinal.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/TARNA CODEX.iml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/components/charsheet.py" beforeDir="false" afterPath="$PROJECT_DIR$/components/charsheet.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/components/chest.py" beforeDir="false" afterPath="$PROJECT_DIR$/components/chest.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/components/gamesave.py" beforeDir="false" afterPath="$PROJECT_DIR$/components/gamesave.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/components/lootgen.py" beforeDir="false" afterPath="$PROJECT_DIR$/components/lootgen.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/components/monster.py" beforeDir="false" afterPath="$PROJECT_DIR$/components/monster.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/library/audio.py" beforeDir="false" afterPath="$PROJECT_DIR$/library/audio.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/res/data/tables.db" beforeDir="false" afterPath="$PROJECT_DIR$/res/data/tables.db" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/res/sounds/snarl_01.wav" beforeDir="false" afterPath="$PROJECT_DIR$/res/sounds/snarl_01.wav" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/res/sounds/snarl_02.wav" beforeDir="false" afterPath="$PROJECT_DIR$/res/sounds/snarl_02.wav" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/resman.py" beforeDir="false" afterPath="$PROJECT_DIR$/resman.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/save/0/character.pd" beforeDir="false" afterPath="$PROJECT_DIR$/save/0/character.pd" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/save/0/dung/0.pd" beforeDir="false" afterPath="$PROJECT_DIR$/save/0/dung/0.pd" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/save/0/dung/1.pd" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/save/1/character.pd" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/save/1/dung/0.pd" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/save/1/dung/1.pd" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/save/2/character.pd" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/save/2/dung/0.pd" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/settings.py" beforeDir="false" afterPath="$PROJECT_DIR$/settings.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/wins/apptitle.py" beforeDir="false" afterPath="$PROJECT_DIR$/wins/apptitle.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/wins/demos.py" beforeDir="false" afterPath="$PROJECT_DIR$/wins/demos.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/wins/dialogue.py" beforeDir="false" afterPath="$PROJECT_DIR$/wins/dialogue.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/wins/realm.py" beforeDir="false" afterPath="$PROJECT_DIR$/wins/realm.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/wins/trade.py" beforeDir="false" afterPath="$PROJECT_DIR$/wins/trade.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -109,13 +130,6 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1642253012991</updated>
-    </task>
-    <task id="LOCAL-00004" summary="Database reworked.&#10;Char stats math updated.">
-      <created>1642333485731</created>
-      <option name="number" value="00004" />
-      <option name="presentableId" value="LOCAL-00004" />
-      <option name="project" value="LOCAL" />
-      <updated>1642333485731</updated>
     </task>
     <task id="LOCAL-00005" summary="Trap db request table name fixed.&#10;Testing db treasure request added.">
       <created>1642336558352</created>
@@ -453,7 +467,14 @@
       <option name="project" value="LOCAL" />
       <updated>1645431580891</updated>
     </task>
-    <option name="localTasksCounter" value="53" />
+    <task id="LOCAL-00053" summary="Project renaming.">
+      <created>1645432149616</created>
+      <option name="number" value="00053" />
+      <option name="presentableId" value="LOCAL-00053" />
+      <option name="project" value="LOCAL" />
+      <updated>1645432149617</updated>
+    </task>
+    <option name="localTasksCounter" value="54" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -467,7 +488,7 @@
                   <entry key="branch">
                     <value>
                       <list>
-                        <option value="origin/main" />
+                        <option value="main" />
                       </list>
                     </value>
                   </entry>
@@ -481,7 +502,6 @@
     <option name="oldMeFiltersMigrated" value="true" />
   </component>
   <component name="VcsManagerConfiguration">
-    <MESSAGE value="Fate introduced, refactored a folder" />
     <MESSAGE value="Silly scheduler mistake fixed. Now it works." />
     <MESSAGE value="main hud window added. window management updated." />
     <MESSAGE value="Item management fixes, interface updates. Character Sheet implemented." />
@@ -506,7 +526,8 @@
     <MESSAGE value="Sounds added." />
     <MESSAGE value="Stereo sound panning added." />
     <MESSAGE value="Version string fix." />
-    <option name="LAST_COMMIT_MESSAGE" value="Version string fix." />
+    <MESSAGE value="Project renaming." />
+    <option name="LAST_COMMIT_MESSAGE" value="Project renaming." />
   </component>
   <component name="WindowStateProjectService">
     <state x="604" y="306" key="#com.intellij.fileTypes.FileTypeChooser" timestamp="1643884069606">
@@ -521,10 +542,10 @@
       <screen x="0" y="0" width="1680" height="1010" />
     </state>
     <state x="490" y="70" key="CommitChangelistDialog2/0.0.1680.1010@0.0.1680.1010" timestamp="1642254803053" />
-    <state width="1585" height="466" key="DebuggerActiveHint" timestamp="1645110188529">
+    <state width="1585" height="466" key="DebuggerActiveHint" timestamp="1645460289471">
       <screen x="0" y="0" width="1680" height="1010" />
     </state>
-    <state width="1585" height="466" key="DebuggerActiveHint/0.0.1680.1010@0.0.1680.1010" timestamp="1645110188529" />
+    <state width="1585" height="466" key="DebuggerActiveHint/0.0.1680.1010@0.0.1680.1010" timestamp="1645460289471" />
     <state width="540" height="442" key="Diff.GoToChangePopup" timestamp="1642697330208">
       <screen x="0" y="0" width="1680" height="1010" />
     </state>
@@ -537,42 +558,42 @@
       <screen x="0" y="0" width="1680" height="1010" />
     </state>
     <state x="630" y="259" key="FileChooserDialogImpl/0.0.1680.1010@0.0.1680.1010" timestamp="1643011903942" />
-    <state width="1642" height="42" key="GridCell.Tab.0.bottom" timestamp="1645431844427">
+    <state width="1642" height="192" key="GridCell.Tab.0.bottom" timestamp="1645464773364">
       <screen x="0" y="0" width="1680" height="1010" />
     </state>
-    <state width="1642" height="42" key="GridCell.Tab.0.bottom/0.0.1680.1010@0.0.1680.1010" timestamp="1645431844427" />
-    <state width="1642" height="42" key="GridCell.Tab.0.center" timestamp="1645431844427">
+    <state width="1642" height="192" key="GridCell.Tab.0.bottom/0.0.1680.1010@0.0.1680.1010" timestamp="1645464773364" />
+    <state width="1642" height="192" key="GridCell.Tab.0.center" timestamp="1645464773364">
       <screen x="0" y="0" width="1680" height="1010" />
     </state>
-    <state width="1642" height="42" key="GridCell.Tab.0.center/0.0.1680.1010@0.0.1680.1010" timestamp="1645431844427" />
-    <state width="1642" height="42" key="GridCell.Tab.0.left" timestamp="1645431844427">
+    <state width="1642" height="192" key="GridCell.Tab.0.center/0.0.1680.1010@0.0.1680.1010" timestamp="1645464773364" />
+    <state width="1642" height="192" key="GridCell.Tab.0.left" timestamp="1645464773364">
       <screen x="0" y="0" width="1680" height="1010" />
     </state>
-    <state width="1642" height="42" key="GridCell.Tab.0.left/0.0.1680.1010@0.0.1680.1010" timestamp="1645431844427" />
-    <state width="1642" height="42" key="GridCell.Tab.0.right" timestamp="1645431844427">
+    <state width="1642" height="192" key="GridCell.Tab.0.left/0.0.1680.1010@0.0.1680.1010" timestamp="1645464773364" />
+    <state width="1642" height="192" key="GridCell.Tab.0.right" timestamp="1645464773364">
       <screen x="0" y="0" width="1680" height="1010" />
     </state>
-    <state width="1642" height="42" key="GridCell.Tab.0.right/0.0.1680.1010@0.0.1680.1010" timestamp="1645431844427" />
-    <state width="1642" height="192" key="GridCell.Tab.1.bottom" timestamp="1645431844418">
+    <state width="1642" height="192" key="GridCell.Tab.0.right/0.0.1680.1010@0.0.1680.1010" timestamp="1645464773364" />
+    <state width="1642" height="192" key="GridCell.Tab.1.bottom" timestamp="1645464773228">
       <screen x="0" y="0" width="1680" height="1010" />
     </state>
     <state width="1579" height="154" key="GridCell.Tab.1.bottom/0.0.1600.860@0.0.1600.860" timestamp="1642792337009" />
-    <state width="1642" height="192" key="GridCell.Tab.1.bottom/0.0.1680.1010@0.0.1680.1010" timestamp="1645431844418" />
-    <state width="1642" height="192" key="GridCell.Tab.1.center" timestamp="1645431844418">
+    <state width="1642" height="192" key="GridCell.Tab.1.bottom/0.0.1680.1010@0.0.1680.1010" timestamp="1645464773228" />
+    <state width="1642" height="192" key="GridCell.Tab.1.center" timestamp="1645464773228">
       <screen x="0" y="0" width="1680" height="1010" />
     </state>
     <state width="1579" height="154" key="GridCell.Tab.1.center/0.0.1600.860@0.0.1600.860" timestamp="1642792337008" />
-    <state width="1642" height="192" key="GridCell.Tab.1.center/0.0.1680.1010@0.0.1680.1010" timestamp="1645431844418" />
-    <state width="1642" height="192" key="GridCell.Tab.1.left" timestamp="1645431844418">
+    <state width="1642" height="192" key="GridCell.Tab.1.center/0.0.1680.1010@0.0.1680.1010" timestamp="1645464773228" />
+    <state width="1642" height="192" key="GridCell.Tab.1.left" timestamp="1645464773228">
       <screen x="0" y="0" width="1680" height="1010" />
     </state>
     <state width="1579" height="154" key="GridCell.Tab.1.left/0.0.1600.860@0.0.1600.860" timestamp="1642792337008" />
-    <state width="1642" height="192" key="GridCell.Tab.1.left/0.0.1680.1010@0.0.1680.1010" timestamp="1645431844418" />
-    <state width="1642" height="192" key="GridCell.Tab.1.right" timestamp="1645431844418">
+    <state width="1642" height="192" key="GridCell.Tab.1.left/0.0.1680.1010@0.0.1680.1010" timestamp="1645464773228" />
+    <state width="1642" height="192" key="GridCell.Tab.1.right" timestamp="1645464773228">
       <screen x="0" y="0" width="1680" height="1010" />
     </state>
     <state width="1579" height="154" key="GridCell.Tab.1.right/0.0.1600.860@0.0.1600.860" timestamp="1642792337009" />
-    <state width="1642" height="192" key="GridCell.Tab.1.right/0.0.1680.1010@0.0.1680.1010" timestamp="1645431844418" />
+    <state width="1642" height="192" key="GridCell.Tab.1.right/0.0.1680.1010@0.0.1680.1010" timestamp="1645464773228" />
     <state x="351" y="149" key="SettingsEditor" timestamp="1645431929332">
       <screen x="0" y="0" width="1680" height="1010" />
     </state>
@@ -585,10 +606,10 @@
       <screen x="0" y="0" width="1680" height="1010" />
     </state>
     <state x="680" y="374" key="VCS.EditChangelistDialog/0.0.1680.1010@0.0.1680.1010" timestamp="1642255774149" />
-    <state x="442" y="241" key="Vcs.Push.Dialog.v2" timestamp="1645431584297">
+    <state x="442" y="241" key="Vcs.Push.Dialog.v2" timestamp="1645432153809">
       <screen x="0" y="0" width="1680" height="1010" />
     </state>
-    <state x="442" y="241" key="Vcs.Push.Dialog.v2/0.0.1680.1010@0.0.1680.1010" timestamp="1645431584297" />
+    <state x="442" y="241" key="Vcs.Push.Dialog.v2/0.0.1680.1010@0.0.1680.1010" timestamp="1645432153809" />
     <state width="848" height="513" key="XDebugger.FullValuePopup" timestamp="1644426063569">
       <screen x="0" y="0" width="1680" height="1010" />
     </state>

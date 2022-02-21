@@ -54,7 +54,7 @@ class Chest:
         if not self.closed:
             self.closed = True
             self.image_update()
-            wins_dict['realm'].pygame_settings.audio.sound('chest_shut')
+            wins_dict['realm'].sound_inrealm('chest_shut', self.x_sq, self.y_sq)
             return True
         elif self.trap is not None:
             if not self.trap.detect():
@@ -64,7 +64,7 @@ class Chest:
             self.closed = False
             self.container_unpack(wins_dict, active_wins, pc)
             self.image_update()
-            wins_dict['realm'].pygame_settings.audio.sound('chest_open')
+            wins_dict['realm'].sound_inrealm('chest_open', self.x_sq, self.y_sq)
             return True
         elif self.lock.unlock(wins_dict, pc):
             self.lock = None
