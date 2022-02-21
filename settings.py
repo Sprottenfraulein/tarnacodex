@@ -6,7 +6,7 @@ APP_RES = (1296, 816)
 app_scale = 2
 # Application caption (visible in window title or OS apps manager)
 APP_CAPTION = 'TARNA CODEX'
-tag_string = 'TARNA CODEX, pre-alpha build. Copyright Senya Tarna, 2022.'
+tag_string = 'TARNA CODEX, pre-alpha build. © Senya Tarna, 2022.'
 # Frames per second (changing this affects app's run speed)
 FPS = 60
 
