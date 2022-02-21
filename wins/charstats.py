@@ -445,10 +445,12 @@ class CharStats:
                 pv_color = self.resources.colors['fnt_celeb']
 
                 prof_value_percent = prof_value / 10
-                if prof_value_percent.is_integer():
-                    pv_caption = str(round(prof_value_percent))
+                if prof_value_percent == 0:
+                    pv_caption = '-'
+                elif prof_value_percent.is_integer():
+                    pv_caption = '+' * (prof_value_percent > 0) + str(round(prof_value_percent)) + '%'
                 else:
-                    pv_caption = str(round(prof_value / 10, 1))
+                    pv_caption = '+' * (prof_value_percent > 0) + str(round(prof_value / 10, 1)) + '%'
                 if (self.stat_elements[prof_name].text_obj.caption != pv_caption or
                         self.stat_elements[prof_name].text_obj.color != pv_color):
                     self.stat_elements[prof_name].text_obj.caption = pv_caption

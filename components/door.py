@@ -17,9 +17,9 @@ class Door:
             self.shut = True
             self.image_update()
             if self.grate:
-                wins_dict['realm'].pygame_settings.audio.sound('metal_door_shut')
+                wins_dict['realm'].sound_inrealm('metal_door_shut', self.x_sq, self.y_sq)
             else:
-                wins_dict['realm'].pygame_settings.audio.sound('wooden_door_shut')
+                wins_dict['realm'].sound_inrealm('wooden_door_shut', self.x_sq, self.y_sq)
             return True
         elif self.trap is not None:
             if not self.trap.detect():
@@ -29,9 +29,9 @@ class Door:
             self.shut = False
             self.image_update()
             if self.grate:
-                wins_dict['realm'].pygame_settings.audio.sound('metal_door_open')
+                wins_dict['realm'].sound_inrealm('metal_door_open', self.x_sq, self.y_sq)
             else:
-                wins_dict['realm'].pygame_settings.audio.sound('wooden_door_open')
+                wins_dict['realm'].sound_inrealm('wooden_door_open', self.x_sq, self.y_sq)
             return True
         elif self.lock.unlock(wins_dict, pc):
             self.lock = None

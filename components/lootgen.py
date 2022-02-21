@@ -77,7 +77,7 @@ def generate_gold(monster, realm, fate_rnd, pc):
 def drop_loot(x_sq, y_sq, realm, loot_list):
     space_list = calc2darray.fill2d(realm.maze.flag_array, {'mov': False, 'obj': 'True', 'floor': False},
                                           (x_sq, y_sq), (x_sq, y_sq), len(loot_list) + 1, 5, r_max=20)
-    for i in range(0, len(loot_list)):
+    for i in range(len(loot_list) - 1, -1, -1):
         lt_x_sq, lt_y_sq = space_list[min(1 + i, len(space_list) - 1)]
 
         realm.loot_spawn_list.append((loot_list[i], lt_x_sq, lt_y_sq))

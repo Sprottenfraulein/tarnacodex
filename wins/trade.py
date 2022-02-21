@@ -2,7 +2,7 @@
 import pygame
 import math
 from library import textinput, pydraw, maths, itemlist, calc2darray
-from components import ui, treasure, dbrequests, chest
+from components import ui, treasure, dbrequests, chest, skill
 
 
 class Trade:
@@ -455,6 +455,9 @@ class Trade:
                 self.trade_bank.append(treasure.Treasure(j, max(1, goods_level_cap + i), self.db.cursor,
                                                          self.tilesets, self.resources, self.pygame_settings.audio,
                                                          self.resources.fate_rnd))
+        for i in (5, 6, 9):
+            self.trade_bank.append(skill.Skill(i, goods_level_cap, self.db.cursor, self.win_ui.tilesets,
+                                               self.win_ui.resources, self.pygame_settings.audio))
 
     def tick(self):
         self.win_ui.tick()

@@ -128,7 +128,10 @@ class ResMan:
                 'button_click_release',
                 'switch_click_push',
                 'switch_click_release',
-            )
+            ),
+            'damage': {
+                'att_physical': 'hit_physical'
+            }
         }
 
         self.sprites = {

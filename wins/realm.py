@@ -264,6 +264,8 @@ class Realm:
 
         self.obj_jump(self.jumping_objects)
 
+        self.monster_sound_ambience()
+
         self.render_update()
 
     def draw(self, surface):
@@ -544,9 +546,7 @@ class Realm:
             self.mouse_pointer.drag_item = None
             self.mouse_pointer.image = None
             return
-        self.obj_jump_add(item_dragging)
-        self.maze.spawn_loot(m_x_sq, m_y_sq, (item_dragging,))
-        self.pygame_settings.audio.sound('item_throw')
+        self.loot_spawn_add(item_dragging, m_x_sq, m_y_sq)
         if not self.mouse_pointer.drag_item[0] == self.mouse_pointer.catcher:
             self.wins_dict['inventory'].updated = True
             self.wins_dict['hotbar'].updated = True
@@ -610,7 +610,7 @@ class Realm:
                     self.mouse_pointer.drag_item = [self.mouse_pointer.catcher, 0]
                     self.mouse_pointer.image = lt.props['image_floor'][0]
                     self.maze.loot.remove(lt)
-                    self.pygame_settings.audio.sound('item_move')
+                    self.sound_inrealm('item_move', x_sq, y_sq)
                     # self.loot_short.remove(lt)
                     # self.render_update()
                     return False
@@ -762,7 +762,6 @@ class Realm:
             # W
             images = [pygame.transform.rotate(img, -180) for img in image_pack[1]]
 
-
         new_missile = projectile.Projectile(origin_xy, (0,0), duration, speed_xy, images, attack,
                                             collision_limit=1, blast_radius=0)
         self.missiles_list.append(new_missile)
@@ -784,7 +783,7 @@ class Realm:
                 self.particle_list.append(particle.Particle((obj_list[i][0].x_sq, obj_list[i][0].y_sq),
                                            (obj_list[i][0].off_x, obj_list[i][0].off_y),
                                            self.animations.get_animation('effect_dust_cloud')['default'], 16, speed_xy=(-0.25,-0.25)))
-                self.pygame_settings.audio.sound(obj_list[i][0].props['sound_drop'])
+                self.sound_inrealm(obj_list[i][0].props['sound_drop'], obj_list[i][0].x_sq, obj_list[i][0].y_sq)
                 del obj_list[i]
                 continue
             obj_list[i][0].off_x = math.sin(obj_list[i][1] / obj_list[i][2] * 3.14) * (self.square_size * self.square_scale) * -1
@@ -797,7 +796,7 @@ class Realm:
         self.spawn_realmtext('new_txt', "%s gold" % itm.props['amount'], (0, 0), (0, 0),
                                            'bright_gold', itm, (0, 0), 45, 'large', 16, 0, 0)
         pc.char_sheet.gold_coins += itm.props['amount']
-        self.pygame_settings.audio.sound(itm.props['sound_pickup'])
+        self.sound_inrealm(itm.props['sound_pickup'], itm.x_sq, itm.y_sq)
         self.maze.loot.remove(itm)
         # realm.loot_short.remove(itm)
         self.wins_dict['inventory'].updated = True
@@ -807,4 +806,21 @@ class Realm:
     def loot_spawn_add(self, item, x_sq, y_sq):
         self.obj_jump_add(item)
         self.maze.spawn_loot(x_sq, y_sq, (item,))
-        self.pygame_settings.audio.sound('item_throw')
+        self.sound_inrealm('item_throw', x_sq, y_sq)
+
+    def sound_inrealm(self, sound_name, x_sq, y_sq):
+        max_distance = 17
+        distance = maths.get_distance(self.pc.x_sq, self.pc.y_sq, x_sq, y_sq)
+        if distance > max_distance:
+            return
+        volume = 1 - round(distance / max_distance, 2)
+        direction = maths.xy_dist_to_rads(self.pc.x_sq, self.pc.y_sq, x_sq, y_sq)
+        self.pygame_settings.audio.sound_panned(sound_name, direction, volume)
+
+    def monster_sound_ambience(self):
+        if self.maze.anim_frame != 0 or self.maze.anim_timer != 0:
+            return
+        random_monster = random.choice(self.maze.mobs)
+        if random_monster.aggred:
+            return
+        self.sound_inrealm(random_monster.stats['sound_amb'], random_monster.x_sq, random_monster.y_sq)

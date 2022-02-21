@@ -248,8 +248,13 @@ def monster_get_by_id(cursor, monster_id):
     monster_dict = {}
     for i in range(0, len(column_names)):
         monster_dict[column_names[i]] = rows[0][i]
-        # item modifiers set query
-    ex_str = "SELECT ma.attack_id, label, range, attack_type, attack_val_base, attack_val_spread, monster_type, lvl, time, chance FROM monster_attack_sets mas JOIN monster_attacks ma ON mas.attack_id=ma.attack_id WHERE mas.monster_id=?"
+    ex_str = "SELECT sound_type, sound_name FROM sounds s JOIN monster_sound_sets mss ON mss.sound_id=s.sound_id WHERE mss.monster_id=?"
+    cursor.execute(ex_str, (monster_id, ))
+    rows = cursor.fetchall()
+    for row in rows:
+        monster_dict[row[0]] = row[1]
+    # Monster attacks query
+    ex_str = "SELECT ma.attack_id, label, range, attack_type, attack_val_base, attack_val_spread, monster_type, lvl, time, chance, sound_attack FROM monster_attack_sets mas JOIN monster_attacks ma ON mas.attack_id=ma.attack_id WHERE mas.monster_id=?"
     cursor.execute(ex_str, (monster_id,))
     rows = cursor.fetchall()
     column_names = [column[0] for column in cursor.description]

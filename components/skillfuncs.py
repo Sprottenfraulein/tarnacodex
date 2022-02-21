@@ -75,7 +75,7 @@ def shot_default(wins_dict, fate_rnd, pc, skill, item_adress, no_aim=False, just
     if not skill_reqs_check(realm, skill, pc):
         return True
 
-    if maths.get_distance(pc.x_sq, pc.y_sq, target.x_sq, target.y_sq) > skill.props['range']:
+    if maths.get_distance(pc.x_sq, pc.y_sq, target.x_sq, target.y_sq) > (skill.props['range'] * (pc.char_sheet.profs['prof_range'] + 1000) // 1000):
         """realm.schedule_man.task_add('realm_tasks', 1, realm, 'spawn_realmtext',
                                     ('new_txt', "Too far!",
                                      (0, 0), (0, -24), None, True, realm.pc))
@@ -389,7 +389,7 @@ def pickup(wins_dict, fate_rnd, pc, skill, item_adress, no_aim=False, just_value
         realm.maze.loot.remove(lt)
         # realm.loot_short.remove(lt)
         wins_dict['inventory'].updated = True
-        realm.pygame_settings.audio.sound(lt.props['sound_pickup'])
+        realm.sound_inrealm(lt.props['sound_pickup'], x_sq, y_sq)
         break
 
     pc.food_change(wins_dict, -5)

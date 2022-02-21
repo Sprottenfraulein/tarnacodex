@@ -29,9 +29,21 @@ class Audio:
         self.music_playing = None
 
     def sound(self, name, log=True):
-        if not self.mute_snd:
-            if name is None or name not in self.bank_sounds:
-                logfun.put('Can not find sound "%s"!' % name, log)
-                return False
-            self.bank_sounds[name].play()
-            return True
+        if self.mute_snd:
+            return
+        if name is None or name not in self.bank_sounds:
+            logfun.put('Can not find sound "%s"!' % name, log)
+            return
+        return self.bank_sounds[name].play()
+
+    def sound_panned(self, name, direction, volume, log=True):
+        if self.mute_snd:
+            return
+        if name is None or name not in self.bank_sounds:
+            logfun.put('Can not find sound "%s"!' % name, log)
+            return
+        sc_right = round((3.14 - abs(direction)) / 3.14, 2)
+        sc_left = round(abs(direction) / 3.14, 2)
+        vol_mod = round(volume / 2, 2)
+        snd_channel = self.bank_sounds[name].play()
+        snd_channel.set_volume((vol_mod + sc_left * (1 - vol_mod)) * volume, (vol_mod + sc_right * (1 - vol_mod)) * volume)

@@ -5,8 +5,8 @@
 APP_RES = (1296, 816)
 app_scale = 2
 # Application caption (visible in window title or OS apps manager)
-APP_CAPTION = 'Blackrock Sliders'
-tag_string = 'Blackrock Sliders, v0.1. Copyright Senya Tarna, 2022.'
+APP_CAPTION = 'TARNA CODEX'
+tag_string = 'TARNA CODEX, pre-alpha build. Copyright Senya Tarna, 2022.'
 # Frames per second (changing this affects app's run speed)
 FPS = 60
 
@@ -75,7 +75,17 @@ sounds = (
     ('melee_swipe', 'res/sounds/swipe_01.wav'),
     ('bow_shot', 'res/sounds/shot_01.wav'),
     ('hit_physical', 'res/sounds/hit_physical_01.wav'),
+    ('pc_hit', 'res/sounds/hit_physical_02.wav'),
     ('hit_blast', 'res/sounds/blast_01.wav'),
+
+    ('death_champion', 'res/sounds/moan_03.wav'),
+    ('death_kingslayer', 'res/sounds/moan_01.wav'),
+    ('death_cosmologist', 'res/sounds/moan_02.wav'),
+
+    ('claws_tear', 'res/sounds/tear_01.wav'),
+    ('undead_amb', 'res/sounds/snarl_01.wav'),
+    ('undead_aggro', 'res/sounds/snarl_03.wav'),
+    ('undead_defeat', 'res/sounds/snarl_02.wav'),
 )
 
 music = (

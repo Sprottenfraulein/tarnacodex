@@ -228,12 +228,14 @@ class PC:
             wins_dict['realm'].spawn_realmtext(None, 'Miss!', (0, 0), None,
                                                color='fnt_celeb', stick_obj=self, speed_xy=(0, inf_crit_sp_y),
                                                kill_timer=25, font='large', size=16, frict_y=0.1)
+            wins_dict['realm'].pygame_settings.audio.sound('melee_swipe')
             return
 
         rnd_dmg = random.randrange(chosen_attack['attack_val_base'], chosen_attack['attack_val_base'] + chosen_attack['attack_val_spread'] + 1)
         if not no_crit and random.randrange(1, 101) <= monster.stats['crit_chance'] and rnd_dmg * 2 < self.char_sheet.hp:
             rnd_dmg *= 2
             is_crit = True
+
         else:
             is_crit = False
 
@@ -261,6 +263,8 @@ class PC:
 
         self.char_sheet.hp_get(damage * -1)
 
+        wins_dict['realm'].pygame_settings.audio.sound('pc_hit')
+
         # 100% HP damage = 10 points of condition
         if treasure.condition_equipment_change(self.char_sheet, round(-10 * rnd_dmg / self.char_sheet.pools['HP'])):
             self.char_sheet.calc_stats()
@@ -270,6 +274,7 @@ class PC:
         if not no_crit and is_crit:
             info_color = 'fnt_attent'
             info_size = 20
+
         else:
             info_color = 'fnt_attent'
             info_size = 16
@@ -279,6 +284,7 @@ class PC:
                                                color=info_color, stick_obj=self, speed_xy=(0, inf_crit_sp_y),
                                                kill_timer=25,
                                                font='large', size=16, frict_y=0.1)
+            wins_dict['realm'].pygame_settings.audio.sound('hit_blast')
 
         wins_dict['realm'].spawn_realmtext(None, str(damage * -1), (0, 0), None,
                                            color=info_color, stick_obj=self, speed_xy=(inf_sp_x, inf_sp_y),
@@ -287,6 +293,8 @@ class PC:
 
         if self.char_sheet.hp <= 0:
             self.state_change(8)
+            wins_dict['realm'].pygame_settings.audio.sound('death_%s' % self.char_sheet.type)
+
             if self.hardcore_char:
                 self.hardcore_char = 2
                 wins_dict['demos'].death_hardcore(self, monster.stats, wins_dict['realm'].maze.chapter)

@@ -41,6 +41,7 @@ class Monster:
 
         self.alive = True
         self.rest = True
+        self.aggred = False
         self.waypoints = None
         self.wp_ind_list = None
         self.wp_index = None
@@ -124,12 +125,13 @@ class Monster:
             else:
                 wp_x, wp_y = self.waypoints[self.wp_index]
                 self.move_instr_x, self.move_instr_y = maths.sign(wp_x - self.x_sq), maths.sign(wp_y - self.y_sq)
-        elif self.bhvr_timer == 0 and self.stats['melee_distance'] < pc_distance <= self.stats['aggro_distance'] * realm.pc.char_sheet.profs['prof_provoke'] // 1000:
-            self.intercept(realm, pc_distance)
+        elif (self.bhvr_timer == 0 and self.stats['melee_distance'] < pc_distance <= self.stats['aggro_distance']
+                * (realm.pc.char_sheet.profs['prof_provoke'] + 1000) // 1000):
+            self.intercept(wins_dict, pc_distance)
         else:
             if self.bhvr_timer == 0:
                 self.direction_change(realm)
-                self.phase_change()
+                self.phase_change(realm)
             else:
                 self.bhvr_timer -= 1
 
@@ -151,7 +153,7 @@ class Monster:
         self.wp_parent_index = self.wp_ind_list[waypoint_index]
         self.move_instr_x, self.move_instr_y = maths.sign(wp_x - round(self.x_sq)), maths.sign(wp_y - round(self.y_sq))
 
-    def phase_change(self):
+    def phase_change(self, realm):
         if self.rest:
             self.go()
         else:
@@ -164,6 +166,7 @@ class Monster:
     def wait(self):
         self.bhvr_timer = self.rest_time + random.randrange(0, self.rest_time_spread + 1)
         self.rest = True
+        self.aggred = False
 
     def stop(self):
         self.alive = False
@@ -174,22 +177,30 @@ class Monster:
                                                                      self.y_sq) < self.stats['area_distance']:
             self.move_instr_x = random.randrange(-1, 2)
             self.move_instr_y = random.randrange(-1, 2)
-        elif calc2darray.cast_ray(realm.maze.flag_array, self.x_sq, self.y_sq, self.origin_x_sq, self.origin_y_sq, True):
+            return
+        if calc2darray.cast_ray(realm.maze.flag_array, self.x_sq, self.y_sq, self.origin_x_sq, self.origin_y_sq, True):
             self.move_instr_x, self.move_instr_y = maths.sign(round(self.origin_x_sq) - round(self.x_sq)), maths.sign(
                 round(self.origin_y_sq) - round(self.y_sq))
         elif not self.calc_path(realm, (round(self.origin_x_sq), round(self.origin_y_sq))):
                 self.move_instr_x = random.randrange(-1, 2)
                 self.move_instr_y = random.randrange(-1, 2)
 
-    def intercept(self, realm, pc_distance):
+    def intercept(self, wins_dict, pc_distance):
+        realm = wins_dict['realm']
         if calc2darray.cast_ray(realm.maze.flag_array, self.x_sq, self.y_sq, realm.pc.x_sq, realm.pc.y_sq, True):
-            if self.attack_ranged(realm.pc, pc_distance):
+            if self.attack_ranged(realm.pc, wins_dict, pc_distance):
                 return
             self.move_instr_x, self.move_instr_y = maths.sign(round(realm.pc.x_sq) - round(self.x_sq)), maths.sign(
                 round(realm.pc.y_sq) - round(self.y_sq))
             self.go()
+            if not self.aggred:
+                realm.sound_inrealm(self.stats['sound_aggro'], self.x_sq, self.y_sq)
+                self.aggred = True
         elif self.stats['xray'] == 1:
             self.calc_path(realm, (round(realm.pc.x_sq), round(realm.pc.y_sq)))
+            if not self.aggred:
+                realm.sound_inrealm(self.stats['sound_aggro'], self.x_sq, self.y_sq)
+                self.aggred = True
 
     # movement
     def move(self, step_x, step_y, realm):
@@ -226,7 +237,7 @@ class Monster:
         if step_x == 0 and step_y == 0:
             if self.waypoints is not None:
                 self.waypoints = None
-                self.phase_change()
+                self.phase_change(realm)
             return
 
         realm.maze.flag_array[round(self.y_sq)][round(self.x_sq)].mon = None
@@ -247,7 +258,7 @@ class Monster:
                     step_x = 0
                     # self.move_instr_y *= -1
                 else:
-                    self.phase_change()
+                    self.phase_change(realm)
                     step_x = step_y = 0
             if not realm.maze.flag_array[sq_y][sq_x].mov:
                 if realm.maze.flag_array[round(self.y_sq)][sq_x].mov:
@@ -258,7 +269,7 @@ class Monster:
                     step_x = 0
                     # self.move_instr_y *= -1
                 else:
-                    self.phase_change()
+                    self.phase_change(realm)
                     step_x = step_y = 0
         return step_x, step_y
 
@@ -273,13 +284,15 @@ class Monster:
 
         pc.wound(wins_dict, self, self.attacking, fate_rnd)
 
+        wins_dict['realm'].sound_inrealm(self.attacking['sound_attack'], self.x_sq, self.y_sq)
+
         self.attack_timer = 0
 
         self.anim_frame = 0
         self.anim_timer = 0
         return True
 
-    def attack_ranged(self, pc, distance):
+    def attack_ranged(self, pc, wins_dict, distance):
         if len(self.stats['attacks_ranged']) == 0:
             return False
         self.face_point(pc.x_sq, pc.y_sq)
@@ -287,6 +300,8 @@ class Monster:
 
         attacks_list = [(att, att['chance']) for att in self.stats['attacks_ranged']]
         self.attacking = pickrandom.items_get(attacks_list)[0]
+
+        wins_dict['realm'].sound_inrealm(self.attacking['sound_attack'], self.x_sq, self.y_sq)
 
         self.attack_timer = 0
 
@@ -297,7 +312,7 @@ class Monster:
     def wound(self, damage, dam_type, ranged, is_crit, wins_dict, fate_rnd, pc, no_reflect=False):
         self.hp -= damage
 
-        wins_dict['realm'].pygame_settings.audio.sound('hit_physical')
+        wins_dict['realm'].sound_inrealm(wins_dict['realm'].resources.sound_presets['damage'][dam_type], self.x_sq, self.y_sq)
         # wins_dict['realm'].schedule_man.task_add('realm_tasks', 1, wins_dict['realm'].pygame_settings.audio, 'sound',
         #                             ('hit_physical',))
 
@@ -333,7 +348,7 @@ class Monster:
                 pc.wound(wins_dict, self, attack, fate_rnd, no_crit=True, no_reflect=True, no_evade=True)
 
         self.check(wins_dict, fate_rnd, pc)
-        self.intercept(wins_dict['realm'], maths.get_distance(self.x_sq, self.y_sq, pc.x_sq, pc.y_sq))
+        self.intercept(wins_dict, maths.get_distance(self.x_sq, self.y_sq, pc.x_sq, pc.y_sq))
 
     def check(self, wins_dict, fate_rnd, pc):
         if self.hp > 0:
@@ -350,6 +365,8 @@ class Monster:
         loot_total.extend(lootgen.generate_gold(self, wins_dict['realm'], fate_rnd, pc))
 
         lootgen.drop_loot(round(self.x_sq), round(self.y_sq), wins_dict['realm'], loot_total)
+
+        wins_dict['realm'].sound_inrealm(self.stats['sound_defeat'], self.x_sq, self.y_sq)
         # wins_dict['realm'].maze.flag_array[round(self.y_sq)][round(self.x_sq)].mon = None
 
     def state_change(self, new_state):
