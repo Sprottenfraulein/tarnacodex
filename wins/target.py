@@ -67,6 +67,7 @@ class Target:
         if self.mob_object is not None:
             self.mob_object.aimed = False
             self.mob_object = None
+            self.mon_hp = None
 
     def progress_bar_update(self, maximum, current, fg_color):
         full_w = self.win_w - 32

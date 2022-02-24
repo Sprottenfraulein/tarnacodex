@@ -1,8 +1,8 @@
 # hotbar window
 import pygame
 import math
-from library import textinput, pydraw, maths, itemlist, draganddrop
-from components import ui, skillfuncs
+from library import textinput, pydraw, maths
+from components import ui, skillfuncs, draganddrop
 
 
 class Hotbar:
@@ -26,7 +26,7 @@ class Hotbar:
         self.hot_sockets_list = []
         self.hot_sockets_image = None
 
-        self.offset_x = 0
+        self.offset_x = 210
         self.offset_y = 0
 
         self.win_rendered = None
@@ -36,6 +36,7 @@ class Hotbar:
     def launch(self, pc):
         self.pc = pc
         self.create_elements(log=True)
+        self.offset_y = self.win_ui.pygame_settings.screen_res[1] - self.win_h
         self.updated = True
 
     def end(self):
@@ -164,9 +165,6 @@ class Hotbar:
 
         self.win_rendered = pygame.Surface((self.win_w, self.win_h)).convert()
         self.win_rendered.set_colorkey(self.win_ui.resources.colors['transparent'])
-
-        self.offset_x = 218
-        self.offset_y = self.win_ui.pygame_settings.screen_res[1] - self.win_h
 
         # HOTBAR
         hot_texture = self.win_ui.random_texture((self.win_w, self.win_h), 'black_rock')

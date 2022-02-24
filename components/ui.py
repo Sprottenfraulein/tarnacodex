@@ -282,6 +282,11 @@ class UI:
                                           self.resources.colors['fnt_celeb'],
                                           self.resources.colors['transparent'],
                                           'left', 'top', size[0], 0)
+        if 'charges' in text_dict:
+            text_dict['charges'] = typography.Typography(self.pygame_settings, text_dict['charges'], (0, 0), 'def_normal', 24,
+                                                self.resources.colors['fnt_celeb'],
+                                                self.resources.colors['transparent'],
+                                                'left', 'top', size[0], 0)
         if 'price' in text_dict:
             text_dict['price'] = typography.Typography(self.pygame_settings, text_dict['price'], (0, 0), 'def_normal', 24,
                                           self.resources.colors['bright_gold'],

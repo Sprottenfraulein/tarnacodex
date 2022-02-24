@@ -20,8 +20,8 @@ class CharStats:
         self.pc = None
         self.win_w = 511
         self.win_h = 510
-        self.offset_x = 8
-        self.offset_y = 8
+        self.offset_x = (pygame_settings.screen_res[0] - self.win_w) // 2
+        self.offset_y = 16
 
         self.win_rendered = pygame.Surface((self.win_w, self.win_h)).convert()
         self.stat_elements = {}
@@ -31,6 +31,7 @@ class CharStats:
     def launch(self, pc):
         self.pc = pc
         self.create_elements(log=True)
+        self.updated = True
 
     def end(self):
         self.win_ui.decoratives.clear()
@@ -109,6 +110,10 @@ class CharStats:
 
     # interface creation
     def create_elements(self, log=True):
+        self.win_ui.decoratives.clear()
+        self.win_ui.interactives.clear()
+        self.stat_elements.clear()
+
         stats_top = 60
         # INVENTORY
         chs_texture = self.win_ui.random_texture((self.win_w, self.win_h), 'black_rock')
@@ -366,7 +371,6 @@ class CharStats:
             self.win_ui.decoratives.append(prof_value_element)
             y += 14
 
-
         self.win_ui.decoratives.append(char_icon_panel)
         self.win_ui.interactives.append(win_header)
         self.win_ui.decoratives.append(chs_panel)
@@ -430,11 +434,14 @@ class CharStats:
             for def_name, def_value in self.pc.char_sheet.defences.items():
                 dv_color = self.resources.colors['fnt_celeb']
 
-                def_value_percent = def_value / 10
-                if def_value_percent.is_integer():
-                    dv_caption = str(round(def_value_percent))
+                if def_name in ('def_melee', 'def_ranged'):
+                    def_value_percent = def_value / 10
+                    if def_value_percent.is_integer():
+                        dv_caption = str(round(def_value_percent)) + '%'
+                    else:
+                        dv_caption = str(round(def_value / 10, 1)) + '%'
                 else:
-                    dv_caption = str(round(def_value / 10, 1))
+                    dv_caption = str(def_value)
                 if (self.stat_elements[def_name].text_obj.caption != dv_caption or
                         self.stat_elements[def_name].text_obj.color != dv_color):
                     self.stat_elements[def_name].text_obj.caption = dv_caption

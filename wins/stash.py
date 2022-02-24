@@ -1,10 +1,10 @@
-# char inventory window
+# char stash window
 import pygame
 from library import textinput, pydraw, maths
-from components import ui, skillfuncs, draganddrop
+from components import ui, skillfuncs, draganddrop, gamesave
 
 
-class Inventory:
+class Stash:
     def __init__(self, pygame_settings, resources, tilesets, animations, db, mouse_pointer, schedule_man, log=True):
         self.pygame_settings = pygame_settings
         self.resources = resources
@@ -18,14 +18,16 @@ class Inventory:
         self.win_ui = ui.UI(pygame_settings, resources, tilesets, db, mouse_pointer)
 
         self.pc = None
-        self.win_w = 320
+        self.win_w = 512
         self.win_h = 510
-        self.offset_x = 0
+        self.offset_x = (pygame_settings.screen_res[0] - self.win_w) // 2
         self.offset_y = 16
-        self.inv_sckt_total = 24
+        self.inv_sckt_total = 60
         self.inv_sockets_list = []
-        self.eq_sockets_list = None
         self.inv_sockets_image = None
+
+        self.common_stash = None
+        self.common_stash_gold = None
 
         self.gold_sum = None
 
@@ -33,10 +35,12 @@ class Inventory:
         self.updated = False
 
     def launch(self, pc):
+        self.common_stash, self.common_stash_gold = gamesave.common_stash_load(pc, self.db, self.tilesets)
         self.pc = pc
         self.create_elements(log=True)
 
     def end(self):
+        gamesave.common_stash_save(self.common_stash, self.common_stash_gold, self.pc, self.db, self.tilesets)
         pass
         # self.pc.char_sheet.itemlist_cleanall_skills(self.wins_dict, self.pc)
 
@@ -72,7 +76,7 @@ class Inventory:
             if (not self.offset_x <= mouse_x < self.offset_x + self.win_w
                     or not self.offset_y <= mouse_y < self.offset_y + self.win_h):
                 return False
-            for j in (self.inv_sockets_list, self.eq_sockets_list):
+            for j in (self.inv_sockets_list, ):
                 for i in range(len(j) - 1, -1, -1):
                     if j[i].page is not None and self.win_ui.page not in j[i].page:
                         continue
@@ -97,6 +101,10 @@ class Inventory:
 
     def ui_click(self, inter_click):
         if inter_click is None:
+            for inter in self.win_ui.interactives:
+                inter.release(1)
+                inter.release(3)
+            self.win_ui.updated = True
             return
         element, m_bttn, mb_event = inter_click
 
@@ -110,8 +118,8 @@ class Inventory:
             if mb_event == 'down':
                 self.mouse_pointer.drag_ui = (self, self.mouse_pointer.xy[0] - self.offset_x,
                                               self.mouse_pointer.xy[1] - self.offset_y)
-                self.active_wins.remove(self.wins_dict['inventory'])
-                self.active_wins.insert(0, self.wins_dict['inventory'])
+                self.active_wins.remove(self.wins_dict['stash'])
+                self.active_wins.insert(0, self.wins_dict['stash'])
             if mb_event == 'up':
                 self.mouse_pointer.drag_ui = None
                 framed_wins = [fw for fw in (self.wins_dict['charstats'], self.wins_dict['pools'], self.wins_dict['hotbar'], self.wins_dict['inventory'], self.wins_dict['skillbook']) if fw in self.active_wins]
@@ -151,18 +159,17 @@ class Inventory:
                 self.wins_dict['dialogue'].launch(self.pc)
 
         # PAGE 0
-        if 'itm' not in element.tags:
-            self.win_ui.interaction_callback(element, mb_event, m_bttn)
-            # return True if interaction was made to prevent other windows from responding to this event
-            return True
-        """for cl in self.pc.hot_cooling_set:
-            if cl[0] == element:
-                self.win_ui.interaction_callback(element, mb_event, m_bttn)
-                # return True if interaction was made to prevent other windows from responding to this event
-                return True"""
+        if element.id == 'bttn_save_coins' and m_bttn == 1 and mb_event == 'up':
+            self.wins_dict['splitter'].launch(self.pc, 'How many coins do you want to save:', self.pc.char_sheet.gold_coins,
+                                              0, self.pc.char_sheet.gold_coins, (self, 'gold_to_stash'))
+        elif element.id == 'bttn_retrieve_coins' and m_bttn == 1 and mb_event == 'up':
+            self.wins_dict['splitter'].launch(self.pc, 'How many coins do you want to retrieve:', self.common_stash_gold,
+                                              0, self.common_stash_gold, (self, 'gold_from_stash'))
 
-        draganddrop.item_move(self, element, mb_event, m_bttn, in_realm, skillfuncs)
+        if 'itm' in element.tags:
+            draganddrop.item_move(self, element, mb_event, m_bttn, in_realm, skillfuncs)
 
+        self.updated = True
         self.win_ui.interaction_callback(element, mb_event, m_bttn)
         # return True if interaction was made to prevent other windows from responding to this event
         return True
@@ -172,12 +179,11 @@ class Inventory:
         self.win_ui.decoratives.clear()
         self.win_ui.interactives.clear()
         self.inv_sockets_list.clear()
-        self.eq_sockets_list = None
 
         inv_sckt_size = 48
         inv_sckt_left = 16
-        inv_sckt_top = 244
-        inv_sckt_per_row = 6
+        inv_sckt_top = 148
+        inv_sckt_per_row = 10
         # INVENTORY
         inv_texture = self.win_ui.random_texture((self.win_w, self.win_h), 'black_rock')
         inv_image = pydraw.square((0, 0), (self.win_w, self.win_h),
@@ -213,41 +219,8 @@ class Inventory:
             s_y = inv_sckt_top + inv_sckt_size * (i // inv_sckt_per_row)
             inv_socket = self.win_ui.panel_add(i, (s_x, s_y), (inv_sckt_size, inv_sckt_size),
                                                images=(self.inv_sckt_img,), page=None, img_stretch=True,
-                                               tags=(self.pc.char_sheet.inventory, 'itm'), win=self)
+                                               tags=(self.common_stash, 'itm'), win=self)
             self.inv_sockets_list.append(inv_socket)
-
-        eq_sckt_img = pydraw.square((0, 0), (inv_sckt_size, inv_sckt_size),
-                                    (self.resources.colors['gray_light'],
-                                     self.resources.colors['gray_dark'],
-                                     self.resources.colors['gray_mid'],
-                                     self.resources.colors['gray_darker']),
-                                    sq_outsize=1, sq_bsize=2, sq_ldir=2, sq_fill=False,
-                                    sq_image=None)
-        # EQUIPPED ITEMS
-        # panel ids must match char_sheet.equipped keys
-        self.eq_sockets_list = (
-            self.win_ui.panel_add(0, (self.win_w // 2 - inv_sckt_size // 2, 48),
-                                  (inv_sckt_size, inv_sckt_size), images=(eq_sckt_img,), page=None,
-                                  img_stretch=True, tags=(self.pc.char_sheet.equipped[0], 'itm'), win=self),
-            self.win_ui.panel_add(0, (self.win_w // 2 - inv_sckt_size // 2, 108),
-                                  (inv_sckt_size, inv_sckt_size), images=(eq_sckt_img,), page=None,
-                                  img_stretch=True, tags=(self.pc.char_sheet.equipped[1], 'itm'), win=self),
-            self.win_ui.panel_add(0, (self.win_w // 2 - inv_sckt_size // 2 - 60, 108),
-                                  (inv_sckt_size, inv_sckt_size), images=(eq_sckt_img,), page=None,
-                                  img_stretch=True, tags=(self.pc.char_sheet.equipped[2], 'itm'), win=self),
-            self.win_ui.panel_add(0, (self.win_w // 2 - inv_sckt_size // 2 + 60, 108),
-                                  (inv_sckt_size, inv_sckt_size), images=(eq_sckt_img,), page=None,
-                                  img_stretch=True, tags=(self.pc.char_sheet.equipped[3], 'itm'), win=self),
-            self.win_ui.panel_add(0, (self.win_w // 2 - inv_sckt_size // 2 - 60, 168),
-                                  (inv_sckt_size, inv_sckt_size), images=(eq_sckt_img,), page=None,
-                                  img_stretch=True, tags=(self.pc.char_sheet.equipped[4], 'itm'), win=self),
-            self.win_ui.panel_add(0, (self.win_w // 2 - inv_sckt_size // 2 + 60, 168),
-                                  (inv_sckt_size, inv_sckt_size), images=(eq_sckt_img,), page=None,
-                                  img_stretch=True, tags=(self.pc.char_sheet.equipped[5], 'itm'), win=self),
-            self.win_ui.panel_add(0, (self.win_w // 2 - inv_sckt_size // 2 - 60, 48),
-                                  (inv_sckt_size, inv_sckt_size), images=(eq_sckt_img,), page=None,
-                                  img_stretch=True, tags=(self.pc.char_sheet.equipped[6], 'itm'), win=self),
-        )
 
         inv_sell_img = pydraw.square((0, 0), (inv_sckt_size, inv_sckt_size),
                                           (self.resources.colors['gray_light'],
@@ -269,6 +242,20 @@ class Inventory:
                                            (48, 48), images=(inv_sell_img,), page=None, img_stretch=True)
         self.win_ui.interactives.append(sell_panel)
 
+        spl_btn_w = 96
+        spl_btn_h = 24
+        bttn_save_coins = self.win_ui.button_add('bttn_save_coins', xy=(16, self.win_h - spl_btn_h - 16),
+                                                 caption='Save gold', size=(spl_btn_w, spl_btn_h), cap_font='def_bold', cap_size=24,
+                                                 cap_color='fnt_muted', sounds=self.win_ui.snd_packs['button'],
+                                                 page=None)
+        self.win_ui.interactives.append(bttn_save_coins)
+        bttn_retrieve_coins = self.win_ui.button_add('bttn_retrieve_coins', xy=(16 + spl_btn_w + 8, self.win_h - spl_btn_h - 16),
+                                                 caption='Claim gold', size=(spl_btn_w, spl_btn_h), cap_font='def_bold',
+                                                 cap_size=24,
+                                                 cap_color='fnt_muted', sounds=self.win_ui.snd_packs['button'],
+                                                 page=None)
+        self.win_ui.interactives.append(bttn_retrieve_coins)
+
         # window header
         header_texture = self.win_ui.random_texture((self.win_w, 19), 'red_glass')
         header_img = pydraw.square((0, 0), (self.win_w, 19),
@@ -279,7 +266,7 @@ class Inventory:
                                    sq_outsize=1, sq_bsize=1, sq_ldir=0, sq_fill=False,
                                    sq_image=header_texture)
         win_header = self.win_ui.text_add('win_header', (0, 0), (self.win_w, 19),
-                                          caption='Inventory',
+                                          caption="Common stash",
                                           h_align='center', v_align='middle', cap_color='sun',
                                           images=(header_img,))
 
@@ -300,25 +287,19 @@ class Inventory:
         self.restore_cooling_sockets()
 
         self.win_ui.interactives.extend(self.inv_sockets_list)
-        self.win_ui.interactives.extend(self.eq_sockets_list)
         self.win_ui.interactives.append(self.gold_sum)
         self.win_ui.interactives.append(win_header)
         self.win_ui.interactives.append(coins_icon)
-        self.win_ui.interactives.append(inv_panel)
+        self.win_ui.decoratives.append(inv_panel)
 
     def restore_cooling_sockets(self):
         for socket, skill in self.pc.hot_cooling_set:
             if socket.win is not self:
                 continue
-            for i in range(0, len(self.eq_sockets_list)):
-                if socket.id == self.eq_sockets_list[i].id and socket.tags[0] == self.eq_sockets_list[i].tags[0]:
-                    self.eq_sockets_list[i] = socket
+            for i in range(0, len(self.inv_sockets_list)):
+                if socket.id == self.inv_sockets_list[i].id and socket.tags[0] == self.inv_sockets_list[i].tags[0]:
+                    self.inv_sockets_list[i] = socket
                     break
-            else:
-                for i in range(0, len(self.inv_sockets_list)):
-                    if socket.id == self.inv_sockets_list[i].id and socket.tags[0] == self.inv_sockets_list[i].tags[0]:
-                        self.inv_sockets_list[i] = socket
-                        break
 
     def item_sell(self, item_container, item_index, price):
         self.pc.moved_item_cooldown_check(item_container[item_index], None)
@@ -328,8 +309,22 @@ class Inventory:
         self.wins_dict['realm'].pygame_settings.audio.sound('coins_pickup')
 
         item_container[item_index] = None
-        self.pc.char_sheet.gold_coins += price
+        self.common_stash_gold += price
         self.render_slots()
+
+    def gold_to_stash(self, value):
+        self.pc.char_sheet.gold_coins -= value
+        self.common_stash_gold += value
+        if value != 0:
+            self.pygame_settings.audio.sound('coins_trade')
+        self.updated = self.wins_dict['inventory'].updated = True
+
+    def gold_from_stash(self, value):
+        self.pc.char_sheet.gold_coins += value
+        self.common_stash_gold -= value
+        if value != 0:
+            self.pygame_settings.audio.sound('coins_trade')
+        self.updated = self.wins_dict['inventory'].updated = True
 
     def item_to_cursor(self, item_container, item_index):
         self.mouse_pointer.drag_item = [item_container, item_index]
@@ -344,49 +339,32 @@ class Inventory:
         for win in ('inventory','skillbook', 'hotbar', 'trade', 'stash'):
             self.wins_dict[win].updated = True
 
-    def render(self, inv=True, eq=True, gold=True):
+    def render(self, inv=True, gold=True):
         # backpack update
         if self.pc is not None:
             if gold:
-                self.gold_sum.text_obj.caption = '%s gp.' % self.pc.char_sheet.gold_coins
+                self.gold_sum.text_obj.caption = '%s gp.' % self.common_stash_gold
                 self.gold_sum.text_obj.render()
                 self.gold_sum.render()
             if inv:
                 for s_ind in range(0, len(self.inv_sockets_list)):
-                    if s_ind >= len(self.pc.char_sheet.inventory) or self.pc.char_sheet.inventory[s_ind] is None:
+                    if s_ind >= len(self.common_stash) or self.common_stash[s_ind] is None:
                         self.inv_sockets_list[s_ind].images_update((self.inv_sckt_img,))
-                    elif (self.mouse_pointer.drag_item is not None and self.mouse_pointer.drag_item[0] == self.pc.char_sheet.inventory
+                    elif (self.mouse_pointer.drag_item is not None and self.mouse_pointer.drag_item[0] == self.common_stash
                         and s_ind == self.mouse_pointer.drag_item[1]):
                         self.inv_sockets_list[s_ind].images_update((self.inv_sckt_img,))
                     else:
-                        self.inv_sockets_list[s_ind].images_update(self.pc.char_sheet.inventory[s_ind].props[
-                            'image_inventory'])
+                        self.inv_sockets_list[s_ind].images_update(self.common_stash[s_ind].props['image_inventory'])
 
-                        if 'condition' in self.pc.char_sheet.inventory[s_ind].props:
-                            cond = self.pc.char_sheet.inventory[s_ind].props['condition']
-                            c_p_level = self.pc.char_sheet.inventory[s_ind].CONDITION_PENALTY_LEVEL
-                            if ('condition' in self.pc.char_sheet.inventory[s_ind].props
-                                    and self.pc.char_sheet.inventory[s_ind].props['condition']
-                                    <= self.pc.char_sheet.inventory[s_ind].CONDITION_PENALTY_LEVEL):
+                        if 'condition' in self.common_stash[s_ind].props:
+                            cond = self.common_stash[s_ind].props['condition']
+                            c_p_level = self.common_stash[s_ind].CONDITION_PENALTY_LEVEL
+                            if ('condition' in self.common_stash[s_ind].props
+                                    and self.common_stash[s_ind].props['condition']
+                                    <= self.common_stash[s_ind].CONDITION_PENALTY_LEVEL):
                                 cond_y = cond * 150 // c_p_level
                                 pygame.draw.rect(self.inv_sockets_list[s_ind].rendered_panel, (255,cond_y,0),
                                                  self.inv_sockets_list[s_ind].rendered_panel.get_rect(), width=1)
-            if eq:
-                for s_ind in range(0, len(self.eq_sockets_list)):
-                    if len(self.pc.char_sheet.equipped[s_ind]) == 0 or self.pc.char_sheet.equipped[s_ind][0] is None:
-                        self.eq_sockets_list[s_ind].images_update((self.inv_sckt_img,))
-                    else:
-                        self.eq_sockets_list[s_ind].images_update(self.pc.char_sheet.equipped[s_ind][0].props['image_inventory'])
-
-                        if 'condition' in self.pc.char_sheet.equipped[s_ind][0].props:
-                            cond = self.pc.char_sheet.equipped[s_ind][0].props['condition']
-                            c_p_level = self.pc.char_sheet.equipped[s_ind][0].CONDITION_PENALTY_LEVEL
-                            if ('condition' in self.pc.char_sheet.equipped[s_ind][0].props
-                                    and self.pc.char_sheet.equipped[s_ind][0].props['condition']
-                                    <= self.pc.char_sheet.equipped[s_ind][0].CONDITION_PENALTY_LEVEL):
-                                cond_y = cond * 150 // c_p_level
-                                pygame.draw.rect(self.eq_sockets_list[s_ind].rendered_panel, (255, cond_y,0),
-                                                 self.eq_sockets_list[s_ind].rendered_panel.get_rect(), width=1)
 
         self.win_ui.draw(self.win_rendered)
         self.updated = False

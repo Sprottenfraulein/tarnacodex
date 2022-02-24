@@ -66,6 +66,18 @@ class Trap:
         wins_dict['realm'].particle_list.append(particle.Particle((self.x_sq, self.y_sq), (self.off_x, self.off_y),
                                                wins_dict['realm'].animations.get_animation('effect_dust_cloud')['default'], 16))
 
+    def detect(self, wins_dict, pc):
+        skill_value = pc.char_sheet.profs['prof_detect']
+        lvl_dif = min(1, pc.char_sheet.level - self.lvl)
+        rnd_roll = random.randrange(1, 1001)
+        if skill_value + lvl_dif * 250 >= rnd_roll:
+            self.visible = 1
+            wins_dict['realm'].spawn_realmtext(None, 'Trapped!', (0, 0), None,
+                                               color='fnt_attent', stick_obj=pc, kill_timer=25)
+            return True
+        else:
+            return False
+
     def image_update(self):
         if self.mode == -1:
             self.images = self.tileset['trap_triggered']

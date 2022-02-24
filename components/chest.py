@@ -57,8 +57,8 @@ class Chest:
             wins_dict['realm'].sound_inrealm('chest_shut', self.x_sq, self.y_sq)
             return True
         elif self.trap is not None:
-            if not self.trap.detect():
-                self.trap.trigger()
+            if not self.trap.detect(wins_dict, pc):
+                self.trap.trigger(wins_dict, pc)
             return True
         elif self.lock is None:
             self.closed = False
@@ -109,7 +109,7 @@ class Chest:
                     treasure.sounds_update(realm.db.cursor, new_gold.props)
                 self.container.append(new_gold)
             self.gp_number = 0
-        if len(self.container) > 0:
+        if self.container is not None and len(self.container) > 0:
             lootgen.drop_loot(self.x_sq, self.y_sq, realm, self.container)
             self.container.clear()
         if self.disappear:

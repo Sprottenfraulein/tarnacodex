@@ -93,6 +93,7 @@ def calc_vision_rays(flag_array, x, y, max_distance, vision_prev, dark=True):
                 pass
     return visible_list
 
+
 def cast_ray(flag_array, x1, y1, x2, y2, sightonly=False):
     dist_x = x2 - x1
     dist_y = y2 - y1

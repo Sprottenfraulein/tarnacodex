@@ -1,11 +1,11 @@
 import random
 import math
-from library import maths, calc2darray, logfun, pickrandom
+from library import maths, calc2darray, logfun, pickrandom, particle
 from components import lootgen
 
 
 class Monster:
-    def __init__(self, x_sq, y_sq, anim_set, level, stats, state=2):
+    def __init__(self, x_sq, y_sq, anim_set, stats, state=2):
         self.x_sq = x_sq
         self.y_sq = y_sq
         self.origin_x_sq = self.x_sq
@@ -18,7 +18,6 @@ class Monster:
         self.anim_timer = 0
         self.anim_timings = None
         self.frame_timing = 0
-        self.level = level
         self.state = state
         self.image = None
         self.highlight = False
@@ -29,6 +28,7 @@ class Monster:
         self.move_instr_y = 0
 
         self.stats = stats
+        self.level = self.stats['lvl']
         self.hp = self.stats['hp_max']
         self.speed = self.stats['speed']
         self.aimed = False
@@ -312,7 +312,7 @@ class Monster:
     def wound(self, damage, dam_type, ranged, is_crit, wins_dict, fate_rnd, pc, no_reflect=False):
         self.hp -= damage
 
-        wins_dict['realm'].sound_inrealm(wins_dict['realm'].resources.sound_presets['damage'][dam_type], self.x_sq, self.y_sq, forced=True)
+        wins_dict['realm'].hit_fx(self.x_sq, self.y_sq, dam_type, is_crit)
         # wins_dict['realm'].schedule_man.task_add('realm_tasks', 1, wins_dict['realm'].pygame_settings.audio, 'sound',
         #                             ('hit_physical',))
 
@@ -327,7 +327,6 @@ class Monster:
         inf_sp_y = -3
         inf_crit_sp_y = -2
         if is_crit:
-            wins_dict['realm'].pygame_settings.audio.sound('hit_blast')
             wins_dict['realm'].spawn_realmtext(None, 'Critical hit!', (0, 0), None,
                                   color=info_color, stick_obj=self, speed_xy=(0, inf_crit_sp_y), kill_timer=25,
                                   font='large', size=16, frict_y=0.1)

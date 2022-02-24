@@ -96,12 +96,7 @@ class Options:
 
         # PAGE 0
         if element.id == 'bttn_save_exit' and m_bttn == 1 and mb_event == 'up':
-            self.wins_dict['app_title'].schedule_man.task_add('realm_tasks', 1, self.wins_dict['overlay'], 'fade_out',
-                                                         (20, None))
-            self.wins_dict['app_title'].schedule_man.task_add('realm_tasks', 2, self, 'game_save_and_exit',
-                                                         ())
-            self.wins_dict['app_title'].schedule_man.task_add('realm_tasks', 2, self.wins_dict['overlay'], 'fade_in',
-                                                         (20, None))
+            self.overlay_save_and_exit(self.wins_dict, self.pc)
         elif element.id == 'bttn_trade' and m_bttn == 1 and mb_event == 'up':
             self.end()
             self.wins_dict['realm'].pause = False
@@ -115,12 +110,22 @@ class Options:
         # return True if interaction was made to prevent other windows from responding to this event
         return True
 
-    def game_save_and_exit(self):
-        self.wins_dict['pools'].close_all_wins(self.pc)
+    def overlay_save_and_exit(self, wins_dict, pc):
+        wins_dict['realm'].controls_enabled = False
+
+        self.wins_dict['app_title'].schedule_man.task_add('realm_tasks', 1, self.wins_dict['overlay'], 'fade_out',
+                                                          (20, None))
+        self.wins_dict['app_title'].schedule_man.task_add('realm_tasks', 2, self, 'game_save_and_exit',
+                                                          (pc,))
+        self.wins_dict['app_title'].schedule_man.task_add('realm_tasks', 2, self.wins_dict['overlay'], 'fade_in',
+                                                          (20, None))
+
+    def game_save_and_exit(self, pc):
+        self.wins_dict['pools'].close_all_wins(pc)
         self.active_wins.clear()
         self.wins_dict['pools'].pc = None
-        self.wins_dict['app_title'].char_save(self.pc, self.wins_dict['realm'].maze)
-        self.wins_dict['app_title'].maze_save(self.pc, self.wins_dict['realm'].maze)
+        self.wins_dict['app_title'].char_save(pc, self.wins_dict['realm'].maze)
+        self.wins_dict['app_title'].maze_save(pc, self.wins_dict['realm'].maze)
         self.wins_dict['app_title'].create_savegames()
         self.wins_dict['app_title'].char_loaded_info_update()
         self.active_wins.append(self.wins_dict['app_title'])

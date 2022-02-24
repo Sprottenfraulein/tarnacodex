@@ -44,6 +44,15 @@ sounds = (
     ('paper_show', 'res/sounds/paper_03.wav'),
     ('paper_hide', 'res/sounds/paper_02.wav'),
     ('realmtext_noise', 'res/sounds/stone_01.wav'),
+    ('important_jingle', 'res/sounds/owl_01.wav'),
+
+    ('pc_step_01', 'res/sounds/step_01.wav'),
+    ('pc_step_02', 'res/sounds/step_02.wav'),
+    ('pc_step_03', 'res/sounds/step_03.wav'),
+    ('pc_step_04', 'res/sounds/step_04.wav'),
+    ('pc_step_05', 'res/sounds/step_05.wav'),
+    ('pc_step_06', 'res/sounds/step_06.wav'),
+    ('pc_step_07', 'res/sounds/step_07.wav'),
 
     ('coins_pickup', 'res/sounds/coins_01.wav'),
     ('coins_drop', 'res/sounds/coins_02.wav'),
@@ -79,6 +88,8 @@ sounds = (
     ('wood_pickup', 'res/sounds/wood_pickup_01.wav'),
     ('metal_drop', 'res/sounds/metal_drop_01.wav'),
     ('wood_drop', 'res/sounds/wood_drop_01.wav'),
+    ('fire_pickup', 'res/sounds/torch_01.wav'),
+    ('fire_putout', 'res/sounds/torch_03.wav'),
 
     ('melee_swipe', 'res/sounds/swipe_01.wav'),
     ('bow_shot', 'res/sounds/shot_01.wav'),

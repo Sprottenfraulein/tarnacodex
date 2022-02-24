@@ -163,6 +163,14 @@ class PC:
 
                 self.food_change(wins_dict, -2)
 
+                # Light source burns out gradually.
+                if self.char_sheet.equipped[6][0] and not treasure.charge_change(self.char_sheet.equipped[6][0], -2):
+                    self.char_sheet.equipped[6][0] = None
+                    wins_dict['inventory'].updated = True
+                    wins_dict['realm'].spawn_realmtext(None, 'My torch has burnt out...', (0, 0), (0, -24),
+                                                            'fnt_celeb', self, None, 240, 'def_bold', 24)
+                    wins_dict['realm'].sound_inrealm('fire_putout', self.x_sq, self.y_sq)
+
                 realm.shortlists_update(everything=True)
 
                 flags = realm.maze.flag_array[int(self.y_sq + 0.4)][int(self.x_sq + 0.4)]
@@ -178,6 +186,13 @@ class PC:
                     if itm.props['treasure_id'] == 6:
                         realm.coins_collect(itm, flags.item, self)
                         break
+
+        if self.anim_frame in (1, 3) and self.anim_timer == 0:
+            rnd_step_sound = random.choice(
+                ('pc_step_01', 'pc_step_02', 'pc_step_03', 'pc_step_04', 'pc_step_05',
+                 'pc_step_06', 'pc_step_07'))
+            snd_channel = wins_dict['realm'].pygame_settings.audio.sound(rnd_step_sound)
+            snd_channel.set_volume(0.4)
 
     def sq_is_free(self, realm, sq_x, sq_y):
         step_x, step_y = 1, 1
@@ -240,22 +255,23 @@ class PC:
             is_crit = False
 
         if chosen_attack['range'] > 0:
-            pc_def = self.char_sheet.defences['def_ranged']
+            pc_def_percent = self.char_sheet.defences['def_ranged']
 
             if not no_reflect:
                 reflected_damage = rnd_dmg * self.char_sheet.profs['prof_reflect'] // 1000
                 if reflected_damage > 0:
                     monster.wound(reflected_damage, chosen_attack['attack_type'], chosen_attack['range'], False, wins_dict, fate_rnd, self)
         else:
-            pc_def = self.char_sheet.defences['def_melee']
+            pc_def_percent = self.char_sheet.defences['def_melee']
 
             if not no_reflect:
                 thorns_damage = rnd_dmg * self.char_sheet.profs['prof_thorns'] // 1000
                 if thorns_damage > 0:
                     monster.wound(thorns_damage, chosen_attack['attack_type'], chosen_attack['range'], False, wins_dict, fate_rnd, self)
 
-        pc_def += self.char_sheet.defences[self.char_sheet.att_def_dict[chosen_attack['attack_type']]]  # Sum in percents
-        damage = rnd_dmg - (rnd_dmg * pc_def // 1000)
+        pc_def_points = self.char_sheet.defences[self.char_sheet.att_def_dict[chosen_attack['attack_type']]]
+        damage = rnd_dmg - (rnd_dmg * pc_def_percent / 1000)
+        damage = max(1, round(damage - damage * (pc_def_points / (pc_def_points + monster.stats['lvl'] * 20))))
 
         # Last HP last chance.
         if damage > self.char_sheet.hp > 1:
@@ -263,7 +279,7 @@ class PC:
 
         self.char_sheet.hp_get(damage * -1)
 
-        wins_dict['realm'].pygame_settings.audio.sound('pc_hit')
+        wins_dict['realm'].hit_fx(self.x_sq, self.y_sq, chosen_attack['attack_type'], is_crit, for_pc=True, forced_sound=False)
 
         # 100% HP damage = 10 points of condition
         if treasure.condition_equipment_change(self.char_sheet, round(-10 * rnd_dmg / self.char_sheet.pools['HP'])):
@@ -294,6 +310,10 @@ class PC:
         if self.char_sheet.hp <= 0:
             self.state_change(8)
             wins_dict['realm'].pygame_settings.audio.sound('death_%s' % self.char_sheet.type)
+            self.char_sheet.gold_coins -= self.char_sheet.gold_coins // 2
+
+            if treasure.condition_equipment_change(self.char_sheet, 100):
+                self.char_sheet.calc_stats()
 
             if self.hardcore_char:
                 self.hardcore_char = 2
@@ -397,6 +417,7 @@ class PC:
                 self.hardcore_char = 2
                 wins_dict['demos'].death_hardcore(self, {'label': 'hunger'}, wins_dict['realm'].maze.chapter)
             else:
+                self.char_sheet.food_get(100, percent=True)
                 wins_dict['demos'].death_soft(self, {'label': 'hunger'}, wins_dict['realm'].maze.chapter)
         if self.food_delta >= 20:
             wins_dict['pools'].updated = True

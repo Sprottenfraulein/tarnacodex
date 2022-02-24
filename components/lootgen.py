@@ -36,16 +36,13 @@ def generate_loot(monster, realm, fate_rnd, pc, log=True):
         for i in range(0, realm.maze.chapter['stage_number'] - 1):
             dbrequests.chapter_progress_set(realm.db, pc.char_sheet.id, i, 1, 0, 1, 0, 0, 1)
         realm.spawn_realmtext('new_txt', "That dismal item evokes a sense $n of evil presence!", (0, 0), (0, -24),
-                                           'fnt_header', pc, None, 240, 'def_bold', 24)
+                                           'azure', pc, None, 240, 'def_bold', 24)
         realm.sound_inrealm('realmtext_noise', pc.x_sq, pc.y_sq)
 
     return treasure_list
 
 
 def generate_gold(monster, realm, fate_rnd, pc):
-    mon_gold = monster.stats['gold']
-    if mon_gold is None:
-        mon_gold = 0
     gold_list = [monster.stats['gold']]     # value is in percents of default gold item amount value.
     if 'affixes' in monster.stats:
         for affix in monster.stats['affixes']:

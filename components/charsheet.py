@@ -143,7 +143,7 @@ class CharSheet:
                            'exp_food', 'exp_lockpick', 'exp_key', 'exp_tools']
         })
 
-        self.gold_coins = 2000
+        self.gold_coins = 0
         self.base_light = 6
 
     def calc_hp(self):

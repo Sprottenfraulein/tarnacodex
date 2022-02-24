@@ -69,5 +69,32 @@ class Tilesets:
             image_list.append(new_image)
         return image_list
 
+    def images_rotate_to_dir(self, image_pack, direction):
+        images = None
+        if 0.39 <= direction < 1.17:
+            # NW
+            images = [pygame.transform.rotate(img, 180) for img in image_pack[0]]
+        elif 1.17 <= direction < 1.95:
+            # N
+            images = [pygame.transform.rotate(img, 90) for img in image_pack[1]]
+        elif 1.95 <= direction < 2.73:
+            # NE
+            images = [pygame.transform.rotate(img, 90) for img in image_pack[0]]
+        elif 2.73 <= direction or -2.73 >= direction:
+            # E
+            images = image_pack[1]
+        elif -0.39 >= direction > -1.17:
+            # SW
+            images = [pygame.transform.rotate(img, -90) for img in image_pack[0]]
+        elif -1.17 >= direction > -1.95:
+            # S
+            images = [pygame.transform.rotate(img, -90) for img in image_pack[1]]
+        elif -1.95 >= direction > -2.73:
+            # SE
+            images = image_pack[0]
+        elif 0.39 > direction > -0.39:
+            # W
+            images = [pygame.transform.rotate(img, -180) for img in image_pack[1]]
+        return images or image_pack
 
 # get_maze_tiles('default')

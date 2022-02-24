@@ -27,12 +27,18 @@ class Demos:
         self.pausable = False
         self.end_mark = None
 
+        self.controls_enabled = True
+
     def event_check(self, event, log=True):
+        if not self.controls_enabled:
+            return
+
         pressed = pygame.key.get_pressed()
         if pressed[pygame.K_ESCAPE] or pressed[pygame.K_RETURN]:
             self.schedule_man.rounds = self.end_mark
             self.pause = 0
             self.schedule_man.pause = 0
+            self.controls_enabled = False
 
         # return True if interaction was made to prevent other windows from responding to this event
         if (event.type == pygame.MOUSEBUTTONDOWN or (event.type == pygame.KEYDOWN and event.key == pygame.K_SPACE)) and self.pausable:
@@ -50,12 +56,14 @@ class Demos:
         self.text_list.append([text_obj, duration, 0, speed, fade_in, fade_out])
 
     def demo_run(self, pc, text_list, image_list, gameover=False):
+        self.controls_enabled = True
         self.width, self.height = self.pygame_settings.screen_res
 
         self.wins_dict['app_title'].char_save(pc, self.wins_dict['realm'].maze)
         self.wins_dict['app_title'].maze_save(pc, self.wins_dict['realm'].maze)
 
-        self.wins_dict['pools'].close_all_wins(pc)
+        # self.wins_dict['pools'].close_all_wins(pc)
+        wins_list = [win for win in self.active_wins if win != self.wins_dict['overlay']]
         self.active_wins.clear()
         self.active_wins.extend([self.wins_dict['overlay'], self.wins_dict['demos']])
         self.pausable = True
@@ -112,12 +120,13 @@ class Demos:
                                                          'back_to_title', ())
         else:
             self.wins_dict['app_title'].schedule_man.task_add('realm_tasks', schedule_delta_ending + 1, self.wins_dict['demos'],
-                                                         'back_to_game', ())
+                                                         'back_to_game', (wins_list,))
 
         self.wins_dict['app_title'].schedule_man.task_add('realm_tasks', schedule_delta_ending + 1, self.wins_dict['overlay'], 'fade_in',
                                                      (self.schedule_man.ticks_per_round, None))
 
     def death_soft(self, pc, death_cause, chapter_dict):
+        self.controls_enabled = True
         self.width, self.height = self.pygame_settings.screen_res
         self.wins_dict['realm'].pause = True
 
@@ -135,8 +144,8 @@ class Demos:
                                          self.resources.colors['bloody'], self.resources.colors['bg'],
                                          'center', 'top', self.width, 48)
         text_obj_2 = typography.Typography(self.pygame_settings,
-                                         """%s the %s has been killed by %s.""" % (pc.char_sheet.name.capitalize(),
-                                                       pc.char_sheet.type.capitalize(), death_cause['label']),
+                                         """%s the %s has been killed by %s. $n $n Gold coins lost: %s""" % (pc.char_sheet.name.capitalize(),
+                                                       pc.char_sheet.type.capitalize(), death_cause['label'], pc.char_sheet.gold_coins),
                                          (self.width // 2, self.height // 2 + 32), 'large', 16,
                                          self.resources.colors['fnt_celeb'], self.resources.colors['bg'],
                                          'center', 'top', self.width, 48)
@@ -156,6 +165,7 @@ class Demos:
                                                      (20, None))
 
     def death_hardcore(self, pc, death_cause, chapter_dict):
+        self.controls_enabled = True
         self.demo_to_title = True
         self.width, self.height = self.pygame_settings.screen_res
         self.wins_dict['realm'].pause = True
@@ -213,11 +223,11 @@ class Demos:
         self.active_wins.append(self.wins_dict['app_title'])
         self.wins_dict['pools'].pc = None
 
-    def back_to_game(self):
+    def back_to_game(self, wins_list):
         self.picture_list.clear()
         self.text_list.clear()
         self.active_wins.clear()
-        self.active_wins.extend((self.wins_dict['pools'], self.wins_dict['realm']))
+        self.active_wins.extend(wins_list)
 
     def tick(self):
         if self.pause:

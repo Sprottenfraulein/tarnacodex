@@ -22,8 +22,8 @@ class Trade:
         self.pc = None
         self.win_w = 512
         self.win_h = 510
-        self.offset_x = 0
-        self.offset_y = 0
+        self.offset_x = (pygame_settings.screen_res[0] - self.win_w) // 2
+        self.offset_y = 16
         self.inv_sckt_total = 60
         self.inv_sockets_list = []
         self.inv_sockets_image = None
@@ -449,6 +449,7 @@ class Trade:
         self.pygame_settings.audio.sound('coins_trade')
 
         self.end()
+        self.wins_dict['inventory'].updated = True
 
         if not self.wins_dict['realm'].maze.flag_array[y_sq][x_sq].vis:
             self.wins_dict['realm'].schedule_man.task_add('realm_tasks', 1, self.wins_dict['trade'], 'shipment_reminder', ())
@@ -464,14 +465,15 @@ class Trade:
     def goods_generate(self, goods_level_cap):
         self.trade_bank.clear()
         good_ids = dbrequests.treasure_get(self.db.cursor, goods_level_cap, 0, 999, shop=1)
+
         for j in good_ids:
             for i in range(-2, 1):
                 self.trade_bank.append(treasure.Treasure(j, max(1, goods_level_cap + i), self.db.cursor,
                                                          self.tilesets, self.resources, self.pygame_settings.audio,
                                                          self.resources.fate_rnd))
-        for i in (5, 6, 9):
+        """for i in (5, 6, 9):
             self.trade_bank.append(skill.Skill(i, goods_level_cap, self.db.cursor, self.win_ui.tilesets,
-                                               self.win_ui.resources, self.pygame_settings.audio))
+                                               self.win_ui.resources, self.pygame_settings.audio))"""
 
     def tick(self):
         self.win_ui.tick()

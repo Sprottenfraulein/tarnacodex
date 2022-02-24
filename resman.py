@@ -91,6 +91,7 @@ class ResMan:
             'sun': (255, 255, 200),
             'bg': (10, 10, 10),
             'transparent': (0, 255, 0),
+            'azure' : (0, 127, 255),
             'gray_light': (200, 200, 200),
             'gray_mid': (130, 130, 130),
             'gray_dark': (50, 50, 50),

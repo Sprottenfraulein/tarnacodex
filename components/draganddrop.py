@@ -36,21 +36,60 @@ def item_move(win, element, mb_event, m_bttn, in_realm, skillfuncs):
                 item_info[0][item_info[1]], win.mouse_pointer.drag_item[0][win.mouse_pointer.drag_item[1]] = \
                     win.mouse_pointer.drag_item[0][win.mouse_pointer.drag_item[1]], item_info[0][item_info[1]]
 
-            win.pc.moved_item_cooldown_check(item_info[0][item_info[1]], element)
-
-            if (item_info[0][item_info[1]].props['item_type'] not in item_info[0].filters['item_types']
+            if (
+                    item_info[0][item_info[1]].props['item_type'] not in item_info[0].filters['item_types']
                     or (win.mouse_pointer.drag_item[0][win.mouse_pointer.drag_item[1]] is not None
                         and win.mouse_pointer.drag_item[0][win.mouse_pointer.drag_item[1]].props['item_type']
-                        not in win.mouse_pointer.drag_item[0].filters['item_types'])):
+                        not in win.mouse_pointer.drag_item[0].filters['item_types'])
+            ):
                 item_info[0][item_info[1]], win.mouse_pointer.drag_item[0][win.mouse_pointer.drag_item[1]] = \
                     win.mouse_pointer.drag_item[0][win.mouse_pointer.drag_item[1]], item_info[0][item_info[1]]
+                win.wins_dict['dialogue'].dialogue_elements = {
+                    'header': 'Attention',
+                    'text': "The item won't fit for that socket!",
+                    'bttn_cancel': 'OK'
+                }
+                win.wins_dict['dialogue'].launch(win.pc)
+            elif (
+                    item_info[0] in win.pc.char_sheet.equipped
+                    and item_info[0][item_info[1]].props['usable_%s' % win.pc.char_sheet.type] == 0
+                    or (win.mouse_pointer.drag_item[0][win.mouse_pointer.drag_item[1]] is not None
+                        and win.mouse_pointer.drag_item[0] in win.pc.char_sheet.equipped
+                        and win.mouse_pointer.drag_item[0][win.mouse_pointer.drag_item[1]].props[
+                            'usable_%s' % win.pc.char_sheet.type] == 0)
+            ):
+                item_info[0][item_info[1]], win.mouse_pointer.drag_item[0][win.mouse_pointer.drag_item[1]] = \
+                    win.mouse_pointer.drag_item[0][win.mouse_pointer.drag_item[1]], item_info[0][item_info[1]]
+                win.wins_dict['dialogue'].dialogue_elements = {
+                    'header': 'Attention',
+                    'text': "%s can not use this type of item!" % win.pc.char_sheet.name.capitalize(),
+                    'bttn_cancel': 'OK'
+                }
+                win.wins_dict['dialogue'].launch(win.pc)
+            elif (
+                    item_info[0] in win.pc.char_sheet.equipped
+                    and item_info[0][item_info[1]].props['lvl'] > win.pc.char_sheet.level
+                    or (win.mouse_pointer.drag_item[0][win.mouse_pointer.drag_item[1]] is not None
+                        and win.mouse_pointer.drag_item[0] in win.pc.char_sheet.equipped
+                        and win.mouse_pointer.drag_item[0][win.mouse_pointer.drag_item[1]].props[
+                            'lvl'] > win.pc.char_sheet.level)
+            ):
+                item_info[0][item_info[1]], win.mouse_pointer.drag_item[0][win.mouse_pointer.drag_item[1]] = \
+                    win.mouse_pointer.drag_item[0][win.mouse_pointer.drag_item[1]], item_info[0][item_info[1]]
+                win.wins_dict['dialogue'].dialogue_elements = {
+                    'header': 'Attention',
+                    'text': "%s is not experienced enough to use this item!" % win.pc.char_sheet.name.capitalize(),
+                    'bttn_cancel': 'OK'
+                }
+                win.wins_dict['dialogue'].launch(win.pc)
             else:
+                win.pc.moved_item_cooldown_check(item_info[0][item_info[1]], element)
                 win.pygame_settings.audio.sound(item_info[0][item_info[1]].props['sound_pickup'])
 
             if win.mouse_pointer.catcher[0] is not None:
                 win.mouse_pointer.drag_item = [win.mouse_pointer.catcher, 0]
                 win.mouse_pointer.image = \
-                win.mouse_pointer.drag_item[0][win.mouse_pointer.drag_item[1]].props['image_inventory'][0]
+                    win.mouse_pointer.drag_item[0][win.mouse_pointer.drag_item[1]].props['image_inventory'][0]
             else:
                 win.mouse_pointer.drag_item = None
                 win.mouse_pointer.image = None
@@ -58,5 +97,7 @@ def item_move(win, element, mb_event, m_bttn, in_realm, skillfuncs):
             win.pc.char_sheet.itemlists_clean_tail()
 
             win.pc.char_sheet.calc_stats()
+            if in_realm:
+                win.wins_dict['realm'].calc_vision_alt()
             win.wins_dict['charstats'].updated = True
         win.render_slots()

@@ -89,7 +89,7 @@ class Typography:
         self.rendered_text.blit(txt_image, txt_rect)
 
     def blit_text(self, text, color, offset_x, offset_y):
-        lined_text, self.max_width, self.max_height = self.split_text(text)
+        lined_text, self.max_width, self.actual_width, self.max_height = self.split_text(text)
         text_canvas = pygame.Surface((self.max_width, self.max_height)).convert()
         text_canvas.fill(self.bg_color)
         colorkey = text_canvas.get_at((0, 0))
@@ -137,7 +137,7 @@ class Typography:
             merged_line = ' '.join(text_line)
             lined_text.append(merged_line)
             text_line.clear()
-        return lined_text, max(self.max_width, max_x + self.sh_dist_x), int(round(y)) + self.sh_dist_y
+        return lined_text, self.max_width, max_x + self.sh_dist_x, int(round(y)) + self.sh_dist_y
 
     def draw(self, surface, offset=None):
         # Draw the piece at its current location.

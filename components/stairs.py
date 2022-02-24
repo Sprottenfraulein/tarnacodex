@@ -15,8 +15,8 @@ class Stairs:
                 pc.location[1] -= 1
 
                 wins_dict['app_title'].location_change(pc, 'down')
-            elif len(pc.char_sheet.inventory_search_by_id(7)) > 0 or len(pc.char_sheet.equipped_search_by_id(7)) > 0:
-                wins_dict['app_title'].chapter_end(pc, wins_dict['realm'].maze.chapter)
+            else:
+                wins_dict['app_title'].ending_check(pc)
         elif self.dest == 'down' and pc.location[1] < wins_dict['realm'].maze.chapter['stage_number'] - 1:
             pc.location[1] += 1
             wins_dict['app_title'].location_change(pc, 'up')

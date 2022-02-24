@@ -13,12 +13,12 @@ class Treasure:
         self.CONDITION_PENALTY_LEVEL = 250
         self.CONDITION_BROKEN_LEVEL = 0
 
-        treasure_dict = dbrequests.treasure_get_by_id(db_cursor, treasure_id)
+        base_props, modifier_list, de_buff_list = dbrequests.treasure_get_by_id(db_cursor, treasure_id)
 
-        self.props, add_price_expos = init_props(db_cursor, fate_rnd, treasure_dict)
+        if base_props['lvl'] is not None:
+            calc_level(level, base_props, modifier_list, de_buff_list)
 
-        if self.props['lvl'] is not None:
-            calc_level(level, self.props)
+        self.props, add_price_expos = init_props(db_cursor, fate_rnd, base_props, modifier_list, de_buff_list)
 
         # Attaching a skill if an item is usable.
         if self.props['use_skill'] is not None:
@@ -34,9 +34,7 @@ class Treasure:
         sounds_update(db_cursor, self.props)
 
 
-def init_props(db_cursor, fate_rnd, treasure_dicts):
-    base_props, modifier_list, de_buff_list = treasure_dicts
-
+def init_props(db_cursor, fate_rnd, base_props, modifier_list, de_buff_list):
     # adding container list
     base_props['container_max'] = base_props['container']
     if base_props['container_max'] is not None and base_props['container_max'] > 0:
@@ -117,7 +115,12 @@ def init_modifier(parent_dict, mod_dict, fate_rnd):
         mod_value_spread = 0
 
     per_base = mod_dict['value_base_min'] + (mod_dict['value_spread_min'] or 0) / 2
-    price_expo_rate = 1 + (mod_value_base + mod_value_spread / 2 - per_base) / ((mod_dict['value_base_max'] + (mod_dict['value_spread_max'] or 0) / 2) - per_base)
+    mod_rolled = mod_value_base + mod_value_spread / 2 - per_base
+    mod_max = (mod_dict['value_base_max'] + (mod_dict['value_spread_max'] or 0) / 2) - per_base
+    if mod_max > 0:
+        price_expo_rate = 1 + mod_rolled / mod_max
+    else:
+        price_expo_rate = 1
     return price_expo_rate
 
 
@@ -143,10 +146,25 @@ def calc_loot_stat(loot_props, stat_name):
             stat_sum += random.randrange(0, affix['mods'][stat_name]['value_spread'] + 1)
         except KeyError:
             pass
+    stat_sum = condition_mod_rate(stat_sum, loot_props)
     if equating_modifier is not None:
         return equating_modifier
     else:
         return stat_sum
+
+
+def condition_mod_rate(mod_add, item_props):
+    if 'condition' in item_props:
+        cond_percent = item_props['condition'] * 100 // item_props['condition_max']
+        if cond_percent == 0:
+            result = 0
+        elif cond_percent <= 25:
+            result = mod_add // 2
+        else:
+            result = mod_add
+        return result
+    else:
+        return mod_add
 
 
 def loot_validate(loot_props):
@@ -202,16 +220,19 @@ def sounds_update(db_cursor, loot_props):
             loot_props[snd] = None
 
 
-def calc_level(level, loot_props):
-    loot_props['price_buy'] = loot_props['price_buy'] * level // loot_props['lvl']
-    loot_props['price_sell'] = loot_props['price_sell'] * level // loot_props['lvl']
-    for mod in loot_props['mods'].values():
-        mod['value_base'] = mod['value_base'] * level // loot_props['lvl']
-        try:
-            mod['value_spread'] = mod['value_spread'] * level // loot_props['lvl'] // 4
-        except KeyError:
-            pass
-    loot_props['lvl'] = level
+def calc_level(level, base_props, modifier_list, de_buff_list):
+    base_props['price_buy'] = base_props['price_buy'] * level // base_props['lvl']
+    base_props['price_sell'] = base_props['price_sell'] * level // base_props['lvl']
+    for mod in modifier_list:
+        if mod['value_scalable'] == 0:
+            continue
+        mod['value_base_min'] = mod['value_base_min'] * level // base_props['lvl']
+        mod['value_base_max'] = mod['value_base_max'] * level // base_props['lvl']
+        if mod['value_spread_min'] is None:
+            continue
+        mod['value_spread_min'] = mod['value_spread_min'] * level // base_props['lvl'] // 4
+        mod['value_spread_max'] = mod['value_spread_max'] * level // base_props['lvl'] // 4
+    base_props['lvl'] = level
 
 
 def calc_grade(db_cursor, grade, loot_props, tile_sets, audio, fate_rnd):
@@ -226,7 +247,7 @@ def calc_grade(db_cursor, grade, loot_props, tile_sets, audio, fate_rnd):
         affix_add(db_cursor, loot_props, dbrequests.affix_loot_get_by_id(db_cursor, aff), fate_rnd)
 
     images_update(db_cursor, loot_props, tile_sets)
-    sounds_update(db_cursor, loot_props, audio)
+    sounds_update(db_cursor, loot_props)
 
     loot_props['grade'] = grade
 
@@ -263,3 +284,14 @@ def item_expo_price(loot_props, add_price_expos):
         additional_price_sell += loot_props['price_sell'] * (10 ** ape * 10) // 100
     loot_props['price_buy'] = int(round(loot_props['price_buy'] + additional_price_buy))
     loot_props['price_sell'] = int(round(loot_props['price_sell'] + additional_price_sell))
+
+
+def charge_change(item, value):
+    item.props['charge'] += value
+
+    if item.props['charge'] <= 0:
+        if item.props['vanish_empty'] == 1:
+            return False
+        else:
+            item.props['charge'] = 0
+    return True

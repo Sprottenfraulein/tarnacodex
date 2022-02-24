@@ -239,7 +239,7 @@ class Pools:
             self.win_ui.button_add('skb', size=(pools_btn_w, pools_btn_h), cap_size=24, cap_color='fnt_muted',
                                    sounds=self.win_ui.snd_packs['button'], images=bttn_img_list[1], switch=True),
             self.win_ui.button_add('hot', size=(pools_btn_w, pools_btn_h), cap_size=24, cap_color='fnt_muted',
-                                   sounds=self.win_ui.snd_packs['button'], images=bttn_img_list[2], switch=True),
+                                   sounds=self.win_ui.snd_packs['button'], images=bttn_img_list[2], switch=True, mode=1),
             self.win_ui.button_add('char', size=(pools_btn_w, pools_btn_h), cap_size=24, cap_color='fnt_muted',
                                    sounds=self.win_ui.snd_packs['button'], images=bttn_img_list[3], switch=True),
             self.win_ui.button_add('opts', size=(pools_btn_w, pools_btn_h), cap_size=24, cap_color='fnt_muted',

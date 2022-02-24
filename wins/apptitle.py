@@ -24,6 +24,8 @@ class AppTitle:
         self.offset_y = 0
 
         self.pc = None
+        self.common_stash = None
+        self.common_stash_gold = None
 
         self.chars = None
         self.chapters = None
@@ -43,6 +45,7 @@ class AppTitle:
         self.curr_char_name_string = None
         self.curr_char_type_string = None
         self.field_charname_edit = None
+        self.bttn_continue_chapter = None
         self.bttn_hardcore = None
         self.char_selection = 0
         self.chapter_selection = 0
@@ -57,6 +60,8 @@ class AppTitle:
         self.logo_w, self.logo_h = self.logo.get_size()
 
         self.win_rendered = pygame.Surface((self.win_w, self.win_h)).convert()
+
+        self.controls_enabled = True
 
         self.render()
 
@@ -105,13 +110,14 @@ class AppTitle:
             return self.ui_click(self.win_ui.mouse_actions(mouse_x - self.offset_x, mouse_y - self.offset_y, event))
 
     def ui_click(self, inter_click):
-        if inter_click is None:
+        if inter_click is None or not self.controls_enabled:
             for inter in self.win_ui.interactives:
                 inter.release(1)
                 inter.release(3)
             self.win_ui.updated = True
             return
         element, m_bttn, mb_event = inter_click
+
         # PAGE 0
         if element.id in ('input_name',) and m_bttn == 1 and mb_event == 'down':
             self.win_ui.key_focus = element
@@ -205,6 +211,8 @@ class AppTitle:
             self.win_ui.key_focus = None
 
         elif element.id == 'back' and m_bttn == 1 and mb_event == 'up' and element.mode == 1:
+            if self.win_ui.page == 2:
+                self.char_save(self.pc, None)
             self.win_ui.page = 0
             self.win_ui.key_focus = None
             self.clear_quick_view()
@@ -213,6 +221,7 @@ class AppTitle:
 
         elif element.id == 'new_char_begin' and m_bttn == 1 and mb_event == 'up' and element.mode == 1:
             self.win_ui.key_focus = None
+            self.controls_enabled = False
 
             self.char_create()
 
@@ -268,11 +277,12 @@ class AppTitle:
                 self.wins_dict['dialogue'].launch(pc)
             else:
                 self.win_ui.key_focus = None
+                self.controls_enabled = False
 
                 self.pc.char_sheet.calc_stats()
                 self.pc.char_sheet.hp_get(100, percent=True)
                 self.pc.char_sheet.mp_get(100, percent=True)
-                self.pc.char_sheet.food_get(100, percent=True)
+                # self.pc.char_sheet.food_get(100, percent=True)
 
                 self.clear_quick_view()
 
@@ -286,26 +296,41 @@ class AppTitle:
         if 'quick_view' in element.tags and m_bttn == 1 and element.mode == 0 and mb_event == 'down':
             if element.id == 'quick_inv':
                 if not self.wins_dict['inventory'] in self.active_wins:
-                    self.wins_dict['inventory'].render()
+                    self.wins_dict['inventory'].updated = True
                     self.active_wins.insert(0, self.wins_dict['inventory'])
+            elif element.id == 'quick_stash':
+                if self.pc.hardcore_char == 2:
+                    self.wins_dict['dialogue'].dialogue_elements = {
+                        'header': 'Attention',
+                        'text': 'Common stash is unavailable because your Hardcore Character has been killed. $n '
+                                'Please, create a new hardcore character to access the stash.',
+                        'bttn_cancel': 'OK'
+                    }
+                    self.wins_dict['dialogue'].launch(pc)
+                    return
+                elif not self.wins_dict['stash'] in self.active_wins:
+                    self.wins_dict['stash'].updated = True
+                    self.active_wins.insert(0, self.wins_dict['stash'])
             elif element.id == 'quick_skb':
                 if not self.wins_dict['skillbook'] in self.active_wins:
-                    self.wins_dict['skillbook'].render()
+                    self.wins_dict['skillbook'].updated = True
                     self.active_wins.insert(0, self.wins_dict['skillbook'])
             elif element.id == 'quick_hot':
                 if not self.wins_dict['hotbar'] in self.active_wins:
-                    self.wins_dict['hotbar'].render()
+                    self.wins_dict['hotbar'].updated = True
                     self.active_wins.insert(0, self.wins_dict['hotbar'])
             elif element.id == 'quick_char':
                 if not self.wins_dict['charstats'] in self.active_wins:
                     self.wins_dict['charstats'].launch(self.pc)
-                    self.wins_dict['charstats'].render()
                     self.active_wins.insert(0, self.wins_dict['charstats'])
 
         elif 'quick_view' in element.tags and m_bttn == 1 and element.mode == 1 and element.sw_op is False and mb_event == 'up':
             if element.id == 'quick_inv':
                 if self.wins_dict['inventory'] in self.active_wins:
                     self.active_wins.remove(self.wins_dict['inventory'])
+            elif element.id == 'quick_stash':
+                if self.wins_dict['stash'] in self.active_wins:
+                    self.active_wins.remove(self.wins_dict['stash'])
             elif element.id == 'quick_skb':
                 if self.wins_dict['skillbook'] in self.active_wins:
                     self.active_wins.remove(self.wins_dict['skillbook'])
@@ -608,13 +633,13 @@ class AppTitle:
         bttn_begin_chapter.rendered_rect.centery = round(self.pygame_settings.screen_res[1] / 2) + (
                 menu_btn_h * 1.2) * 7
 
-        bttn_continue_chapter = self.win_ui.button_add('continue_chapter', caption='Resume Chapter',
+        self.bttn_continue_chapter = self.win_ui.button_add('continue_chapter', caption='Resume Chapter',
                                                     size=(menu_btn_w, menu_btn_h),
                                                     cap_font='large', cap_size=16,
                                                     cap_color='fnt_muted', sounds=self.win_ui.snd_packs['button'],
                                                     page=(2,))
-        bttn_continue_chapter.rendered_rect.centerx = round(menu_btn_h + menu_btn_w + (self.pygame_settings.screen_res[0] / 2 - menu_btn_h - menu_btn_w) / 2)
-        bttn_continue_chapter.rendered_rect.centery = round(self.pygame_settings.screen_res[1] / 2) + (
+        self.bttn_continue_chapter.rendered_rect.centerx = round(menu_btn_h + menu_btn_w + (self.pygame_settings.screen_res[0] / 2 - menu_btn_h - menu_btn_w) / 2)
+        self.bttn_continue_chapter.rendered_rect.centery = round(self.pygame_settings.screen_res[1] / 2) + (
                 menu_btn_h * 1.2) * 7
 
         curr_chapter_string = \
@@ -637,7 +662,7 @@ class AppTitle:
             self.win_ui.tilesets.get_image('interface', (24, 24,), (22, 23)),
             self.win_ui.tilesets.get_image('interface', (24, 24,), (24, 25)),
             self.win_ui.tilesets.get_image('interface', (24, 24,), (26, 27)),
-            self.win_ui.tilesets.get_image('interface', (24, 24,), (28, 29))
+            self.win_ui.tilesets.get_image('dung_chests', (24, 24,), (7, 6)),
         )
         bttn_img_list = []
         for i in range(0, 5):
@@ -662,21 +687,21 @@ class AppTitle:
                 bttn_up_img, bttn_down_img
             ))
         char_quick_menu = (
-            self.win_ui.button_add('quick_inv', size=(quick_btn_w, quick_btn_h), cap_size=24, cap_color='fnt_muted',
+            self.win_ui.button_add('quick_inv', size=(quick_btn_w, quick_btn_h),
                                    sounds=self.win_ui.snd_packs['button'], images=bttn_img_list[0], switch=True),
-            self.win_ui.button_add('quick_skb', size=(quick_btn_w, quick_btn_h), cap_size=24, cap_color='fnt_muted',
+            self.win_ui.button_add('quick_skb', size=(quick_btn_w, quick_btn_h),
                                    sounds=self.win_ui.snd_packs['button'], images=bttn_img_list[1], switch=True),
-            self.win_ui.button_add('quick_hot', size=(quick_btn_w, quick_btn_h), cap_size=24, cap_color='fnt_muted',
+            self.win_ui.button_add('quick_hot', size=(quick_btn_w, quick_btn_h),
                                    sounds=self.win_ui.snd_packs['button'], images=bttn_img_list[2], switch=True),
-            self.win_ui.button_add('quick_char', size=(quick_btn_w, quick_btn_h), cap_size=24, cap_color='fnt_muted',
+            self.win_ui.button_add('quick_char', size=(quick_btn_w, quick_btn_h),
                                    sounds=self.win_ui.snd_packs['button'], images=bttn_img_list[3], switch=True),
-            # self.win_ui.button_add('opts', size=(quick_btn_w, quick_btn_h), cap_size=24, cap_color='fnt_muted',
-            #                        sounds=self.win_ui.snd_packs['button'], images=bttn_img_list[4], switch=True),
+            self.win_ui.button_add('quick_stash', size=(quick_btn_w, quick_btn_h),
+                                   sounds=self.win_ui.snd_packs['button'], images=bttn_img_list[4], switch=True),
         )
         for i in range(0, len(char_quick_menu)):
             char_quick_menu[i].tags = ['quick_view']
             char_quick_menu[i].page = (2,)
-            char_quick_menu[i].rendered_rect.left = menu_btn_h + menu_btn_w // 2 - 60 + (quick_btn_w * (i % bttns_per_row))
+            char_quick_menu[i].rendered_rect.left = menu_btn_h + menu_btn_w // 2 - quick_btn_w + (quick_btn_w * (i % bttns_per_row))
             char_quick_menu[i].rendered_rect.top = chapter_menu[0].rendered_rect.top + 120 + 8 + 64 + (quick_btn_h * (i // bttns_per_row))
 
         # loaded character info
@@ -716,7 +741,7 @@ class AppTitle:
                                           size=(self.pygame_settings.screen_res[0] // 4, 16), cap_color='sun')
 
         self.win_ui.interactives.extend(char_quick_menu)
-        self.win_ui.interactives.append(bttn_continue_chapter)
+        self.win_ui.interactives.append(self.bttn_continue_chapter)
         self.win_ui.interactives.append(bttn_begin_chapter)
         self.win_ui.interactives.append(bttn_begin)
         self.win_ui.interactives.append(bttn_back)
@@ -899,7 +924,6 @@ class AppTitle:
             self.active_wins.remove(self)
 
         self.wins_dict['realm'].render_update()
-        self.wins_dict['pools'].render()
 
     def char_info_update(self):
         self.char_img_panel.images_update(self.win_ui.tilesets.get_image('char_portraits', (60,60), (self.char_selection,)))
@@ -911,15 +935,29 @@ class AppTitle:
         self.char_title_string.render_all()
 
     def char_loaded_info_update(self):
-        self.curr_chapter_img_panel.images_update(
-            self.win_ui.tilesets.get_image('red_glass', (60, 60), (self.pc.location[0]['chapter_image_index'],)))
-        self.curr_chapter_title_string.text_obj.caption = self.pc.location[0]['label'].capitalize()
-        self.curr_chapter_title_string.render_all()
-        self.curr_chapter_desc_string.text_obj.caption = self.pc.location[0]['desc']
-        self.curr_chapter_desc_string.render_all()
-        self.curr_chapter_stage_string.text_obj.caption = 'Level %s: $n %s' % (
-            self.pc.location[1] + 1, self.savegames[self.save_selection]['stage_label'])
-        self.curr_chapter_stage_string.render_all()
+        if self.pc.location is not None:
+            self.curr_chapter_img_panel.images_update(
+                self.win_ui.tilesets.get_image('red_glass', (60, 60), (self.pc.location[0]['chapter_image_index'],)))
+            self.curr_chapter_title_string.text_obj.caption = self.pc.location[0]['label'].capitalize()
+            self.curr_chapter_title_string.render_all()
+            self.curr_chapter_desc_string.text_obj.caption = self.pc.location[0]['desc']
+            self.curr_chapter_desc_string.render_all()
+            self.curr_chapter_stage_string.text_obj.caption = 'Level %s: $n %s' % (
+                self.pc.location[1] + 1, self.savegames[self.save_selection]['stage_label'])
+            self.curr_chapter_img_panel.page = (2,)
+            self.curr_chapter_desc_string.page = (2,)
+            self.curr_chapter_stage_string.page = (2,)
+            self.bttn_continue_chapter.page = (2,)
+            self.curr_chapter_stage_string.render_all()
+        else:
+            self.curr_chapter_img_panel.page = (-1,)
+            self.curr_chapter_title_string.text_obj.caption = 'No chapter $n in progress!'
+            self.curr_chapter_desc_string.page = (-1,)
+            self.curr_chapter_stage_string.page = (-1,)
+            self.bttn_continue_chapter.page = (-1,)
+            self.curr_chapter_title_string.render_all()
+
+        self.controls_enabled = True
 
         if self.pc.hardcore_char == 2:
             self.curr_char_panel.images_update(
@@ -940,6 +978,8 @@ class AppTitle:
             self.wins_dict['inventory'].launch(self.pc)
         if self.wins_dict['skillbook'].pc != self.pc:
             self.wins_dict['skillbook'].launch(self.pc)
+        if self.wins_dict['stash'].pc != self.pc:
+            self.wins_dict['stash'].launch(self.pc)
 
         # self.location_change(pygame_settings, self.wins_dict, self.active_wins, p, 'up', launch=True)
         self.win_ui.page = 2
@@ -955,6 +995,8 @@ class AppTitle:
         self.chapter_title_string.render_all()
 
     def chapter_begin(self):
+        self.controls_enabled = False
+
         self.pc.char_sheet.calc_stats()
         self.pc.char_sheet.hp_get(100, percent=True)
         self.pc.char_sheet.mp_get(100, percent=True)
@@ -1000,17 +1042,34 @@ class AppTitle:
         initial_char_stats = dbrequests.char_params_get(self.db.cursor, 'characters', p.char_sheet.type)
         default_skills = dbrequests.skill_defaults_get(self.db.cursor, initial_char_stats['character_id'])
 
-        p.char_sheet.hotbar[-2] = skill.Skill(default_skills[0]['skill_id'], p.char_sheet.level, self.db.cursor,
+        p.char_sheet.hotbar[-2] = skill.Skill(default_skills[0], p.char_sheet.level, self.db.cursor,
                                               self.win_ui.tilesets, self.win_ui.resources, self.pygame_settings.audio)
-        p.char_sheet.hotbar[-1] = skill.Skill(default_skills[1]['skill_id'], p.char_sheet.level, self.db.cursor,
+        p.char_sheet.hotbar[-1] = skill.Skill(default_skills[1], p.char_sheet.level, self.db.cursor,
                                               self.win_ui.tilesets, self.win_ui.resources, self.pygame_settings.audio)
         for i in range(2, len(default_skills)):
-            p.char_sheet.skills[i-2] = skill.Skill(default_skills[i]['skill_id'], p.char_sheet.level, self.db.cursor,
+            p.char_sheet.skills[i-2] = skill.Skill(default_skills[i], p.char_sheet.level, self.db.cursor,
                                                    self.win_ui.tilesets, self.win_ui.resources, self.pygame_settings.audio)
 
-        p.char_sheet.equipped[2][0] = treasure.Treasure(3, p.char_sheet.level, self.db.cursor, self.win_ui.tilesets,
+        default_treasure = dbrequests.treasure_defaults_get(self.db.cursor, initial_char_stats['character_id'])
+        p.char_sheet.equipped[2][0] = treasure.Treasure(default_treasure[0], p.char_sheet.level, self.db.cursor, self.win_ui.tilesets,
                                                         self.win_ui.resources, self.pygame_settings.audio,
                                                         self.win_ui.resources.fate_rnd)
+        for i in range(1, len(default_treasure)):
+            if default_treasure[i] == 8:
+                p.char_sheet.hotbar[0] = treasure.Treasure(default_treasure[i], p.char_sheet.level, self.db.cursor, self.win_ui.tilesets,
+                                                    self.win_ui.resources, self.pygame_settings.audio,
+                                                    self.win_ui.resources.fate_rnd)
+            elif default_treasure[i] == 11:
+                p.char_sheet.hotbar[1] = treasure.Treasure(default_treasure[i], p.char_sheet.level, self.db.cursor, self.win_ui.tilesets,
+                                                    self.win_ui.resources, self.pygame_settings.audio,
+                                                    self.win_ui.resources.fate_rnd)
+            else:
+                for j in range(0, p.char_sheet.inventory.items_max):
+                    if p.char_sheet.inventory[j] is None:
+                        p.char_sheet.inventory[j] = treasure.Treasure(default_treasure[i], p.char_sheet.level, self.db.cursor,
+                                                                self.win_ui.tilesets, self.win_ui.resources,
+                                                                self.pygame_settings.audio, self.win_ui.resources.fate_rnd)
+                        break
         """p.char_sheet.inventory[0] = treasure.Treasure(9, p.char_sheet.level, self.db.cursor, self.win_ui.tilesets,
                                                         self.win_ui.resources, self.pygame_settings.audio,
                                                         self.win_ui.resources.fate_rnd)"""
@@ -1054,6 +1113,7 @@ class AppTitle:
         self.save_selection = None
 
     def clear_quick_view(self):
+        self.wins_dict['stash'].end()
         for win in self.wins_dict.values():
             if win is not self and win in self.active_wins:
                 self.active_wins.remove(win)
@@ -1066,6 +1126,36 @@ class AppTitle:
         self.mouse_pointer.drag_item = None
         self.mouse_pointer.image = None
         self.mouse_pointer.catcher[0] = None
+
+    def ending_check(self, pc):
+        blackrock_list = pc.char_sheet.inventory_search_by_id(7) + pc.char_sheet.equipped_search_by_id(7)
+        for blackrock in blackrock_list:
+            if blackrock is not None and blackrock.props['class'] == 'blackrock':
+                self.wins_dict['dialogue'].dialogue_elements = {
+                    'header': 'Attention',
+                    'text': "Finish your Quest? $n $n (If you leave now, you will not be able to return to this world anymore without restarting the Chapter!)",
+                    'bttn_cancel': 'NO',
+                    'bttn_ok': 'YES'
+                }
+                self.wins_dict['dialogue'].delayed_action['bttn_ok'] = (self, 'chapter_conclude', (blackrock, self.wins_dict, pc))
+                self.wins_dict['dialogue'].launch(pc)
+                self.pygame_settings.audio.sound('important_jingle')
+                break
+        else:
+            self.wins_dict['dialogue'].dialogue_elements = {
+                'header': 'Attention',
+                'text': 'You can not go outside until your quest is complete. Would you like to take a break and exit to the Character screen?',
+                'bttn_cancel': 'NO',
+                'bttn_ok': 'YES'
+            }
+            self.wins_dict['dialogue'].delayed_action['bttn_ok'] = (self.wins_dict['options'], 'overlay_save_and_exit', (self.wins_dict, pc,))
+            self.wins_dict['dialogue'].launch(pc)
+
+    def chapter_conclude(self, blackrock, wins_dict, pc):
+        blackrock.props['class'] = 'material'
+        wins_dict['app_title'].chapter_end(pc, wins_dict['realm'].maze.chapter)
+        pc.location = None
+        pc.stage_entry = 'up'
 
     def tick(self):
         self.win_ui.tick()

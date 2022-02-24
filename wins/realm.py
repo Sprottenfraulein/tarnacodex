@@ -74,6 +74,7 @@ class Realm:
         self.target_mark = self.tilesets.get_image('interface', (24, 24), (10, 11, 12, 13))
 
         self.pause = False
+        self.controls_enabled = True
 
     def view_resize(self, w, h):
         self.view_maze_width_sq = math.ceil(w / self.square_scale / self.square_size)
@@ -104,12 +105,13 @@ class Realm:
         # visibility update
         self.calc_vision_alt()
         # creating shortlists
-        self.doors_short = set()
-        self.traps_short = set()
-        self.loot_short = set()
-        self.mobs_short = []
+        self.doors_short.clear()
+        self.traps_short.clear()
+        self.loot_short.clear()
+        self.mobs_short.clear()
+        self.particle_list.clear()
 
-        self.text_short = []
+        self.text_short.clear()
 
         self.shortlists_update(everything=True)
         self.location_label_update()
@@ -126,12 +128,17 @@ class Realm:
 
         if self.wins_dict['pools'] not in self.active_wins:
             self.active_wins.insert(0, self.wins_dict['pools'])
+        if self.wins_dict['hotbar'] not in self.active_wins:
+            self.active_wins.insert(0, self.wins_dict['hotbar'])
+
+        self.wins_dict['target'].drop_aim()
 
         self.pc.ready()
         self.pause = False
+        self.controls_enabled = True
 
     def event_check(self, event, log=True):
-        if not self.pc.alive:
+        if not self.pc.alive or not self.controls_enabled:
             return
         # character and gui controls
         if event.type == pygame.KEYDOWN:
@@ -161,11 +168,7 @@ class Realm:
             if event.key == pygame.K_h:
                 pass
             if event.key == pygame.K_p:
-                if self.wins_dict['pools'] in self.active_wins:
-                    self.active_wins.remove(self.wins_dict['pools'])
-                else:
-                    self.wins_dict['pools'].render()
-                    self.active_wins.insert(0, self.wins_dict['pools'])
+                pass
             if event.key == pygame.K_m:
                 self.schedule_man.task_add('realm_tasks', 6, self, 'spawn_realmtext',
                                            ('new_txt', "I'd better have a black muffin.",
@@ -489,8 +492,11 @@ class Realm:
                 pass
         self.vision_sq_prev = sq_list
 
-    def calc_vision_alt(self):
-        orig_xy = round(self.pc.x_sq), round(self.pc.y_sq)
+    def calc_vision_alt(self, xy_sq=None):
+        if xy_sq is None:
+            orig_xy = round(self.pc.x_sq), round(self.pc.y_sq)
+        else:
+            orig_xy = xy_sq
 
         self.vision_sq_prev = calc2darray.calc_vision_rays(
             self.maze.flag_array, orig_xy[0], orig_xy[1],
@@ -734,40 +740,22 @@ class Realm:
                 self.text_short.remove(txt)
                 return
 
-    def spawn_projectile(self, origin_xy, dest_xy, attack, speed, image_pack, collision_limit=1, blast_radius=0):
+    def spawn_projectile(self, origin_xy, dest_xy, attack, speed, image_pack, off_xy=None, duration=None,
+                         destroy_on_limit=True, collision_limit=1, blast_radius=0):
+        if off_xy is None:
+            off_xy = (0,0)
         distance = maths.get_distance(origin_xy[0], origin_xy[1], dest_xy[0], dest_xy[1])
         direction = maths.xy_dist_to_rads(origin_xy[0], origin_xy[1], dest_xy[0], dest_xy[1])
         speed_step_x_sq, speed_step_y_sq = maths.rads_dist_to_xy(origin_xy[0], origin_xy[1], direction, speed)
         speed_xy = speed_step_x_sq - origin_xy[0], speed_step_y_sq - origin_xy[1]
-        duration = math.ceil(distance / speed)
+        if duration is None:
+            duration = math.ceil(distance / speed)
 
-        if 0.39 <= direction < 1.17:
-            # NW
-            images = [pygame.transform.rotate(img, 180) for img in image_pack[0]]
-        elif 1.17 <= direction < 1.95:
-            # N
-            images = [pygame.transform.rotate(img, 90) for img in image_pack[1]]
-        elif 1.95 <= direction < 2.73:
-            # NE
-            images = [pygame.transform.rotate(img, 90) for img in image_pack[0]]
-        elif 2.73 <= direction or -2.73 >= direction:
-            # E
-            images = image_pack[1]
-        elif -0.39 >= direction > -1.17:
-            # SW
-            images = [pygame.transform.rotate(img, -90) for img in image_pack[0]]
-        elif -1.17 >= direction > -1.95:
-            # S
-            images = [pygame.transform.rotate(img, -90) for img in image_pack[1]]
-        elif -1.95 >= direction > -2.73:
-            # SE
-            images = image_pack[0]
-        elif 0.39 > direction > -0.39:
-            # W
-            images = [pygame.transform.rotate(img, -180) for img in image_pack[1]]
+        images = self.tilesets.images_rotate_to_dir(image_pack, direction)
 
-        new_missile = projectile.Projectile(origin_xy, (0,0), duration, speed_xy, images, attack,
-                                            collision_limit=1, blast_radius=0)
+        new_missile = projectile.Projectile(origin_xy, off_xy, duration, speed_xy, images, attack,
+                                            destroy_on_limit=destroy_on_limit,
+                                            collision_limit=collision_limit, blast_radius=blast_radius)
         self.missiles_list.append(new_missile)
 
     def location_label_update(self):
@@ -836,3 +824,21 @@ class Realm:
         if random_monster.aggred:
             return
         self.sound_inrealm(random_monster.stats['sound_amb'], random_monster.x_sq, random_monster.y_sq)
+
+    def hit_fx(self, x_sq, y_sq, dam_type, is_crit, forced_sound=True, for_pc=False):
+        if dam_type == 'att_physical':
+            for i in range(-1, is_crit * 4):
+                rnd_x_sq = random.randrange(-3 - is_crit, 4 + is_crit) / 10 + x_sq
+                rnd_y_sq = random.randrange(-3 - is_crit, 4 + is_crit) / 10 + y_sq
+                self.particle_list.append(particle.Particle((rnd_x_sq, rnd_y_sq), (-8, -8),
+                                          self.animations.get_animation('effect_blood_cloud')['default'],
+                                          16, speed_xy=(0.25, 0.25)))
+
+        if for_pc:
+            self.pygame_settings.audio.sound('pc_hit')
+            if is_crit:
+                self.pygame_settings.audio.sound('hit_blast')
+        else:
+            self.sound_inrealm(self.resources.sound_presets['damage'][dam_type], x_sq, y_sq, forced=forced_sound)
+            if is_crit:
+                self.pygame_settings.audio.sound('hit_blast')

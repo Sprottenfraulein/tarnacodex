@@ -22,8 +22,17 @@ class Door:
                 wins_dict['realm'].sound_inrealm('wooden_door_shut', self.x_sq, self.y_sq)
             return True
         elif self.trap is not None:
-            if not self.trap.detect():
-                self.trap.trigger()
+            if self.trap.visible == 1:
+                wins_dict['dialogue'].dialogue_elements = {
+                    'header': 'Trap caution',
+                    'text': "You are going to trigger the trap! $n Continue?",
+                    'bttn_cancel': 'NO',
+                    'bttn_ok': 'YES'
+                }
+                wins_dict['dialogue'].delayed_action['bttn_ok'] = (self.trap, 'trigger', (wins_dict, pc))
+                wins_dict['dialogue'].launch(pc)
+            elif not self.trap.detect(wins_dict, pc):
+                self.trap.trigger(wins_dict, pc)
             return True
         elif self.lock is None:
             self.shut = False

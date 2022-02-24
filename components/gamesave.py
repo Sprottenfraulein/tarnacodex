@@ -1,6 +1,7 @@
 import os, shutil
 import pickle
 from components import treasure, skill, dbrequests
+from library import itemlist
 
 
 def save_char(wins_dict, pc, maze, db, tileset):
@@ -89,7 +90,7 @@ def save_char(wins_dict, pc, maze, db, tileset):
         pickle.dump(pc_obj_vars, f)
 
         wins_offsets = {}
-        for win in ('charstats', 'hotbar','inventory','pools', 'skillbook', 'trade'):
+        for win in ('charstats', 'hotbar','inventory','pools', 'skillbook', 'trade', 'stash'):
             wins_offsets[win] = wins_dict[win].offset_x, wins_dict[win].offset_y
         pickle.dump(wins_offsets, f)
 
@@ -97,9 +98,20 @@ def save_char(wins_dict, pc, maze, db, tileset):
 
     restore_char_media(pc, db.cursor, tileset)
 
-    dbrequests.char_save(db, pc.char_sheet.id, pc.hardcore_char, maze.stage_index, maze.stage_dict['label'],
-                         pc.location[0]['label'], pc.char_sheet.level, pc.char_sheet.name, pc.char_sheet.type,
-                         pc.char_portrait_index)
+    if pc.location is not None:
+        location_label = pc.location[0]['label']
+    else:
+        location_label = '-'
+    if maze is None:
+        dbrequests.char_save(db, pc.char_sheet.id, pc.hardcore_char,
+                                 wins_dict['app_title'].savegames[wins_dict['app_title'].save_selection]['stage_index'],
+                                 wins_dict['app_title'].savegames[wins_dict['app_title'].save_selection]['stage_label'],
+                             location_label, pc.char_sheet.level, pc.char_sheet.name, pc.char_sheet.type,
+                             pc.char_portrait_index)
+    else:
+        dbrequests.char_save(db, pc.char_sheet.id, pc.hardcore_char, maze.stage_index, maze.stage_dict['label'],
+                             location_label, pc.char_sheet.level, pc.char_sheet.name, pc.char_sheet.type,
+                             pc.char_portrait_index)
 
 
 def load_char(wins_dict, pc, db_cursor, tileset):
@@ -125,7 +137,7 @@ def load_char(wins_dict, pc, db_cursor, tileset):
         pc.char_portrait_index = pickle.load(f)
         pc_obj_vars = pickle.load(f)
         wins_offsets = pickle.load(f)
-        for win in ('charstats', 'hotbar', 'inventory', 'pools', 'skillbook', 'trade'):
+        for win in ('charstats', 'hotbar', 'inventory', 'pools', 'skillbook', 'trade', 'stash'):
             wins_dict[win].offset_x, wins_dict[win].offset_y = wins_offsets[win]
 
         pc.char_sheet.id = pc_obj_vars['id']
@@ -163,6 +175,64 @@ def char_wipe(db, char_id):
         return
     shutil.rmtree(filename, ignore_errors=True)
     dbrequests.chapter_progress_reset(db, char_id)
+
+
+def common_stash_save(stash, stash_gold, pc, db, tileset):
+    if pc.hardcore_char == 1:
+        stash_name = 'hardcore_commons.pd'
+    elif pc.hardcore_char == 2:
+        return
+    else:
+        stash_name = 'normal_commons.pd'
+
+    filename = "./save/%s" % stash_name
+    os.makedirs(os.path.dirname(filename), exist_ok=True)
+
+    for itm in stash:
+        if itm is None:
+            continue
+        for key in itm.props.keys():
+            if 'image_' in key or 'sound_' in key:
+                itm.props[key] = None
+        if itm.props['use_skill'] is not None:
+            for key in itm.props['use_skill'].props.keys():
+                if 'image_' in key or 'sound_' in key:
+                    itm.props['use_skill'].props[key] = None
+
+    with open(filename, "wb") as f:
+        f.seek(0)
+        pickle.dump(stash, f)
+        pickle.dump(stash_gold, f)
+        f.truncate()
+
+    restore_container_media(stash, db.cursor, tileset)
+
+
+def common_stash_load(pc, db, tileset):
+    if pc.hardcore_char == 1:
+        stash_name = 'hardcore_commons.pd'
+    elif pc.hardcore_char == 2:
+        return None, 0
+    else:
+        stash_name = 'normal_commons.pd'
+
+    filename = "./save/%s" % stash_name
+    if not os.path.exists(filename):
+        stash = itemlist.ItemList(items_max=60, all_to_none=True, filters={
+        'item_types': ['wpn_melee', 'wpn_ranged', 'wpn_magic', 'arm_head', 'arm_chest', 'acc_ring', 'orb_shield',
+                       'orb_ammo', 'orb_source', 'use_wand', 'exp_lockpick', 'exp_tools', 'exp_food', 'exp_key',
+                       'light', 'aug_gem', 'sup_potion']
+        })
+        stash_gold = 0
+        common_stash_save(stash, stash_gold, pc, db, tileset)
+    else:
+        with open(filename, "rb") as f:
+            stash = pickle.load(f)
+            stash_gold = pickle.load(f)
+
+    restore_container_media(stash, db.cursor, tileset, cooldown_reset=True)
+
+    return stash, stash_gold
 
 
 def save_maze(pc, maze, db, tile_sets, animations):
@@ -337,6 +407,19 @@ def restore_char_media(pc, db_cursor, tile_sets, cooldown_reset=False):
             skill.sounds_update(db_cursor, itm.props)
             if cooldown_reset:
                 itm.cooldown_timer = 0
+
+
+def restore_container_media(container, db_cursor, tile_sets, cooldown_reset=False):
+    for itm in container:
+        if itm is None:
+            continue
+        treasure.images_update(db_cursor, itm.props, tile_sets)
+        treasure.sounds_update(db_cursor, itm.props)
+        if itm.props['use_skill'] is not None:
+            if cooldown_reset:
+                itm.props['use_skill'].cooldown_timer = 0
+            skill.images_update(db_cursor, itm.props['use_skill'].props, tile_sets)
+            skill.sounds_update(db_cursor, itm.props['use_skill'].props)
 
 
 def restore_maze_media(pc, maze, db_cursor, tile_sets, animations, cooldown_reset=False):

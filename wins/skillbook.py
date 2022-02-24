@@ -1,7 +1,7 @@
 # char skillbook window
 import pygame
-from library import textinput, pydraw, maths, itemlist, draganddrop
-from components import ui, skillfuncs
+from library import textinput, pydraw, maths
+from components import ui, skillfuncs, draganddrop
 
 
 class SkillBook:
@@ -20,8 +20,8 @@ class SkillBook:
         self.pc = None
         self.win_w = 320
         self.win_h = 510
-        self.offset_x = 8
-        self.offset_y = 8
+        self.offset_x = pygame_settings.screen_res[0] - self.win_w
+        self.offset_y = 16
         self.skb_sckt_total = 36
         self.skb_sockets_list = []
         self.skb_sockets_image = None
@@ -219,7 +219,7 @@ class SkillBook:
             self.render()
 
     def render_slots(self):
-        for win in ('inventory','skillbook', 'hotbar'):
+        for win in ('inventory','skillbook', 'hotbar', 'stash', 'trade'):
             if self.wins_dict[win] in self.active_wins:
                 self.wins_dict[win].render()
 

@@ -6,40 +6,31 @@ class Animations:
         if anim_id == 'anthro_default':
             animation = {
                 'face_north': {
-                    'images': self.get_image('anthro_ragdoll', (24, 24), (0, 1, 2, 3)),
-                    'timings': (8, 8, 8, 8)
+                    'images': self.get_image('anthro_ragdoll', (24, 24), (0, 1, 0, 2)), 'timings': (8, 8, 8, 8)
                 },
                 'face_east': {
-                    'images': self.get_image('anthro_ragdoll', (24, 24), (5, 6, 7, 8)),
-                    'timings': (8, 8, 8, 8)
+                    'images': self.get_image('anthro_ragdoll', (24, 24), (5, 6, 5, 7)), 'timings': (8, 8, 8, 8)
                 },
                 'face_south': {
-                    'images': self.get_image('anthro_ragdoll', (24, 24), (10, 11, 12, 13)),
-                    'timings': (8, 8, 8, 8)
+                    'images': self.get_image('anthro_ragdoll', (24, 24), (10, 11, 10, 12)), 'timings': (8, 8, 8, 8)
                 },
                 'face_west': {
-                    'images': self.get_image('anthro_ragdoll', (24, 24), (15, 16, 17, 18)),
-                    'timings': (8, 8, 8, 8)
+                    'images': self.get_image('anthro_ragdoll', (24, 24), (15, 16, 15, 17)), 'timings': (8, 8, 8, 8)
                 },
                 'act_north': {
-                    'images': self.get_image('anthro_ragdoll', (24, 24), (4,0)),
-                    'timings': (18, 18)
+                    'images': self.get_image('anthro_ragdoll', (24, 24), (3,0)), 'timings': (18, 18)
                 },
                 'act_east': {
-                    'images': self.get_image('anthro_ragdoll', (24, 24), (9,5)),
-                    'timings': (18, 18)
+                    'images': self.get_image('anthro_ragdoll', (24, 24), (8,5)), 'timings': (18, 18)
                 },
                 'act_south': {
-                    'images': self.get_image('anthro_ragdoll', (24, 24), (14,10)),
-                    'timings': (18, 18)
+                    'images': self.get_image('anthro_ragdoll', (24, 24), (13,10)), 'timings': (18, 18)
                 },
                 'act_west': {
-                    'images': self.get_image('anthro_ragdoll', (24, 24), (19,15)),
-                    'timings': (18, 18)
+                    'images': self.get_image('anthro_ragdoll', (24, 24), (18,15)), 'timings': (18, 18)
                 },
                 'lay_down': {
-                    'images': self.get_image('anthro_ragdoll', (24, 24), (20,)),
-                    'timings': (18,)
+                    'images': self.get_image('anthro_ragdoll', (24, 24), (20,)), 'timings': (18,)
                 }
             }
             return animation
@@ -47,6 +38,14 @@ class Animations:
             animation = {
                 'default': {
                     'images': self.get_image('item_effects', (24, 24), (56, 57, 58, 59)),
+                    'timings': (4, 4, 4, 4)
+                }
+            }
+            return animation
+        elif anim_id == 'effect_blood_cloud':
+            animation = {
+                'default': {
+                    'images': self.get_image('item_effects', (24, 24), (60, 61, 62, 63)),
                     'timings': (4, 4, 4, 4)
                 }
             }

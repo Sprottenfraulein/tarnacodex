@@ -2,11 +2,13 @@
 from library import logfun
 
 
-def do_edit(char_unicode, orig_string, maxlen, log=True):
+def do_edit(char_unicode, orig_string, maxlen, letters=True, numbers=True, log=True):
 
     logfun.put(char_unicode, log)
 
-    if char_unicode.isalnum():
+    if ((letters and numbers and char_unicode.isalnum())
+            or (letters and not numbers and char_unicode.isalpha())
+            or (not letters and numbers and char_unicode.isdigit())):
         orig_string += char_unicode
         if maxlen > -1:
             orig_string = orig_string[:maxlen]

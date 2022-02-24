@@ -128,15 +128,15 @@ def treasure_get_by_id(cursor, key_id):
 def treasure_get(cursor, lvl, treasure_group, roll, item_type=None, char_type=None, equipment_type=None, shop=None):
     ex_str = "SELECT treasure_id FROM treasure WHERE (lvl is Null OR lvl<=?) AND treasure_group=? AND roll_chance>=?"
     if item_type is not None:
-        itm_str = ','.join(item_type)
+        itm_str = "'%s'" % "','".join(item_type)
         itm_query = ' AND item_type IN (%s)' % itm_str
         ex_str += itm_query
     if char_type is not None:
-        char_str = ','.join(char_type)
+        char_str = "'%s'" % "','".join(char_type)
         char_query = ' AND char_type IN (%s)' % char_str
         ex_str += char_query
     if equipment_type is not None:
-        eq_str = ','.join(equipment_type)
+        eq_str = "'%s'" % "','".join(equipment_type)
         eq_query = ' AND eq_type IN (%s)' % eq_str
         ex_str += eq_query
     if shop is not None:
@@ -148,7 +148,6 @@ def treasure_get(cursor, lvl, treasure_group, roll, item_type=None, char_type=No
     for row in rows:
         treasure_ids.append(row[0])
     return treasure_ids
-
 
 
 def de_buff_get_mods(cursor, de_buff_id):
@@ -198,6 +197,16 @@ def affix_loot_get_by_id(cursor, key_id):
             de_buff_dict[column_names[i]] = row[i]
         de_buffs_list.append(de_buff_dict)
     return affix_dict, modifiers_list, de_buffs_list
+
+
+def treasure_defaults_get(cursor, character_id):
+    ex_str = "SELECT t.treasure_id FROM treasure t JOIN character_treasure_sets cts ON cts.treasure_id=t.treasure_id WHERE cts.character_id=?"
+    cursor.execute(ex_str, (character_id,))
+    rows = cursor.fetchall()
+    treasure_list = []
+    for row in rows:
+        treasure_list.append(row[0])
+    return treasure_list
 
 
 def treasure_images_get(cursor, treasure_id, grade):
@@ -314,16 +323,12 @@ def skill_get_by_id(cursor, skill_id):
 
 
 def skill_defaults_get(cursor, character_id):
-    ex_str = "SELECT * FROM skills s JOIN character_skill_sets css ON css.skill_id=s.skill_id WHERE css.character_id=?"
+    ex_str = "SELECT s.skill_id FROM skills s JOIN character_skill_sets css ON css.skill_id=s.skill_id WHERE css.character_id=?"
     cursor.execute(ex_str, (character_id,))
     rows = cursor.fetchall()
-    column_names = [column[0] for column in cursor.description]
     skill_list = []
     for row in rows:
-        skill_dict = {}
-        for i in range(0, len(column_names)):
-            skill_dict[column_names[i]] = row[i]
-        skill_list.append(skill_dict)
+        skill_list.append(row[0])
     return skill_list
 
 
