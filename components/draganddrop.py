@@ -67,7 +67,7 @@ def item_move(win, element, mb_event, m_bttn, in_realm, skillfuncs):
                 }
                 win.wins_dict['dialogue'].launch(win.pc)
             elif (
-                    item_info[0] in win.pc.char_sheet.equipped
+                    item_info[0] in win.pc.char_sheet.equipped and item_info[0][item_info[1]].props['lvl'] is not None
                     and item_info[0][item_info[1]].props['lvl'] > win.pc.char_sheet.level
                     or (win.mouse_pointer.drag_item[0][win.mouse_pointer.drag_item[1]] is not None
                         and win.mouse_pointer.drag_item[0] in win.pc.char_sheet.equipped

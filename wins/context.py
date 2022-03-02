@@ -97,8 +97,8 @@ class Context:
 
         # calculating and rendering text
         hl_text = {
-            'gradetype': (
-                    self.resources.grades_loot[item.props['grade']] + ' ' + item.props['class']).capitalize(),
+            'gradetype': '%s %s, lv.%s' % (self.resources.grades_loot[item.props['grade']].capitalize(),
+                                item.props['class'].lower(), item.props['lvl'] or '-'),
             'mainvalue': '%s-%s' % pc.char_sheet.calc_attack_base(weapon=item.props),
             'mv_caption': 'Damage'
         }
@@ -158,8 +158,8 @@ class Context:
 
         # calculating and rendering text
         hl_text = {
-            'gradetype': (
-                    self.resources.grades_loot[item.props['grade']] + ' ' + item.props['class']).capitalize(),
+            'gradetype': '%s %s, lv.%s' % (self.resources.grades_loot[item.props['grade']].capitalize(),
+                                item.props['class'].lower(), item.props['lvl'] or '-'),
             'mainvalue': '%s' % treasure.calc_loot_stat(item.props, 'def_physical'),
             'mv_caption': 'Defence'
         }
@@ -261,9 +261,8 @@ class Context:
 
         # calculating and rendering text
         hl_text = {
-            'gradetype': (
-                    self.resources.grades_loot[item.props['grade']] + ' ' + item.props['class']
-            ).capitalize(),
+            'gradetype': '%s %s, lv.%s' % (self.resources.grades_loot[item.props['grade']].capitalize(),
+                                item.props['class'].lower(), item.props['lvl'] or '-'),
             'mainvalue': '%s' % getattr(skillfuncs, item.props['use_skill'].props['function_name'])(self.wins_dict, None, pc, item.props['use_skill'], (element.tags[0], element.id), just_values=True),
             'mv_caption': 'Points'
         }
@@ -319,8 +318,8 @@ class Context:
 
         # calculating and rendering text
         hl_text = {
-            'gradetype': (
-                    self.resources.grades_loot[item.props['grade']] + ' ' + item.props['class']).capitalize(),
+            'gradetype': '%s %s, lv.%s' % (self.resources.grades_loot[item.props['grade']].capitalize(),
+                                item.props['class'].lower(), item.props['lvl'] or '-'),
             'mainvalue': '%s' % main_value + '%',
             'mv_caption': 'Success rate'
         }
@@ -379,8 +378,8 @@ class Context:
 
         # calculating and rendering text
         hl_text = {
-            'gradetype': (
-                    self.resources.grades_loot[item.props['grade']] + ' ' + item.props['class']).capitalize(),
+            'gradetype': '%s %s, lv.%s' % (self.resources.grades_loot[item.props['grade']].capitalize(),
+                                item.props['class'].lower(), item.props['lvl'] or '-'),
 
         }
         itm_headlines = self.headlines_add(hl_text, info_y)
@@ -496,8 +495,8 @@ class Context:
 
         # calculating and rendering text
         hl_text = {
-            'gradetype': (
-                    self.resources.grades_loot[item.props['grade']] + ' ' + item.props['class']).capitalize(),
+            'gradetype': '%s %s, lv.%s' % (self.resources.grades_loot[item.props['grade']].capitalize(),
+                                item.props['class'].lower(), item.props['lvl'] or '-'),
             'mainvalue': '+%s' % (treasure.calc_loot_stat(item.props, 'prof_light') // 10) + '%',
             'mv_caption': 'Light distance'
         }

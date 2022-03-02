@@ -44,10 +44,10 @@ def launch(pygame_settings, resources, log=False):
 		win.wins_dict = wins_dict
 		win.active_wins = active_wins
 
-	bigloop(pygame_settings, resources, wins_dict, active_wins, mouse_pointer, schedule_man)
+	bigloop(pygame_settings, resources, wins_dict, active_wins, mouse_pointer, schedule_man, tile_sets)
 
 
-def bigloop(pygame_settings, resources, wins_dict, active_wins, mouse_pointer, schedule_man, log=True):
+def bigloop(pygame_settings, resources, wins_dict, active_wins, mouse_pointer, schedule_man, tile_sets, log=True):
 	# adding the first unit to active wins
 	title_win = wins_dict['app_title']
 	active_wins.append(title_win)
@@ -72,10 +72,12 @@ def bigloop(pygame_settings, resources, wins_dict, active_wins, mouse_pointer, s
 					continue
 				if socket.win in active_wins:
 					socket.win.win_rendered.blit(socket.rendered_panel, socket.rendered_rect.topleft)
-					socket.win.win_rendered.fill(resources.colors['gray_darker'], (
+					"""socket.win.win_rendered.fill(resources.colors['gray_darker'], (
 						socket.rendered_rect.left, socket.rendered_rect.top,
 						socket.size[0], socket.size[1] * skill.cooldown_timer // skill.props['cooldown']
-					))
+					))"""
+					socket.win.win_rendered.blit(tile_sets.img_cooldown, (socket.rendered_rect.left + 1, socket.rendered_rect.top + 1),
+													(0, 0, 46, 46 * skill.cooldown_timer // skill.props['cooldown']))
 
 
 		# DRAWING

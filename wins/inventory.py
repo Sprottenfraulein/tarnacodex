@@ -1,7 +1,7 @@
 # char inventory window
 import pygame
 from library import textinput, pydraw, maths
-from components import ui, skillfuncs, draganddrop
+from components import ui, skillfuncs, draganddrop, treasure
 
 
 class Inventory:
@@ -126,7 +126,8 @@ class Inventory:
         if element.id == 'sell_panel' and m_bttn == 1 and mb_event == 'up' and self.mouse_pointer.drag_item is not None:
             item = self.mouse_pointer.drag_item[0][self.mouse_pointer.drag_item[1]]
             if 'treasure_id' in item.props:
-                price = item.props['price_sell'] + item.props['price_sell'] * self.pc.char_sheet.profs['prof_trade'] // 1000
+                price = treasure.calc_loot_stat(item.props, 'price_sell')
+                price = price + price * self.pc.char_sheet.profs['prof_trade'] // 1000
                 self.wins_dict['dialogue'].dialogue_elements = {
                     'header': 'Trade confirmation',
                     'text': 'Sell %s for %s gp.? $n (You may get back recently sold items '
@@ -325,7 +326,8 @@ class Inventory:
         self.wins_dict['trade'].trade_buyback.append(item_container[item_index])
         item_container[item_index].props['price_buy'] = item_container[item_index].props['price_sell']
 
-        self.wins_dict['realm'].pygame_settings.audio.sound('coins_pickup')
+        if price > 0:
+            self.wins_dict['realm'].pygame_settings.audio.sound('coins_pickup')
 
         item_container[item_index] = None
         self.pc.char_sheet.gold_coins += price

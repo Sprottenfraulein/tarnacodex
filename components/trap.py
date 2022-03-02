@@ -57,13 +57,17 @@ class Trap:
                                                    'attack_val_spread': self.dam_val_spread}, None, no_reflect=True, no_evade=True)
         self.mode = -1
         self.visible = 1
-        wins_dict['realm'].spawn_realmtext(None, 'Trap!', (0, 0), None,
-                                           color='fnt_attent', stick_obj=self,
-                                           speed_xy=(0, 0), kill_timer=25, font='large', size=16, frict_y=0)
+        wins_dict['realm'].spawn_realmtext(None, 'Trap!', (0, 0), offset_xy=(0,-24),
+                                           color='fnt_attent', stick_obj=pc,
+                                           speed_xy=(0, 0), kill_timer=240, font='large', size=16, frict_y=0)
         self.image_update()
         pc.state_change(8)
 
-        wins_dict['realm'].particle_list.append(particle.Particle((self.x_sq, self.y_sq), (self.off_x, self.off_y),
+        if self.x_sq is None or self.y_sq is None:
+            x_sq, y_sq = pc.x_sq, pc.y_sq
+        else:
+            x_sq, y_sq = self.x_sq, self.y_sq
+        wins_dict['realm'].particle_list.append(particle.Particle((x_sq, y_sq), (0, 0),
                                                wins_dict['realm'].animations.get_animation('effect_dust_cloud')['default'], 16))
 
     def detect(self, wins_dict, pc):
@@ -72,8 +76,8 @@ class Trap:
         rnd_roll = random.randrange(1, 1001)
         if skill_value + lvl_dif * 250 >= rnd_roll:
             self.visible = 1
-            wins_dict['realm'].spawn_realmtext(None, 'Trapped!', (0, 0), None,
-                                               color='fnt_attent', stick_obj=pc, kill_timer=25)
+            wins_dict['realm'].spawn_realmtext(None, 'Trapped!', (0, 0), offset_xy=(0,-24),
+                                               color='fnt_attent', stick_obj=pc, kill_timer=240)
             return True
         else:
             return False

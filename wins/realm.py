@@ -155,6 +155,7 @@ class Realm:
                 # self.view_maze_y_sq += 1
                 self.pc.move_instr_y = 1
 
+
             if event.key == pygame.K_v:
                 self.view_offset_x_sq = round(self.mouse_pointer.xy[0] / self.square_size / self.square_scale) * -1
                 self.view_offset_y_sq = round(self.mouse_pointer.xy[1] / self.square_size / self.square_scale) * -1

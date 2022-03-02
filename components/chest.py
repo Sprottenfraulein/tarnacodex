@@ -56,8 +56,17 @@ class Chest:
             self.image_update()
             wins_dict['realm'].sound_inrealm('chest_shut', self.x_sq, self.y_sq)
             return True
-        elif self.trap is not None:
-            if not self.trap.detect(wins_dict, pc):
+        elif self.trap is not None and self.trap.mode == 1:
+            if self.trap.visible == 1:
+                wins_dict['dialogue'].dialogue_elements = {
+                    'header': 'Trap caution',
+                    'text': "You are going to trigger the trap! $n Continue?",
+                    'bttn_cancel': 'NO',
+                    'bttn_ok': 'YES'
+                }
+                wins_dict['dialogue'].delayed_action['bttn_ok'] = (self.trap, 'trigger', (wins_dict, pc))
+                wins_dict['dialogue'].launch(pc)
+            elif not self.trap.detect(wins_dict, pc) and self.trap.mode == 1:
                 self.trap.trigger(wins_dict, pc)
             return True
         elif self.lock is None:

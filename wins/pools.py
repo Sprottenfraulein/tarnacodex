@@ -20,6 +20,7 @@ class Pools:
         self.win_ui = ui.UI(pygame_settings, resources, tilesets, db, mouse_pointer)
 
         self.win_header = None
+        self.pools_menu = None
         self.win_w = 210
         self.win_h = 192
         self.offset_x = 0
@@ -50,6 +51,11 @@ class Pools:
     def event_check(self, event, log=True):
         # return True if interaction was made to prevent other windows from responding to this event
         mouse_x, mouse_y = self.mouse_pointer.xy
+
+        if event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_SPACE:
+                self.wins_dict['pools'].toggle_all_wins(self.pc)
+
         if event.type == pygame.MOUSEBUTTONUP or event.type == pygame.MOUSEBUTTONDOWN:
             return self.ui_click(self.win_ui.mouse_actions(mouse_x - self.offset_x, mouse_y - self.offset_y, event))
 
@@ -135,26 +141,77 @@ class Pools:
         self.updated = True
         return True
 
-    def close_all_wins(self, pc):
-        if self.wins_dict['inventory'] in self.active_wins:
+    def toggle_all_wins(self, pc):
+        if (
+                self.wins_dict['inventory'] in self.active_wins
+                or self.wins_dict['skillbook'] in self.active_wins
+                or self.wins_dict['charstats'] in self.active_wins
+        ):
+            self.close_all_wins(pc, hotbar=False)
+        else:
+            self.open_all_wins(pc)
+
+    def open_all_wins(self, pc, inventory=True, skills=True, hotbar=True, charstats=True, options=True):
+        if not self.wins_dict['inventory'] in self.active_wins and inventory:
+            self.wins_dict['inventory'].launch(pc)
+            self.wins_dict['inventory'].updated = True
+            self.active_wins.insert(0, self.wins_dict['inventory'])
+            self.pools_menu[0].mode = 1
+            self.pools_menu[0].render()
+        if not self.wins_dict['skillbook'] in self.active_wins and skills:
+            self.wins_dict['skillbook'].launch(pc)
+            self.wins_dict['skillbook'].updated = True
+            self.active_wins.insert(0, self.wins_dict['skillbook'])
+            self.pools_menu[1].mode = 1
+            self.pools_menu[1].render()
+        if not self.wins_dict['hotbar'] in self.active_wins and hotbar:
+            self.wins_dict['hotbar'].updated = True
+            self.active_wins.insert(0, self.wins_dict['hotbar'])
+            self.pools_menu[2].mode = 1
+            self.pools_menu[2].render()
+        if not self.wins_dict['charstats'] in self.active_wins and charstats:
+            self.wins_dict['charstats'].launch(pc)
+            self.wins_dict['charstats'].updated = True
+            self.active_wins.insert(0, self.wins_dict['charstats'])
+            self.pools_menu[3].mode = 1
+            self.pools_menu[3].render()
+
+        self.pygame_settings.audio.sound(self.resources.sound_presets['button'][2])
+        self.updated = True
+
+    def close_all_wins(self, pc, inventory=True, skills=True, hotbar=True, charstats=True, options=True):
+        if self.wins_dict['inventory'] in self.active_wins and inventory:
             self.active_wins.remove(self.wins_dict['inventory'])
             self.pc.char_sheet.itemlist_cleanall_inventory(self.wins_dict, pc)
             self.wins_dict['inventory'].end()
+            self.pools_menu[0].mode = 0
+            self.pools_menu[0].render()
 
-        if self.wins_dict['skillbook'] in self.active_wins:
+        if self.wins_dict['skillbook'] in self.active_wins and skills:
             self.active_wins.remove(self.wins_dict['skillbook'])
             self.pc.char_sheet.itemlist_cleanall_skills(self.wins_dict, pc)
             self.wins_dict['skillbook'].end()
+            self.pools_menu[1].mode = 0
+            self.pools_menu[1].render()
 
-        if self.wins_dict['hotbar'] in self.active_wins:
+        if self.wins_dict['hotbar'] in self.active_wins and hotbar:
             self.active_wins.remove(self.wins_dict['hotbar'])
+            self.pools_menu[2].mode = 0
+            self.pools_menu[2].render()
 
-        if self.wins_dict['charstats'] in self.active_wins:
+        if self.wins_dict['charstats'] in self.active_wins and charstats:
             self.active_wins.remove(self.wins_dict['charstats'])
             self.wins_dict['charstats'].end()
+            self.pools_menu[3].mode = 0
+            self.pools_menu[3].render()
 
-        if self.wins_dict['options'] in self.active_wins:
+        if self.wins_dict['options'] in self.active_wins and options:
             self.wins_dict['options'].end()
+            self.pools_menu[4].mode = 0
+            self.pools_menu[4].render()
+
+        self.pygame_settings.audio.sound(self.resources.sound_presets['button'][3])
+        self.updated = True
 
     def create_elements(self):
         self.win_ui.decoratives.clear()
@@ -233,7 +290,7 @@ class Pools:
                 bttn_up_img, bttn_down_img
             ))
 
-        pools_menu = (
+        self.pools_menu = (
             self.win_ui.button_add('inv', size=(pools_btn_w, pools_btn_h), cap_size=24, cap_color='fnt_muted',
                                    sounds=self.win_ui.snd_packs['button'], images=bttn_img_list[0], switch=True),
             self.win_ui.button_add('skb', size=(pools_btn_w, pools_btn_h), cap_size=24, cap_color='fnt_muted',
@@ -245,14 +302,14 @@ class Pools:
             self.win_ui.button_add('opts', size=(pools_btn_w, pools_btn_h), cap_size=24, cap_color='fnt_muted',
                                    sounds=self.win_ui.snd_packs['button'], images=bttn_img_list[4]),
         )
-        for i in range(0, len(pools_menu)):
-            pools_menu[i].tags = ['hud']
+        for i in range(0, len(self.pools_menu)):
+            self.pools_menu[i].tags = ['hud']
 
-            pools_menu[i].rendered_rect.left = self.win_w - pools_btn_w - pools_btn_w * (i // bttns_per_col) - 3
-            pools_menu[i].rendered_rect.top = 19 + (pools_btn_h * (i % bttns_per_col))
+            self.pools_menu[i].rendered_rect.left = self.win_w - pools_btn_w - pools_btn_w * (i // bttns_per_col) - 3
+            self.pools_menu[i].rendered_rect.top = 19 + (pools_btn_h * (i % bttns_per_col))
 
         self.win_ui.interactives.append(self.win_header)
-        self.win_ui.interactives.extend(pools_menu)
+        self.win_ui.interactives.extend(self.pools_menu)
         self.win_ui.interactives.append(pl_panel)
 
     def tick(self):
@@ -283,6 +340,7 @@ class Pools:
                                (81, 83 + self.pool_img_h - round(self.pool_img_h * food_rate)))
         self.win_rendered.blit(
             self.exp_pool_img.subsurface((0, 0, round(self.pool_exp_w * exp_rate), self.pool_exp_h)), (17, 152))
+
         self.updated = False
 
     def draw(self, surface):

@@ -125,6 +125,7 @@ class AppTitle:
             self.win_ui.key_focus = None
             if len(self.savegames) < 6 or (len(self.savegames) == 6 and None in self.savegames):
                 self.win_ui.page = 1
+                self.char_name_rnd()
                 self.bttn_hardcore.mode = 0
                 self.bttn_hardcore.render()
         elif element.id == 'delete_char' and m_bttn == 1 and mb_event == 'up' and element.mode == 1:
@@ -213,10 +214,11 @@ class AppTitle:
         elif element.id == 'back' and m_bttn == 1 and mb_event == 'up' and element.mode == 1:
             if self.win_ui.page == 2:
                 self.char_save(self.pc, None)
+                self.clear_quick_view()
+                self.create_savegames()
             self.win_ui.page = 0
             self.win_ui.key_focus = None
-            self.clear_quick_view()
-            self.create_savegames()
+
             self.save_selection = None
 
         elif element.id == 'new_char_begin' and m_bttn == 1 and mb_event == 'up' and element.mode == 1:
@@ -280,8 +282,8 @@ class AppTitle:
                 self.controls_enabled = False
 
                 self.pc.char_sheet.calc_stats()
-                self.pc.char_sheet.hp_get(100, percent=True)
-                self.pc.char_sheet.mp_get(100, percent=True)
+                # self.pc.char_sheet.hp_get(100, percent=True)
+                # self.pc.char_sheet.mp_get(100, percent=True)
                 # self.pc.char_sheet.food_get(100, percent=True)
 
                 self.clear_quick_view()

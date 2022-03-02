@@ -146,7 +146,8 @@ def calc_loot_stat(loot_props, stat_name):
             stat_sum += random.randrange(0, affix['mods'][stat_name]['value_spread'] + 1)
         except KeyError:
             pass
-    stat_sum = condition_mod_rate(stat_sum, loot_props)
+    if stat_name not in ('condition', 'condition_max'):
+        stat_sum = condition_mod_rate(stat_sum, loot_props)
     if equating_modifier is not None:
         return equating_modifier
     else:
@@ -221,17 +222,17 @@ def sounds_update(db_cursor, loot_props):
 
 
 def calc_level(level, base_props, modifier_list, de_buff_list):
-    base_props['price_buy'] = base_props['price_buy'] * level // base_props['lvl']
-    base_props['price_sell'] = base_props['price_sell'] * level // base_props['lvl']
+    base_props['price_buy'] = base_props['price_buy'] * level
+    base_props['price_sell'] = base_props['price_sell'] * level
     for mod in modifier_list:
         if mod['value_scalable'] == 0:
             continue
-        mod['value_base_min'] = mod['value_base_min'] * level // base_props['lvl']
-        mod['value_base_max'] = mod['value_base_max'] * level // base_props['lvl']
+        mod['value_base_min'] = mod['value_base_min'] * level
+        mod['value_base_max'] = mod['value_base_max'] * level
         if mod['value_spread_min'] is None:
             continue
-        mod['value_spread_min'] = mod['value_spread_min'] * level // base_props['lvl'] // 4
-        mod['value_spread_max'] = mod['value_spread_max'] * level // base_props['lvl'] // 4
+        mod['value_spread_min'] = mod['value_spread_min'] * level
+        mod['value_spread_max'] = mod['value_spread_max'] * level
     base_props['lvl'] = level
 
 
@@ -280,8 +281,8 @@ def item_expo_price(loot_props, add_price_expos):
     additional_price_buy = 0
     additional_price_sell = 0
     for ape in add_price_expos:
-        additional_price_buy += loot_props['price_buy'] * (10 ** ape * 10) // 100
-        additional_price_sell += loot_props['price_sell'] * (10 ** ape * 10) // 100
+        additional_price_buy += loot_props['price_buy'] * (ape - 1)
+        additional_price_sell += loot_props['price_sell'] * (ape - 1)
     loot_props['price_buy'] = int(round(loot_props['price_buy'] + additional_price_buy))
     loot_props['price_sell'] = int(round(loot_props['price_sell'] + additional_price_sell))
 

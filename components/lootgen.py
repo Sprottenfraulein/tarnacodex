@@ -14,7 +14,7 @@ def generate_loot(monster, realm, fate_rnd, pc, log=True):
 
     treasure_list = []
     for tr_group, tr_amount in tr_groups:
-        actual_amount = fate_rnd.expo_rnd(0, round(tr_amount * 1.5))
+        actual_amount = fate_rnd.expo_rnd(0, round(tr_amount * 2))
         rnd_roll = random.randrange(0, 10001)
         tr_ids_list = dbrequests.treasure_get(realm.db.cursor, monster.stats['lvl'], tr_group, rnd_roll)
         for i in range(0, actual_amount):

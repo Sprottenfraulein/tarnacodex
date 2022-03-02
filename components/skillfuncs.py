@@ -47,6 +47,11 @@ def attack_default(wins_dict, fate_rnd, pc, skill, item_adress, no_aim=False, ju
     pc.food_change(wins_dict, -5)
     pc.act(wins_dict, (target.x_sq, target.y_sq), skill)
     # realm.pygame_settings.audio.sound(skill.props['sound_use'])
+    if pc.char_sheet.equipped[2][0] is not None:
+        wins_dict['realm'].sound_inrealm(pc.char_sheet.equipped[2][0].props['sound_swing'], target.x_sq, target.y_sq)
+    elif pc.char_sheet.equipped[3][0] is not None:
+        wins_dict['realm'].sound_inrealm(pc.char_sheet.equipped[3][0].props['sound_swing'], target.x_sq, target.y_sq)
+
     return False
 
 
@@ -100,7 +105,12 @@ def shot_default(wins_dict, fate_rnd, pc, skill, item_adress, no_aim=False, just
 
     pc.food_change(wins_dict, -5)
     pc.act(wins_dict, (target.x_sq, target.y_sq), skill)
-    realm.pygame_settings.audio.sound(skill.props['sound_use'])
+
+    if pc.char_sheet.equipped[2][0] is not None:
+        wins_dict['realm'].sound_inrealm(pc.char_sheet.equipped[2][0].props['sound_swing'], target.x_sq, target.y_sq)
+    elif pc.char_sheet.equipped[3][0] is not None:
+        wins_dict['realm'].sound_inrealm(pc.char_sheet.equipped[3][0].props['sound_swing'], target.x_sq, target.y_sq)
+
     return False
 
 

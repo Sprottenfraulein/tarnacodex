@@ -13,10 +13,11 @@ class Stairs:
         if self.dest == 'up':
             if pc.location[1] > 0:
                 pc.location[1] -= 1
-
+                wins_dict['realm'].controls_enabled = False
                 wins_dict['app_title'].location_change(pc, 'down')
             else:
                 wins_dict['app_title'].ending_check(pc)
         elif self.dest == 'down' and pc.location[1] < wins_dict['realm'].maze.chapter['stage_number'] - 1:
             pc.location[1] += 1
+            wins_dict['realm'].controls_enabled = False
             wins_dict['app_title'].location_change(pc, 'up')

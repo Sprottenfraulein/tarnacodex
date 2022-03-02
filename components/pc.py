@@ -156,20 +156,21 @@ class PC:
             realm.view_maze_update(self.x_sq, self.y_sq)
 
             if abs(self.x_sq - self.prev_x_sq) >= 1 or abs(self.y_sq - self.prev_y_sq) >= 1:
-                # visibility update
-                realm.calc_vision_alt()
-                self.prev_x_sq = self.x_sq
-                self.prev_y_sq = self.y_sq
-
                 self.food_change(wins_dict, -2)
 
                 # Light source burns out gradually.
                 if self.char_sheet.equipped[6][0] and not treasure.charge_change(self.char_sheet.equipped[6][0], -2):
                     self.char_sheet.equipped[6][0] = None
                     wins_dict['inventory'].updated = True
+                    self.char_sheet.calc_stats()
                     wins_dict['realm'].spawn_realmtext(None, 'My torch has burnt out...', (0, 0), (0, -24),
-                                                            'fnt_celeb', self, None, 240, 'def_bold', 24)
+                                                       'fnt_celeb', self, None, 240, 'def_bold', 24)
                     wins_dict['realm'].sound_inrealm('fire_putout', self.x_sq, self.y_sq)
+
+                # visibility update
+                realm.calc_vision_alt()
+                self.prev_x_sq = self.x_sq
+                self.prev_y_sq = self.y_sq
 
                 realm.shortlists_update(everything=True)
 
@@ -312,13 +313,14 @@ class PC:
             wins_dict['realm'].pygame_settings.audio.sound('death_%s' % self.char_sheet.type)
             self.char_sheet.gold_coins -= self.char_sheet.gold_coins // 2
 
-            if treasure.condition_equipment_change(self.char_sheet, 100):
+            if treasure.condition_equipment_change(self.char_sheet, -100):
                 self.char_sheet.calc_stats()
 
             if self.hardcore_char:
                 self.hardcore_char = 2
                 wins_dict['demos'].death_hardcore(self, monster.stats, wins_dict['realm'].maze.chapter)
             else:
+                self.char_sheet.hp_get(100, percent=True)
                 wins_dict['demos'].death_soft(self, monster.stats, wins_dict['realm'].maze.chapter)
 
     def add_cooldowns(self, wins_dict, skill_id):

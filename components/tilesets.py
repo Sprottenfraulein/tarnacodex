@@ -14,6 +14,10 @@ class Tilesets:
             except FileNotFoundError:
                 pass
 
+        self.img_cooldown = pygame.Surface((48,48)).convert_alpha()
+        self.img_cooldown.fill((255,255,255))
+        self.img_cooldown.set_alpha(130)
+
     def get_maze_tiles(self, set_id):
         if set_id == 'dung_default':
             tileset = {
