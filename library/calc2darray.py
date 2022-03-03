@@ -26,6 +26,7 @@ def fill2d(array2d, stop_list, orig_xy, xy, max_spaces, max_dist, xy_stop_list=N
         if xy_stop:
             continue
         xy_stop_list.append((abs_x, abs_y))
+    for tile_x, tile_y in spaces_list:
         if r < r_max:
             abs_x, abs_y = xy[0] + tile_x, xy[1] + tile_y
             fill2d(array2d, stop_list, orig_xy, (abs_x, abs_y), max_spaces, max_dist, xy_stop_list, r + 1, r_max)

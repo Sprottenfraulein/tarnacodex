@@ -9,8 +9,8 @@ class Maze:
         self.db = db
         self.animations = animations
 
-        self.MOB_SCALE_RATE = 1.05
-        self.TRAP_SCALE_RATE = 1.05
+        self.MOB_SCALE_RATE = 1.1
+        self.TRAP_SCALE_RATE = 1.1
 
         self.chapter, self.stage_index = pc.location
         self.stage_dict = get_chapter_stage(db, self.chapter, self.stage_index)
@@ -541,6 +541,8 @@ def doors_set(maze, tile_set, db, attack_table_point):
                 if random.randrange(1, 101) <= 50:
                     dr.shut = False
             continue
+        if len(locked_room.doors) == 0:
+            continue
         if random.randrange(1, 101) <= maze.lock_rate:
             if random.randrange(1, 101) <= maze.magic_lock_rate:
                 for dr in locked_room.doors:
@@ -560,6 +562,9 @@ def doors_set(maze, tile_set, db, attack_table_point):
                 locked_room.rating += 100
                 square(maze.array, locked_room.top + 1, locked_room.left + 1, locked_room.bottom, locked_room.right,
                        '0', '0', True)
+        elif len(locked_room.doors) == 1:
+            chest_set(maze, locked_room, tile_set, 1, db, attack_table_point)
+
         if random.randrange(1, 9) <= progression.scale_to_lvl(maze.trap_rate, maze.lvl) and locked_room.doors:
             trap_params_list = dbrequests.trap_params_get(db.cursor, attack_table_point, maze.lvl)
             if not trap_params_list:

@@ -905,7 +905,7 @@ class AppTitle:
 
         self.maze_save(pc, l)
         dbrequests.chapter_progress_set(self.db, pc.char_sheet.id, l.stage_index, 1, 1, 1, 1, 1, 1)
-        pc.tradepost_level = max(l.lvl - 1, pc.tradepost_level)
+        pc.tradepost_level = max(l.lvl, pc.tradepost_level)
         self.char_save(pc, l)
 
         self.wins_dict['realm'].maze = l

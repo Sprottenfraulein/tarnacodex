@@ -60,7 +60,8 @@ class Trap:
         wins_dict['realm'].spawn_realmtext(None, 'Trap!', (0, 0), offset_xy=(0,-24),
                                            color='fnt_attent', stick_obj=pc,
                                            speed_xy=(0, 0), kill_timer=240, font='large', size=16, frict_y=0)
-        self.image_update()
+        if self.images is not None:
+            self.image_update()
         pc.state_change(8)
 
         if self.x_sq is None or self.y_sq is None:
