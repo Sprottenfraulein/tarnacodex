@@ -28,7 +28,9 @@ tilesets = (
     ('char_portraits', 'res/tilesets/char_portraits.png'),
     ('char_portraits_archive', 'res/tilesets/char_portraits_archive.png'),
     ('item_effects', 'res/tilesets/item_effects.png'),
+
     ('anthro_ragdoll', 'res/tilesets/anthro_ragdoll.png'),
+    ('anthro_champion', 'res/tilesets/anthro_champion.png'),
 )
 
 sounds = (

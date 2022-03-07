@@ -1038,7 +1038,14 @@ class AppTitle:
             new_char_id = 0
         char_sheet = charsheet.CharSheet(self.db, new_char_id, chr_name=self.field_charname_edit.text_obj.caption,
                                          chr_type=self.chars[self.char_selection]['char_type'], chr_level=1)
-        p = pc.PC(0, 0, None, self.animations.get_animation('anthro_default'), char_sheet, self.bttn_hardcore.mode, state=0)
+
+        anim = 'anthro_champion'
+        """if char_sheet.type == 'kingslayer':
+            anim = 'anthro_kingslayer'
+        elif char_sheet.type == 'cosmologist':
+            anim = 'anthro_cosmologist'"""
+
+        p = pc.PC(0, 0, None, self.animations.get_animation(anim), char_sheet, self.bttn_hardcore.mode, state=0)
         p.char_portrait_index = self.char_selection
 
         initial_char_stats = dbrequests.char_params_get(self.db.cursor, 'characters', p.char_sheet.type)
@@ -1088,7 +1095,14 @@ class AppTitle:
             char_sheet = charsheet.CharSheet(self.db, self.savegames[self.save_selection]['char_id'],
                                              chr_name=self.field_charname_edit.text_obj.caption,
                                              chr_type=self.chars[self.char_selection]['char_type'], chr_level=1)
-            p = pc.PC(0, 0, None, self.animations.get_animation('anthro_default'), char_sheet, state=0)
+
+            anim = 'anthro_champion'
+            """if char_sheet.type == 'kingslayer':
+                anim = 'anthro_kingslayer'
+            elif char_sheet.type == 'cosmologist':
+                anim = 'anthro_cosmologist'"""
+
+            p = pc.PC(0, 0, None, self.animations.get_animation(anim), char_sheet, state=0)
             p.char_portrait_index = self.savegames[self.save_selection]['char_image_index']
 
             gamesave.load_char(self.wins_dict, p, self.db.cursor, self.win_ui.tilesets)

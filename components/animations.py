@@ -34,6 +34,37 @@ class Animations:
                 }
             }
             return animation
+        if anim_id == 'anthro_champion':
+            animation = {
+                'face_north': {
+                    'images': self.get_image('anthro_champion', (24, 24), (0, 1, 0, 2)), 'timings': (8, 8, 8, 8)
+                },
+                'face_east': {
+                    'images': self.get_image('anthro_champion', (24, 24), (5, 6, 5, 7)), 'timings': (8, 8, 8, 8)
+                },
+                'face_south': {
+                    'images': self.get_image('anthro_champion', (24, 24), (10, 11, 10, 12)), 'timings': (8, 8, 8, 8)
+                },
+                'face_west': {
+                    'images': self.get_image('anthro_champion', (24, 24), (15, 16, 15, 17)), 'timings': (8, 8, 8, 8)
+                },
+                'act_north': {
+                    'images': self.get_image('anthro_champion', (24, 24), (3,0)), 'timings': (18, 18)
+                },
+                'act_east': {
+                    'images': self.get_image('anthro_champion', (24, 24), (8,5)), 'timings': (18, 18)
+                },
+                'act_south': {
+                    'images': self.get_image('anthro_champion', (24, 24), (13,10)), 'timings': (18, 18)
+                },
+                'act_west': {
+                    'images': self.get_image('anthro_champion', (24, 24), (18,15)), 'timings': (18, 18)
+                },
+                'lay_down': {
+                    'images': self.get_image('anthro_champion', (24, 24), (20,)), 'timings': (18,)
+                }
+            }
+            return animation
         elif anim_id == 'effect_dust_cloud':
             animation = {
                 'default': {

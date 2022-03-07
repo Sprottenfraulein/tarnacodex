@@ -21,13 +21,13 @@ def fill2d(array2d, stop_list, orig_xy, xy, max_spaces, max_dist, xy_stop_list=N
             return xy_stop_list
         xy_stop = False
         for flag_name, flag_value in stop_list.items():
-            if getattr(array2d[abs_y][abs_x], flag_name) is flag_value:
+            if getattr(array2d[abs_y][abs_x], flag_name) == flag_value:
                 xy_stop = True
         if xy_stop:
             continue
         xy_stop_list.append((abs_x, abs_y))
     for tile_x, tile_y in spaces_list:
-        if r < r_max:
+        if r < r_max and len(xy_stop_list) < max_spaces:
             abs_x, abs_y = xy[0] + tile_x, xy[1] + tile_y
             fill2d(array2d, stop_list, orig_xy, (abs_x, abs_y), max_spaces, max_dist, xy_stop_list, r + 1, r_max)
     return xy_stop_list
