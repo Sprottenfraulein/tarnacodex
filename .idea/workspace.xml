@@ -25,15 +25,7 @@
     </select>
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="cc130b1c-00f5-48a7-860f-78f09248cfe9" name="Default Changelist" comment="Tables updated">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/components/lootgen.py" beforeDir="false" afterPath="$PROJECT_DIR$/components/lootgen.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/components/maze.py" beforeDir="false" afterPath="$PROJECT_DIR$/components/maze.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/res/data/tables.db" beforeDir="false" afterPath="$PROJECT_DIR$/res/data/tables.db" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/save/normal_commons.pd" beforeDir="false" afterPath="$PROJECT_DIR$/save/normal_commons.pd" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/wins/apptitle.py" beforeDir="false" afterPath="$PROJECT_DIR$/wins/apptitle.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/wins/realm.py" beforeDir="false" afterPath="$PROJECT_DIR$/wins/realm.py" afterDir="false" />
-    </list>
+    <list default="true" id="cc130b1c-00f5-48a7-860f-78f09248cfe9" name="Default Changelist" comment="Tables updated" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -113,13 +105,6 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1642253012991</updated>
-    </task>
-    <task id="LOCAL-00011" summary="Gitignore updated.">
-      <created>1642698358870</created>
-      <option name="number" value="00011" />
-      <option name="presentableId" value="LOCAL-00011" />
-      <option name="project" value="LOCAL" />
-      <updated>1642698358870</updated>
     </task>
     <task id="LOCAL-00012" summary="Gitignore updated.">
       <created>1642698595071</created>
@@ -457,7 +442,14 @@
       <option name="project" value="LOCAL" />
       <updated>1646684436918</updated>
     </task>
-    <option name="localTasksCounter" value="60" />
+    <task id="LOCAL-00060" summary="Minor fixes.">
+      <created>1647172010512</created>
+      <option name="number" value="00060" />
+      <option name="presentableId" value="LOCAL-00060" />
+      <option name="project" value="LOCAL" />
+      <updated>1647172010513</updated>
+    </task>
+    <option name="localTasksCounter" value="61" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -485,7 +477,6 @@
     <option name="oldMeFiltersMigrated" value="true" />
   </component>
   <component name="VcsManagerConfiguration">
-    <MESSAGE value="Chapters and stages implemented, levels transition implemented, maze generation updated, title screen updated, etc." />
     <MESSAGE value="Input field fixes, typography module update, display resize procedure fixed." />
     <MESSAGE value="Character save and load implemented." />
     <MESSAGE value="Savegame works fully as intended. Demo scenes implemented. Preview of character's inventory, skills and stats added. Cooldown works everywhere. A lot of bugs fixed." />
@@ -510,7 +501,8 @@
     <MESSAGE value="Stashes added, armor added, armor calculations fixed, more sounds added, splitter window added." />
     <MESSAGE value="Bug fixes, balance updates, items updates." />
     <MESSAGE value="Mistakes fixes." />
-    <option name="LAST_COMMIT_MESSAGE" value="Mistakes fixes." />
+    <MESSAGE value="Minor fixes." />
+    <option name="LAST_COMMIT_MESSAGE" value="Minor fixes." />
   </component>
   <component name="WindowStateProjectService">
     <state x="604" y="306" key="#com.intellij.fileTypes.FileTypeChooser" timestamp="1643884069606">
@@ -541,42 +533,42 @@
       <screen x="0" y="0" width="1680" height="1010" />
     </state>
     <state x="630" y="259" key="FileChooserDialogImpl/0.0.1680.1010@0.0.1680.1010" timestamp="1643011903942" />
-    <state width="1642" height="162" key="GridCell.Tab.0.bottom" timestamp="1647170288255">
+    <state width="1642" height="162" key="GridCell.Tab.0.bottom" timestamp="1647172198296">
       <screen x="0" y="0" width="1680" height="1010" />
     </state>
-    <state width="1642" height="162" key="GridCell.Tab.0.bottom/0.0.1680.1010@0.0.1680.1010" timestamp="1647170288255" />
-    <state width="1642" height="162" key="GridCell.Tab.0.center" timestamp="1647170288255">
+    <state width="1642" height="162" key="GridCell.Tab.0.bottom/0.0.1680.1010@0.0.1680.1010" timestamp="1647172198296" />
+    <state width="1642" height="162" key="GridCell.Tab.0.center" timestamp="1647172198295">
       <screen x="0" y="0" width="1680" height="1010" />
     </state>
-    <state width="1642" height="162" key="GridCell.Tab.0.center/0.0.1680.1010@0.0.1680.1010" timestamp="1647170288255" />
-    <state width="1642" height="162" key="GridCell.Tab.0.left" timestamp="1647170288254">
+    <state width="1642" height="162" key="GridCell.Tab.0.center/0.0.1680.1010@0.0.1680.1010" timestamp="1647172198295" />
+    <state width="1642" height="162" key="GridCell.Tab.0.left" timestamp="1647172198295">
       <screen x="0" y="0" width="1680" height="1010" />
     </state>
-    <state width="1642" height="162" key="GridCell.Tab.0.left/0.0.1680.1010@0.0.1680.1010" timestamp="1647170288254" />
-    <state width="1642" height="162" key="GridCell.Tab.0.right" timestamp="1647170288255">
+    <state width="1642" height="162" key="GridCell.Tab.0.left/0.0.1680.1010@0.0.1680.1010" timestamp="1647172198295" />
+    <state width="1642" height="162" key="GridCell.Tab.0.right" timestamp="1647172198295">
       <screen x="0" y="0" width="1680" height="1010" />
     </state>
-    <state width="1642" height="162" key="GridCell.Tab.0.right/0.0.1680.1010@0.0.1680.1010" timestamp="1647170288255" />
-    <state width="1642" height="162" key="GridCell.Tab.1.bottom" timestamp="1647170288098">
+    <state width="1642" height="162" key="GridCell.Tab.0.right/0.0.1680.1010@0.0.1680.1010" timestamp="1647172198295" />
+    <state width="1642" height="162" key="GridCell.Tab.1.bottom" timestamp="1647172199748">
       <screen x="0" y="0" width="1680" height="1010" />
     </state>
     <state width="1579" height="154" key="GridCell.Tab.1.bottom/0.0.1600.860@0.0.1600.860" timestamp="1642792337009" />
-    <state width="1642" height="162" key="GridCell.Tab.1.bottom/0.0.1680.1010@0.0.1680.1010" timestamp="1647170288098" />
-    <state width="1642" height="162" key="GridCell.Tab.1.center" timestamp="1647170288098">
+    <state width="1642" height="162" key="GridCell.Tab.1.bottom/0.0.1680.1010@0.0.1680.1010" timestamp="1647172199748" />
+    <state width="1642" height="162" key="GridCell.Tab.1.center" timestamp="1647172199747">
       <screen x="0" y="0" width="1680" height="1010" />
     </state>
     <state width="1579" height="154" key="GridCell.Tab.1.center/0.0.1600.860@0.0.1600.860" timestamp="1642792337008" />
-    <state width="1642" height="162" key="GridCell.Tab.1.center/0.0.1680.1010@0.0.1680.1010" timestamp="1647170288098" />
-    <state width="1642" height="162" key="GridCell.Tab.1.left" timestamp="1647170288098">
+    <state width="1642" height="162" key="GridCell.Tab.1.center/0.0.1680.1010@0.0.1680.1010" timestamp="1647172199747" />
+    <state width="1642" height="162" key="GridCell.Tab.1.left" timestamp="1647172199747">
       <screen x="0" y="0" width="1680" height="1010" />
     </state>
     <state width="1579" height="154" key="GridCell.Tab.1.left/0.0.1600.860@0.0.1600.860" timestamp="1642792337008" />
-    <state width="1642" height="162" key="GridCell.Tab.1.left/0.0.1680.1010@0.0.1680.1010" timestamp="1647170288098" />
-    <state width="1642" height="162" key="GridCell.Tab.1.right" timestamp="1647170288098">
+    <state width="1642" height="162" key="GridCell.Tab.1.left/0.0.1680.1010@0.0.1680.1010" timestamp="1647172199747" />
+    <state width="1642" height="162" key="GridCell.Tab.1.right" timestamp="1647172199748">
       <screen x="0" y="0" width="1680" height="1010" />
     </state>
     <state width="1579" height="154" key="GridCell.Tab.1.right/0.0.1600.860@0.0.1600.860" timestamp="1642792337009" />
-    <state width="1642" height="162" key="GridCell.Tab.1.right/0.0.1680.1010@0.0.1680.1010" timestamp="1647170288098" />
+    <state width="1642" height="162" key="GridCell.Tab.1.right/0.0.1680.1010@0.0.1680.1010" timestamp="1647172199748" />
     <state x="351" y="149" key="SettingsEditor" timestamp="1647085110654">
       <screen x="0" y="0" width="1680" height="1010" />
     </state>
@@ -589,10 +581,10 @@
       <screen x="0" y="0" width="1680" height="1010" />
     </state>
     <state x="680" y="374" key="VCS.EditChangelistDialog/0.0.1680.1010@0.0.1680.1010" timestamp="1642255774149" />
-    <state x="442" y="241" key="Vcs.Push.Dialog.v2" timestamp="1646684440495">
+    <state x="442" y="241" key="Vcs.Push.Dialog.v2" timestamp="1647172017738">
       <screen x="0" y="0" width="1680" height="1010" />
     </state>
-    <state x="442" y="241" key="Vcs.Push.Dialog.v2/0.0.1680.1010@0.0.1680.1010" timestamp="1646684440495" />
+    <state x="442" y="241" key="Vcs.Push.Dialog.v2/0.0.1680.1010@0.0.1680.1010" timestamp="1647172017738" />
     <state width="848" height="513" key="XDebugger.FullValuePopup" timestamp="1644426063569">
       <screen x="0" y="0" width="1680" height="1010" />
     </state>
@@ -609,5 +601,16 @@
       <screen x="0" y="0" width="1680" height="1010" />
     </state>
     <state x="513" y="221" width="672" height="678" key="search.everywhere.popup/0.0.1680.1010@0.0.1680.1010" timestamp="1645909032119" />
+  </component>
+  <component name="XDebuggerManager">
+    <breakpoint-manager>
+      <breakpoints>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/wins/apptitle.py</url>
+          <line>1195</line>
+          <option name="timeStamp" value="1" />
+        </line-breakpoint>
+      </breakpoints>
+    </breakpoint-manager>
   </component>
 </project>

@@ -1191,8 +1191,8 @@ class AppTitle:
 
     def render(self):
         self.win_rendered.fill((10, 10, 10))
-        logo_x = (self.pygame_settings.screen_res[0] - self.logo_w) // 2
-        logo_y = (self.pygame_settings.screen_res[1] // 2 - self.logo_h)
+        logo_x = (self.win_w - self.logo_w) // 2
+        logo_y = (self.win_h // 2 - self.logo_h)
         self.win_rendered.blit(self.logo, (logo_x, logo_y))
         self.win_ui.draw(self.win_rendered)
 
