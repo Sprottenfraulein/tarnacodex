@@ -88,7 +88,7 @@ class Maze:
         flags_update(self, self.flag_array)
 
     def generate_1(self, pc, top, left, bottom, right, min_width, min_height, prop, vert_chance=50):
-        self.rooms = split_build(top, left, bottom, right, min_width, min_height, prop, r_limit=14)
+        self.rooms = split_build(top, left, bottom, right, min_width, min_height, prop, vertical=vert_chance, r_limit=14)
         random.shuffle(self.rooms)
         for i in range(0, len(self.rooms) // 10):
             del self.rooms[0]
@@ -127,7 +127,9 @@ def split_build(top, left, bottom, right, min_width, min_height, prop, vertical=
     room_list = []
     width = right - left
     height = bottom - top
-    if random.randrange(1, 101) <= vertical or (prop and width > height):
+    if random.randrange(0, 8) == 0:
+        room_list.append(room.Room(top, left, bottom, right))
+    elif random.randrange(1, 101) <= vertical or (prop and width > height):
         if width > min_width * 2:
             rnd_slice = random.randrange(min_width, width - min_width + 1)
             room_list.extend(

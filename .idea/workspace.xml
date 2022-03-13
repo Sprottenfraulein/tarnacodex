@@ -27,14 +27,12 @@
   <component name="ChangeListManager">
     <list default="true" id="cc130b1c-00f5-48a7-860f-78f09248cfe9" name="Default Changelist" comment="Tables updated">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/components/animations.py" beforeDir="false" afterPath="$PROJECT_DIR$/components/animations.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/components/flagtile.py" beforeDir="false" afterPath="$PROJECT_DIR$/components/flagtile.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/components/lootgen.py" beforeDir="false" afterPath="$PROJECT_DIR$/components/lootgen.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/library/calc2darray.py" beforeDir="false" afterPath="$PROJECT_DIR$/library/calc2darray.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/components/maze.py" beforeDir="false" afterPath="$PROJECT_DIR$/components/maze.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/res/data/tables.db" beforeDir="false" afterPath="$PROJECT_DIR$/res/data/tables.db" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/res/tilesets/anthro_ragdoll.png" beforeDir="false" afterPath="$PROJECT_DIR$/res/tilesets/anthro_ragdoll.png" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/settings.py" beforeDir="false" afterPath="$PROJECT_DIR$/settings.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/save/normal_commons.pd" beforeDir="false" afterPath="$PROJECT_DIR$/save/normal_commons.pd" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/wins/apptitle.py" beforeDir="false" afterPath="$PROJECT_DIR$/wins/apptitle.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/wins/realm.py" beforeDir="false" afterPath="$PROJECT_DIR$/wins/realm.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -64,7 +62,7 @@
     <property name="TODO_SCOPE" value="All Places" />
     <property name="last_opened_file_path" value="$PROJECT_DIR$/wins" />
     <property name="restartRequiresConfirmation" value="false" />
-    <property name="settings.editor.selected.configurable" value="com.jetbrains.python.configuration.PythonContentEntriesConfigurable" />
+    <property name="settings.editor.selected.configurable" value="project.propVCSSupport.Mappings" />
   </component>
   <component name="RecentsManager">
     <key name="MoveFile.RECENT_KEYS">
@@ -115,20 +113,6 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1642253012991</updated>
-    </task>
-    <task id="LOCAL-00009" summary="Readme updated">
-      <created>1642697832286</created>
-      <option name="number" value="00009" />
-      <option name="presentableId" value="LOCAL-00009" />
-      <option name="project" value="LOCAL" />
-      <updated>1642697832286</updated>
-    </task>
-    <task id="LOCAL-00010" summary="Gitignore updated.">
-      <created>1642698163155</created>
-      <option name="number" value="00010" />
-      <option name="presentableId" value="LOCAL-00010" />
-      <option name="project" value="LOCAL" />
-      <updated>1642698163155</updated>
     </task>
     <task id="LOCAL-00011" summary="Gitignore updated.">
       <created>1642698358870</created>
@@ -459,7 +443,21 @@
       <option name="project" value="LOCAL" />
       <updated>1646335182437</updated>
     </task>
-    <option name="localTasksCounter" value="58" />
+    <task id="LOCAL-00058" summary="Mistakes fixes.">
+      <created>1646684421996</created>
+      <option name="number" value="00058" />
+      <option name="presentableId" value="LOCAL-00058" />
+      <option name="project" value="LOCAL" />
+      <updated>1646684421996</updated>
+    </task>
+    <task id="LOCAL-00059" summary="Mistakes fixes.">
+      <created>1646684436918</created>
+      <option name="number" value="00059" />
+      <option name="presentableId" value="LOCAL-00059" />
+      <option name="project" value="LOCAL" />
+      <updated>1646684436918</updated>
+    </task>
+    <option name="localTasksCounter" value="60" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -543,46 +541,46 @@
       <screen x="0" y="0" width="1680" height="1010" />
     </state>
     <state x="630" y="259" key="FileChooserDialogImpl/0.0.1680.1010@0.0.1680.1010" timestamp="1643011903942" />
-    <state width="1642" height="162" key="GridCell.Tab.0.bottom" timestamp="1646684048011">
+    <state width="1642" height="162" key="GridCell.Tab.0.bottom" timestamp="1647170288255">
       <screen x="0" y="0" width="1680" height="1010" />
     </state>
-    <state width="1642" height="162" key="GridCell.Tab.0.bottom/0.0.1680.1010@0.0.1680.1010" timestamp="1646684048011" />
-    <state width="1642" height="162" key="GridCell.Tab.0.center" timestamp="1646684048011">
+    <state width="1642" height="162" key="GridCell.Tab.0.bottom/0.0.1680.1010@0.0.1680.1010" timestamp="1647170288255" />
+    <state width="1642" height="162" key="GridCell.Tab.0.center" timestamp="1647170288255">
       <screen x="0" y="0" width="1680" height="1010" />
     </state>
-    <state width="1642" height="162" key="GridCell.Tab.0.center/0.0.1680.1010@0.0.1680.1010" timestamp="1646684048011" />
-    <state width="1642" height="162" key="GridCell.Tab.0.left" timestamp="1646684048011">
+    <state width="1642" height="162" key="GridCell.Tab.0.center/0.0.1680.1010@0.0.1680.1010" timestamp="1647170288255" />
+    <state width="1642" height="162" key="GridCell.Tab.0.left" timestamp="1647170288254">
       <screen x="0" y="0" width="1680" height="1010" />
     </state>
-    <state width="1642" height="162" key="GridCell.Tab.0.left/0.0.1680.1010@0.0.1680.1010" timestamp="1646684048011" />
-    <state width="1642" height="162" key="GridCell.Tab.0.right" timestamp="1646684048011">
+    <state width="1642" height="162" key="GridCell.Tab.0.left/0.0.1680.1010@0.0.1680.1010" timestamp="1647170288254" />
+    <state width="1642" height="162" key="GridCell.Tab.0.right" timestamp="1647170288255">
       <screen x="0" y="0" width="1680" height="1010" />
     </state>
-    <state width="1642" height="162" key="GridCell.Tab.0.right/0.0.1680.1010@0.0.1680.1010" timestamp="1646684048011" />
-    <state width="1642" height="162" key="GridCell.Tab.1.bottom" timestamp="1646684047833">
+    <state width="1642" height="162" key="GridCell.Tab.0.right/0.0.1680.1010@0.0.1680.1010" timestamp="1647170288255" />
+    <state width="1642" height="162" key="GridCell.Tab.1.bottom" timestamp="1647170288098">
       <screen x="0" y="0" width="1680" height="1010" />
     </state>
     <state width="1579" height="154" key="GridCell.Tab.1.bottom/0.0.1600.860@0.0.1600.860" timestamp="1642792337009" />
-    <state width="1642" height="162" key="GridCell.Tab.1.bottom/0.0.1680.1010@0.0.1680.1010" timestamp="1646684047833" />
-    <state width="1642" height="162" key="GridCell.Tab.1.center" timestamp="1646684047832">
+    <state width="1642" height="162" key="GridCell.Tab.1.bottom/0.0.1680.1010@0.0.1680.1010" timestamp="1647170288098" />
+    <state width="1642" height="162" key="GridCell.Tab.1.center" timestamp="1647170288098">
       <screen x="0" y="0" width="1680" height="1010" />
     </state>
     <state width="1579" height="154" key="GridCell.Tab.1.center/0.0.1600.860@0.0.1600.860" timestamp="1642792337008" />
-    <state width="1642" height="162" key="GridCell.Tab.1.center/0.0.1680.1010@0.0.1680.1010" timestamp="1646684047832" />
-    <state width="1642" height="162" key="GridCell.Tab.1.left" timestamp="1646684047832">
+    <state width="1642" height="162" key="GridCell.Tab.1.center/0.0.1680.1010@0.0.1680.1010" timestamp="1647170288098" />
+    <state width="1642" height="162" key="GridCell.Tab.1.left" timestamp="1647170288098">
       <screen x="0" y="0" width="1680" height="1010" />
     </state>
     <state width="1579" height="154" key="GridCell.Tab.1.left/0.0.1600.860@0.0.1600.860" timestamp="1642792337008" />
-    <state width="1642" height="162" key="GridCell.Tab.1.left/0.0.1680.1010@0.0.1680.1010" timestamp="1646684047832" />
-    <state width="1642" height="162" key="GridCell.Tab.1.right" timestamp="1646684047832">
+    <state width="1642" height="162" key="GridCell.Tab.1.left/0.0.1680.1010@0.0.1680.1010" timestamp="1647170288098" />
+    <state width="1642" height="162" key="GridCell.Tab.1.right" timestamp="1647170288098">
       <screen x="0" y="0" width="1680" height="1010" />
     </state>
     <state width="1579" height="154" key="GridCell.Tab.1.right/0.0.1600.860@0.0.1600.860" timestamp="1642792337009" />
-    <state width="1642" height="162" key="GridCell.Tab.1.right/0.0.1680.1010@0.0.1680.1010" timestamp="1646684047832" />
-    <state x="351" y="149" key="SettingsEditor" timestamp="1645431929332">
+    <state width="1642" height="162" key="GridCell.Tab.1.right/0.0.1680.1010@0.0.1680.1010" timestamp="1647170288098" />
+    <state x="351" y="149" key="SettingsEditor" timestamp="1647085110654">
       <screen x="0" y="0" width="1680" height="1010" />
     </state>
-    <state x="351" y="149" key="SettingsEditor/0.0.1680.1010@0.0.1680.1010" timestamp="1645431929332" />
+    <state x="351" y="149" key="SettingsEditor/0.0.1680.1010@0.0.1680.1010" timestamp="1647085110654" />
     <state x="378" y="418" key="VCS.ChangelistChooser" timestamp="1642697611405">
       <screen x="0" y="0" width="1680" height="1010" />
     </state>
@@ -591,10 +589,10 @@
       <screen x="0" y="0" width="1680" height="1010" />
     </state>
     <state x="680" y="374" key="VCS.EditChangelistDialog/0.0.1680.1010@0.0.1680.1010" timestamp="1642255774149" />
-    <state x="442" y="241" key="Vcs.Push.Dialog.v2" timestamp="1646335186354">
+    <state x="442" y="241" key="Vcs.Push.Dialog.v2" timestamp="1646684440495">
       <screen x="0" y="0" width="1680" height="1010" />
     </state>
-    <state x="442" y="241" key="Vcs.Push.Dialog.v2/0.0.1680.1010@0.0.1680.1010" timestamp="1646335186354" />
+    <state x="442" y="241" key="Vcs.Push.Dialog.v2/0.0.1680.1010@0.0.1680.1010" timestamp="1646684440495" />
     <state width="848" height="513" key="XDebugger.FullValuePopup" timestamp="1644426063569">
       <screen x="0" y="0" width="1680" height="1010" />
     </state>

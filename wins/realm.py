@@ -408,10 +408,6 @@ class Realm:
 
                         if len(decors) > 1:
                             for k in range(1, len(decors)):
-                                if k == 1 and self.redraw_pc and round(self.pc.x_sq) == ren_pos_x and round(
-                                        self.pc.y_sq) == ren_pos_y:
-                                    self.pc_display(surface, self.ren_x_sq, self.ren_y_sq)
-
                                 if self.redraw_maze_decor:
                                     try:
                                         surface.blit(decors[k],
@@ -461,6 +457,9 @@ class Realm:
                             surface.blit(mon.image[mon.anim_frame],
                                          ((mon.x_sq - self.ren_x_sq - 0.1) * self.square_size + mon.off_x,
                                           (mon.y_sq - self.ren_y_sq - 0.1) * self.square_size + mon.off_y))
+
+                        if self.redraw_pc and round(self.pc.x_sq) == ren_pos_x and round(self.pc.y_sq) == ren_pos_y:
+                            self.pc_display(surface, self.ren_x_sq, self.ren_y_sq)
 
     def pc_display(self, surface, x_sq, y_sq):
         try:

@@ -57,6 +57,7 @@ def generate_gold(monster, realm, fate_rnd, pc):
                                    realm.pygame_settings.audio, fate_rnd)
         amount = new_gold.props['amount'] + new_gold.props['amount'] * gold_pile // 100
         new_gold.props['amount'] = amount * monster.stats['lvl']
+        new_gold.props['amount'] += (new_gold.props['amount'] * pc.char_sheet.profs['prof_findgold'] // 1000)
 
         if new_gold.props['amount'] >= 100000:
             new_gold.props['grade'] = 3

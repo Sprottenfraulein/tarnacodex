@@ -251,6 +251,8 @@ class AppTitle:
                     'bttn_cancel': 'OK'
                 }
                 self.wins_dict['dialogue'].launch(pc)
+            elif self.pc.location is None:
+                self.chapter_begin()
             else:
                 self.win_ui.key_focus = None
                 self.wins_dict['dialogue'].dialogue_elements = {
@@ -761,7 +763,10 @@ class AppTitle:
                 continue
             self.win_ui.interactives.remove(save_block[0])
             for i in save_block[1:]:
-                self.win_ui.decoratives.remove(i)
+                try:
+                    self.win_ui.decoratives.remove(i)
+                except ValueError:
+                    pass
 
         self.save_ui_blocks_list.clear()
 
@@ -835,7 +840,8 @@ class AppTitle:
                                      self.savegames[i]['stage_index'] + 1,),
                                      h_align='center', v_align='top', size=(save_w - 8, 14), cap_color=save_font_color,
                                      cap_font='def_normal', cap_size=24, page=(0,))
-            self.win_ui.decoratives.append(chapter_string)
+            if self.savegames[i]['chapter_label'] != '-':
+                self.win_ui.decoratives.append(chapter_string)
 
             stage_string = \
                 self.win_ui.text_add('stage_string',
@@ -843,7 +849,8 @@ class AppTitle:
                                      caption='%s' % (self.savegames[i]['stage_label'],),
                                      h_align='center', v_align='top', size=(save_w - 8, 14), cap_color=save_font_color,
                                      cap_font='def_normal', cap_size=24, page=(0,))
-            self.win_ui.decoratives.append(stage_string)
+            if self.savegames[i]['chapter_label'] != '-':
+                self.win_ui.decoratives.append(stage_string)
 
             if self.savegames[i]['hardcore_char'] != 0:
                 save_panel = self.win_ui.panel_add(i, (save_x, save_y), (save_w, save_h), images=(save_texture_hardcore,),
