@@ -293,7 +293,7 @@ def monster_get_by_id(cursor, monster_id):
                     de_buff_dict[column_names[i]] = row[i]
                 de_buffs_list.append(de_buff_dict)
             att['de_buffs'] = de_buffs_list
-        return monster_dict
+    return monster_dict
 
 
 def get_monsters(cursor, max_level, max_grade, monster_types, roll):
@@ -354,6 +354,20 @@ def skill_sounds_get(cursor, skill_id, grade):
     for row in rows:
         sounds_dict[row[0]] = row[1]
     return sounds_dict
+
+
+def grade_set_get(cursor, set_id, lvl):
+    ex_str = "SELECT * FROM grade_sets gs JOIN grades g ON gs.grade_id=g.grade_id WHERE set_id=? AND lvl<=?"
+    cursor.execute(ex_str, (set_id, lvl))
+    rows = cursor.fetchall()
+    column_names = [column[0] for column in cursor.description]
+    grades_list = []
+    for row in rows:
+        grade_dict = {}
+        for i in range(0, len(column_names)):
+            grade_dict[column_names[i]] = row[i]
+        grades_list.append(grade_dict)
+    return grades_list
 
 
 def chapter_get_by_id(cursor, chapter_id):

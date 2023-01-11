@@ -404,7 +404,7 @@ def decor_maze(maze, tile_set, flag_array):
 
     decorate(maze, fine_maze, maze_width, maze_height,
              (
-                 ('?', '#', '?'),
+                 ('?', ('#', '+'), '?'),
                  (('.', '0'), '#', ('.', '0')),
                  ('?', ('.', '0'), '?')
              ),
@@ -415,7 +415,7 @@ def decor_maze(maze, tile_set, flag_array):
     decorate(maze, fine_maze, maze_width, maze_height,
              (
                  ('?', ('.', '0'), '?'),
-                 ('#', '#', ('.', '0')),
+                 (('#', '+'), '#', ('.', '0')),
                  ('?', ('.', '0'), '?')
              ),
              (
@@ -672,6 +672,18 @@ def populate(db, maze, pc, animations):
     for mon in monster_list:
         scale_mob(mon, maze.stage_dict['lvl'] or pc.char_sheet.level, maze.MOB_SCALE_RATE)
 
+        # Monster grade definining
+        grade_list = dbrequests.grade_set_get(db.cursor, mon['grade_set_monster'], mon['lvl'])
+        if len(grade_list) > 0:
+            if len(grade_list) > 1:
+                mon['grade'] = pickrandom.items_get([(grade, grade['roll_chance']) for grade in grade_list])[0]
+            else:
+                mon['grade'] = grade_list[0]
+        else:
+            mon['grade'] = None
+        del mon['grade_set_monster']
+        monster_apply_grade(mon)
+
     maze_rnd_pool = [(mon, mon['roll_chance']) for mon in monster_list]
     maze_monster_pool = pickrandom.items_get(maze_rnd_pool, maze.monster_type_amount, log=True)
 
@@ -731,6 +743,15 @@ def scale_mob(mob_stats, level, scale_rate):
     mob_stats['lvl'] = level
 
     return mob_stats
+
+
+def monster_apply_grade(mob_stats):
+    if mob_stats['grade'] is None:
+        return
+    # TODO getting affixes for monster stats
+
+
+    # TODO getting additional attacks in amount equal to number of affixes
 
 
 def flags_create(maze, array):

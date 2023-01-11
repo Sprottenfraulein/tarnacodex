@@ -107,15 +107,16 @@ class Chest:
                                              realm.pygame_settings.audio, realm.resources.fate_rnd)
                 amount = new_gold.props['amount']
                 new_gold.props['amount'] = amount * goods_level_cap * 10
-                if new_gold.props['amount'] >= 100000:
-                    new_gold.props['grade'] = 3
-                elif new_gold.props['amount'] >= 10000:
-                    new_gold.props['grade'] = 2
+                if new_gold.props['amount'] >= 10000:
+                    new_gold.props['grade'] = {'grade_level': 3}
                 elif new_gold.props['amount'] >= 1000:
-                    new_gold.props['grade'] = 1
-                if new_gold.props['grade'] > 0:
-                    treasure.images_update(realm.db.cursor, new_gold.props, realm.tilesets)
-                    treasure.sounds_update(realm.db.cursor, new_gold.props)
+                    new_gold.props['grade'] = {'grade_level': 2}
+                elif new_gold.props['amount'] >= 100:
+                    new_gold.props['grade'] = {'grade_level': 1}
+                else:
+                    new_gold.props['grade'] = {'grade_level': 0}
+                treasure.images_update(realm.db.cursor, new_gold.props, realm.tilesets)
+                treasure.sounds_update(realm.db.cursor, new_gold.props)
                 self.container.append(new_gold)
             self.gp_number = 0
         if self.container is not None and len(self.container) > 0:

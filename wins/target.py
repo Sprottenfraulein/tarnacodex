@@ -57,6 +57,8 @@ class Target:
         self.mob_object = monster
         self.mob_object.aimed = True
         self.mob_title.text_obj.caption = '%s, (%s)' % (monster.stats['label'].capitalize(), monster.stats['lvl'])
+        if monster.stats['grade'] is not None:
+            self.mob_title.text_obj.color = self.resources.colors[monster.stats['grade']['color']]
         self.mob_title.render_all()
 
         self.mon_hp = monster.hp

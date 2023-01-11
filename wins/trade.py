@@ -478,6 +478,9 @@ class Trade:
                     self.trade_bank.append(treasure.Treasure(j, max(1, goods_level_cap + i), self.db.cursor,
                                                              self.tilesets, self.resources, self.pygame_settings.audio,
                                                              self.resources.fate_rnd))
+                    if 'condition' in self.trade_bank[-1].props:
+                        self.trade_bank[-1].props['condition'] = treasure.calc_loot_stat(self.trade_bank[-1].props,
+                                                                                         'condition_max')
         """for i in (5, 6, 9):
             self.trade_bank.append(skill.Skill(i, goods_level_cap, self.db.cursor, self.win_ui.tilesets,
                                                self.win_ui.resources, self.pygame_settings.audio))"""

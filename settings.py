@@ -31,6 +31,8 @@ tilesets = (
 
     ('anthro_ragdoll', 'res/tilesets/anthro_ragdoll.png'),
     ('anthro_champion', 'res/tilesets/anthro_champion.png'),
+
+    ('chapter_thumbs', 'res/tilesets/chapter_thumbs.png')
 )
 
 sounds = (

@@ -90,14 +90,14 @@ class Context:
         self.win_w = 240
 
         # color based on grade
-        decor_color = self.resources.grade_colors[item.props['grade']]
+        decor_color = item.props['grade']['color']
 
         header_caption = treasure.loot_calc_name(item.props).upper()
         context_header, info_y = self.header_add(header_caption, decor_color)
 
         # calculating and rendering text
         hl_text = {
-            'gradetype': '%s %s, lv.%s' % (self.resources.grades_loot[item.props['grade']].capitalize(),
+            'gradetype': '%s %s, lv.%s' % (item.props['grade']['label'].capitalize(),
                                 item.props['class'].lower(), item.props['lvl'] or '-'),
             'mainvalue': '%s-%s' % pc.char_sheet.calc_attack_base(weapon=item.props),
             'mv_caption': 'Damage'
@@ -112,7 +112,7 @@ class Context:
                 [self.decorated_de_buffs(affx['de_buffs']) for affx in item.props['affixes'] if affx['de_buffs']]),
             'desc': (item.props['desc'] + ' '),
             'condition': str('Condition: %s/%s' % (
-            item.props['condition'] // 10, treasure.calc_loot_stat(item.props, 'condition_max') // 10))
+            math.ceil(item.props['condition'] / 10), math.ceil(treasure.calc_loot_stat(item.props, 'condition_max') / 10)))
         }
         if trade:
             body_text['price'] = str('Buy price: %s' % treasure.calc_loot_stat(item.props, 'price_buy'))
@@ -151,14 +151,14 @@ class Context:
         self.win_w = 240
 
         # color based on grade
-        decor_color = self.resources.grade_colors[item.props['grade']]
+        decor_color = item.props['grade']['color']
 
         header_caption = treasure.loot_calc_name(item.props).upper()
         context_header, info_y = self.header_add(header_caption, decor_color)
 
         # calculating and rendering text
         hl_text = {
-            'gradetype': '%s %s, lv.%s' % (self.resources.grades_loot[item.props['grade']].capitalize(),
+            'gradetype': '%s %s, lv.%s' % (item.props['grade']['label'].capitalize(),
                                 item.props['class'].lower(), item.props['lvl'] or '-'),
             'mainvalue': '%s' % treasure.calc_loot_stat(item.props, 'def_physical'),
             'mv_caption': 'Defence'
@@ -173,7 +173,7 @@ class Context:
                 [self.decorated_de_buffs(affx['de_buffs']) for affx in item.props['affixes'] if affx['de_buffs']]),
             'desc': (item.props['desc'] + ' '),
             'condition': str('Condition: %s/%s' % (
-            item.props['condition'] // 10, treasure.calc_loot_stat(item.props, 'condition_max') // 10))
+            math.ceil(item.props['condition'] / 10), math.ceil(treasure.calc_loot_stat(item.props, 'condition_max') / 10)))
         }
         if trade:
             body_text['price'] = str('Buy price: %s' % treasure.calc_loot_stat(item.props, 'price_buy'))
@@ -212,7 +212,7 @@ class Context:
         self.win_w = 320
 
         # color based on grade
-        decor_color = self.resources.grade_colors[item.props['grade']]
+        decor_color = 'azure'
 
         header_caption = item.props['label'].upper()
         context_header, info_y = self.header_add(header_caption, decor_color)
@@ -254,14 +254,14 @@ class Context:
         self.win_w = 240
 
         # color based on grade
-        decor_color = self.resources.grade_colors[item.props['grade']]
+        decor_color = item.props['grade']['color']
 
         header_caption = treasure.loot_calc_name(item.props).upper()
         context_header, info_y = self.header_add(header_caption, decor_color)
 
         # calculating and rendering text
         hl_text = {
-            'gradetype': '%s %s, lv.%s' % (self.resources.grades_loot[item.props['grade']].capitalize(),
+            'gradetype': '%s %s, lv.%s' % (item.props['grade']['label'].capitalize(),
                                 item.props['class'].lower(), item.props['lvl'] or '-'),
             'mainvalue': '%s' % getattr(skillfuncs, item.props['use_skill'].props['function_name'])(self.wins_dict, None, pc, item.props['use_skill'], (element.tags[0], element.id), just_values=True),
             'mv_caption': 'Points'
@@ -311,14 +311,14 @@ class Context:
         self.win_w = 240
 
         # color based on grade
-        decor_color = self.resources.grade_colors[item.props['grade']]
+        decor_color = item.props['grade']['color']
 
         header_caption = treasure.loot_calc_name(item.props).upper()
         context_header, info_y = self.header_add(header_caption, decor_color)
 
         # calculating and rendering text
         hl_text = {
-            'gradetype': '%s %s, lv.%s' % (self.resources.grades_loot[item.props['grade']].capitalize(),
+            'gradetype': '%s %s, lv.%s' % (item.props['grade']['label'].capitalize(),
                                 item.props['class'].lower(), item.props['lvl'] or '-'),
             'mainvalue': '%s' % main_value + '%',
             'mv_caption': 'Success rate'
@@ -371,14 +371,14 @@ class Context:
         self.win_w = 240
 
         # color based on grade
-        decor_color = self.resources.grade_colors[item.props['grade']]
+        decor_color = item.props['grade']['color']
 
         header_caption = treasure.loot_calc_name(item.props).upper()
         context_header, info_y = self.header_add(header_caption, decor_color)
 
         # calculating and rendering text
         hl_text = {
-            'gradetype': '%s %s, lv.%s' % (self.resources.grades_loot[item.props['grade']].capitalize(),
+            'gradetype': '%s %s, lv.%s' % (item.props['grade']['label'].capitalize(),
                                 item.props['class'].lower(), item.props['lvl'] or '-'),
 
         }
@@ -429,7 +429,7 @@ class Context:
         self.win_w = 240
 
         # color based on grade
-        decor_color = self.resources.grade_colors[item.props['grade']]
+        decor_color = item.props['grade']['color']
 
         header_caption = treasure.loot_calc_name(item.props).upper()
         context_header, info_y = self.header_add(header_caption, decor_color)
@@ -437,7 +437,7 @@ class Context:
         # calculating and rendering text
         hl_text = {
             'gradetype': (
-                    self.resources.grades_loot[item.props['grade']] + ' ' + item.props['class']).capitalize(),
+                    item.props['grade']['label'] + ' ' + item.props['class']).capitalize(),
             'mainvalue': '%s' % (item.props['lvl']),
             'mv_caption': 'Level'
         }
@@ -488,14 +488,14 @@ class Context:
         self.win_w = 240
 
         # color based on grade
-        decor_color = self.resources.grade_colors[item.props['grade']]
+        decor_color = item.props['grade']['color']
 
         header_caption = treasure.loot_calc_name(item.props).upper()
         context_header, info_y = self.header_add(header_caption, decor_color)
 
         # calculating and rendering text
         hl_text = {
-            'gradetype': '%s %s, lv.%s' % (self.resources.grades_loot[item.props['grade']].capitalize(),
+            'gradetype': '%s %s, lv.%s' % (item.props['grade']['label'].capitalize(),
                                 item.props['class'].lower(), item.props['lvl'] or '-'),
             'mainvalue': '+%s' % (treasure.calc_loot_stat(item.props, 'prof_light') // 10) + '%',
             'mv_caption': 'Light distance'
@@ -511,7 +511,7 @@ class Context:
             'charges': 'Charge: %s/%s' % (
                 item.props['charge'] // 10, treasure.calc_loot_stat(item.props, 'charge_max') // 10),
             'condition': 'Condition: %s/%s' % (
-                item.props['condition'] // 10, treasure.calc_loot_stat(item.props, 'condition_max') // 10)
+                math.ceil(item.props['condition'] / 10), math.ceil(treasure.calc_loot_stat(item.props, 'condition_max') / 10))
         }
         if trade:
             body_text['price'] = str('Buy price: %s' % treasure.calc_loot_stat(item.props, 'price_buy'))
@@ -623,8 +623,10 @@ class Context:
         mod_list = []
         for mod, vals in mods.items():
             p_n = mod
-            if vals['value_type'] == 2:
-                vb = round(vals['value_base'] // 10, 1)
+            percent = ''
+            if vals['value_type'] in (2, 3):
+                vb = round(vals['value_base'] / 10, 1)
+                percent = '%'
             else:
                 vb = vals['value_base']
             vb_str = str(vb)
@@ -633,16 +635,16 @@ class Context:
             elif vals['value_base'] >= 0 and p_n != 'att_base':
                 vb_str = '+' + vb_str
             if 'value_spread' in vals:
-                if vals['value_type'] == 2:
-                    vs = round((vals['value_base'] + vals['value_spread']) // 10, 1)
+                if vals['value_type'] in (2, 3):
+                    vs = round((vals['value_base'] + vals['value_spread']) / 10, 1)
                 else:
                     vs = vals['value_base'] + vals['value_spread']
                 vs_str = str(vs)
                 if vals['value_base'] < 0 and (vals['value_spread'] + vals['value_base']) > 0:
                     vs_str = '+' + vs_str
-                mod_num = '%s-%s %s' % (vb_str, vs_str, self.resources.stat_captions[p_n])
+                mod_num = '%s-%s%s %s' % (vb_str, vs_str, percent, self.resources.stat_captions[p_n])
             else:
-                mod_num = '%s %s' % (vb_str, self.resources.stat_captions[p_n])
+                mod_num = '%s%s %s' % (vb_str, percent, self.resources.stat_captions[p_n])
             mod_list.append(mod_num)
         return ' $n '.join(mod_list)
 

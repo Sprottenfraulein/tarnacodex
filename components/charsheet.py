@@ -1,6 +1,6 @@
 # Player character game rules stats object.
 from library import maths, itemlist
-from components import dbrequests
+from components import dbrequests, treasure
 
 
 class CharSheet:
@@ -146,13 +146,18 @@ class CharSheet:
         self.gold_coins = 0
         self.base_light = 6
 
-    def calc_hp(self):
-        con_mods = self.equipment_mod('attr_con') + self.buff_mod('attr_con')
+
+    def calc_attr(self, attr_id):
+        attr_mods = self.equipment_mod(attr_id) + self.buff_mod(attr_id)
         try:
-            con_mods += self.modifiers['attr_con']
+            attr_mods += self.modifiers[attr_id]
         except KeyError:
             pass
-        natural_hp = (self.attributes['attr_con'] + con_mods) * 2
+        total_attr = self.attributes[attr_id] + attr_mods
+        return total_attr
+
+    def calc_hp(self):
+        natural_hp = self.calc_natural_hp()
         hp_mods = self.equipment_mod('HP') + self.buff_mod('HP')
         try:
             hp_mods += self.modifiers['HP']
@@ -161,13 +166,16 @@ class CharSheet:
         total_hp = natural_hp + hp_mods
         return total_hp
 
-    def calc_mp(self):
-        int_mods = self.equipment_mod('attr_int') + self.buff_mod('attr_int')
+    def calc_natural_hp(self):
+        con_mods = self.equipment_mod('attr_con') + self.buff_mod('attr_con')
         try:
-            int_mods += self.modifiers['attr_int']
+            con_mods += self.modifiers['attr_con']
         except KeyError:
             pass
-        natural_mp = (self.attributes['attr_int'] + int_mods) * 2
+        return (self.attributes['attr_con'] + con_mods) * 2
+
+    def calc_mp(self):
+        natural_mp = self.calc_natural_mp()
         mp_mods = self.equipment_mod('MP') + self.buff_mod('MP')
         try:
             mp_mods += self.modifiers['MP']
@@ -175,6 +183,14 @@ class CharSheet:
             pass
         total_mp = natural_mp + mp_mods
         return total_mp
+
+    def calc_natural_mp(self):
+        int_mods = self.equipment_mod('attr_int') + self.buff_mod('attr_int')
+        try:
+            int_mods += self.modifiers['attr_int']
+        except KeyError:
+            pass
+        return (self.attributes['attr_int'] + int_mods) * 2
 
     def calc_attack_base(self, weapon=None):
         if weapon is not None:
@@ -230,8 +246,7 @@ class CharSheet:
             dmg_mods += self.modifiers[attack]
         except KeyError:
             pass
-        total_mods = dmg_mods
-        return total_mods
+        return dmg_mods
 
     def calc_defence_melee(self):
         str_mods = self.equipment_mod('attr_str') + self.buff_mod('attr_str')
@@ -293,14 +308,13 @@ class CharSheet:
         total_def = natural_def + def_mods
         return total_def
 
-    def calc_prof(self, prof_id):
+    def calc_prof_mod(self, prof_id):
         prof_mods = self.equipment_mod(prof_id) + self.buff_mod(prof_id)
         try:
             prof_mods += self.modifiers[prof_id]
         except KeyError:
             pass
-        total_prof = self.profs[prof_id] + prof_mods
-        return total_prof
+        return prof_mods
 
     def equipment_mod(self, stat_name):
         mod = 0
@@ -313,11 +327,50 @@ class CharSheet:
                     if 'value_spread' in eq_itm.props['mods'][stat_name]:
                         mod_add += eq_itm.props['mods'][stat_name]['value_spread']
                     mod += self.condition_mod_rate(mod_add, eq_itm.props)
+                for aff in eq_itm.props['affixes']:
+                    mod += self.eq_affix_mod(aff, stat_name)
+                # mod_add = treasure.calc_loot_stat(eq_itm.props, stat_name)
+                # mod += self.condition_mod_rate(mod, eq_itm.props)
         return mod
+
+    def eq_affix_mod(self, affix, stat_name):
+        if stat_name in affix['mods']:
+            if affix['mods'][stat_name]['value_type'] in (1, 3):
+                return affix['mods'][stat_name]['value_base']
+            elif affix['mods'][stat_name]['value_type'] == 2:
+                base_stat = self.get_char_stat(stat_name)
+                return round(base_stat * affix['mods'][stat_name]['value_base'] / 1000)
+        return 0
+
+    def get_char_stat(self, stat_name):
+        for st_gr in (self.attributes, self.profs):
+            if stat_name in st_gr:
+                return st_gr[stat_name]
+        if stat_name == 'def_physical':
+            mod = 0
+            for eq_pos in self.equipped:
+                for eq_itm in eq_pos:
+                    if eq_itm is None:
+                        continue
+                    if stat_name in eq_itm.props['mods']:
+                        mod_add = eq_itm.props['mods'][stat_name]['value_base']
+                        mod += self.condition_mod_rate(mod_add, eq_itm.props)
+            return self.calc_attr('attr_cha') + mod
+        elif stat_name in self.defences:
+            return self.calc_attr('attr_wis')
+        elif stat_name in self.attacks:
+            return 0
+        elif stat_name == 'HP':
+            return self.calc_natural_hp()
+        elif stat_name == 'MP':
+            return self.calc_natural_mp()
+        elif stat_name == 'FOOD':
+            return 1000
+        return 0
 
     def condition_mod_rate(self, mod_add, item_props):
         if 'condition' in item_props:
-            cond_percent = item_props['condition'] * 100 // item_props['condition_max']
+            cond_percent = item_props['condition'] * 100 // treasure.calc_loot_stat(item_props, 'condition_max')
             if cond_percent == 0:
                 result = 0
             elif cond_percent <= 25:
@@ -381,10 +434,14 @@ class CharSheet:
         # (self.modifiers dictionary) will be made later and are not needed here.
         chartype_stats = dbrequests.char_params_get(self.db.cursor, 'characters', self.type)
         for attr_name in self.attributes.keys():
-            self.attributes[attr_name] = chartype_stats[attr_name] + round(max((chartype_stats[attr_name] - 10), 1) * (self.level - 1) * self.attr_rate)
+            attr_base = chartype_stats[attr_name] + round(max((chartype_stats[attr_name] - 10), 1) * (self.level - 1) * self.attr_rate)
+            self.attributes[attr_name] = attr_base
         # Calculating pools
         self.pools['HP'] = self.calc_hp()
         self.pools['MP'] = self.calc_mp()
+        # checking for exceeding values
+        self.hp_get(0)
+        self.mp_get(0)
         # Calculating attacks
         self.attacks['att_base'] = self.calc_attack_base()
         for att in ('att_physical', 'att_fire', 'att_poison', 'att_ice', 'att_lightning', 'att_arcane'):
@@ -397,8 +454,7 @@ class CharSheet:
             self.defences[df] = self.calc_def_elemental(df)
         # Calculating proficiencies
         for prof_name in self.profs.keys():
-            self.profs[prof_name] = chartype_stats[prof_name]
-            self.profs[prof_name] = self.calc_prof(prof_name)
+            self.profs[prof_name] = chartype_stats[prof_name] + self.calc_prof_mod(prof_name)
 
     def hp_get(self, value=100, percent=False):
         hp_mod = value

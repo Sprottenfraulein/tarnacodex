@@ -4,6 +4,7 @@ import pygame
 import os
 import settings
 from library import fate
+from components import dbrequests
 
 
 class ResMan:

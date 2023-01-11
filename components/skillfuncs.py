@@ -8,8 +8,8 @@ def attack_default(wins_dict, fate_rnd, pc, skill, item_adress, no_aim=False, ju
 
     att_val_min, att_val_max = pc.char_sheet.attacks['att_base']
     att_mods = pc.char_sheet.calc_attack_mod('att_physical')
-    att_val_min += (att_val_min * att_mods // 100)  # att_mods comprehended as procents
-    att_val_max += (att_val_min * att_mods // 100)  # att_mods comprehended as procents
+    att_val_min += (att_val_min * att_mods // 1000)  # att_mods comprehended as procents
+    att_val_max += (att_val_max * att_mods // 1000)  # att_mods comprehended as procents
     if just_values:
         if not skill_reqs_check(realm, skill, pc):
             return '-', '-'
@@ -60,8 +60,8 @@ def shot_default(wins_dict, fate_rnd, pc, skill, item_adress, no_aim=False, just
 
     att_val_min, att_val_max = pc.char_sheet.attacks['att_base']
     att_mods = pc.char_sheet.calc_attack_mod('att_physical')
-    att_val_min += (att_val_min * att_mods // 100)  # att_mods comprehended as procents
-    att_val_max += (att_val_min * att_mods // 100)  # att_mods comprehended as procents
+    att_val_min += (att_val_min * att_mods // 1000)  # att_mods comprehended as procents
+    att_val_max += (att_val_max * att_mods // 1000)  # att_mods comprehended as procents
     if just_values:
         if not skill_reqs_check(realm, skill, pc):
             return '-', '-'

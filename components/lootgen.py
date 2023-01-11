@@ -20,7 +20,7 @@ def generate_loot(monster, realm, fate_rnd, pc, log=True):
         for i in range(0, actual_amount):
             rnd_id = tr_ids_list[random.randrange(0, len(tr_ids_list))]
             new_tr = treasure.Treasure(rnd_id, monster.stats['lvl'], realm.db.cursor, realm.tilesets, realm.resources,
-                                       realm.pygame_settings.audio, fate_rnd)
+                                       realm.pygame_settings.audio, fate_rnd, mob_stats=monster.stats)
             treasure.loot_validate(new_tr.props)
             treasure_list.append(new_tr)
 
@@ -59,15 +59,17 @@ def generate_gold(monster, realm, fate_rnd, pc):
         new_gold.props['amount'] = amount * monster.stats['lvl']
         new_gold.props['amount'] += (new_gold.props['amount'] * pc.char_sheet.profs['prof_findgold'] // 1000)
 
-        if new_gold.props['amount'] >= 100000:
-            new_gold.props['grade'] = 3
-        elif new_gold.props['amount'] >= 10000:
-            new_gold.props['grade'] = 2
+        if new_gold.props['amount'] >= 10000:
+            new_gold.props['grade'] = {'grade_level': 3}
         elif new_gold.props['amount'] >= 1000:
-            new_gold.props['grade'] = 1
-        if new_gold.props['grade'] > 0:
-            treasure.images_update(realm.db.cursor, new_gold.props, realm.tilesets)
-            treasure.sounds_update(realm.db.cursor, new_gold.props)
+            new_gold.props['grade'] = {'grade_level': 2}
+        elif new_gold.props['amount'] >= 100:
+            new_gold.props['grade'] = {'grade_level': 1}
+        else:
+            new_gold.props['grade'] = {'grade_level': 0}
+        # if new_gold.props['grade']['grade_level'] > 0:
+        treasure.images_update(realm.db.cursor, new_gold.props, realm.tilesets)
+        treasure.sounds_update(realm.db.cursor, new_gold.props)
 
         treasure_list.append(new_gold)
 

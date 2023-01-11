@@ -1,11 +1,12 @@
 # game items object
-from library import logfun
+from library import logfun, pickrandom
 from components import dbrequests, skill
 import random
 
 
 class Treasure:
-    def __init__(self, treasure_id, level, db_cursor, tile_sets, resources, audio, fate_rnd, x_sq=-1, y_sq=-1, log=True):
+    def __init__(self, treasure_id, lvl, db_cursor, tile_sets, resources, audio, fate_rnd, x_sq=-1, y_sq=-1,
+                 mob_stats=None, log=True):
         self.x_sq = x_sq
         self.y_sq = y_sq
         self.off_x = self.off_y = 0
@@ -16,9 +17,14 @@ class Treasure:
         base_props, modifier_list, de_buff_list = dbrequests.treasure_get_by_id(db_cursor, treasure_id)
 
         if base_props['lvl'] is not None:
-            calc_level(level, base_props, modifier_list, de_buff_list)
+            calc_level(lvl, base_props, modifier_list, de_buff_list)
 
         self.props, add_price_expos = init_props(db_cursor, fate_rnd, base_props, modifier_list, de_buff_list)
+
+        if mob_stats is not None and mob_stats['grade_set_loot'] is not None:
+            calc_grade(db_cursor, mob_stats['grade_set_loot'], base_props, tile_sets, audio, fate_rnd)
+        else:
+            calc_grade(db_cursor, 1, base_props, tile_sets, audio, fate_rnd)
 
         # Attaching a skill if an item is usable.
         if self.props['use_skill'] is not None:
@@ -124,6 +130,7 @@ def init_modifier(parent_dict, mod_dict, fate_rnd):
     return price_expo_rate
 
 
+# USE ONLY FOR LOCAL ITEM PARAMETERS- IT DOES NOT TAKE CHARACTER STATS INTO CALCULATION!
 def calc_loot_stat(loot_props, stat_name):
     # If the variable equating_modifier is set, stat value will be reset to it
     equating_modifier = None
@@ -138,15 +145,22 @@ def calc_loot_stat(loot_props, stat_name):
         stat_sum += random.randrange(0, loot_props['mods'][stat_name]['value_spread'] + 1)
     except KeyError:
         pass
-    for affix in loot_props['affixes']:
-        try:
-            if affix['mods'][stat_name]['value_type'] == 0:
-                equating_modifier = affix['mods'][stat_name]['value_base']
-            stat_sum += affix['mods'][stat_name]['value_base']
-            stat_sum += random.randrange(0, affix['mods'][stat_name]['value_spread'] + 1)
-        except KeyError:
-            pass
-    if stat_name not in ('condition', 'condition_max'):
+    if stat_name not in ('def_physical',):  # Prevent char affixes from affecting item stats.
+        for affix in loot_props['affixes']:
+            try:
+                if affix['mods'][stat_name]['value_type'] == 0:
+                    equating_modifier = affix['mods'][stat_name]['value_base']
+                elif affix['mods'][stat_name]['value_type'] == 2:
+                    mod_percent = affix['mods'][stat_name]['value_base']
+                    if 'value_spread' in affix['mods'][stat_name]:
+                        random.randrange(0, affix['mods'][stat_name]['value_spread'] + 1)
+                    stat_sum += stat_sum * mod_percent // 1000
+                else:
+                    stat_sum += affix['mods'][stat_name]['value_base']
+                    stat_sum += random.randrange(0, affix['mods'][stat_name]['value_spread'] + 1)
+            except KeyError:
+                pass
+    if stat_name not in ('condition', 'condition_max', 'charge', 'charge_max'):
         stat_sum = condition_mod_rate(stat_sum, loot_props)
     if equating_modifier is not None:
         return equating_modifier
@@ -156,7 +170,7 @@ def calc_loot_stat(loot_props, stat_name):
 
 def condition_mod_rate(mod_add, item_props):
     if 'condition' in item_props:
-        cond_percent = item_props['condition'] * 100 // item_props['condition_max']
+        cond_percent = item_props['condition'] * 100 // calc_loot_stat(item_props, 'condition_max')
         if cond_percent == 0:
             result = 0
         elif cond_percent <= 25:
@@ -190,6 +204,7 @@ def loot_calc_name(loot_props):
     full_name = [loot_props['label']]
     for affix in loot_props['affixes']:
         if affix['suffix'] == 1:
+            full_name.append('of')
             full_name.append(affix['label'])
         else:
             full_name.insert(0, affix['label'])
@@ -197,7 +212,11 @@ def loot_calc_name(loot_props):
 
 
 def images_update(db_cursor, loot_props, tile_sets):
-    images_dict = dbrequests.treasure_images_get(db_cursor, loot_props['treasure_id'], loot_props['grade'])
+    images_dict = dbrequests.treasure_images_get(db_cursor, loot_props['treasure_id'],
+                                                 loot_props['grade']['grade_level'])
+    if len(images_dict) == 0:
+        images_dict = dbrequests.treasure_images_get(db_cursor, loot_props['treasure_id'], 0)
+
     try:
         loot_props['image_inventory'] = tile_sets.get_image(images_dict[0]['tileset'],
                                                         (images_dict[0]['width'], images_dict[0]['height']),
@@ -213,7 +232,8 @@ def images_update(db_cursor, loot_props, tile_sets):
 
 
 def sounds_update(db_cursor, loot_props):
-    sounds_dict = dbrequests.treasure_sounds_get(db_cursor, loot_props['treasure_id'], loot_props['grade'])
+    sounds_dict = dbrequests.treasure_sounds_get(db_cursor, loot_props['treasure_id'],
+                                                 loot_props['grade']['grade_level'])
     for snd in ('sound_drop', 'sound_pickup', 'sound_use', 'sound_swing'):
         if snd in sounds_dict:
             loot_props[snd] = sounds_dict[snd]
@@ -236,28 +256,44 @@ def calc_level(level, base_props, modifier_list, de_buff_list):
     base_props['lvl'] = level
 
 
-def calc_grade(db_cursor, grade, loot_props, tile_sets, audio, fate_rnd):
-    affix_ids = set()
-    if grade >= 2:
-        affix_ids.add(roll_affix(db_cursor, grade, loot_props, is_suffix=0))
-    if grade >= 3:
-        affix_ids.add(roll_affix(db_cursor, grade, loot_props, is_suffix=0))
-    if grade > 0:
-        affix_ids.add(roll_affix(db_cursor, grade, loot_props))
-    for aff in affix_ids:
-        affix_add(db_cursor, loot_props, dbrequests.affix_loot_get_by_id(db_cursor, aff), fate_rnd)
+def calc_grade(db_cursor, grade_set_loot, loot_props, tile_sets, audio, fate_rnd):
+    if loot_props['lvl'] is None:
+        lvl = 0
+    else:
+        lvl = loot_props['lvl']
+    grade_list = dbrequests.grade_set_get(db_cursor, grade_set_loot, lvl)
+    if len(grade_list) > 0:
+        if len(grade_list) > 1:
+            loot_props['grade'] = pickrandom.items_get([(grade, grade['roll_chance']) for grade in grade_list])[0]
+        else:
+            loot_props['grade'] = grade_list[0]
+    else:
+        loot_props['grade'] = None
+        return
 
-    images_update(db_cursor, loot_props, tile_sets)
-    sounds_update(db_cursor, loot_props)
+    if loot_props['grade']['affix_amount'] > 0:
+        affix_ids = set()
+        if loot_props['grade']['affix_amount'] >= 2:
+            affix_ids.add(roll_affix(db_cursor, loot_props['grade']['grade_level'], loot_props, is_suffix=0))
+        if loot_props['grade']['affix_amount'] >= 3:
+            affix_ids.add(roll_affix(db_cursor, loot_props['grade']['grade_level'], loot_props, is_suffix=0))
+        affix_ids.add(roll_affix(db_cursor, loot_props['grade']['grade_level'], loot_props))
+        if None in affix_ids:
+            affix_ids.remove(None)
+        for aff in affix_ids:
+            affix_add(db_cursor, loot_props, dbrequests.affix_loot_get_by_id(db_cursor, aff), fate_rnd)
 
-    loot_props['grade'] = grade
+    # images_update(db_cursor, loot_props, tile_sets)
+    # sounds_update(db_cursor, loot_props)
 
 
 def roll_affix(db_cursor, grade, loot_props, is_suffix=None):
     rnd_roll = random.randrange(0, 10001)
     affix_ids = dbrequests.get_affixes(db_cursor, loot_props['lvl'], grade, (loot_props['item_type'],), rnd_roll, is_suffix=is_suffix)
-    final_roll = random.randrange(0, len(affix_ids))
-    return affix_ids[final_roll]
+    if len(affix_ids) > 0:
+        return random.choice(affix_ids)
+    else:
+        return None
 
 
 def condition_equipment_change(char_sheet, value):

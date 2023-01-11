@@ -422,7 +422,7 @@ class CharStats:
             for att_name, att_value in self.pc.char_sheet.attacks.items():
                 av_color = self.resources.colors['fnt_celeb']
                 if isinstance(att_value, int):
-                    av_caption = str(att_value)
+                    av_caption = str(round(att_value / 10, 1)) + '%'
                 else:
                     av_caption = '%s-%s' % (att_value[0], att_value[1])
                 if (self.stat_elements[att_name].text_obj.caption != av_caption or
@@ -441,7 +441,7 @@ class CharStats:
                     else:
                         dv_caption = str(round(def_value / 10, 1)) + '%'
                 else:
-                    dv_caption = str(def_value)
+                    dv_caption = str(def_value) + ''
                 if (self.stat_elements[def_name].text_obj.caption != dv_caption or
                         self.stat_elements[def_name].text_obj.color != dv_color):
                     self.stat_elements[def_name].text_obj.caption = dv_caption
@@ -453,7 +453,7 @@ class CharStats:
 
                 prof_value_percent = prof_value / 10
                 if prof_value_percent == 0:
-                    pv_caption = '-'
+                    pv_caption = '.'
                 elif prof_value_percent.is_integer():
                     pv_caption = '+' * (prof_value_percent > 0) + str(round(prof_value_percent)) + '%'
                 else:

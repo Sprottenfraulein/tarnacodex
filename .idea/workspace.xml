@@ -25,7 +25,29 @@
     </select>
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="cc130b1c-00f5-48a7-860f-78f09248cfe9" name="Default Changelist" comment="Tables updated" />
+    <list default="true" id="cc130b1c-00f5-48a7-860f-78f09248cfe9" name="Default Changelist" comment="Tables updated">
+      <change beforePath="$PROJECT_DIR$/.idea/TARNA CODEX.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/TARNA CODEX.iml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/vcs.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/vcs.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/components/charsheet.py" beforeDir="false" afterPath="$PROJECT_DIR$/components/charsheet.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/components/chest.py" beforeDir="false" afterPath="$PROJECT_DIR$/components/chest.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/components/dbrequests.py" beforeDir="false" afterPath="$PROJECT_DIR$/components/dbrequests.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/components/lootgen.py" beforeDir="false" afterPath="$PROJECT_DIR$/components/lootgen.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/components/maze.py" beforeDir="false" afterPath="$PROJECT_DIR$/components/maze.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/components/skillfuncs.py" beforeDir="false" afterPath="$PROJECT_DIR$/components/skillfuncs.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/components/treasure.py" beforeDir="false" afterPath="$PROJECT_DIR$/components/treasure.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/res/data/tables.db" beforeDir="false" afterPath="$PROJECT_DIR$/res/data/tables.db" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/resman.py" beforeDir="false" afterPath="$PROJECT_DIR$/resman.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/save/hardcore_commons.pd" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/save/lost_commons.pd" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/save/normal_commons.pd" beforeDir="false" afterPath="$PROJECT_DIR$/save/normal_commons.pd" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/settings.py" beforeDir="false" afterPath="$PROJECT_DIR$/settings.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/wins/apptitle.py" beforeDir="false" afterPath="$PROJECT_DIR$/wins/apptitle.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/wins/charstats.py" beforeDir="false" afterPath="$PROJECT_DIR$/wins/charstats.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/wins/context.py" beforeDir="false" afterPath="$PROJECT_DIR$/wins/context.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/wins/target.py" beforeDir="false" afterPath="$PROJECT_DIR$/wins/target.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/wins/trade.py" beforeDir="false" afterPath="$PROJECT_DIR$/wins/trade.py" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -41,6 +63,9 @@
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
   </component>
+  <component name="MarkdownSettingsMigration">
+    <option name="stateVersion" value="1" />
+  </component>
   <component name="ProjectId" id="23jgfDr12TnZQRaW7PMpq4SRjSi" />
   <component name="ProjectLevelVcsManager" settingsEditedManually="true">
     <ConfirmationsSetting value="2" id="Add" />
@@ -49,13 +74,14 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent">
-    <property name="RunOnceActivity.OpenProjectViewOnStart" value="true" />
-    <property name="TODO_SCOPE" value="All Places" />
-    <property name="last_opened_file_path" value="$PROJECT_DIR$/wins" />
-    <property name="restartRequiresConfirmation" value="false" />
-    <property name="settings.editor.selected.configurable" value="project.propVCSSupport.Mappings" />
-  </component>
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;RunOnceActivity.OpenProjectViewOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;last_opened_file_path&quot;: &quot;/home/ezpink/Documents/python/unnamedfinal&quot;,
+    &quot;settings.editor.selected.configurable&quot;: &quot;com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable&quot;
+  }
+}</component>
   <component name="RecentsManager">
     <key name="MoveFile.RECENT_KEYS">
       <recent name="D:\EZpink\Documents\python\unnamedfinal\components" />
@@ -98,6 +124,9 @@
     </recent_temporary>
   </component>
   <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
+  <component name="SvnConfiguration">
+    <configuration>C:\Users\User\AppData\Roaming\Subversion</configuration>
+  </component>
   <component name="TaskManager">
     <task active="true" id="Default" summary="Default task">
       <changelist id="cc130b1c-00f5-48a7-860f-78f09248cfe9" name="Default Changelist" comment="" />
@@ -474,9 +503,11 @@
         </entry>
       </map>
     </option>
-    <option name="oldMeFiltersMigrated" value="true" />
   </component>
   <component name="VcsManagerConfiguration">
+    <ignored-roots>
+      <path value="$PROJECT_DIR$/Unnamed-Final" />
+    </ignored-roots>
     <MESSAGE value="Input field fixes, typography module update, display resize procedure fixed." />
     <MESSAGE value="Character save and load implemented." />
     <MESSAGE value="Savegame works fully as intended. Demo scenes implemented. Preview of character's inventory, skills and stats added. Cooldown works everywhere. A lot of bugs fixed." />
@@ -503,114 +534,5 @@
     <MESSAGE value="Mistakes fixes." />
     <MESSAGE value="Minor fixes." />
     <option name="LAST_COMMIT_MESSAGE" value="Minor fixes." />
-  </component>
-  <component name="WindowStateProjectService">
-    <state x="604" y="306" key="#com.intellij.fileTypes.FileTypeChooser" timestamp="1643884069606">
-      <screen x="0" y="0" width="1680" height="1010" />
-    </state>
-    <state x="604" y="306" key="#com.intellij.fileTypes.FileTypeChooser/0.0.1680.1010@0.0.1680.1010" timestamp="1643884069606" />
-    <state x="520" y="240" key="#com.intellij.openapi.updateSettings.impl.PluginUpdateInfoDialog" timestamp="1642802901619">
-      <screen x="0" y="0" width="1680" height="1010" />
-    </state>
-    <state x="520" y="240" key="#com.intellij.openapi.updateSettings.impl.PluginUpdateInfoDialog/0.0.1680.1010@0.0.1680.1010" timestamp="1642802901619" />
-    <state x="490" y="70" key="CommitChangelistDialog2" timestamp="1642254803053">
-      <screen x="0" y="0" width="1680" height="1010" />
-    </state>
-    <state x="490" y="70" key="CommitChangelistDialog2/0.0.1680.1010@0.0.1680.1010" timestamp="1642254803053" />
-    <state width="1585" height="466" key="DebuggerActiveHint" timestamp="1645880395731">
-      <screen x="0" y="0" width="1680" height="1010" />
-    </state>
-    <state width="1585" height="466" key="DebuggerActiveHint/0.0.1680.1010@0.0.1680.1010" timestamp="1645880395731" />
-    <state width="540" height="442" key="Diff.GoToChangePopup" timestamp="1642697330208">
-      <screen x="0" y="0" width="1680" height="1010" />
-    </state>
-    <state width="540" height="442" key="Diff.GoToChangePopup/0.0.1680.1010@0.0.1680.1010" timestamp="1642697330208" />
-    <state x="110" y="100" width="1480" height="810" key="DiffContextDialog" timestamp="1642697898834">
-      <screen x="0" y="0" width="1680" height="1010" />
-    </state>
-    <state x="110" y="100" width="1480" height="810" key="DiffContextDialog/0.0.1680.1010@0.0.1680.1010" timestamp="1642697898834" />
-    <state x="630" y="259" key="FileChooserDialogImpl" timestamp="1643011903942">
-      <screen x="0" y="0" width="1680" height="1010" />
-    </state>
-    <state x="630" y="259" key="FileChooserDialogImpl/0.0.1680.1010@0.0.1680.1010" timestamp="1643011903942" />
-    <state width="1642" height="162" key="GridCell.Tab.0.bottom" timestamp="1647172198296">
-      <screen x="0" y="0" width="1680" height="1010" />
-    </state>
-    <state width="1642" height="162" key="GridCell.Tab.0.bottom/0.0.1680.1010@0.0.1680.1010" timestamp="1647172198296" />
-    <state width="1642" height="162" key="GridCell.Tab.0.center" timestamp="1647172198295">
-      <screen x="0" y="0" width="1680" height="1010" />
-    </state>
-    <state width="1642" height="162" key="GridCell.Tab.0.center/0.0.1680.1010@0.0.1680.1010" timestamp="1647172198295" />
-    <state width="1642" height="162" key="GridCell.Tab.0.left" timestamp="1647172198295">
-      <screen x="0" y="0" width="1680" height="1010" />
-    </state>
-    <state width="1642" height="162" key="GridCell.Tab.0.left/0.0.1680.1010@0.0.1680.1010" timestamp="1647172198295" />
-    <state width="1642" height="162" key="GridCell.Tab.0.right" timestamp="1647172198295">
-      <screen x="0" y="0" width="1680" height="1010" />
-    </state>
-    <state width="1642" height="162" key="GridCell.Tab.0.right/0.0.1680.1010@0.0.1680.1010" timestamp="1647172198295" />
-    <state width="1642" height="162" key="GridCell.Tab.1.bottom" timestamp="1647172199748">
-      <screen x="0" y="0" width="1680" height="1010" />
-    </state>
-    <state width="1579" height="154" key="GridCell.Tab.1.bottom/0.0.1600.860@0.0.1600.860" timestamp="1642792337009" />
-    <state width="1642" height="162" key="GridCell.Tab.1.bottom/0.0.1680.1010@0.0.1680.1010" timestamp="1647172199748" />
-    <state width="1642" height="162" key="GridCell.Tab.1.center" timestamp="1647172199747">
-      <screen x="0" y="0" width="1680" height="1010" />
-    </state>
-    <state width="1579" height="154" key="GridCell.Tab.1.center/0.0.1600.860@0.0.1600.860" timestamp="1642792337008" />
-    <state width="1642" height="162" key="GridCell.Tab.1.center/0.0.1680.1010@0.0.1680.1010" timestamp="1647172199747" />
-    <state width="1642" height="162" key="GridCell.Tab.1.left" timestamp="1647172199747">
-      <screen x="0" y="0" width="1680" height="1010" />
-    </state>
-    <state width="1579" height="154" key="GridCell.Tab.1.left/0.0.1600.860@0.0.1600.860" timestamp="1642792337008" />
-    <state width="1642" height="162" key="GridCell.Tab.1.left/0.0.1680.1010@0.0.1680.1010" timestamp="1647172199747" />
-    <state width="1642" height="162" key="GridCell.Tab.1.right" timestamp="1647172199748">
-      <screen x="0" y="0" width="1680" height="1010" />
-    </state>
-    <state width="1579" height="154" key="GridCell.Tab.1.right/0.0.1600.860@0.0.1600.860" timestamp="1642792337009" />
-    <state width="1642" height="162" key="GridCell.Tab.1.right/0.0.1680.1010@0.0.1680.1010" timestamp="1647172199748" />
-    <state x="351" y="149" key="SettingsEditor" timestamp="1647085110654">
-      <screen x="0" y="0" width="1680" height="1010" />
-    </state>
-    <state x="351" y="149" key="SettingsEditor/0.0.1680.1010@0.0.1680.1010" timestamp="1647085110654" />
-    <state x="378" y="418" key="VCS.ChangelistChooser" timestamp="1642697611405">
-      <screen x="0" y="0" width="1680" height="1010" />
-    </state>
-    <state x="378" y="418" key="VCS.ChangelistChooser/0.0.1680.1010@0.0.1680.1010" timestamp="1642697611405" />
-    <state x="680" y="374" key="VCS.EditChangelistDialog" timestamp="1642255774149">
-      <screen x="0" y="0" width="1680" height="1010" />
-    </state>
-    <state x="680" y="374" key="VCS.EditChangelistDialog/0.0.1680.1010@0.0.1680.1010" timestamp="1642255774149" />
-    <state x="442" y="241" key="Vcs.Push.Dialog.v2" timestamp="1647172017738">
-      <screen x="0" y="0" width="1680" height="1010" />
-    </state>
-    <state x="442" y="241" key="Vcs.Push.Dialog.v2/0.0.1680.1010@0.0.1680.1010" timestamp="1647172017738" />
-    <state width="848" height="513" key="XDebugger.FullValuePopup" timestamp="1644426063569">
-      <screen x="0" y="0" width="1680" height="1010" />
-    </state>
-    <state width="848" height="513" key="XDebugger.FullValuePopup/0.0.1680.1010@0.0.1680.1010" timestamp="1644426063569" />
-    <state x="648" y="238" key="com.intellij.openapi.vcs.changes.SpecificFilesViewDialog" timestamp="1642698475572">
-      <screen x="0" y="0" width="1680" height="1010" />
-    </state>
-    <state x="648" y="238" key="com.intellij.openapi.vcs.changes.SpecificFilesViewDialog/0.0.1680.1010@0.0.1680.1010" timestamp="1642698475572" />
-    <state x="667" y="418" key="com.intellij.openapi.vcs.update.UpdateOrStatusOptionsDialogupdate-v2" timestamp="1642696749163">
-      <screen x="0" y="0" width="1680" height="1010" />
-    </state>
-    <state x="667" y="418" key="com.intellij.openapi.vcs.update.UpdateOrStatusOptionsDialogupdate-v2/0.0.1680.1010@0.0.1680.1010" timestamp="1642696749163" />
-    <state x="513" y="221" width="672" height="678" key="search.everywhere.popup" timestamp="1645909032119">
-      <screen x="0" y="0" width="1680" height="1010" />
-    </state>
-    <state x="513" y="221" width="672" height="678" key="search.everywhere.popup/0.0.1680.1010@0.0.1680.1010" timestamp="1645909032119" />
-  </component>
-  <component name="XDebuggerManager">
-    <breakpoint-manager>
-      <breakpoints>
-        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/wins/apptitle.py</url>
-          <line>1195</line>
-          <option name="timeStamp" value="1" />
-        </line-breakpoint>
-      </breakpoints>
-    </breakpoint-manager>
   </component>
 </project>

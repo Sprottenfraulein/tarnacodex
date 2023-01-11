@@ -565,7 +565,7 @@ class AppTitle:
                 menu_btn_h * 1.2) * 7
         self.win_ui.interactives.append(self.bttn_hardcore)
 
-        chapter_imgs = self.win_ui.tilesets.get_image('red_glass', (60, 60), (0,))
+        chapter_imgs = self.win_ui.tilesets.get_image('chapter_thumbs', (60, 60), (0,))
         self.chapter_img_panel = self.win_ui.panel_add('chapter_img_panel', (
             self.pygame_settings.screen_res[0] / 2 + (self.pygame_settings.screen_res[0] / 2 - menu_btn_h - menu_btn_w) / 2 - 60,
             chapter_menu[0].rendered_rect.top
@@ -946,7 +946,7 @@ class AppTitle:
     def char_loaded_info_update(self):
         if self.pc.location is not None:
             self.curr_chapter_img_panel.images_update(
-                self.win_ui.tilesets.get_image('red_glass', (60, 60), (self.pc.location[0]['chapter_image_index'],)))
+                self.win_ui.tilesets.get_image('chapter_thumbs', (60, 60), (self.pc.location[0]['chapter_image_index'],)))
             self.curr_chapter_title_string.text_obj.caption = self.pc.location[0]['label'].capitalize()
             self.curr_chapter_title_string.render_all()
             self.curr_chapter_desc_string.text_obj.caption = self.pc.location[0]['desc']
@@ -995,7 +995,7 @@ class AppTitle:
         self.win_ui.updated = True
 
     def chapter_info_update(self):
-        self.chapter_img_panel.images_update(self.win_ui.tilesets.get_image('red_glass', (60,60), (self.chapters[self.chapter_selection]['chapter_image_index'],)))
+        self.chapter_img_panel.images_update(self.win_ui.tilesets.get_image('chapter_thumbs', (60, 60), (self.chapters[self.chapter_selection]['chapter_image_index'],)))
 
         self.chapter_desc_string.text_obj.caption = self.chars[self.chapter_selection]['desc']
         self.chapter_desc_string.render_all()
