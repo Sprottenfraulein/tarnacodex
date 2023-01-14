@@ -533,6 +533,7 @@ def traps_set(maze, attacks_table_point, db, pc):
         maze.traps.append(new_trap)
 
 
+# TODO Grates
 def doors_set(maze, tile_set, db, attack_table_point):
     # lock all rooms that are not corridors
     for locked_room in maze.rooms:

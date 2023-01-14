@@ -72,13 +72,15 @@ class ResMan:
             'prof_bonusexp': 'Experience',
             'prof_range': 'Missile range',
             
-            'condition_max': 'Durability'
+            'condition_max': 'Durability' ,
+            'charge_max': 'Charge'
 
         }
         # Declaring game colors.
         self.colors = {
             'fnt_muted': (200, 50, 0),
             'indigo': (60, 0, 255),
+            'cyan': (200, 255, 255),
             'fnt_normal': (200, 100, 0),
             'fnt_header': (250, 150, 0),
             'pink': (255, 200, 200),
@@ -133,7 +135,8 @@ class ResMan:
                 'switch_click_release',
             ),
             'damage': {
-                'att_physical': 'hit_physical'
+                'att_physical': 'hit_physical',
+                'att_arcane': 'fire_putout'
             }
         }
 

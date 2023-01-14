@@ -66,6 +66,11 @@ class CharSheet:
             'att_arcane': 'def_arcane'
         }
         # self.attack_speed = 0
+        self.ammo_classes_dict = {
+            'stones': 'sling',
+            'arrows': 'bow',
+            'bolts': 'x-bow'
+        }
 
         self.skills = itemlist.ItemList(items_max=36,  all_to_none=True, filters={
             'item_types': ['skill_melee', 'skill_ranged', 'skill_magic', 'skill_craft', 'skill_misc']
@@ -323,6 +328,8 @@ class CharSheet:
                 if eq_itm is None:
                     continue
                 if stat_name in eq_itm.props['mods']:
+                    if eq_itm.props['item_type'] == 'orb_ammo' and not self.ammo_has_weapon(eq_itm.props):
+                        continue
                     mod_add = eq_itm.props['mods'][stat_name]['value_base']
                     if 'value_spread' in eq_itm.props['mods'][stat_name]:
                         mod_add += eq_itm.props['mods'][stat_name]['value_spread']
@@ -332,6 +339,13 @@ class CharSheet:
                 # mod_add = treasure.calc_loot_stat(eq_itm.props, stat_name)
                 # mod += self.condition_mod_rate(mod, eq_itm.props)
         return mod
+
+    def ammo_has_weapon(self, itm_props):
+        weapon = self.equipped[2][0]
+        if weapon is not None and  self.ammo_classes_dict[itm_props['class']] == weapon.props['class']:
+            return True
+        return False
+
 
     def eq_affix_mod(self, affix, stat_name):
         if stat_name in affix['mods']:

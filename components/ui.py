@@ -287,6 +287,11 @@ class UI:
                                                 self.resources.colors['fnt_celeb'],
                                                 self.resources.colors['transparent'],
                                                 'left', 'top', size[0], 0)
+        if 'amount' in text_dict:
+            text_dict['amount'] = typography.Typography(self.pygame_settings, text_dict['amount'], (0, 0), 'def_normal', 24,
+                                                self.resources.colors['fnt_celeb'],
+                                                self.resources.colors['transparent'],
+                                                'left', 'top', size[0], 0)
         if 'price' in text_dict:
             text_dict['price'] = typography.Typography(self.pygame_settings, text_dict['price'], (0, 0), 'def_normal', 24,
                                           self.resources.colors['bright_gold'],
@@ -336,6 +341,17 @@ class UI:
         new_rich = fieldrich.FieldRich(self.resources, context_id, xy, size, fr_images=images, text_dict=info_text,
                                        par_div_height=par_div_height, img_stretch=img_stretch)
         return new_rich
+
+    def text_surface(self, caption, cap_font, cap_size, cap_color, cap_bgcolor, h_align, v_align, width, height,
+                     cap_shadow=False):
+        new_text = typography.Typography(self.pygame_settings, caption, (0, 0), cap_font, cap_size, cap_color,
+                                        cap_bgcolor, h_align, v_align, width, height, shadow=cap_shadow)
+        return new_text.rendered_text
+
+    def blit_item_counter(self, surface, xy, amount):
+        counter_surface = self.text_surface(str(amount), 'def_normal', 24, self.resources.colors['fnt_celeb'],
+                                            self.resources.colors['transparent'], 'left', 'top', 24, 12)
+        surface.blit(counter_surface, xy)
 
     def element_align(self, element, origin_xy, view_rect):
         """if origin_xy[0] - view_rect.left < element.rendered_rect.width:

@@ -283,11 +283,14 @@ class Hotbar:
                         if 'condition' in self.pc.char_sheet.hotbar[s_ind].props:
                             cond = self.pc.char_sheet.hotbar[s_ind].props['condition']
                             c_p_level = self.pc.char_sheet.hotbar[s_ind].CONDITION_PENALTY_LEVEL
-                            if (self.pc.char_sheet.hotbar[s_ind].props['condition']
-                                    <= self.pc.char_sheet.hotbar[s_ind].CONDITION_PENALTY_LEVEL):
+                            if cond <= c_p_level:
                                 cond_y = cond * 150 // c_p_level
                                 pygame.draw.rect(self.hot_sockets_list[s_ind].rendered_panel, (255,cond_y,0),
                                                  self.hot_sockets_list[s_ind].rendered_panel.get_rect(), width=1)
+                        if 'charge' in self.pc.char_sheet.hotbar[s_ind].props:
+                            self.pygame_settings.text_font.render_to(self.hot_sockets_list[s_ind].rendered_panel,
+                                                     (36, 6), str(self.pc.char_sheet.hotbar[s_ind].props['charge']),
+                                                     fgcolor=self.resources.colors['cyan'])
 
         self.win_ui.draw(self.win_rendered)
         self.updated = False

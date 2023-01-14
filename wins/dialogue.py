@@ -72,8 +72,16 @@ class Dialogue:
 
                 self.win_ui.key_focus.render_all()
                 self.win_ui.updated = True
-            elif event.key == pygame.K_SPACE:
-                pass
+            elif event.key in (pygame.K_RETURN, pygame.K_KP_ENTER, pygame.K_SPACE):
+                if 'bttn_ok' in self.delayed_action:
+                    getattr(self.delayed_action['bttn_ok'][0],
+                            self.delayed_action['bttn_ok'][1])(*self.delayed_action['bttn_ok'][2])
+                self.end()
+            elif event.key == pygame.K_ESCAPE:
+                if 'bttn_cancel' in self.delayed_action:
+                    getattr(self.delayed_action['bttn_cancel'][0],
+                            self.delayed_action['bttn_cancel'][1])(*self.delayed_action['bttn_cancel'][2])
+                self.end()
 
         # return True if interaction was made to prevent other windows from responding to this event
         if event.type == pygame.MOUSEBUTTONUP or event.type == pygame.MOUSEBUTTONDOWN:

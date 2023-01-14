@@ -367,12 +367,18 @@ class Inventory:
                         if 'condition' in self.pc.char_sheet.inventory[s_ind].props:
                             cond = self.pc.char_sheet.inventory[s_ind].props['condition']
                             c_p_level = self.pc.char_sheet.inventory[s_ind].CONDITION_PENALTY_LEVEL
-                            if ('condition' in self.pc.char_sheet.inventory[s_ind].props
-                                    and self.pc.char_sheet.inventory[s_ind].props['condition']
-                                    <= self.pc.char_sheet.inventory[s_ind].CONDITION_PENALTY_LEVEL):
+                            if cond <= c_p_level:
                                 cond_y = cond * 150 // c_p_level
                                 pygame.draw.rect(self.inv_sockets_list[s_ind].rendered_panel, (255,cond_y,0),
                                                  self.inv_sockets_list[s_ind].rendered_panel.get_rect(), width=1)
+                        elif 'amount' in self.pc.char_sheet.inventory[s_ind].props:
+                            self.pygame_settings.text_font.render_to(self.inv_sockets_list[s_ind].rendered_panel,
+                                                     (5, 34), str(self.pc.char_sheet.inventory[s_ind].props['amount']),
+                                                     fgcolor=self.resources.colors['fnt_celeb'])
+                        elif 'charge' in self.pc.char_sheet.inventory[s_ind].props:
+                            self.pygame_settings.text_font.render_to(self.inv_sockets_list[s_ind].rendered_panel,
+                                                     (36, 5), str(self.pc.char_sheet.inventory[s_ind].props['charge']),
+                                                     fgcolor=self.resources.colors['cyan'])
             if eq:
                 for s_ind in range(0, len(self.eq_sockets_list)):
                     if len(self.pc.char_sheet.equipped[s_ind]) == 0 or self.pc.char_sheet.equipped[s_ind][0] is None:
@@ -383,12 +389,18 @@ class Inventory:
                         if 'condition' in self.pc.char_sheet.equipped[s_ind][0].props:
                             cond = self.pc.char_sheet.equipped[s_ind][0].props['condition']
                             c_p_level = self.pc.char_sheet.equipped[s_ind][0].CONDITION_PENALTY_LEVEL
-                            if ('condition' in self.pc.char_sheet.equipped[s_ind][0].props
-                                    and self.pc.char_sheet.equipped[s_ind][0].props['condition']
-                                    <= self.pc.char_sheet.equipped[s_ind][0].CONDITION_PENALTY_LEVEL):
+                            if cond <= c_p_level:
                                 cond_y = cond * 150 // c_p_level
                                 pygame.draw.rect(self.eq_sockets_list[s_ind].rendered_panel, (255, cond_y,0),
                                                  self.eq_sockets_list[s_ind].rendered_panel.get_rect(), width=1)
+                        elif 'amount' in self.pc.char_sheet.equipped[s_ind][0].props:
+                            self.pygame_settings.text_font.render_to(self.eq_sockets_list[s_ind].rendered_panel,
+                                                     (5, 34), str(self.pc.char_sheet.equipped[s_ind][0].props['amount']),
+                                                     fgcolor=self.resources.colors['fnt_celeb'])
+                        elif 'charge' in self.pc.char_sheet.equipped[s_ind][0].props:
+                            self.pygame_settings.text_font.render_to(self.eq_sockets_list[s_ind].rendered_panel,
+                                                     (36, 5), str(self.pc.char_sheet.equipped[s_ind][0].props['charge']),
+                                                     fgcolor=self.resources.colors['cyan'])
 
         self.win_ui.draw(self.win_rendered)
         self.updated = False

@@ -223,18 +223,28 @@ class AppTitle:
 
         elif element.id == 'new_char_begin' and m_bttn == 1 and mb_event == 'up' and element.mode == 1:
             self.win_ui.key_focus = None
-            self.controls_enabled = False
 
-            self.char_create()
+            if self.chapters[self.chapter_selection]['lvl'] > 0:
+                self.wins_dict['dialogue'].dialogue_elements = {
+                    'header': 'Attention',
+                    'text': 'This chapter is for characters with level %s and higher!' % (self.chapters[self.chapter_selection]['lvl']),
+                    'bttn_cancel': 'OK'
+                }
+                self.wins_dict['dialogue'].launch(pc)
+            else:
 
-            self.pc.char_sheet.calc_stats()
-            self.pc.char_sheet.hp_get(100, percent=True)
-            self.pc.char_sheet.mp_get(100, percent=True)
-            self.pc.char_sheet.food_get(100, percent=True)
+                self.char_create()
 
-            self.pc.location = [self.chapters[self.chapter_selection], 0]
+                self.controls_enabled = False
 
-            self.location_change(self.pc, 'up', launch=True, new_chapter=True)
+                self.pc.char_sheet.calc_stats()
+                self.pc.char_sheet.hp_get(100, percent=True)
+                self.pc.char_sheet.mp_get(100, percent=True)
+                self.pc.char_sheet.food_get(100, percent=True)
+
+                self.pc.location = [self.chapters[self.chapter_selection], 0]
+
+                self.location_change(self.pc, 'up', launch=True, new_chapter=True)
 
         elif element.id == 'begin_chapter' and m_bttn == 1 and mb_event == 'up' and element.mode == 1:
             if self.pc is None:
@@ -252,17 +262,33 @@ class AppTitle:
                 }
                 self.wins_dict['dialogue'].launch(pc)
             elif self.pc.location is None:
-                self.chapter_begin()
+                if self.chapter_level_check(self.pc, self.chapters[self.chapter_selection]):
+                    self.chapter_begin()
+                else:
+                    self.wins_dict['dialogue'].dialogue_elements = {
+                        'header': 'Attention',
+                        'text': '%s has to be level %s for the chapter!' % (self.pc.char_sheet.name, self.chapters[self.chapter_selection]['lvl']),
+                        'bttn_cancel': 'OK'
+                    }
+                    self.wins_dict['dialogue'].launch(pc)
             else:
-                self.win_ui.key_focus = None
-                self.wins_dict['dialogue'].dialogue_elements = {
-                    'header': 'Attention',
-                    'text': 'All existing chapter progress will be erased! $n Continue?',
-                    'bttn_cancel': 'NO',
-                    'bttn_ok': 'YES'
-                }
-                self.wins_dict['dialogue'].delayed_action['bttn_ok'] = (self, 'chapter_begin', ())
-                self.wins_dict['dialogue'].launch(pc)
+                if not self.chapter_level_check(self.pc, self.chapters[self.chapter_selection]):
+                    self.wins_dict['dialogue'].dialogue_elements = {
+                        'header': 'Attention',
+                        'text': '%s has to be level %s for the chapter!' % (self.pc.char_sheet.name, self.chapters[self.chapter_selection]['lvl']),
+                        'bttn_cancel': 'OK'
+                    }
+                    self.wins_dict['dialogue'].launch(pc)
+                else:
+                    self.win_ui.key_focus = None
+                    self.wins_dict['dialogue'].dialogue_elements = {
+                        'header': 'Attention',
+                        'text': 'All existing chapter progress will be erased! $n Continue?',
+                        'bttn_cancel': 'NO',
+                        'bttn_ok': 'YES'
+                    }
+                    self.wins_dict['dialogue'].delayed_action['bttn_ok'] = (self, 'chapter_begin', ())
+                    self.wins_dict['dialogue'].launch(pc)
 
         elif element.id == 'continue_chapter' and m_bttn == 1 and mb_event == 'up' and element.mode == 1:
             if self.pc is None:
@@ -789,13 +815,13 @@ class AppTitle:
                                      self.win_ui.resources.colors['gray_dark'],
                                      (0, 254, 0),
                                      self.win_ui.resources.colors['black']),
-                                    sq_outsize=1, sq_bsize=2, sq_ldir=0, sq_fill=True)
+                                    sq_outsize=2, sq_bsize=2, sq_ldir=0, sq_fill=True)
         bttn_img_down = pydraw.square((0, 0), (save_w, save_h),
                                       (self.win_ui.resources.colors['gray_light'],
                                        self.win_ui.resources.colors['gray_dark'],
                                        (0, 254, 0),
                                        self.win_ui.resources.colors['sun']),
-                                      sq_outsize=1, sq_bsize=2, sq_ldir=0, sq_fill=True)
+                                      sq_outsize=2, sq_bsize=2, sq_ldir=0, sq_fill=True)
         for i in range(0, min(saves_total, len(self.savegames))):
             save_x = saves_left + (save_w + 8) * (i % saves_per_row)
             save_y = saves_top + (save_h + 8) * (i // saves_per_row)
@@ -951,7 +977,7 @@ class AppTitle:
             self.curr_chapter_title_string.render_all()
             self.curr_chapter_desc_string.text_obj.caption = self.pc.location[0]['desc']
             self.curr_chapter_desc_string.render_all()
-            self.curr_chapter_stage_string.text_obj.caption = 'Level %s: $n %s' % (
+            self.curr_chapter_stage_string.text_obj.caption = 'Stage %s: $n %s' % (
                 self.pc.location[1] + 1, self.savegames[self.save_selection]['stage_label'])
             self.curr_chapter_img_panel.page = (2,)
             self.curr_chapter_desc_string.page = (2,)
@@ -994,13 +1020,24 @@ class AppTitle:
         self.win_ui.page = 2
         self.win_ui.updated = True
 
+    def chapter_level_check(self, pch, chapter):
+        if chapter['lvl'] > pch.char_sheet.level:
+            self.wins_dict['dialogue'].dialogue_elements = {
+                'header': 'Attention',
+                'text': 'Choose a character you want to delete!',
+                'bttn_cancel': 'OK'
+            }
+            self.wins_dict['dialogue'].launch(pc)
+            return False
+        return True
+
     def chapter_info_update(self):
         self.chapter_img_panel.images_update(self.win_ui.tilesets.get_image('chapter_thumbs', (60, 60), (self.chapters[self.chapter_selection]['chapter_image_index'],)))
 
-        self.chapter_desc_string.text_obj.caption = self.chars[self.chapter_selection]['desc']
+        self.chapter_desc_string.text_obj.caption = self.chapters[self.chapter_selection]['desc']
         self.chapter_desc_string.render_all()
 
-        self.chapter_title_string.text_obj.caption = self.chars[self.chapter_selection]['label'].capitalize()
+        self.chapter_title_string.text_obj.caption = self.chapters[self.chapter_selection]['label'].capitalize()
         self.chapter_title_string.render_all()
 
     def chapter_begin(self):

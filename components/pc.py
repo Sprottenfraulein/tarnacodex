@@ -159,13 +159,18 @@ class PC:
                 self.food_change(wins_dict, -2)
 
                 # Light source burns out gradually.
-                if self.char_sheet.equipped[6][0] and not treasure.charge_change(self.char_sheet.equipped[6][0], -2):
-                    self.char_sheet.equipped[6][0] = None
-                    wins_dict['inventory'].updated = True
-                    self.char_sheet.calc_stats()
-                    wins_dict['realm'].spawn_realmtext(None, 'My torch has burnt out...', (0, 0), (0, -24),
-                                                       'fnt_celeb', self, None, 240, 'def_bold', 24)
-                    wins_dict['realm'].sound_inrealm('fire_putout', self.x_sq, self.y_sq)
+                if self.char_sheet.equipped[6][0]:
+                    self.char_sheet.equipped[6][0].props['condition'] -=2
+
+                    if self.char_sheet.equipped[6][0].CONDITION_PENALTY_LEVEL >= self.char_sheet.equipped[6][0].props['condition']:
+                        self.char_sheet.calc_stats()
+                        if self.char_sheet.equipped[6][0].CONDITION_BROKEN_LEVEL >= self.char_sheet.equipped[6][0].props['condition']:
+                            self.char_sheet.equipped[6][0] = None
+                            wins_dict['inventory'].updated = True
+
+                            wins_dict['realm'].spawn_realmtext(None, 'My torch has burnt out...', (0, 0), (0, -24),
+                                                               'fnt_celeb', self, None, 240, 'def_bold', 24)
+                            wins_dict['realm'].sound_inrealm('fire_putout', self.x_sq, self.y_sq)
 
                 # visibility update
                 realm.calc_vision_alt()

@@ -6,7 +6,7 @@ import random
 
 class Treasure:
     def __init__(self, treasure_id, lvl, db_cursor, tile_sets, resources, audio, fate_rnd, x_sq=-1, y_sq=-1,
-                 mob_stats=None, log=True):
+                 mob_stats=None, grade=None, log=True):
         self.x_sq = x_sq
         self.y_sq = y_sq
         self.off_x = self.off_y = 0
@@ -21,10 +21,13 @@ class Treasure:
 
         self.props, add_price_expos = init_props(db_cursor, fate_rnd, base_props, modifier_list, de_buff_list)
 
-        if mob_stats is not None and mob_stats['grade_set_loot'] is not None:
-            calc_grade(db_cursor, mob_stats['grade_set_loot'], base_props, tile_sets, audio, fate_rnd)
+        if grade is None:
+            if mob_stats is not None and mob_stats['grade_set_loot'] is not None:
+                calc_grade(db_cursor, mob_stats['grade_set_loot'], base_props, tile_sets, audio, fate_rnd)
+            else:
+                calc_grade(db_cursor, 1, base_props, tile_sets, audio, fate_rnd)
         else:
-            calc_grade(db_cursor, 1, base_props, tile_sets, audio, fate_rnd)
+            self.props['grade'] = dbrequests.grade_get_by_id(db_cursor, 1)
 
         # Attaching a skill if an item is usable.
         if self.props['use_skill'] is not None:
@@ -38,6 +41,8 @@ class Treasure:
         images_update(db_cursor, self.props, tile_sets)
 
         sounds_update(db_cursor, self.props)
+
+        loot_validate(self.props)
 
 
 def init_props(db_cursor, fate_rnd, base_props, modifier_list, de_buff_list):
@@ -296,13 +301,13 @@ def roll_affix(db_cursor, grade, loot_props, is_suffix=None):
         return None
 
 
-def condition_equipment_change(char_sheet, value):
+def condition_equipment_change(char_sheet, value, socket=None):
     recalc_pc_stats = False
     for socket in char_sheet.equipped:
         for itm in socket:
             if itm is None:
                 continue
-            if itm.props['condition'] is not None:
+            if 'condition' in itm.props:
                 prev_cond = itm.props['condition']
                 itm.props['condition'] += value
                 loot_validate(itm.props)
@@ -331,4 +336,15 @@ def charge_change(item, value):
             return False
         else:
             item.props['charge'] = 0
+    return True
+
+
+def amount_change(item, value):
+    item.props['amount'] += value
+
+    if item.props['amount'] <= 0:
+        if item.props['vanish_empty'] == 1:
+            return False
+        else:
+            item.props['amount'] = 0
     return True

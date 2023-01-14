@@ -8,10 +8,11 @@ def fill2d(array2d, stop_list, orig_xy, xy, max_spaces, max_dist, xy_stop_list=N
         r = 1
     spaces_list = [(0, -1), (-1, 0), (1, 0), (0, 1), (-1, -1), (-1, 1), (1, -1), (1, 1)]
     random.shuffle(spaces_list)
+    adjust_free = []
     for tile_x, tile_y in spaces_list:
         abs_x, abs_y = xy[0] + tile_x, xy[1] + tile_y
-        if (abs_x, abs_y) in xy_stop_list:
-            continue
+        """if (abs_x, abs_y) in xy_stop_list:
+            continue"""
         if abs_x < 0 or abs_y < 0 or abs_x >= len(array2d[0]) or abs_y >= len(array2d):
             continue
         if maths.get_distance(orig_xy[0], orig_xy[1], abs_x, abs_y) >= max_dist:
@@ -26,7 +27,8 @@ def fill2d(array2d, stop_list, orig_xy, xy, max_spaces, max_dist, xy_stop_list=N
         if xy_stop:
             continue
         xy_stop_list.append((abs_x, abs_y))
-    for tile_x, tile_y in spaces_list:
+        adjust_free.append((abs_x, abs_y))
+    for tile_x, tile_y in adjust_free:
         if r < r_max and len(xy_stop_list) < max_spaces:
             abs_x, abs_y = xy[0] + tile_x, xy[1] + tile_y
             fill2d(array2d, stop_list, orig_xy, (abs_x, abs_y), max_spaces, max_dist, xy_stop_list, r + 1, r_max)

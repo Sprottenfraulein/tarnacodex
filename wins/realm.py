@@ -406,6 +406,28 @@ class Realm:
                                         ((loot.x_sq - self.ren_x_sq) * self.square_size + loot.off_x,
                                          (loot.y_sq - self.ren_y_sq) * self.square_size + loot.off_y))
 
+                        # mobs rendering
+                        if flags.mon is not None:
+                            mon = flags.mon
+                            if mon.aimed:
+                                surface.blit(self.target_mark[self.maze.anim_frame],
+                                             ((
+                                                          mon.x_sq - self.ren_x_sq + 0.15) * self.square_size + mon.off_x,
+                                              (
+                                                          mon.y_sq - self.ren_y_sq + 0.2) * self.square_size + mon.off_y))
+                            """if mon.waypoints is not None:
+                                for wp in mon.waypoints:
+                                    surface.blit(self.target_mark[0],
+                                                 ((wp[0] - self.ren_x_sq + 0.15) * self.square_size,
+                                                  (wp[1] - self.ren_y_sq + 0.2) * self.square_size))"""
+                            surface.blit(mon.image[mon.anim_frame],
+                                         ((mon.x_sq - self.ren_x_sq - 0.1) * self.square_size + mon.off_x,
+                                          (mon.y_sq - self.ren_y_sq - 0.1) * self.square_size + mon.off_y))
+
+                        if self.redraw_pc and round(self.pc.x_sq) == ren_pos_x and round(
+                                self.pc.y_sq) == ren_pos_y:
+                            self.pc_display(surface, self.ren_x_sq, self.ren_y_sq)
+
                         if len(decors) > 1:
                             for k in range(1, len(decors)):
                                 if self.redraw_maze_decor:
@@ -416,9 +438,6 @@ class Realm:
                                     except TypeError:
                                         # print('Realm.Stage_display: Wrong tile.')
                                         pass
-                        else:
-                            if self.redraw_pc and round(self.pc.x_sq) == ren_pos_x and round(self.pc.y_sq) == ren_pos_y:
-                                self.pc_display(surface, self.ren_x_sq, self.ren_y_sq)
 
                         try:
                             if not self.maze.flag_array[ren_pos_y][ren_pos_x + 1].vis:
@@ -442,24 +461,7 @@ class Realm:
                             # print('Realm.Stage_display: Wrong tile.')
                             pass
 
-                        # mobs rendering
-                        if flags.mon is not None:
-                            mon = flags.mon
-                            if mon.aimed:
-                                surface.blit(self.target_mark[self.maze.anim_frame],
-                                             ((mon.x_sq - self.ren_x_sq + 0.15) * self.square_size + mon.off_x,
-                                              (mon.y_sq - self.ren_y_sq + 0.2) * self.square_size + mon.off_y))
-                            """if mon.waypoints is not None:
-                                for wp in mon.waypoints:
-                                    surface.blit(self.target_mark[0],
-                                                 ((wp[0] - self.ren_x_sq + 0.15) * self.square_size,
-                                                  (wp[1] - self.ren_y_sq + 0.2) * self.square_size))"""
-                            surface.blit(mon.image[mon.anim_frame],
-                                         ((mon.x_sq - self.ren_x_sq - 0.1) * self.square_size + mon.off_x,
-                                          (mon.y_sq - self.ren_y_sq - 0.1) * self.square_size + mon.off_y))
 
-                        if self.redraw_pc and round(self.pc.x_sq) == ren_pos_x and round(self.pc.y_sq) == ren_pos_y:
-                            self.pc_display(surface, self.ren_x_sq, self.ren_y_sq)
 
     def pc_display(self, surface, x_sq, y_sq):
         try:
@@ -610,7 +612,7 @@ class Realm:
 
         if len(flags.item) > 0:
             # picking up items
-            for lt in flags.item:
+            for lt in flags.item[::-1]:
                 if lt.props['treasure_id'] == 6:
                     self.coins_collect(lt, flags.item, self.pc)
                     return False
@@ -814,9 +816,11 @@ class Realm:
         self.pygame_settings.audio.sound_panned(sound_name, direction, volume, forced)
 
     def monster_sound_ambience(self):
+        # Switched off. Annoying as hell.
+        return
         if self.maze.anim_frame != 0 or self.maze.anim_timer != 0:
             return
-        if random.randrange(0, 4) > 0:
+        if random.randrange(0, 24) > 0:
             return
         if len(self.mobs_short) == 0:
             return
@@ -832,6 +836,13 @@ class Realm:
                 rnd_y_sq = random.randrange(-3 - is_crit, 4 + is_crit) / 10 + y_sq
                 self.particle_list.append(particle.Particle((rnd_x_sq, rnd_y_sq), (-8, -8),
                                           self.animations.get_animation('effect_blood_cloud')['default'],
+                                          16, speed_xy=(0.25, 0.25)))
+        elif dam_type == 'att_arcane':
+            for i in range(-1, is_crit * 4):
+                rnd_x_sq = random.randrange(-3 - is_crit, 4 + is_crit) / 10 + x_sq
+                rnd_y_sq = random.randrange(-3 - is_crit, 4 + is_crit) / 10 + y_sq
+                self.particle_list.append(particle.Particle((rnd_x_sq, rnd_y_sq), (-8, -8),
+                                          self.animations.get_animation('effect_dust_cloud')['default'],
                                           16, speed_xy=(0.25, 0.25)))
 
         if for_pc:

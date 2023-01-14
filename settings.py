@@ -16,7 +16,10 @@ tilesets = (
     ('red_glass', 'res/tilesets/texture01.png'),
     ('black_rock', 'res/tilesets/texture02.png'),
     ('paper', 'res/tilesets/texture03.png'),
+
     ('dung_bricks', 'res/tilesets/dung_bricks.png'),
+    ('dark_bricks', 'res/tilesets/dark_bricks.png'),
+
     ('dung_doors', 'res/tilesets/dung_doors.png'),
     ('dung_chests', 'res/tilesets/dung_chests.png'),
     ('dark_edges', 'res/tilesets/darkedges.png'),
@@ -121,6 +124,9 @@ sounds = (
     ('undead_amb', 'res/sounds/snarl_01.wav'),
     ('undead_aggro', 'res/sounds/snarl_03.wav'),
     ('undead_defeat', 'res/sounds/snarl_02.wav'),
+
+    ('cast_dispel', 'res/sounds/magic_ringing_02.wav'),
+    ('cast_magical_arrow', 'res/sounds/magic_ringing_01.wav')
 )
 
 music = (

@@ -33,6 +33,7 @@ class PG:
 		self.clock = pygame.time.Clock()
 		# Set Font resolution
 		pygame.freetype.set_default_resolution(96)
+		self.text_font = pygame.freetype.Font(resources.fonts['def_bold'], 24)
 		logfun.put('Pygame initialized successfully.', log)
 
 	def set_display(self, w, h, mode=pygame.RESIZABLE):

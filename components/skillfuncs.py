@@ -68,16 +68,20 @@ def shot_default(wins_dict, fate_rnd, pc, skill, item_adress, no_aim=False, just
         else:
             return att_val_min, att_val_max
 
-    if not skill_reqs_check(realm, skill, pc):
-        return True
-
     target = wins_dict['target'].mob_object
     if target is None or not target.alive:
         if no_aim:
             realm.spawn_realmtext('new_txt', "Shoot what?", (0, 0), (0, -24), None, pc, None, 120, 'def_bold', 24)
         return True
 
+    """if not skill_reqs_check(realm, skill, pc):
+        return True"""
     if not skill_reqs_check(realm, skill, pc):
+        realm.spawn_realmtext('new_txt', "Nothing to shoot with!", (0, 0), (0, -24), None, pc, None, 120, 'def_bold', 24)
+        return True
+
+    if pc.char_sheet.equipped[2][0].props['class'] != pc.char_sheet.ammo_classes_dict[pc.char_sheet.equipped[3][0].props['class']]:
+        realm.spawn_realmtext('new_txt', "Ammo won't fit.", (0, 0), (0, -24), None, pc, None, 120, 'def_bold', 24)
         return True
 
     if maths.get_distance(pc.x_sq, pc.y_sq, target.x_sq, target.y_sq) > (skill.props['range'] * (pc.char_sheet.profs['prof_range'] + 1000) // 1000):
@@ -90,26 +94,167 @@ def shot_default(wins_dict, fate_rnd, pc, skill, item_adress, no_aim=False, just
     if not skill_costs_check(realm, skill, pc):
         return True
 
+    if not treasure.amount_change(pc.char_sheet.equipped[3][0], -1):
+        pc.char_sheet.equipped[3][0] = None
+        wins_dict['inventory'].updated = True
+        pc.char_sheet.calc_stats()
+        wins_dict['realm'].spawn_realmtext(None, 'Out of ammo!', (0, 0), (0, -24),
+                                           'fnt_celeb', pc, None, 240, 'def_bold', 24)
+
     rnd_attack = random.randrange(att_val_min, att_val_max + 1)
     is_crit = (random.randrange(1, 1001) <= pc.char_sheet.profs['prof_crit'])
     if is_crit:
         rnd_attack *= 4
 
-    image_pack = (
-        realm.tilesets.get_image('item_effects', (16, 16), (0,)),
-        realm.tilesets.get_image('item_effects', (16, 16), (1,))
-    )
-    speed = 0.25
+    if pc.char_sheet.equipped[2][0].props['class'] == 'sling':
+        image_pack = (
+            realm.tilesets.get_image('item_effects', (16, 16), (2,)),
+            realm.tilesets.get_image('item_effects', (16, 16), (2,))
+        )
+    else:
+        image_pack = (
+            realm.tilesets.get_image('item_effects', (16, 16), (0,)),
+            realm.tilesets.get_image('item_effects', (16, 16), (1,))
+        )
+    speed = 0.5
     realm.spawn_projectile((pc.x_sq, pc.y_sq), (target.x_sq, target.y_sq), (rnd_attack, 'att_physical', is_crit, pc),
                            speed, image_pack, collision_limit=1, blast_radius=0)
 
     pc.food_change(wins_dict, -5)
     pc.act(wins_dict, (target.x_sq, target.y_sq), skill)
 
-    if pc.char_sheet.equipped[2][0] is not None:
-        wins_dict['realm'].sound_inrealm(pc.char_sheet.equipped[2][0].props['sound_swing'], target.x_sq, target.y_sq)
-    elif pc.char_sheet.equipped[3][0] is not None:
-        wins_dict['realm'].sound_inrealm(pc.char_sheet.equipped[3][0].props['sound_swing'], target.x_sq, target.y_sq)
+    wins_dict['realm'].sound_inrealm(pc.char_sheet.equipped[2][0].props['sound_swing'], target.x_sq, target.y_sq)
+
+    return False
+
+
+# TODO Spell skills.
+def spell_magical_arrow(wins_dict, fate_rnd, pc, skill, item_adress, no_aim=False, just_values=False):
+    realm = wins_dict['realm']
+
+    att_val_min, att_val_max = pc.char_sheet.attacks['att_base']
+    att_mods = pc.char_sheet.calc_attack_mod('att_arcane')
+    att_val_min += (att_val_min * att_mods // 1000)  # att_mods comprehended as procents
+    att_val_max += (att_val_max * att_mods // 1000)  # att_mods comprehended as procents
+    if just_values:
+        if not skill_reqs_check(realm, skill, pc):
+            return '-', '-', '-', '-'
+        else:
+            return att_val_min, att_val_max, round(att_val_min * skill.props['cost_mp']), round(att_val_max * skill.props['cost_mp'])
+
+    target = wins_dict['target'].mob_object
+    if target is None or not target.alive:
+        if no_aim:
+            realm.spawn_realmtext('new_txt', "Shoot what?", (0, 0), (0, -24), None, pc, None, 120, 'def_bold', 24)
+        return True
+
+    """if not skill_reqs_check(realm, skill, pc):
+        return True"""
+    if not skill_reqs_check(realm, skill, pc):
+        realm.spawn_realmtext('new_txt', "Nothing to cast with!", (0, 0), (0, -24), None, pc, None, 120, 'def_bold', 24)
+        return True
+
+    if maths.get_distance(pc.x_sq, pc.y_sq, target.x_sq, target.y_sq) > (skill.props['range'] * (pc.char_sheet.profs['prof_range'] + 1000) // 1000):
+        """realm.schedule_man.task_add('realm_tasks', 1, realm, 'spawn_realmtext',
+                                    ('new_txt', "Too far!",
+                                     (0, 0), (0, -24), None, True, realm.pc))
+        realm.schedule_man.task_add('realm_tasks', 8, realm, 'remove_realmtext', ('new_txt',))"""
+        return True
+
+    rnd_attack = random.randrange(att_val_min, att_val_max + 1)
+
+    if not skill_costs_check(realm, skill, pc, rate=rnd_attack):
+        return True
+
+    is_crit = (random.randrange(1, 1001) <= pc.char_sheet.profs['prof_crit'])
+    if is_crit:
+        rnd_attack *= 4
+
+    image_pack = (
+            realm.tilesets.get_image('item_effects', (16, 16), (12,)),
+            realm.tilesets.get_image('item_effects', (16, 16), (13,))
+    )
+    speed = 0.5
+    realm.spawn_projectile((pc.x_sq, pc.y_sq), (target.x_sq, target.y_sq), (rnd_attack, 'att_arcane', is_crit, pc),
+                           speed, image_pack, collision_limit=1, blast_radius=0)
+
+    pc.food_change(wins_dict, -5)
+    pc.act(wins_dict, (target.x_sq, target.y_sq), skill)
+
+    realm.pygame_settings.audio.sound(item_adress[0][item_adress[1]].props['sound_use'])
+
+    return False
+
+
+def spell_dispel(wins_dict, fate_rnd, pc, skill, item_adress, no_aim=False, just_values=False):
+    if just_values:
+        return skill.props['cost_mp'], skill.props['cost_gold']
+
+    realm = wins_dict['realm']
+    if not skill_reqs_check(realm, skill, pc):
+        realm.spawn_realmtext('new_txt', "Nothing to cast with!", (0, 0), (0, -24), None, pc, None, 120, 'def_bold', 24)
+        return True
+
+    if no_aim:
+        for i in range(round(pc.y_sq) - (skill.props['range'] - 1),
+                       round(pc.y_sq) + (skill.props['range'] - 1) + 1):
+            for j in range(round(pc.x_sq) - (skill.props['range'] - 1),
+                           round(pc.x_sq) + (skill.props['range'] - 1) + 1):
+                try:
+                    flags = realm.maze.flag_array[i][j]
+                except IndexError:
+                    continue
+                if not flags.vis:
+                    continue
+                if flags.door is not None and flags.door.lock is not None and flags.door.lock.magical:
+                    pl_object = flags.door
+                    x_sq, y_sq = j, i
+                    break
+                elif flags.obj is not None and hasattr(flags.obj, 'lock') and flags.obj.lock is not None and flags.obj.lock.magical:
+                    pl_object = flags.obj
+                    x_sq, y_sq = j, i
+                    break
+            else:
+                continue
+            break
+        else:
+            realm.spawn_realmtext('new_txt', "No magic here!", (0, 0), (0, -24), None, pc, None, 120, 'def_bold', 24)
+            return False
+    else:
+        x_sq, y_sq = realm.xy_pixels_to_squares(realm.mouse_pointer.xy)
+        try:
+            flags = realm.maze.flag_array[y_sq][x_sq]
+        except IndexError:
+            return True
+        if not flags.vis:
+            return True
+        if flags.door is not None and flags.door.lock is not None and flags.door.lock.magical:
+            pl_object = flags.door
+        elif flags.obj is not None and hasattr(flags.obj, 'lock') and flags.obj.lock is not None and flags.obj.lock.magical:
+            pl_object = flags.obj
+        else:
+            return True
+        if maths.get_distance(pc.x_sq, pc.y_sq, x_sq, y_sq) > skill.props['range']:
+            realm.spawn_realmtext('new_txt', "Too far!", (0, 0), (0, -24), None, pc, None, 120, 'def_bold', 24)
+            return True
+
+    if pl_object.lock.lvl > pc.char_sheet.level:
+        realm.spawn_realmtext('new_txt', "The spell is beyond $n my comprehension!", (0, 0), (0, -24), None, pc, None,
+                              120, 'def_bold', 24)
+        return False
+
+    if not skill_costs_check(realm, skill, pc, rate=pl_object.lock.lvl):
+        return True
+
+    exp = pl_object.lock.lvl * 100
+    pc.char_sheet.experience_get(wins_dict, pc, exp)
+    pl_object.lock = None
+    pl_object.image_update()
+
+    wins_dict['context'].end()
+    realm.pygame_settings.audio.sound(item_adress[0][item_adress[1]].props['sound_use'])
+    pc.food_change(wins_dict, -10)
+    pc.act(wins_dict, (x_sq, y_sq), skill)
 
     return False
 
@@ -124,11 +269,22 @@ def potion_heal(wins_dict, fate_rnd, pc, skill, item_adress, no_aim=False, just_
     if not skill_reqs_check(realm, skill, pc):
         return True
 
+    realm.pygame_settings.audio.sound(item_adress[0][item_adress[1]].props['sound_use'])
+
+    if not treasure.charge_change(item_adress[0][item_adress[1]], -1):
+        pc.char_sheet.item_remove(wins_dict, item_adress[0][item_adress[1]])
+        wins_dict['context'].end()
+        # pc.char_sheet.calc_stats()
+        wins_dict['realm'].spawn_realmtext(None, 'Potion finished!', (0, 0), (0, -24),
+                                           'fnt_celeb', pc, None, 240, 'def_bold', 24)
+
     pc.char_sheet.hp_get(heal_hp_value)
     wins_dict['pools'].updated = True
-    realm.pygame_settings.audio.sound(item_adress[0][item_adress[1]].props['sound_use'])
+    wins_dict['inventory'].updated = True
+    wins_dict['hotbar'].updated = True
     wins_dict['context'].end()
 
+    pc.add_cooldowns(wins_dict, 7)  # Cooldown for magical potion
     pc.act(wins_dict, None, skill)
 
     return False
@@ -144,11 +300,22 @@ def potion_power(wins_dict, fate_rnd, pc, skill, item_adress, no_aim=False, just
     if not skill_reqs_check(realm, skill, pc):
         return True
 
+    realm.pygame_settings.audio.sound(item_adress[0][item_adress[1]].props['sound_use'])
+
+    if not treasure.charge_change(item_adress[0][item_adress[1]], -1):
+        pc.char_sheet.item_remove(wins_dict, item_adress[0][item_adress[1]])
+        wins_dict['context'].end()
+        # pc.char_sheet.calc_stats()
+        wins_dict['realm'].spawn_realmtext(None, 'Potion finished!', (0, 0), (0, -24),
+                                           'fnt_celeb', pc, None, 240, 'def_bold', 24)
+
     pc.char_sheet.mp_get(heal_mp_value)
     wins_dict['pools'].updated = True
-    realm.pygame_settings.audio.sound(item_adress[0][item_adress[1]].props['sound_use'])
+    wins_dict['inventory'].updated = True
+    wins_dict['hotbar'].updated = True
     wins_dict['context'].end()
 
+    pc.add_cooldowns(wins_dict, 4)  # Cooldown for healing potion
     pc.act(wins_dict, None, skill)
 
     return False
@@ -383,7 +550,7 @@ def pickup(wins_dict, fate_rnd, pc, skill, item_adress, no_aim=False, just_value
             realm.spawn_realmtext('new_txt', "Too far!", (0, 0), (0, -24), None, pc, None, 120, 'def_bold', 24)
             return True
 
-    for lt in flags.item:
+    for lt in flags.item[::-1]:
         if lt.props['treasure_id'] == 6:
             realm.coins_collect(lt, flags.item, pc)
             break
@@ -441,34 +608,34 @@ def skill_reqs_check(realm, skill, pc):
     return True
 
 
-def skill_costs_check(realm, skill, pc):
-    if skill.props['cost_mp'] > pc.char_sheet.mp:
+def skill_costs_check(realm, skill, pc, rate=1):
+    if skill.props['cost_mp'] * rate > pc.char_sheet.mp:
         realm.spawn_realmtext('new_txt', "Not enough powers!", (0, 0), (0, -24), None, pc, None, 120, 'def_bold', 24)
         return False
     else:
-        pc.char_sheet.mp_get(skill.props['cost_mp'] * -1)
+        pc.char_sheet.mp_get(skill.props['cost_mp'] * rate * -1)
         realm.wins_dict['pools'].updated = True
 
-    if skill.props['cost_hp'] > pc.char_sheet.hp:
+    if skill.props['cost_hp'] * rate > pc.char_sheet.hp:
         realm.spawn_realmtext('new_txt', "Not enough health!", (0, 0), (0, -24), None, pc, None, 120, 'def_bold', 24)
         return False
     else:
-        pc.char_sheet.hp_get(skill.props['cost_hp'] * -1)
+        pc.char_sheet.hp_get(skill.props['cost_hp'] * rate * -1)
         realm.wins_dict['pools'].updated = True
 
-    if skill.props['cost_exp'] > pc.char_sheet.experience:
+    if skill.props['cost_exp'] * rate > pc.char_sheet.experience:
         realm.spawn_realmtext('new_txt', "Not enough experience!", (0, 0), (0, -24), None, pc, None, 120, 'def_bold', 24)
         return False
     else:
-        pc.char_sheet.experience_get(realm.wins_dict, pc, skill.props['cost_exp'] * -1)
+        pc.char_sheet.experience_get(realm.wins_dict, pc, skill.props['cost_exp'] * rate * -1)
         realm.wins_dict['pools'].updated = True
         realm.wins_dict['charstats'].updated = True
 
-    if skill.props['cost_gold'] > pc.char_sheet.gold_coins:
+    if skill.props['cost_gold'] * rate > pc.char_sheet.gold_coins:
         realm.spawn_realmtext('new_txt', "Not enough gold!", (0, 0), (0, -24), None, pc, None, 120, 'def_bold', 24)
         return False
     else:
-        pc.char_sheet.gold_coins += (skill.props['cost_gold'] * -1)
+        pc.char_sheet.gold_coins += (skill.props['cost_gold'] * rate * -1)
         realm.wins_dict['inventory'].updated = True
 
     return True

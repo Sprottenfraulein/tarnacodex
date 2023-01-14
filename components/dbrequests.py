@@ -370,6 +370,17 @@ def grade_set_get(cursor, set_id, lvl):
     return grades_list
 
 
+def grade_get_by_id(cursor, grade_id):
+    ex_str = "SELECT * FROM grades WHERE grade_id=?"
+    cursor.execute(ex_str, (grade_id,))
+    rows = cursor.fetchall()
+    column_names = [column[0] for column in cursor.description]
+    grade_dict = {}
+    for i in range(0, len(column_names)):
+        grade_dict[column_names[i]] = rows[0][i]
+    return grade_dict
+
+
 def chapter_get_by_id(cursor, chapter_id):
     ex_str = "SELECT * FROM chapters c WHERE chapter_id=?"
     cursor.execute(ex_str, (chapter_id,))

@@ -17,7 +17,6 @@ class Trade:
         self.wins_dict = None
         self.active_wins = None
         self.win_ui = ui.UI(pygame_settings, resources, tilesets, db, mouse_pointer)
-        self.text_font = pygame.freetype.Font(self.resources.fonts['def_bold'], 24)
 
         self.pc = None
         self.win_w = 512
@@ -316,11 +315,11 @@ class Trade:
             self.win_ui.button_add(
                 'bttn_filter', caption='Weapons', size=(80, 24), cap_font='def_bold', cap_size=24,
                 cap_color='fnt_muted', sounds=self.win_ui.snd_packs['button'], page=None, tags=(
-                    'wpn_melee', 'wpn_ranged'), switch=True),
+                    'wpn_melee', 'wpn_ranged', 'orb_ammo'), switch=True),
             self.win_ui.button_add(
                 'bttn_filter', caption='Armor', size=(80, 24), cap_font='def_bold', cap_size=24,
                 cap_color='fnt_muted', sounds=self.win_ui.snd_packs['button'], page=None, tags=(
-                    'arm_head', 'arm_chest', 'acc_ring'), switch=True),
+                    'arm_head', 'arm_chest', 'orb_shield', 'acc_ring'), switch=True),
             self.win_ui.button_add(
                 'bttn_filter', caption='Magical', size=(80, 24), cap_font='def_bold', cap_size=24,
                 cap_color='fnt_muted', sounds=self.win_ui.snd_packs['button'], page=None, tags=(
@@ -472,15 +471,17 @@ class Trade:
                 for i in range(0, 5):
                     self.trade_bank.append(treasure.Treasure(j, max(1, goods_level_cap), self.db.cursor,
                                                              self.tilesets, self.resources, self.pygame_settings.audio,
-                                                             self.resources.fate_rnd))
+                                                             self.resources.fate_rnd, grade=1))
             else:
-                for i in range(-2, 1):
+                for i in range(-1, 1):
                     self.trade_bank.append(treasure.Treasure(j, max(1, goods_level_cap + i), self.db.cursor,
                                                              self.tilesets, self.resources, self.pygame_settings.audio,
-                                                             self.resources.fate_rnd))
+                                                             self.resources.fate_rnd, grade=1))
                     if 'condition' in self.trade_bank[-1].props:
                         self.trade_bank[-1].props['condition'] = treasure.calc_loot_stat(self.trade_bank[-1].props,
                                                                                          'condition_max')
+                    if 'charge' in self.trade_bank[-1].props:
+                        self.trade_bank[-1].props['charge'] = self.trade_bank[-1].props['charge_max']
         """for i in (5, 6, 9):
             self.trade_bank.append(skill.Skill(i, goods_level_cap, self.db.cursor, self.win_ui.tilesets,
                                                self.win_ui.resources, self.pygame_settings.audio))"""
@@ -527,20 +528,26 @@ class Trade:
                         item_obj = self.trade_list[s_ind]
                         if item_obj in self.selected_index_list:
                             pygame.draw.rect(self.inv_sockets_list[s_ind].rendered_panel, self.resources.colors['sun'],
-                                             self.inv_sockets_list[s_ind].rendered_panel.get_rect(), width=1)
-                            self.text_font.render_to(self.inv_sockets_list[s_ind].rendered_panel,
+                                             self.inv_sockets_list[s_ind].rendered_panel.get_rect(), width=2)
+                            """self.pygame_settings.text_font.render_to(self.inv_sockets_list[s_ind].rendered_panel,
                                                      (2, 2), str(self.selected_index_list[item_obj]),
-                                                     fgcolor=self.resources.colors['sun'])
+                                                     fgcolor=self.resources.colors['sun'])"""
 
                         elif 'condition' in item_obj.props:
                             cond = item_obj.props['condition']
                             c_p_level = item_obj.CONDITION_PENALTY_LEVEL
-                            if ('condition' in item_obj.props
-                                    and item_obj.props['condition']
-                                    <= item_obj.CONDITION_PENALTY_LEVEL):
+                            if cond <= c_p_level:
                                 cond_y = cond * 150 // c_p_level
                                 pygame.draw.rect(self.inv_sockets_list[s_ind].rendered_panel, (255, cond_y, 0),
                                                  self.inv_sockets_list[s_ind].rendered_panel.get_rect(), width=1)
+                        if 'amount' in item_obj.props:
+                            self.pygame_settings.text_font.render_to(self.inv_sockets_list[s_ind].rendered_panel,
+                                                     (6, 34), str(item_obj.props['amount']),
+                                                     fgcolor=self.resources.colors['fnt_celeb'])
+                        if 'charge' in item_obj.props:
+                            self.pygame_settings.text_font.render_to(self.inv_sockets_list[s_ind].rendered_panel,
+                                                     (36, 6), str(item_obj.props['charge']),
+                                                     fgcolor=self.resources.colors['cyan'])
 
         self.win_ui.draw(self.win_rendered)
         self.updated = False
