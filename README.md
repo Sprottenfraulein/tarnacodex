@@ -17,7 +17,12 @@ Use Hud buttons to open different windows.
 
 Hover over monsters with cursor to reveal targeting window.
 
-Visit Trading Post in Options (button with the door on HUD). 
-It not yet delivers!!! But soon will do.
+Visit Trading Post in Options (button with the door on HUD).
+
+To shoot bows and slings when playing with Champion and Kingslayer 
+use Shot skill from skillbook!
+
+Cosmologist has to hold a magical weapon (like a wand) to be able
+to cast spells from skillbook!
 
 Don't forget to eat!

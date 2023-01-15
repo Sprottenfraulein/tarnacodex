@@ -123,7 +123,7 @@ class AppTitle:
             self.win_ui.key_focus = element
         elif element.id == 'new_char' and m_bttn == 1 and mb_event == 'up' and element.mode == 1:
             self.win_ui.key_focus = None
-            if len(self.savegames) < 6 or (len(self.savegames) == 6 and None in self.savegames):
+            if len(self.savegames) < 10 or (len(self.savegames) == 10 and None in self.savegames):
                 self.win_ui.page = 1
                 self.char_name_rnd()
                 self.bttn_hardcore.mode = 0
@@ -224,7 +224,7 @@ class AppTitle:
         elif element.id == 'new_char_begin' and m_bttn == 1 and mb_event == 'up' and element.mode == 1:
             self.win_ui.key_focus = None
 
-            if self.chapters[self.chapter_selection]['lvl'] > 0:
+            if self.chapters[self.chapter_selection]['lvl'] > 1:
                 self.wins_dict['dialogue'].dialogue_elements = {
                     'header': 'Attention',
                     'text': 'This chapter is for characters with level %s and higher!' % (self.chapters[self.chapter_selection]['lvl']),
@@ -414,7 +414,7 @@ class AppTitle:
             main_menu[i].tags = ['lightup']
             main_menu[i].page = (0,)
             main_menu[i].rendered_rect.left = round(menu_btn_h)
-            main_menu[i].rendered_rect.centery = round(self.pygame_settings.screen_res[1] / 2) + (menu_btn_h * 1.2) * i
+            main_menu[i].rendered_rect.centery = round(self.pygame_settings.screen_res[1] / 2) + (menu_btn_h * 1.2) * i - 120
 
         main_menu[-1].rendered_rect.centery = round(self.pygame_settings.screen_res[1] / 2) + (
                     menu_btn_h * 1.2) * 7
@@ -430,7 +430,7 @@ class AppTitle:
             new_bttn.page = (1,)
             new_bttn.rendered_rect.left = round(menu_btn_h)
             new_bttn.rendered_rect.centery = round(self.pygame_settings.screen_res[1] / 2) + (
-                        menu_btn_h * 1.2) * i
+                        menu_btn_h * 1.2) * i - 120
             char_menu.append(new_bttn)
 
         char_menu[0].mode = 1
@@ -495,7 +495,7 @@ class AppTitle:
             new_bttn.page = (1,2)
             new_bttn.rendered_rect.right = round(self.pygame_settings.screen_res[0] - menu_btn_h)
             new_bttn.rendered_rect.centery = round(self.pygame_settings.screen_res[1] / 2) + (
-                    menu_btn_h * 1.2) * i
+                    menu_btn_h * 1.2) * i - 120
             chapter_menu.append(new_bttn)
 
         chapter_menu[0].mode = 1
@@ -505,7 +505,7 @@ class AppTitle:
 
         char_string = \
             self.win_ui.text_add('char_string',
-            (menu_btn_h, round(self.pygame_settings.screen_res[1] / 2 - menu_btn_h*1.5)),
+            (menu_btn_h, round(self.pygame_settings.screen_res[1] / 2 - menu_btn_h*1.5 - 120)),
             caption='Choose a character:',
             h_align='center', v_align='top', size=char_menu[0].size, cap_color='fnt_celeb',
             cap_font='large', cap_size=14, page=(1,))
@@ -514,7 +514,7 @@ class AppTitle:
         chapter_string = \
             self.win_ui.text_add('char_string',
             (self.pygame_settings.screen_res[0] - menu_btn_h - menu_btn_w,
-            round(self.pygame_settings.screen_res[1] / 2 - menu_btn_h * 1.5)),
+            round(self.pygame_settings.screen_res[1] / 2 - menu_btn_h * 1.5 - 120)),
             caption='Choose a chapter:',
             h_align='center', v_align='top', size=char_menu[0].size,
             cap_color='fnt_celeb',
@@ -674,7 +674,7 @@ class AppTitle:
 
         curr_chapter_string = \
             self.win_ui.text_add('chapter_string',
-                                 (menu_btn_h, round(self.pygame_settings.screen_res[1] / 2 - menu_btn_h * 1.5)),
+                                 (menu_btn_h, round(self.pygame_settings.screen_res[1] / 2 - menu_btn_h * 1.5 - 120)),
                                  caption='Current Chapter:',
                                  h_align='center', v_align='top', size=char_menu[0].size, cap_color='fnt_celeb',
                                  cap_font='large', cap_size=14, page=(2,))
@@ -737,7 +737,7 @@ class AppTitle:
         # loaded character info
         curr_char_string = \
             self.win_ui.text_add('char_string',
-                                 (menu_btn_h, round(self.pygame_settings.screen_res[1] / 2 - menu_btn_h * 1.5)),
+                                 (menu_btn_h, round(self.pygame_settings.screen_res[1] / 2 - menu_btn_h * 1.5 - 120)),
                                  caption='Loaded Character:',
                                  h_align='center', v_align='top', size=char_menu[0].size, cap_color='fnt_celeb',
                                  cap_font='large', cap_size=14, page=(2,))
@@ -802,11 +802,11 @@ class AppTitle:
         menu_btn_w = 256
 
         saves_left = menu_btn_h + menu_btn_w + menu_btn_h
-        saves_top = self.win_h / 2 - menu_btn_h // 2
+        saves_top = self.win_h / 2 - menu_btn_h // 2 - 120
         save_w = 160
         save_h = 210
         saves_per_row = 5
-        saves_total = 5
+        saves_total = 10
         save_texture = self.win_ui.random_texture((save_w, save_h), 'black_rock')
         save_texture_hardcore = self.win_ui.random_texture((save_w, save_h), 'red_glass')
 
@@ -1084,10 +1084,10 @@ class AppTitle:
                                          chr_type=self.chars[self.char_selection]['char_type'], chr_level=1)
 
         anim = 'anthro_champion'
-        """if char_sheet.type == 'kingslayer':
+        if char_sheet.type == 'kingslayer':
             anim = 'anthro_kingslayer'
         elif char_sheet.type == 'cosmologist':
-            anim = 'anthro_cosmologist'"""
+            anim = 'anthro_cosmologist'
 
         p = pc.PC(0, 0, None, self.animations.get_animation(anim), char_sheet, self.bttn_hardcore.mode, state=0)
         p.char_portrait_index = self.char_selection
@@ -1138,13 +1138,13 @@ class AppTitle:
         if self.save_selection is not None:
             char_sheet = charsheet.CharSheet(self.db, self.savegames[self.save_selection]['char_id'],
                                              chr_name=self.field_charname_edit.text_obj.caption,
-                                             chr_type=self.chars[self.char_selection]['char_type'], chr_level=1)
+                                             chr_type=self.savegames[self.save_selection]['char_type'], chr_level=1)
 
             anim = 'anthro_champion'
-            """if char_sheet.type == 'kingslayer':
+            if char_sheet.type == 'kingslayer':
                 anim = 'anthro_kingslayer'
             elif char_sheet.type == 'cosmologist':
-                anim = 'anthro_cosmologist'"""
+                anim = 'anthro_cosmologist'
 
             p = pc.PC(0, 0, None, self.animations.get_animation(anim), char_sheet, state=0)
             p.char_portrait_index = self.savegames[self.save_selection]['char_image_index']
@@ -1188,16 +1188,17 @@ class AppTitle:
         self.mouse_pointer.catcher[0] = None
 
     def ending_check(self, pc):
-        blackrock_list = pc.char_sheet.inventory_search_by_id(7) + pc.char_sheet.equipped_search_by_id(7)
-        for blackrock in blackrock_list:
-            if blackrock is not None and blackrock.props['class'] == 'blackrock':
+        quest_item_id = self.wins_dict['realm'].maze.chapter['quest_item_id']
+        quest_item_list = pc.char_sheet.inventory_search_by_id(quest_item_id) + pc.char_sheet.equipped_search_by_id(quest_item_id)
+        for qi in quest_item_list:
+            if qi is not None and 'quest_item' in qi.props:
                 self.wins_dict['dialogue'].dialogue_elements = {
                     'header': 'Attention',
                     'text': "Finish your Quest? $n $n (If you leave now, you will not be able to return to this world anymore without restarting the Chapter!)",
                     'bttn_cancel': 'NO',
                     'bttn_ok': 'YES'
                 }
-                self.wins_dict['dialogue'].delayed_action['bttn_ok'] = (self, 'chapter_conclude', (blackrock, self.wins_dict, pc))
+                self.wins_dict['dialogue'].delayed_action['bttn_ok'] = (self, 'chapter_conclude', (qi, self.wins_dict, pc))
                 self.wins_dict['dialogue'].launch(pc)
                 self.pygame_settings.audio.sound('important_jingle')
                 break
@@ -1211,8 +1212,8 @@ class AppTitle:
             self.wins_dict['dialogue'].delayed_action['bttn_ok'] = (self.wins_dict['options'], 'overlay_save_and_exit', (self.wins_dict, pc,))
             self.wins_dict['dialogue'].launch(pc)
 
-    def chapter_conclude(self, blackrock, wins_dict, pc):
-        blackrock.props['class'] = 'material'
+    def chapter_conclude(self, quest_item, wins_dict, pc):
+        del quest_item.props['quest_item']
         wins_dict['app_title'].chapter_end(pc, wins_dict['realm'].maze.chapter)
         pc.location = None
         pc.stage_entry = 'up'
@@ -1229,7 +1230,7 @@ class AppTitle:
     def render(self):
         self.win_rendered.fill((10, 10, 10))
         logo_x = (self.win_w - self.logo_w) // 2
-        logo_y = (self.win_h // 2 - self.logo_h)
+        logo_y = 0
         self.win_rendered.blit(self.logo, (logo_x, logo_y))
         self.win_ui.draw(self.win_rendered)
 

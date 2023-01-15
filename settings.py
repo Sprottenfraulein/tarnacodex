@@ -32,8 +32,14 @@ tilesets = (
     ('char_portraits_archive', 'res/tilesets/char_portraits_archive.png'),
     ('item_effects', 'res/tilesets/item_effects.png'),
 
+    # Character sprites & monsters
     ('anthro_ragdoll', 'res/tilesets/anthro_ragdoll.png'),
+
+    ('anthro_skeleton', 'res/tilesets/anthro_skeleton.png'),
+
     ('anthro_champion', 'res/tilesets/anthro_champion.png'),
+    ('anthro_kingslayer', 'res/tilesets/anthro_kingslayer.png'),
+    ('anthro_cosmologist', 'res/tilesets/anthro_cosmologist.png'),
 
     ('chapter_thumbs', 'res/tilesets/chapter_thumbs.png')
 )

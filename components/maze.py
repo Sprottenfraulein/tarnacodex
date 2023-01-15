@@ -42,6 +42,7 @@ class Maze:
         self.tile_set = tile_sets.get_maze_tiles(self.stage_dict['tile_set'])
         self.trap_rate = self.stage_dict['trap_rate']
         self.lock_rate = self.stage_dict['lock_rate']
+        self.grate_rate = self.stage_dict['grate_rate']
         self.magic_lock_rate = self.stage_dict['magic_lock_rate']
         self.monster_ids = self.stage_dict['monsters']
         self.monster_type_amount = self.stage_dict['monster_type_amount']
@@ -533,7 +534,6 @@ def traps_set(maze, attacks_table_point, db, pc):
         maze.traps.append(new_trap)
 
 
-# TODO Grates
 def doors_set(maze, tile_set, db, attack_table_point):
     # lock all rooms that are not corridors
     for locked_room in maze.rooms:
@@ -599,6 +599,8 @@ def doors_set(maze, tile_set, db, attack_table_point):
         else:
             rm.locked = True
     for mz_dr in maze.doors:
+        if random.randrange(1, 100) <= maze.grate_rate:
+            mz_dr.grate = True
         mz_dr.image = mz_dr.image_update()
 
 

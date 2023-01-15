@@ -250,6 +250,7 @@ def save_maze(pc, maze, db, tile_sets, animations):
         pickle.dump(maze.lvl, f)
         pickle.dump(maze.trap_rate, f)
         pickle.dump(maze.lock_rate, f)
+        pickle.dump(maze.grate_rate, f)
         pickle.dump(maze.magic_lock_rate, f)
         pickle.dump(maze.monster_ids, f)
         pickle.dump(maze.monster_type_amount, f)
@@ -333,6 +334,7 @@ def load_maze(pc, maze, db, tile_sets, animations):
 
         maze.trap_rate = pickle.load(f)
         maze.lock_rate = pickle.load(f)
+        maze.grate_rate = pickle.load(f)
         maze.magic_lock_rate = pickle.load(f)
 
         maze.monster_ids = pickle.load(f)

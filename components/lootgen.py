@@ -24,19 +24,20 @@ def generate_loot(monster, realm, fate_rnd, pc, log=True):
             treasure.loot_validate(new_tr.props)
             treasure_list.append(new_tr)
 
-    # SPECIAL BLACKROCK STATEMENT
+    # SPECIAL QUEST STATEMENT
     if (realm.maze.stage_index == realm.maze.chapter['stage_number'] - 1
             and not [mob for mob in realm.maze.mobs if mob.alive]):
-        new_tr = treasure.Treasure(7, monster.stats['lvl'], realm.db.cursor, realm.tilesets, realm.resources,
-                                   realm.pygame_settings.audio, fate_rnd)
+        new_tr = treasure.Treasure(realm.maze.chapter['quest_item_id'], monster.stats['lvl'], realm.db.cursor,
+                                   realm.tilesets, realm.resources, realm.pygame_settings.audio, fate_rnd)
+        new_tr.props['quest_item'] = True
         treasure.loot_validate(new_tr.props)
         treasure_list.append(new_tr)
 
         # Special Blackrock statement. If the item in player's inventory, monsters, traps and doors have to be rerolled.
         for i in range(0, realm.maze.chapter['stage_number'] - 1):
             dbrequests.chapter_progress_set(realm.db, pc.char_sheet.id, i, 1, 0, 1, 0, 0, 1)
-        realm.spawn_realmtext('new_txt', "That dismal item evokes a sense $n of evil presence!", (0, 0), (0, -24),
-                                           'azure', pc, None, 240, 'def_bold', 24)
+        realm.spawn_realmtext('new_txt', "This is it! I need to go back now.", (0, 0), (0, -24),
+                                           'cyan', pc, None, 240, 'def_bold', 24)
         realm.sound_inrealm('realmtext_noise', pc.x_sq, pc.y_sq)
 
     return treasure_list
