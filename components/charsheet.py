@@ -565,6 +565,26 @@ class CharSheet:
                     return True
         return False
 
+    def quest_item_remove(self, wins_dict):
+        for i in range(len(self.inventory)-1, -1, -1):
+            if self.inventory[i] is None:
+                continue
+            if 'quest_item' in self.inventory[i].props:
+                self.inventory[i] = None
+                wins_dict['inventory'].updated = True
+        for i in range(len(self.hotbar)-1, -1, -1):
+            if self.hotbar[i] is None:
+                continue
+            if 'quest_item' in self.hotbar[i].props:
+                self.hotbar[i] = None
+                wins_dict['hotbar'].updated = True
+        for i in range(len(self.equipped)-1, -1, -1):
+            if self.equipped[i][0] is None:
+                continue
+            if 'quest_item' in self.equipped[i][0].props:
+                self.equipped[i][0] = None
+                wins_dict['equipped'].updated = True
+
     def itemlists_clean_tail(self):
         """for i in range(len(self.skills) - 1, -1, -1):
             if self.skills[i] is None:

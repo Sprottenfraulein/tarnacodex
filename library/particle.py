@@ -33,12 +33,12 @@ class Particle:
         if self.frame_timer < self.timings[self.frame_index]:
             self.frame_timer += 1
         else:
-            if (self.frame_index + self.step) > len(self.timings):
+            if (self.frame_index + self.step) >= len(self.timings):
                 if self.bounce_anim:
                     self.step *= -1
                 else:
                     self.frame_index = -1
-            elif (self.frame_index + self.step) < 0:
+            elif (self.frame_index + self.step) <= 0:
                 if self.bounce_anim:
                     self.step *= -1
                 else:

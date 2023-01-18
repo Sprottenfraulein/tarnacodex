@@ -72,6 +72,9 @@ class Realm:
 
         self.dark_edges = self.tilesets.get_image('dark_edges', (24, 24), (0, 1, 2, 3))
         self.target_mark = self.tilesets.get_image('interface', (24, 24), (10, 11, 12, 13))
+        self.shade_square = pygame.Surface((24, 24))
+        self.shade_square.fill((0, 0, 14))
+        self.shade_square.set_alpha(150)
 
         self.pause = False
         self.controls_enabled = True
@@ -93,6 +96,7 @@ class Realm:
                                                                  [(ow.offset_x, ow.offset_y, ow.win_w, ow.win_h) for ow in framed_wins])
             win.offset_x, win.offset_y = maths.rect_in_bounds(win.offset_x, win.offset_y, win.win_w, win.win_h, 0,
                                                               0, w, h)
+        self.location_label.x = self.view_size_scaled[0]
         self.view_maze_update(self.pc.x_sq, self.pc.y_sq)
 
     def launch(self):
@@ -142,7 +146,7 @@ class Realm:
             return
         # character and gui controls
         if event.type == pygame.KEYDOWN:
-            if event.key == pygame.K_LEFT:
+            """if event.key == pygame.K_LEFT:
                 # self.view_maze_x_sq -= 1
                 self.pc.move_instr_x = -1
             if event.key == pygame.K_RIGHT:
@@ -153,8 +157,7 @@ class Realm:
                 self.pc.move_instr_y = -1
             if event.key == pygame.K_DOWN:
                 # self.view_maze_y_sq += 1
-                self.pc.move_instr_y = 1
-
+                self.pc.move_instr_y = 1"""
 
             if event.key == pygame.K_v:
                 self.view_offset_x_sq = round(self.mouse_pointer.xy[0] / self.square_size / self.square_scale) * -1
@@ -164,10 +167,27 @@ class Realm:
                 pass
             if event.key == pygame.K_s:
                 self.wins_dict['app_title'].chapter_end(self.pc, self.maze.chapter)
-            if event.key == pygame.K_l:
-                pass
-            if event.key == pygame.K_h:
-                pass
+
+            # CHANGE SCALE
+            if event.key == pygame.K_KP_PLUS and self.square_scale < 4:
+                self.square_scale += 1
+                self.view_maze_width_sq = math.ceil(
+                    self.pygame_settings.screen_res[0] / self.square_scale / self.square_size)
+                self.view_maze_height_sq = math.ceil(
+                    self.pygame_settings.screen_res[1] / self.square_scale / self.square_size)
+                self.view_offset_x_sq = round(self.view_maze_width_sq / 2) * -1
+                self.view_offset_y_sq = round(self.view_maze_height_sq / 2) * -1
+                self.view_maze_update(self.pc.x_sq, self.pc.y_sq)
+            if event.key == pygame.K_KP_MINUS and self.square_scale > 2:
+                self.square_scale -= 1
+                self.view_maze_width_sq = math.ceil(
+                    self.pygame_settings.screen_res[0] / self.square_scale / self.square_size)
+                self.view_maze_height_sq = math.ceil(
+                    self.pygame_settings.screen_res[1] / self.square_scale / self.square_size)
+                self.view_offset_x_sq = round(self.view_maze_width_sq / 2) * -1
+                self.view_offset_y_sq = round(self.view_maze_height_sq / 2) * -1
+                self.view_maze_update(self.pc.x_sq, self.pc.y_sq)
+
             if event.key == pygame.K_p:
                 pass
             if event.key == pygame.K_m:
@@ -311,20 +331,16 @@ class Realm:
 
         if self.redraw_missiles:
             for missile in self.missiles_list:
-                try:
-                    self.view_maze_surface.blit(missile.images[self.maze.anim_frame],
-                                 ((missile.x_sq - self.ren_x_sq) * self.square_size + missile.off_x,
-                                  (missile.y_sq - self.ren_y_sq) * self.square_size + missile.off_y))
-                except IndexError:
-                    self.view_maze_surface.blit(missile.images[(self.maze.anim_frame + 1) % (len(missile.images))],
-                                                ((missile.x_sq - self.ren_x_sq) * self.square_size + missile.off_x,
-                                                 (missile.y_sq - self.ren_y_sq) * self.square_size + missile.off_y))
+                self.view_maze_surface.blit(missile.image_strip[missile.frame_index],
+                                            ((missile.x_sq - self.ren_x_sq) * self.square_size + missile.off_x,
+                                             (missile.y_sq - self.ren_y_sq) * self.square_size + missile.off_y))
 
         if self.redraw_particles:
             for part in self.particle_list:
-                self.view_maze_surface.blit(part.image_strip[part.frame_index],
-                                            (round((part.x - self.ren_x_sq) * self.square_size + part.off_x),
-                                             round((part.y - self.ren_y_sq) * self.square_size + part.off_y)))
+                if self.maze.flag_array[round(part.y)][round(part.x)].vis:
+                    self.view_maze_surface.blit(part.image_strip[part.frame_index],
+                                                (round((part.x - self.ren_x_sq) * self.square_size + part.off_x),
+                                                 round((part.y - self.ren_y_sq) * self.square_size + part.off_y)))
 
         self.draw_view_maze = True
 
@@ -336,11 +352,12 @@ class Realm:
             for ren_pos_x in range(left_sq, right_sq):
                 if (0 <= ren_pos_y < self.maze.height) and (0 <= ren_pos_x < self.maze.width):
                     flags = self.maze.flag_array[ren_pos_y][ren_pos_x]
-                    if flags.vis:
-                        decors = self.maze.decor_array[ren_pos_y][ren_pos_x]
-                        surface.blit(decors[0],
-                             ((ren_pos_x - self.ren_x_sq) * self.square_size,
-                              (ren_pos_y - self.ren_y_sq) * self.square_size))
+                    decors = self.maze.decor_array[ren_pos_y][ren_pos_x]
+                    if decors == ' ':
+                        continue
+                    surface.blit(decors[0],
+                         ((ren_pos_x - self.ren_x_sq) * self.square_size,
+                          (ren_pos_y - self.ren_y_sq) * self.square_size))
 
         for ren_pos_y in range(top_sq, bottom_sq):
             for ren_pos_x in range(left_sq, right_sq):
@@ -348,9 +365,8 @@ class Realm:
                 if (0 <= ren_pos_y < self.maze.height) and (0 <= ren_pos_x < self.maze.width):
 
                     flags = self.maze.flag_array[ren_pos_y][ren_pos_x]
+                    decors = self.maze.decor_array[ren_pos_y][ren_pos_x]
                     if flags.vis:
-                        decors = self.maze.decor_array[ren_pos_y][ren_pos_x]
-
                         if flags.trap is not None and flags.trap.visible == 1:
                             try:
                                 surface.blit(flags.trap.images[self.maze.anim_frame],
@@ -411,10 +427,8 @@ class Realm:
                             mon = flags.mon
                             if mon.aimed:
                                 surface.blit(self.target_mark[self.maze.anim_frame],
-                                             ((
-                                                          mon.x_sq - self.ren_x_sq + 0.15) * self.square_size + mon.off_x,
-                                              (
-                                                          mon.y_sq - self.ren_y_sq + 0.2) * self.square_size + mon.off_y))
+                                             ((mon.x_sq - self.ren_x_sq + 0.15) * self.square_size + mon.off_x,
+                                              (mon.y_sq - self.ren_y_sq + 0.2) * self.square_size + mon.off_y))
                             """if mon.waypoints is not None:
                                 for wp in mon.waypoints:
                                     surface.blit(self.target_mark[0],
@@ -423,43 +437,54 @@ class Realm:
                             surface.blit(mon.image[mon.anim_frame],
                                          ((mon.x_sq - self.ren_x_sq - 0.1) * self.square_size + mon.off_x,
                                           (mon.y_sq - self.ren_y_sq - 0.1) * self.square_size + mon.off_y))
+                            if mon.stats['grade']['grade_level'] > 0 and mon.hp > 0:
+                                surface.blit(mon.anim_set['affix_mark']['images'][self.maze.anim_frame],
+                                             ((mon.x_sq - self.ren_x_sq - 0.4) * self.square_size,
+                                              (mon.y_sq - self.ren_y_sq - 0.4) * self.square_size))
 
-                        if self.redraw_pc and round(self.pc.x_sq) == ren_pos_x and round(
-                                self.pc.y_sq) == ren_pos_y:
-                            self.pc_display(surface, self.ren_x_sq, self.ren_y_sq)
+                    if self.redraw_pc and round(self.pc.x_sq) == ren_pos_x and round(
+                            self.pc.y_sq) == ren_pos_y:
+                        self.pc_display(surface, self.ren_x_sq, self.ren_y_sq)
 
-                        if len(decors) > 1:
-                            for k in range(1, len(decors)):
-                                if self.redraw_maze_decor:
-                                    try:
-                                        surface.blit(decors[k],
-                                                     ((ren_pos_x - self.ren_x_sq) * self.square_size,
-                                                      (ren_pos_y - self.ren_y_sq) * self.square_size))
-                                    except TypeError:
-                                        # print('Realm.Stage_display: Wrong tile.')
-                                        pass
-
+                    if len(decors) > 1:
+                        for k in range(1, len(decors)):
+                            if self.redraw_maze_decor:
+                                try:
+                                    surface.blit(decors[k], ((ren_pos_x - self.ren_x_sq) * self.square_size,
+                                                             (ren_pos_y - self.ren_y_sq) * self.square_size))
+                                except TypeError:
+                                    # print('Realm.Stage_display: Wrong tile.')
+                                    pass
+                    if not flags.vis:
+                        #  self.shade_square.set_alpha(200 * (maths.get_distance(ren_pos_x, ren_pos_y, self.pc.x_sq, self.pc.y_sq) / 5))
+                        surface.blit(self.shade_square, ((ren_pos_x - self.ren_x_sq) * self.square_size,
+                                                         (ren_pos_y - self.ren_y_sq) * self.square_size))
+                    """else:
                         try:
                             if not self.maze.flag_array[ren_pos_y][ren_pos_x + 1].vis:
                                 surface.blit(self.dark_edges[0],
                                              ((ren_pos_x - self.ren_x_sq) * self.square_size,
                                               (ren_pos_y - self.ren_y_sq) * self.square_size))
+
                             if not self.maze.flag_array[ren_pos_y + 1][ren_pos_x].vis:
                                 surface.blit(self.dark_edges[1],
                                              ((ren_pos_x - self.ren_x_sq) * self.square_size,
                                               (ren_pos_y - self.ren_y_sq) * self.square_size))
+
                             if not self.maze.flag_array[ren_pos_y][ren_pos_x - 1].vis:
                                 surface.blit(self.dark_edges[2],
                                              ((ren_pos_x - self.ren_x_sq) * self.square_size,
                                               (ren_pos_y - self.ren_y_sq) * self.square_size))
+
                             if not self.maze.flag_array[ren_pos_y - 1][ren_pos_x].vis:
                                 surface.blit(self.dark_edges[3],
                                              ((ren_pos_x - self.ren_x_sq) * self.square_size,
                                               (ren_pos_y - self.ren_y_sq) * self.square_size))
 
+
                         except IndexError:
                             # print('Realm.Stage_display: Wrong tile.')
-                            pass
+                            pass"""
 
 
 
@@ -607,7 +632,8 @@ class Realm:
         if not flags.vis:
             return True
         pc_dist = maths.get_distance(self.pc.x_sq, self.pc.y_sq, x_sq, y_sq)
-        if pc_dist > 3:
+        if pc_dist > 3 or not calc2darray.path2d(self.maze.flag_array, {'mov': False}, (x_sq, y_sq),
+                                                 (round(self.pc.x_sq), round(self.pc.y_sq)), 100, 10, r_max=10)[0]:
             return True
 
         if len(flags.item) > 0:
@@ -648,9 +674,8 @@ class Realm:
                 continue
             if not self.maze.flag_array[round(mon.y_sq)][round(mon.x_sq)].vis:
                 continue
-            if mon.x_sq <= x_sq + 0.5 < mon.x_sq + 1 and mon.y_sq <= y_sq + 0.5 < mon.y_sq + 1:
+            if mon.x_sq <= (x_sq + 0.5) < (mon.x_sq + 1) and mon.y_sq <= (y_sq + 0.5) < (mon.y_sq + 1):
                 self.wins_dict['target'].aim(mon, self)
-                self.active_wins.insert(0, self.wins_dict['target'])
                 return True
         try:
             self.active_wins.remove(self.wins_dict['target'])
@@ -743,7 +768,7 @@ class Realm:
                 return
 
     def spawn_projectile(self, origin_xy, dest_xy, attack, speed, image_pack, off_xy=None, duration=None,
-                         destroy_on_limit=True, collision_limit=1, blast_radius=0):
+                         destroy_on_limit=True, collision_limit=1, blast_radius=0, blast_sound=None):
         if off_xy is None:
             off_xy = (0,0)
         distance = maths.get_distance(origin_xy[0], origin_xy[1], dest_xy[0], dest_xy[1])
@@ -753,11 +778,11 @@ class Realm:
         if duration is None:
             duration = math.ceil(distance / speed)
 
-        images = self.tilesets.images_rotate_to_dir(image_pack, direction)
+        images = self.tilesets.anim_rotate_to_dir(image_pack, direction)
 
         new_missile = projectile.Projectile(origin_xy, off_xy, duration, speed_xy, images, attack,
-                                            destroy_on_limit=destroy_on_limit,
-                                            collision_limit=collision_limit, blast_radius=blast_radius)
+                                            destroy_on_limit=destroy_on_limit, collision_limit=collision_limit,
+                                            blast_radius=blast_radius, blast_sound=blast_sound)
         self.missiles_list.append(new_missile)
 
     def location_label_update(self):

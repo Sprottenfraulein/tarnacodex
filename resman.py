@@ -18,6 +18,19 @@ class ResMan:
         self.grade_colors = (
             'gray_light', 'bright_gold', 'indigo', 'fnt_attent', 'sun'
         )
+        self.mob_levels = {
+            'common': (1, 5),
+            'greater': (6, 10),
+            'vile': (11, 15),
+            'fierce': (16, 20),
+            'dire': (21, 25),
+            'sinister': (26, 30),
+            'killer': (31, 35),
+            'terror': (36, 40),
+            'underworld': (41, 50),
+            'prehistoric': (51, 60),
+            'hellish': (61, 9999)
+        }
         self.stat_captions = {
             'attr_str': 'Strength',
             'attr_dex': 'Dexterity',
@@ -94,7 +107,7 @@ class ResMan:
             'sun': (255, 255, 200),
             'bg': (10, 10, 10),
             'transparent': (0, 255, 0),
-            'azure' : (0, 127, 255),
+            'azure': (0, 127, 255),
             'gray_light': (200, 200, 200),
             'gray_mid': (130, 130, 130),
             'gray_dark': (50, 50, 50),

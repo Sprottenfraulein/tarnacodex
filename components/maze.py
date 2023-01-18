@@ -1,16 +1,17 @@
 import random
 from library import maths
 from library import pickrandom, calc2darray, itemlist
-from components import dbrequests, progression, room, door, stairs, trap, lock, flagtile, monster, gamesave, chest
+from components import dbrequests, progression, room, door, stairs, trap, lock, flagtile, monster, gamesave, chest, initmod
 
 
 class Maze:
-    def __init__(self, db, animations, tile_sets, audio, pc, use_saves=True):
+    def __init__(self, db, animations, tile_sets, audio, pc, resources, use_saves=True):
         self.db = db
         self.animations = animations
+        self.resources = resources
 
-        self.MOB_SCALE_RATE = 1.1
-        self.TRAP_SCALE_RATE = 1.1
+        self.MOB_SCALE_RATE = 1.5
+        self.TRAP_SCALE_RATE = 1.5
 
         self.chapter, self.stage_index = pc.location
         self.stage_dict = get_chapter_stage(db, self.chapter, self.stage_index)
@@ -45,8 +46,7 @@ class Maze:
         self.grate_rate = self.stage_dict['grate_rate']
         self.magic_lock_rate = self.stage_dict['magic_lock_rate']
         self.monster_ids = self.stage_dict['monsters']
-        self.monster_type_amount = self.stage_dict['monster_type_amount']
-        self.monster_amount_rate = self.stage_dict['monster_amount_rate']
+        self.monster_number = self.stage_dict['monster_number']
 
         self.array = maze_array(self.width, self.height)
         self.decor_array = None
@@ -102,8 +102,8 @@ class Maze:
         doors_set(self, self.tile_set, self.db, 'monster_attacks')
         traps_set(self, 'monster_attacks', self.db, pc)
 
-    def mob_populate_alg_1(self, maze, animations, maze_monster_pool, monster_amount_rate):
-        mob_populate_alg_1(maze, animations, maze_monster_pool, monster_amount_rate)
+    def mob_populate_alg_1(self, db, maze, animations, maze_monster_pool, monster_number, pop_level):
+        mob_populate_alg_1(db, maze, animations, maze_monster_pool, monster_number, pop_level)
 
     def tick(self):
         if self.anim_timer >= self.anim_timing:
@@ -462,8 +462,6 @@ def decor_maze(maze, tile_set, flag_array):
              [
                  random.choice(tile_set['doorway_ver_t']),
              ], replace=True)
-
-
     return fine_maze
 
 
@@ -511,7 +509,7 @@ def traps_set(maze, attacks_table_point, db, pc):
         trap_params_list = dbrequests.trap_params_get(db.cursor, attacks_table_point, maze.lvl)
         if not trap_params_list:
             continue
-        label, rang, dam_type, dam_val_base, dam_val_spread, init_lvl = random.choice(trap_params_list)
+        label, rang, dam_type, dam_val_base, dam_val_spread, init_lvl, sound_trigger = random.choice(trap_params_list)
 
         lvl = maze.stage_dict['lvl'] or pc.char_sheet.level
         dam_val_base = round(dam_val_base * lvl / init_lvl * maze.TRAP_SCALE_RATE)
@@ -527,7 +525,7 @@ def traps_set(maze, attacks_table_point, db, pc):
             x_sq = random.randrange(trap_room.left + 1, trap_room.right)
             y_sq = random.randrange(trap_room.top + 1, trap_room.bottom)
         new_trap = trap.Trap(x_sq, y_sq, lvl, maze.tile_set, label, rang,
-                             dam_type, dam_val_base, dam_val_spread)
+                             dam_type, dam_val_base, dam_val_spread, sound_trigger)
         new_trap.mob_utility_obj = maze.mob_utility_obj
         trap_room.traps.append(new_trap)
         trap_room.rating += 25
@@ -572,8 +570,9 @@ def doors_set(maze, tile_set, db, attack_table_point):
             trap_params_list = dbrequests.trap_params_get(db.cursor, attack_table_point, maze.lvl)
             if not trap_params_list:
                 continue
-            label, rang, dam_type, dam_val_base, dam_val_spread, lvl = random.choice(trap_params_list)
-            new_trap = trap.Trap(None, None, maze.lvl, maze.tile_set, label, rang, dam_type, dam_val_base, dam_val_spread)
+            label, rang, dam_type, dam_val_base, dam_val_spread, lvl, sound_trigger = random.choice(trap_params_list)
+            new_trap = trap.Trap(None, None, maze.lvl, maze.tile_set, label, rang, dam_type, dam_val_base,
+                                 dam_val_spread, sound_trigger)
             new_trap.mob_utility_obj = maze.mob_utility_obj
             random.choice(locked_room.doors).trap = new_trap
             maze.traps.append(new_trap)
@@ -649,8 +648,9 @@ def chest_set(maze, room, tileset, chest_number, db, attack_table_point):
             trap_params_list = dbrequests.trap_params_get(db.cursor, attack_table_point, new_chest.lvl)
             if not trap_params_list:
                 continue
-            label, rang, dam_type, dam_val_base, dam_val_spread, lvl = random.choice(trap_params_list)
-            new_trap = trap.Trap(None, None, maze.lvl, maze.tile_set, label, rang, dam_type, dam_val_base, dam_val_spread)
+            label, rang, dam_type, dam_val_base, dam_val_spread, lvl, sound_trigger = random.choice(trap_params_list)
+            new_trap = trap.Trap(None, None, maze.lvl, maze.tile_set, label, rang, dam_type, dam_val_base,
+                                 dam_val_spread, sound_trigger)
             new_trap.mob_utility_obj = maze.mob_utility_obj
             new_chest.trap = new_trap
             maze.traps.append(new_trap)
@@ -669,14 +669,13 @@ def array_pattern_apply(array, pattern, x, y):
 
 
 def populate(db, maze, pc, animations):
-    """mon_ids = roll_monsters(db.cursor, maze.lvl, 0, maze.monster_types, maze.monster_type_amount)"""
-    monster_list = [dbrequests.monster_get_by_id(db.cursor, mon_id) for mon_id in maze.monster_ids]
-
-    for mon in monster_list:
-        scale_mob(mon, maze.stage_dict['lvl'] or pc.char_sheet.level, maze.MOB_SCALE_RATE)
-
+    maze_monster_pool = []
+    for i in range(0, maze.monster_number):
+        maze_monster_pool.append(dbrequests.monster_get_by_id(db.cursor, pickrandom.items_get(maze.monster_ids, 1)[0]))
+    pop_level = maze.stage_dict['lvl'] or pc.char_sheet.level
+    for mon in maze_monster_pool:
         # Monster grade definining
-        grade_list = dbrequests.grade_set_get(db.cursor, mon['grade_set_monster'], mon['lvl'])
+        grade_list = dbrequests.grade_set_get(db.cursor, mon['grade_set_monster'], pop_level)
         if len(grade_list) > 0:
             if len(grade_list) > 1:
                 mon['grade'] = pickrandom.items_get([(grade, grade['roll_chance']) for grade in grade_list])[0]
@@ -685,24 +684,24 @@ def populate(db, maze, pc, animations):
         else:
             mon['grade'] = None
         del mon['grade_set_monster']
-        monster_apply_grade(mon)
+        monster_apply_grade(db, mon, maze.resources.fate_rnd)
+        scale_mob(mon, pop_level, maze.MOB_SCALE_RATE)
 
-    maze_rnd_pool = [(mon, mon['roll_chance']) for mon in monster_list]
-    maze_monster_pool = pickrandom.items_get(maze_rnd_pool, maze.monster_type_amount, log=True)
-
-    # mob_populate_alg_1(maze, animations, maze_monster_pool, maze.monster_amount_rate)
-    getattr(maze, maze.stage_dict['populate_algorythm'])(maze, animations, maze_monster_pool, maze.monster_amount_rate)
+    getattr(maze, maze.stage_dict['populate_algorythm'])(db, maze, animations, maze_monster_pool,
+                                                         maze.monster_number, pop_level)
 
 
-def mob_populate_alg_1(maze, animations, maze_monster_pool, monster_amount_rate):
-    rooms_list = maze.rooms
+def mob_populate_alg_1(db, maze, animations, maze_monster_pool, monster_number, pop_level):
+    rooms_list = maze.rooms[:]
     for ex in maze.exits:
         try:
             rooms_list.remove(ex.room)
         except ValueError:
             pass
-    for i in range(0, round(len(maze.rooms) * monster_amount_rate)):
-        room = maze.rooms[random.randrange(0, len(rooms_list))]
+    if not rooms_list:
+        return
+    for i in range(0, monster_number):
+        room = random.choice(rooms_list)
 
         mon_x_sq = random.randrange(room.left + 1, room.right)
         mon_y_sq = random.randrange(room.top + 1, room.bottom)
@@ -731,30 +730,94 @@ def roll_monsters(db_cursor, max_level, max_grade, monster_types, mon_amount=1):
 def scale_mob(mob_stats, level, scale_rate):
     init_level = mob_stats['lvl']
     mob_stats['hp_max'] = round(mob_stats['hp_max'] * level / init_level * scale_rate)
+
     mob_stats['exp'] = round(mob_stats['exp'] * level / init_level * scale_rate)
     # Gold being scaled during drop generation.
     # mob_stats['gold'] = round(mob_stats['gold'] * level / init_level * scale_rate)
-
     for m_a in mob_stats['attacks_melee']:
-        m_a['attack_val_base'] = round(m_a['attack_val_base'] * level / init_level * scale_rate)
-        m_a['attack_val_spread'] = round(m_a['attack_val_spread'] * level / init_level * scale_rate)
-
+        mob_scale_attack(m_a, level, init_level, scale_rate)
     for m_r in mob_stats['attacks_ranged']:
-        m_r['attack_val_base'] = round(m_r['attack_val_base'] * level / init_level * scale_rate)
-        m_r['attack_val_spread'] = round(m_r['attack_val_spread'] * level / init_level * scale_rate)
+        mob_scale_attack(m_r, level, init_level, scale_rate)
 
+    mob_stats['init_lvl'] = init_level
     mob_stats['lvl'] = level
 
     return mob_stats
 
 
-def monster_apply_grade(mob_stats):
+def mob_scale_attack(m_a, level, init_level, scale_rate):
+    m_a['attack_val_base'] = round(m_a['attack_val_base'] * level / init_level * scale_rate)
+    m_a['attack_val_spread'] = round(m_a['attack_val_spread'] * level / init_level * scale_rate)
+
+
+def monster_apply_grade(db, mob_stats, fate_rnd):
     if mob_stats['grade'] is None:
         return
-    # TODO getting affixes for monster stats
+
+    if mob_stats['grade']['affix_amount'] > 0:
+        affix_ids = set()
+        if mob_stats['grade']['affix_amount'] >= 2:
+            affix_ids.add(mob_roll_affix(db.cursor, mob_stats['grade']['grade_level'], mob_stats, is_suffix=0))
+        if mob_stats['grade']['affix_amount'] >= 3:
+            affix_ids.add(mob_roll_affix(db.cursor, mob_stats['grade']['grade_level'], mob_stats, is_suffix=0))
+        affix_ids.add(mob_roll_affix(db.cursor, mob_stats['grade']['grade_level'], mob_stats))
+        if None in affix_ids:
+            affix_ids.remove(None)
+        for aff in affix_ids:
+            mob_affix_add(db.cursor, mob_stats, dbrequests.affix_mob_get_by_id(db.cursor, aff), fate_rnd)
+            new_melee_att, new_ranged_att = dbrequests.affixed_attack_get(db.cursor, aff)
+            mob_stats['attacks_ranged'].extend(new_ranged_att)
+            mob_stats['attacks_melee'].extend(new_melee_att)
+
+    # images_update(db_cursor, loot_props, tile_sets)
+    # sounds_update(db_cursor, loot_props)
+
+    # FOR TESTING PURPOSES:
+    """debuff.DeBuff(dbrequests.de_buff_get_by_id(realm.db.cursor, 1)[0], target.de_buff_dict)
+    wins_dict['target'].refresh_aim()
+    target.wound(damage, 'att_physical', False, is_crit, wins_dict, fate_rnd, pc)"""
 
 
-    # TODO getting additional attacks in amount equal to number of affixes
+def mob_roll_affix(db_cursor, grade, mob_stats, is_suffix=None):
+    rnd_roll = random.randrange(0, 10001)
+    affix_ids = dbrequests.get_affixes_mob(db_cursor, mob_stats['lvl'], grade, mob_stats['monster_type'], rnd_roll,
+                                            is_suffix=is_suffix)
+    if len(affix_ids) > 0:
+        return random.choice(affix_ids)
+    else:
+        return None
+
+
+def mob_affix_add(db_cursor, mob_stats, affix_dicts, fate_rnd):
+    base_props, modifier_list, de_buff_list = affix_dicts
+
+    # inserting modifiers
+    base_props['mods'] = {}
+    for mod_dict in modifier_list:
+        initmod.init_modifier(base_props, mod_dict, fate_rnd)
+
+    for key, value in base_props['mods'].items():
+        if value['value_type'] == 2:
+            mob_stats[key] += mob_stats[key] * value['value_base'] // 1000
+
+    # inserting de_buffs
+    for db_dict in de_buff_list:
+        modifier_list = dbrequests.de_buff_get_mods(db_cursor, db_dict['de_buff_id'])
+
+        db_dict['mods'] = {}
+        for mod_dict in modifier_list:
+            initmod.init_modifier(db_dict, mod_dict, fate_rnd)
+
+        for key, value in db_dict['mods'].items():
+            if value['value_type'] == 2:
+                mob_stats[key] += mob_stats[key] * value['value_base'] // 1000
+
+    base_props['de_buffs'] = de_buff_list
+
+    if 'affixes' not in mob_stats:
+        mob_stats['affixes'] = [base_props]
+    else:
+        mob_stats['affixes'].append(base_props)
 
 
 def flags_create(maze, array):

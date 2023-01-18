@@ -33,10 +33,11 @@ class Monster:
         self.speed = self.stats['speed']
         self.aimed = False
 
-        self.active_time = 60
+        self.active_time = 35
         self.rest_time = 60
-        self.active_time_spread = 60
-        self.rest_time_spread = 60
+        self.active_time_spread = 25
+        self.rest_time_spread = 120
+        self.alert_time = 300
         self.bhvr_timer = 0
 
         self.alive = True
@@ -46,6 +47,8 @@ class Monster:
         self.wp_ind_list = None
         self.wp_index = None
         self.wp_parent_index = None
+
+        self.de_buff_dict = {}
 
     def animate(self):
         # PC states:
@@ -100,10 +103,12 @@ class Monster:
         if self.attacking or (not self.rest and (self.move_instr_x != 0 or self.move_instr_y != 0)):
             if self.anim_timer > self.frame_timing:
                 self.anim_timer = 0
-                self.anim_frame += 1
-                if self.anim_frame >= len(self.image):
-                    self.anim_frame -= len(self.image)
-                self.frame_timing = self.anim_timings[self.anim_frame]
+                if self.anim_frame + 1 < len(self.image):
+                    self.anim_frame += 1
+                    self.frame_timing = self.anim_timings[self.anim_frame]
+                elif not self.attacking:
+                    self.anim_frame = 0
+                    self.frame_timing = self.anim_timings[self.anim_frame]
             else:
                 self.anim_timer += 1
 
@@ -117,7 +122,7 @@ class Monster:
 
         if self.waypoints is not None:
             if maths.get_distance(self.x_sq, self.y_sq, self.waypoints[self.wp_index][0],
-                                  self.waypoints[self.wp_index][1]) < self.speed / 100:
+                                  self.waypoints[self.wp_index][1]) < self.speed / 5:
                 if self.wp_index == 0:
                     self.waypoints = None
                 else:
@@ -125,8 +130,7 @@ class Monster:
             else:
                 wp_x, wp_y = self.waypoints[self.wp_index]
                 self.move_instr_x, self.move_instr_y = maths.sign(wp_x - self.x_sq), maths.sign(wp_y - self.y_sq)
-        elif (self.bhvr_timer == 0 and self.stats['melee_distance'] < pc_distance <= self.stats['aggro_distance']
-                * (realm.pc.char_sheet.profs['prof_provoke'] + 1000) // 1000):
+        elif pc_distance <= self.stats['aggro_distance'] * (realm.pc.char_sheet.profs['prof_provoke'] + 1000) // 1000:
             self.intercept(wins_dict, pc_distance)
         else:
             if self.bhvr_timer == 0:
@@ -152,21 +156,27 @@ class Monster:
         self.wp_index = waypoint_index
         self.wp_parent_index = self.wp_ind_list[waypoint_index]
         self.move_instr_x, self.move_instr_y = maths.sign(wp_x - round(self.x_sq)), maths.sign(wp_y - round(self.y_sq))
+        self.rest = False
 
     def phase_change(self, realm):
         if self.rest:
             self.go()
         else:
-            self.wait()
+            self.wait(realm)
 
     def go(self):
         self.rest = False
-        self.bhvr_timer = self.active_time + random.randrange(0, self.active_time_spread + 1)
+        if self.aggred:
+            self.bhvr_timer = self.alert_time
+        else:
+            self.bhvr_timer = self.active_time + random.randrange(0, self.active_time_spread + 1)
 
-    def wait(self):
+    def wait(self, realm):
         self.bhvr_timer = self.rest_time + random.randrange(0, self.rest_time_spread + 1)
         self.rest = True
-        self.aggred = False
+        if self.aggred:
+            self.aggred = False
+            self.calc_path(realm, (round(realm.pc.x_sq), round(realm.pc.y_sq)))
 
     def stop(self):
         self.alive = False
@@ -178,29 +188,39 @@ class Monster:
             self.move_instr_x = random.randrange(-1, 2)
             self.move_instr_y = random.randrange(-1, 2)
             return
-        if calc2darray.cast_ray(realm.maze.flag_array, self.x_sq, self.y_sq, self.origin_x_sq, self.origin_y_sq, True):
+        """if calc2darray.cast_ray(realm.maze.flag_array, self.x_sq, self.y_sq, self.origin_x_sq, self.origin_y_sq, True):
             self.move_instr_x, self.move_instr_y = maths.sign(round(self.origin_x_sq) - round(self.x_sq)), maths.sign(
                 round(self.origin_y_sq) - round(self.y_sq))
         elif not self.calc_path(realm, (round(self.origin_x_sq), round(self.origin_y_sq))):
                 self.move_instr_x = random.randrange(-1, 2)
-                self.move_instr_y = random.randrange(-1, 2)
+                self.move_instr_y = random.randrange(-1, 2)"""
+        if (realm.maze.flag_array[round(self.y_sq)][round(self.x_sq)].vis or
+                realm.maze.flag_array[round(realm.pc.y_sq)][round(realm.pc.x_sq)].vis):
+            return
+        """realm.particle_list.append(particle.Particle((self.x_sq, self.y_sq), (-4, -4),
+                                                     realm.animations.get_animation('effect_dust_cloud')['default'], 16))"""
+
+        realm.maze.flag_array[round(self.y_sq)][round(self.x_sq)].mon = None
+        self.x_sq = self.origin_x_sq
+        self.y_sq = self.origin_y_sq
+        realm.maze.flag_array[round(self.y_sq)][round(self.x_sq)].mon = self
+        """realm.particle_list.append(particle.Particle((self.x_sq, self.y_sq), (-4, -4),
+                                                     realm.animations.get_animation('effect_dust_cloud')['default'],
+                                                     16))"""
 
     def intercept(self, wins_dict, pc_distance):
         realm = wins_dict['realm']
+        if not self.aggred and not self.waypoints:
+            realm.sound_inrealm(self.stats['sound_aggro'], self.x_sq, self.y_sq)
+            self.aggred = True
         if calc2darray.cast_ray(realm.maze.flag_array, self.x_sq, self.y_sq, realm.pc.x_sq, realm.pc.y_sq, True):
             if self.attack_ranged(realm.pc, wins_dict, pc_distance):
                 return
-            self.move_instr_x, self.move_instr_y = maths.sign(round(realm.pc.x_sq) - round(self.x_sq)), maths.sign(
-                round(realm.pc.y_sq) - round(self.y_sq))
-            self.go()
-            if not self.aggred:
-                realm.sound_inrealm(self.stats['sound_aggro'], self.x_sq, self.y_sq)
-                self.aggred = True
+            self.calc_path(realm, (round(realm.pc.x_sq), round(realm.pc.y_sq)))
         elif self.stats['xray'] == 1:
             self.calc_path(realm, (round(realm.pc.x_sq), round(realm.pc.y_sq)))
-            if not self.aggred:
-                realm.sound_inrealm(self.stats['sound_aggro'], self.x_sq, self.y_sq)
-                self.aggred = True
+        else:
+            return
 
     # movement
     def move(self, step_x, step_y, realm):
@@ -301,6 +321,24 @@ class Monster:
         attacks_list = [(att, att['chance']) for att in self.stats['attacks_ranged']]
         self.attacking = pickrandom.items_get(attacks_list)[0]
 
+        rnd_attack = random.randrange(self.attacking['attack_val_base'],
+                                      self.attacking['attack_val_base'] + self.attacking['attack_val_spread'] + 1)
+        if random.randrange(1, 101) <= self.stats['crit_chance']:
+            rnd_attack *= 2
+            is_crit = True
+        else:
+            is_crit = False
+
+        anim_pack = (
+            self.anim_set['missile_nw'],
+            self.anim_set['missile_w']
+        )
+        speed = 0.1
+        wins_dict['realm'].spawn_projectile((self.x_sq, self.y_sq), (pc.x_sq, pc.y_sq),
+                                            (rnd_attack, self.attacking['attack_type'], is_crit, self),
+                                            speed, anim_pack, collision_limit=1, blast_radius=self.attacking['blast_radius'],
+                                            blast_sound=self.attacking['sound_blast'])
+
         wins_dict['realm'].sound_inrealm(self.attacking['sound_attack'], self.x_sq, self.y_sq)
 
         self.attack_timer = 0
@@ -347,7 +385,8 @@ class Monster:
                 pc.wound(wins_dict, self, attack, fate_rnd, no_crit=True, no_reflect=True, no_evade=True)
 
         self.check(wins_dict, fate_rnd, pc)
-        self.intercept(wins_dict, maths.get_distance(self.x_sq, self.y_sq, pc.x_sq, pc.y_sq))
+        if self.alive:
+            self.intercept(wins_dict, maths.get_distance(self.x_sq, self.y_sq, pc.x_sq, pc.y_sq))
 
     def check(self, wins_dict, fate_rnd, pc):
         if self.hp > 0:
@@ -357,6 +396,25 @@ class Monster:
         self.state_change(8)
 
         pc.char_sheet.experience_get(wins_dict, pc, self.stats['exp'])
+        if 'affixes' in self.stats:
+            for aff in self.stats['affixes']:
+                if aff['additional_exp'] is None:
+                    continue
+                pc.char_sheet.experience_get(wins_dict, pc, self.stats['exp'] * aff['additional_exp'] // 100)
+
+        for mob in wins_dict['realm'].maze.mobs:
+            if mob.alive:
+                break
+        else:
+            exp = 100 * wins_dict['realm'].maze.lvl
+            pc.char_sheet.experience_get(wins_dict, pc, exp)
+            wins_dict['realm'].spawn_realmtext('new_txt', "This place is safer now!", (0, 0), (0, -24), None, pc, None, 120,
+                                               'def_bold', 24)
+            wins_dict['realm'].spawn_realmtext('new_txt', '%s exp.' % (exp),
+                                               (0, 0), (0, -24), 'sun', pc, (0, -2), 60, 'large', 16, 0,
+                                               0.17)
+
+
         wins_dict['pools'].updated = True
         wins_dict['charstats'].updated = True
 
@@ -367,6 +425,7 @@ class Monster:
 
         wins_dict['realm'].sound_inrealm(self.stats['sound_defeat'], self.x_sq, self.y_sq)
         # wins_dict['realm'].maze.flag_array[round(self.y_sq)][round(self.x_sq)].mon = None
+        wins_dict['target'].drop_aim()
 
     def state_change(self, new_state):
         # check if state change is possible

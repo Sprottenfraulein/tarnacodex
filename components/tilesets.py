@@ -33,7 +33,7 @@ class Tilesets:
                 'doorway_hor_r': self.get_image('dung_bricks', (24, 24), (3,)),
                 'doorway_ver_b': self.get_image('dung_bricks', (24, 24), (30,)),
                 'doorway_ver_t': self.get_image('dung_bricks', (24, 24), (10,)),
-                'floor_tiled': self.get_image('dung_bricks', (24, 24), (55,)),
+                'floor_tiled': self.get_image('dung_bricks', (24, 24), (55,56,57,58,59)),
                 'floor_ground': self.get_image('dung_bricks', (24, 24), (65,66,67,68,69)),
                 'door_ver_mlock': self.get_image('dung_doors', (24, 48), (0, 1, 2)),
                 'door_ver_lock': self.get_image('dung_doors', (24, 48), (3,)),
@@ -121,32 +121,40 @@ class Tilesets:
             image_list.append(new_image)
         return image_list
 
-    def images_rotate_to_dir(self, image_pack, direction):
-        images = None
+    def anim_rotate_to_dir(self, anim_pack, direction):
+        rotated_anim = {'images': None, 'timings': None}
         if 0.39 <= direction < 1.17:
             # NW
-            images = [pygame.transform.rotate(img, 180) for img in image_pack[0]]
+            rotated_anim['images'] = [pygame.transform.rotate(img, 180) for img in anim_pack[0]['images']]
+            rotated_anim['timings'] = anim_pack[0]['timings']
         elif 1.17 <= direction < 1.95:
             # N
-            images = [pygame.transform.rotate(img, 90) for img in image_pack[1]]
+            rotated_anim['images'] = [pygame.transform.rotate(img, 90) for img in anim_pack[1]['images']]
+            rotated_anim['timings'] = anim_pack[1]['timings']
         elif 1.95 <= direction < 2.73:
             # NE
-            images = [pygame.transform.rotate(img, 90) for img in image_pack[0]]
+            rotated_anim['images'] = [pygame.transform.rotate(img, 90) for img in anim_pack[0]['images']]
+            rotated_anim['timings'] = anim_pack[0]['timings']
         elif 2.73 <= direction or -2.73 >= direction:
             # E
-            images = image_pack[1]
+            rotated_anim['images'] = anim_pack[1]['images']
+            rotated_anim['timings'] = anim_pack[1]['timings']
         elif -0.39 >= direction > -1.17:
             # SW
-            images = [pygame.transform.rotate(img, -90) for img in image_pack[0]]
+            rotated_anim['images'] = [pygame.transform.rotate(img, -90) for img in anim_pack[0]['images']]
+            rotated_anim['timings'] = anim_pack[0]['timings']
         elif -1.17 >= direction > -1.95:
             # S
-            images = [pygame.transform.rotate(img, -90) for img in image_pack[1]]
+            rotated_anim['images'] = [pygame.transform.rotate(img, -90) for img in anim_pack[1]['images']]
+            rotated_anim['timings'] = anim_pack[1]['timings']
         elif -1.95 >= direction > -2.73:
             # SE
-            images = image_pack[0]
+            rotated_anim['images'] = anim_pack[0]['images']
+            rotated_anim['timings'] = anim_pack[0]['timings']
         elif 0.39 > direction > -0.39:
             # W
-            images = [pygame.transform.rotate(img, -180) for img in image_pack[1]]
-        return images or image_pack
+            rotated_anim['images'] = [pygame.transform.rotate(img, -180) for img in anim_pack[1]['images']]
+            rotated_anim['timings'] = anim_pack[1]['timings']
+        return rotated_anim
 
 # get_maze_tiles('default')

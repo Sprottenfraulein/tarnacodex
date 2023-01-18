@@ -3,7 +3,7 @@ import random
 
 
 def trap_params_get(cursor, table_name, key_level):
-    ex_str = "SELECT label, range, attack_type, attack_val_base, attack_val_spread, lvl FROM %s WHERE monster_type='mt_trap' AND lvl<=?" % (table_name,)
+    ex_str = "SELECT label, range, attack_type, attack_val_base, attack_val_spread, lvl, sound_attack FROM %s WHERE monster_type='mt_trap' AND lvl<=?" % (table_name,)
     cursor.execute(ex_str, (key_level,))
     rows = cursor.fetchall()
 
@@ -165,6 +165,21 @@ def de_buff_get_mods(cursor, de_buff_id):
     return modifiers_list
 
 
+def de_buff_get_by_id(cursor, de_buff_id):
+    # de_buff modifiers query
+    ex_str = "SELECT * FROM de_buffs WHERE de_buff_id=?"
+    cursor.execute(ex_str, (de_buff_id,))
+    rows = cursor.fetchall()
+    column_names = [column[0] for column in cursor.description]
+    de_buff_list = []
+    for row in rows:
+        de_buff_dict = {}
+        for i in range(0, len(column_names)):
+            de_buff_dict[column_names[i]] = row[i]
+        de_buff_list.append(de_buff_dict)
+    return de_buff_list
+
+
 def affix_loot_get_by_id(cursor, key_id):
     # base item properties query
     ex_str = "SELECT * FROM affixes_loot WHERE affix_id=?"
@@ -175,7 +190,7 @@ def affix_loot_get_by_id(cursor, key_id):
     for i in range(0, len(column_names)):
         affix_dict[column_names[i]] = rows[0][i]
     # item modifiers set query
-    ex_str = "SELECT * FROM modifiers m JOIN affix_modifier_sets ams ON ams.modifier_id=m.modifier_id WHERE ams.affix_id=?"
+    ex_str = "SELECT * FROM modifiers m JOIN affix_modifier_sets_loot ams ON ams.modifier_id=m.modifier_id WHERE ams.affix_id=?"
     cursor.execute(ex_str, (key_id,))
     rows = cursor.fetchall()
     column_names = [column[0] for column in cursor.description]
@@ -186,13 +201,47 @@ def affix_loot_get_by_id(cursor, key_id):
             mods_dict[column_names[i]] = row[i]
         modifiers_list.append(mods_dict)
     # item de_buff effects set query
-    ex_str = "SELECT * FROM de_buffs d JOIN affix_de_buff_sets adbs ON adbs.de_buff_id=d.de_buff_id WHERE adbs.affix_id=?"
+    ex_str = "SELECT * FROM de_buffs d JOIN affix_de_buff_sets_loot adbs ON adbs.de_buff_id=d.de_buff_id WHERE adbs.affix_id=?"
     cursor.execute(ex_str, (key_id,))
     rows = cursor.fetchall()
     column_names = [column[0] for column in cursor.description]
     de_buffs_list = []
     for row in rows:
         de_buff_dict = debuff.DeBuff()
+        for i in range(0, len(column_names)):
+            de_buff_dict[column_names[i]] = row[i]
+        de_buffs_list.append(de_buff_dict)
+    return affix_dict, modifiers_list, de_buffs_list
+
+
+def affix_mob_get_by_id(cursor, key_id):
+    # base item properties query
+    ex_str = "SELECT * FROM affixes_mon WHERE affix_id=?"
+    cursor.execute(ex_str, (key_id,))
+    rows = cursor.fetchall()
+    column_names = [column[0] for column in cursor.description]
+    affix_dict = {}
+    for i in range(0, len(column_names)):
+        affix_dict[column_names[i]] = rows[0][i]
+    # item modifiers set query
+    ex_str = "SELECT * FROM modifiers m JOIN affix_modifier_sets_mob ams ON ams.modifier_id=m.modifier_id WHERE ams.affix_id=?"
+    cursor.execute(ex_str, (key_id,))
+    rows = cursor.fetchall()
+    column_names = [column[0] for column in cursor.description]
+    modifiers_list = []
+    for row in rows:
+        mods_dict = {}
+        for i in range(0, len(column_names)):
+            mods_dict[column_names[i]] = row[i]
+        modifiers_list.append(mods_dict)
+    # item de_buff effects set query
+    ex_str = "SELECT * FROM de_buffs d JOIN affix_de_buff_sets_mob adbs ON adbs.de_buff_id=d.de_buff_id WHERE adbs.affix_id=?"
+    cursor.execute(ex_str, (key_id,))
+    rows = cursor.fetchall()
+    column_names = [column[0] for column in cursor.description]
+    de_buffs_list = []
+    for row in rows:
+        de_buff_dict = {}
         for i in range(0, len(column_names)):
             de_buff_dict[column_names[i]] = row[i]
         de_buffs_list.append(de_buff_dict)
@@ -233,11 +282,25 @@ def treasure_sounds_get(cursor, treasure_id, grade):
     return sounds_dict
 
 
-def get_affixes(cursor, max_level, max_grade, item_types, roll, is_suffix=None):
+def get_affixes_loot(cursor, max_level, max_grade, item_types, roll, is_suffix=None):
     ex_str = "SELECT affix_id FROM affixes_loot WHERE affix_level<=? AND item_grade<=? AND roll_chance>=?"
     for t in item_types:
         ex_str += ' AND %s=1' % t
     bindings = [max_level, max_grade, roll]
+    if is_suffix is not None:
+        ex_str += ' AND suffix=?'
+        bindings.append(is_suffix)
+    cursor.execute(ex_str, bindings)
+    rows = cursor.fetchall()
+    affix_ids = []
+    for row in rows:
+        affix_ids.append(row[0])
+    return affix_ids
+
+
+def get_affixes_mob(cursor, max_level, max_grade, mob_type, roll, is_suffix=None):
+    ex_str = "SELECT affix_id FROM affixes_mon WHERE lvl<=? AND monster_grade<=? AND roll_chance>=? AND monster_type=?"
+    bindings = [max_level, max_grade, roll, mob_type]
     if is_suffix is not None:
         ex_str += ' AND suffix=?'
         bindings.append(is_suffix)
@@ -263,7 +326,7 @@ def monster_get_by_id(cursor, monster_id):
     for row in rows:
         monster_dict[row[0]] = row[1]
     # Monster attacks query
-    ex_str = "SELECT ma.attack_id, label, range, attack_type, attack_val_base, attack_val_spread, monster_type, lvl, time, chance, sound_attack FROM monster_attack_sets mas JOIN monster_attacks ma ON mas.attack_id=ma.attack_id WHERE mas.monster_id=?"
+    ex_str = "SELECT ma.attack_id, label, range, attack_type, attack_val_base, attack_val_spread, monster_type, lvl, time, chance, sound_attack, blast_radius, sound_blast FROM monster_attack_sets mas JOIN monster_attacks ma ON mas.attack_id=ma.attack_id WHERE mas.monster_id=?"
     cursor.execute(ex_str, (monster_id,))
     rows = cursor.fetchall()
     column_names = [column[0] for column in cursor.description]
@@ -294,6 +357,38 @@ def monster_get_by_id(cursor, monster_id):
                 de_buffs_list.append(de_buff_dict)
             att['de_buffs'] = de_buffs_list
     return monster_dict
+
+
+def affixed_attack_get(cursor, affix_id):
+    ex_str = "SELECT ma.attack_id, label, range, attack_type, attack_val_base, attack_val_spread, monster_type, lvl, time, chance, sound_attack, blast_radius, sound_blast FROM affixed_attack_sets aas JOIN monster_attacks ma ON aas.attack_id=ma.attack_id WHERE aas.affix_id=?"
+    cursor.execute(ex_str, (affix_id,))
+    rows = cursor.fetchall()
+    column_names = [column[0] for column in cursor.description]
+    ranged_attacks_list = []
+    melee_attacks_list = []
+    for row in rows:
+        attack_dict = {}
+        for i in range(0, len(column_names)):
+            attack_dict[column_names[i]] = row[i]
+        if attack_dict['range'] > 0:
+            ranged_attacks_list.append(attack_dict)
+        else:
+            melee_attacks_list.append(attack_dict)
+    for at in (ranged_attacks_list, melee_attacks_list):
+        for att in at:
+            # monster de_buff effects set query
+            ex_str = "SELECT * FROM de_buffs d JOIN monster_debuff_sets mdbs ON mdbs.de_buff_id=d.de_buff_id WHERE mdbs.attack_id=?"
+            cursor.execute(ex_str, (att['attack_id'],))
+            rows = cursor.fetchall()
+            column_names = [column[0] for column in cursor.description]
+            de_buffs_list = []
+            for row in rows:
+                de_buff_dict = {}
+                for i in range(0, len(column_names)):
+                    de_buff_dict[column_names[i]] = row[i]
+                de_buffs_list.append(de_buff_dict)
+            att['de_buffs'] = de_buffs_list
+    return melee_attacks_list, ranged_attacks_list
 
 
 def get_monsters(cursor, max_level, max_grade, monster_types, roll):
@@ -404,12 +499,12 @@ def stage_get(cursor, chapter_id, stage_index, roll):
             stage_dict[column_names[i]] = row[i]
         stages_list.append(stage_dict)
     for stage in stages_list:
-        ex_str = "SELECT m.monster_id FROM monsters m JOIN stage_monster_sets sms ON sms.monster_id=m.monster_id WHERE sms.stage_id=?"
+        ex_str = "SELECT m.monster_id, sms.roll_chance FROM monsters m JOIN stage_monster_sets sms ON sms.monster_id=m.monster_id WHERE sms.stage_id=?"
         cursor.execute(ex_str, (stage['stage_id'],))
         rows = cursor.fetchall()
         monster_list = []
         for row in rows:
-            monster_list.append(row[0])
+            monster_list.append((row[0], row[1]))
         stage['monsters'] = monster_list
     return stages_list
 
@@ -456,7 +551,7 @@ def chapter_demo_get(cursor, chapter_id, demo_tag):
     column_names = [column[0] for column in cursor.description]
     demo_text_list = []
     for row in rows:
-        text_dict = debuff.DeBuff()
+        text_dict = {}
         for i in range(0, len(column_names)):
             text_dict[column_names[i]] = row[i]
         demo_text_list.append(text_dict)
@@ -466,7 +561,7 @@ def chapter_demo_get(cursor, chapter_id, demo_tag):
     column_names = [column[0] for column in cursor.description]
     demo_image_list = []
     for row in rows:
-        image_dict = debuff.DeBuff()
+        image_dict = {}
         for i in range(0, len(column_names)):
             image_dict[column_names[i]] = row[i]
         demo_image_list.append(image_dict)
@@ -482,3 +577,18 @@ def chapter_demo_get(cursor, chapter_id, demo_tag):
         img['image'] = image_dict
         del img['image_id']
     return demo_text_list, demo_image_list
+
+
+def images_get_by_id(cursor, image_ids):
+    insertion = ','.join([str(i) for i in image_ids if isinstance(i, int)])
+    ex_str = "SELECT * FROM images WHERE image_id in (%s)" % insertion
+    cursor.execute(ex_str)
+    rows = cursor.fetchall()
+    column_names = [column[0] for column in cursor.description]
+    image_list = []
+    image_dict = {}
+    for row in rows:
+        for i in range(0, len(column_names)):
+            image_dict[column_names[i]] = row[i]
+        image_list.append(image_dict)
+    return image_list

@@ -81,7 +81,11 @@ class Splitter:
 
                 self.win_ui.key_focus.render_all()
                 self.win_ui.updated = True
-            elif event.key == pygame.K_SPACE:
+            elif event.key in (pygame.K_RETURN, pygame.K_KP_ENTER):
+                # running delayed action
+                if self.delayed_action is not None:
+                    getattr(self.delayed_action[0], self.delayed_action[1])(self.amount)
+                self.end()
                 pass
 
         # return True if interaction was made to prevent other windows from responding to this event

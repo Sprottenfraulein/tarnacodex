@@ -27,6 +27,8 @@ tilesets = (
     ('inv_items', 'res/tilesets/inv_items.png'),
     ('floor_items', 'res/tilesets/floor_items.png'),
     ('inv_skills', 'res/tilesets/inv_skills.png'),
+    ('de_buffs', 'res/tilesets/de_buffs.png'),
+
     ('pools', 'res/tilesets/pools.png'),
     ('char_portraits', 'res/tilesets/char_portraits.png'),
     ('char_portraits_archive', 'res/tilesets/char_portraits_archive.png'),
@@ -35,7 +37,8 @@ tilesets = (
     # Character sprites & monsters
     ('anthro_ragdoll', 'res/tilesets/anthro_ragdoll.png'),
 
-    ('anthro_skeleton', 'res/tilesets/anthro_skeleton.png'),
+    ('anthro_skeleton_red', 'res/tilesets/anthro_skeleton_red.png'),
+    ('anthro_skeleton_yellow', 'res/tilesets/anthro_skeleton_yellow.png'),
 
     ('anthro_champion', 'res/tilesets/anthro_champion.png'),
     ('anthro_kingslayer', 'res/tilesets/anthro_kingslayer.png'),

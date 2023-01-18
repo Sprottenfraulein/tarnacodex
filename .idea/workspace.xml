@@ -25,21 +25,37 @@
     </select>
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="cc130b1c-00f5-48a7-860f-78f09248cfe9" name="Default Changelist" comment="* New test chapter (&quot;Layered Maze&quot;) with static levels.&#10;* No affixed items in Trade Post.&#10;* Container unpacking: loot drops on adjust squares.&#10;  - Bug fixed when loot was dropping behind the walls or obstacles.&#10;* All potions have cross-cooldown.&#10;  - All potions now has only up to nine gulps.&#10;  - Potion prices and effects adjusted.&#10;* Spells &quot;Magical Arrow&quot; and &quot;Dispel&quot; have been added. You can find them in Cosmologist's skillbook.&#10;  - To cast a spell you have to hold a magical weapon in your main hand. &#10;  - Magical weapon &quot;Wand&quot; has been added.&#10;* Starting equipment for all characters has been adjusted.&#10;* Ambient monster sounds have been disabled.&#10;* New sounds have been added.&#10;* Other minor fixes.">
+    <list default="true" id="cc130b1c-00f5-48a7-860f-78f09248cfe9" name="Default Changelist" comment="* Default skill for Kingslayer has been changed to melee attack.&#10;* Dedicated sprites for Kingslayer and Cosmologist have been added, Champion sprite has been modified.&#10;* Skeleton monster sprite has been added.&#10;* Quest items code has been modified. &#10;  - Now any item can be a Quest item.&#10;* Grates have been added.&#10;* Chest sprites have been modified.&#10;* Now you can have up to 10 character saves.&#10;  - Title menu layout has been modified.&#10;* Necessary Database updates.&#10;* Other minor fixes.">
+      <change afterPath="$PROJECT_DIR$/components/debufficons.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/components/initmod.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/components/animations.py" beforeDir="false" afterPath="$PROJECT_DIR$/components/animations.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/components/charsheet.py" beforeDir="false" afterPath="$PROJECT_DIR$/components/charsheet.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/components/dbrequests.py" beforeDir="false" afterPath="$PROJECT_DIR$/components/dbrequests.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/components/debuff.py" beforeDir="false" afterPath="$PROJECT_DIR$/components/debuff.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/components/gamesave.py" beforeDir="false" afterPath="$PROJECT_DIR$/components/gamesave.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/components/lootgen.py" beforeDir="false" afterPath="$PROJECT_DIR$/components/lootgen.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/components/maze.py" beforeDir="false" afterPath="$PROJECT_DIR$/components/maze.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/components/monster.py" beforeDir="false" afterPath="$PROJECT_DIR$/components/monster.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/components/pc.py" beforeDir="false" afterPath="$PROJECT_DIR$/components/pc.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/components/projectile.py" beforeDir="false" afterPath="$PROJECT_DIR$/components/projectile.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/components/skillfuncs.py" beforeDir="false" afterPath="$PROJECT_DIR$/components/skillfuncs.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/components/tilesets.py" beforeDir="false" afterPath="$PROJECT_DIR$/components/tilesets.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/components/trap.py" beforeDir="false" afterPath="$PROJECT_DIR$/components/trap.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/components/treasure.py" beforeDir="false" afterPath="$PROJECT_DIR$/components/treasure.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/library/calc2darray.py" beforeDir="false" afterPath="$PROJECT_DIR$/library/calc2darray.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/library/particle.py" beforeDir="false" afterPath="$PROJECT_DIR$/library/particle.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/res/data/tables.db" beforeDir="false" afterPath="$PROJECT_DIR$/res/data/tables.db" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/res/tilesets/anthro_champion.png" beforeDir="false" afterPath="$PROJECT_DIR$/res/tilesets/anthro_champion.png" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/res/tilesets/dung_chests.png" beforeDir="false" afterPath="$PROJECT_DIR$/res/tilesets/dung_chests.png" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/res/tilesets/dung_doors.png" beforeDir="false" afterPath="$PROJECT_DIR$/res/tilesets/dung_doors.png" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/res/tilesets/logo.png" beforeDir="false" afterPath="$PROJECT_DIR$/res/tilesets/logo.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/res/tilesets/anthro_skeleton.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/res/tilesets/dung_bricks.png" beforeDir="false" afterPath="$PROJECT_DIR$/res/tilesets/dung_bricks.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/res/tilesets/item_effects.png" beforeDir="false" afterPath="$PROJECT_DIR$/res/tilesets/item_effects.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/resman.py" beforeDir="false" afterPath="$PROJECT_DIR$/resman.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/save/normal_commons.pd" beforeDir="false" afterPath="$PROJECT_DIR$/save/normal_commons.pd" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/settings.py" beforeDir="false" afterPath="$PROJECT_DIR$/settings.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/wins/apptitle.py" beforeDir="false" afterPath="$PROJECT_DIR$/wins/apptitle.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/wins/realm.py" beforeDir="false" afterPath="$PROJECT_DIR$/wins/realm.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/wins/splitter.py" beforeDir="false" afterPath="$PROJECT_DIR$/wins/splitter.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/wins/target.py" beforeDir="false" afterPath="$PROJECT_DIR$/wins/target.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -127,13 +143,6 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1642253012991</updated>
-    </task>
-    <task id="LOCAL-00014" summary="Monster object added with basic movement calculations.&#10;Targeting window added (appear on mouse over monsters).&#10;Rendering reworked. All my &quot;fancy&quot; shenanigans has been cut. &#10;More in readme.">
-      <created>1642802712917</created>
-      <option name="number" value="00014" />
-      <option name="presentableId" value="LOCAL-00014" />
-      <option name="project" value="LOCAL" />
-      <updated>1642802712917</updated>
     </task>
     <task id="LOCAL-00015" summary="Readme update">
       <created>1642802848681</created>
@@ -471,7 +480,14 @@
       <option name="project" value="LOCAL" />
       <updated>1673706492376</updated>
     </task>
-    <option name="localTasksCounter" value="63" />
+    <task id="LOCAL-00063" summary="* Default skill for Kingslayer has been changed to melee attack.&#10;* Dedicated sprites for Kingslayer and Cosmologist have been added, Champion sprite has been modified.&#10;* Skeleton monster sprite has been added.&#10;* Quest items code has been modified. &#10;  - Now any item can be a Quest item.&#10;* Grates have been added.&#10;* Chest sprites have been modified.&#10;* Now you can have up to 10 character saves.&#10;  - Title menu layout has been modified.&#10;* Necessary Database updates.&#10;* Other minor fixes.">
+      <created>1673802024978</created>
+      <option name="number" value="00063" />
+      <option name="presentableId" value="LOCAL-00063" />
+      <option name="project" value="LOCAL" />
+      <updated>1673802024979</updated>
+    </task>
+    <option name="localTasksCounter" value="64" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -501,7 +517,6 @@
     <ignored-roots>
       <path value="$PROJECT_DIR$/Unnamed-Final" />
     </ignored-roots>
-    <MESSAGE value="Savegame works fully as intended. Demo scenes implemented. Preview of character's inventory, skills and stats added. Cooldown works everywhere. A lot of bugs fixed." />
     <MESSAGE value="A lot of bugs fixed." />
     <MESSAGE value="Hardcore mode added. Bugs fixed." />
     <MESSAGE value="Demo updated. Mistakes fixed. Options win added." />
@@ -526,6 +541,7 @@
     <MESSAGE value="Minor fixes." />
     <MESSAGE value="* Database has been updated:&#10;    - New affixes and modifiers have been added.&#10;    - Grade-related tables have been added.&#10;    - Stage stats of testing chapter have been tweaked.&#10;* Loot affixes and affix color-coding now work.&#10;* Various calculations have been updated and fixed where necessary.&#10;* Dedicated tileset for chapter thumbnail pic has been added." />
     <MESSAGE value="* New test chapter (&quot;Layered Maze&quot;) with static levels.&#10;* No affixed items in Trade Post.&#10;* Container unpacking: loot drops on adjust squares.&#10;  - Bug fixed when loot was dropping behind the walls or obstacles.&#10;* All potions have cross-cooldown.&#10;  - All potions now has only up to nine gulps.&#10;  - Potion prices and effects adjusted.&#10;* Spells &quot;Magical Arrow&quot; and &quot;Dispel&quot; have been added. You can find them in Cosmologist's skillbook.&#10;  - To cast a spell you have to hold a magical weapon in your main hand. &#10;  - Magical weapon &quot;Wand&quot; has been added.&#10;* Starting equipment for all characters has been adjusted.&#10;* Ambient monster sounds have been disabled.&#10;* New sounds have been added.&#10;* Other minor fixes." />
-    <option name="LAST_COMMIT_MESSAGE" value="* New test chapter (&quot;Layered Maze&quot;) with static levels.&#10;* No affixed items in Trade Post.&#10;* Container unpacking: loot drops on adjust squares.&#10;  - Bug fixed when loot was dropping behind the walls or obstacles.&#10;* All potions have cross-cooldown.&#10;  - All potions now has only up to nine gulps.&#10;  - Potion prices and effects adjusted.&#10;* Spells &quot;Magical Arrow&quot; and &quot;Dispel&quot; have been added. You can find them in Cosmologist's skillbook.&#10;  - To cast a spell you have to hold a magical weapon in your main hand. &#10;  - Magical weapon &quot;Wand&quot; has been added.&#10;* Starting equipment for all characters has been adjusted.&#10;* Ambient monster sounds have been disabled.&#10;* New sounds have been added.&#10;* Other minor fixes." />
+    <MESSAGE value="* Default skill for Kingslayer has been changed to melee attack.&#10;* Dedicated sprites for Kingslayer and Cosmologist have been added, Champion sprite has been modified.&#10;* Skeleton monster sprite has been added.&#10;* Quest items code has been modified. &#10;  - Now any item can be a Quest item.&#10;* Grates have been added.&#10;* Chest sprites have been modified.&#10;* Now you can have up to 10 character saves.&#10;  - Title menu layout has been modified.&#10;* Necessary Database updates.&#10;* Other minor fixes." />
+    <option name="LAST_COMMIT_MESSAGE" value="* Default skill for Kingslayer has been changed to melee attack.&#10;* Dedicated sprites for Kingslayer and Cosmologist have been added, Champion sprite has been modified.&#10;* Skeleton monster sprite has been added.&#10;* Quest items code has been modified. &#10;  - Now any item can be a Quest item.&#10;* Grates have been added.&#10;* Chest sprites have been modified.&#10;* Now you can have up to 10 character saves.&#10;  - Title menu layout has been modified.&#10;* Necessary Database updates.&#10;* Other minor fixes." />
   </component>
 </project>

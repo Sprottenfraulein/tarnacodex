@@ -93,6 +93,7 @@ def save_char(wins_dict, pc, maze, db, tileset):
         for win in ('charstats', 'hotbar','inventory','pools', 'skillbook', 'trade', 'stash'):
             wins_offsets[win] = wins_dict[win].offset_x, wins_dict[win].offset_y
         pickle.dump(wins_offsets, f)
+        pickle.dump((wins_dict['realm'].view_offset_x_sq, wins_dict['realm'].view_offset_y_sq), f)
 
         f.truncate()
 
@@ -139,6 +140,11 @@ def load_char(wins_dict, pc, db_cursor, tileset):
         wins_offsets = pickle.load(f)
         for win in ('charstats', 'hotbar', 'inventory', 'pools', 'skillbook', 'trade', 'stash'):
             wins_dict[win].offset_x, wins_dict[win].offset_y = wins_offsets[win]
+        try:
+            wins_dict['realm'].view_offset_x_sq, wins_dict['realm'].view_offset_y_sq = pickle.load(f)
+        except EOFError:
+            wins_dict['realm'].view_offset_x_sq = round(wins_dict['realm'].view_maze_width_sq / 2) * -1
+            wins_dict['realm'].view_offset_y_sq = round(wins_dict['realm'].view_maze_height_sq / 2) * -1
 
         pc.char_sheet.id = pc_obj_vars['id']
         pc.hardcore_char = pc_obj_vars['hardcore_char']
@@ -253,8 +259,7 @@ def save_maze(pc, maze, db, tile_sets, animations):
         pickle.dump(maze.grate_rate, f)
         pickle.dump(maze.magic_lock_rate, f)
         pickle.dump(maze.monster_ids, f)
-        pickle.dump(maze.monster_type_amount, f)
-        pickle.dump(maze.monster_amount_rate, f)
+        pickle.dump(maze.monster_number, f)
         pickle.dump(maze.tradepost_update, f)
         pickle.dump(maze.array, f)
 
@@ -338,8 +343,7 @@ def load_maze(pc, maze, db, tile_sets, animations):
         maze.magic_lock_rate = pickle.load(f)
 
         maze.monster_ids = pickle.load(f)
-        maze.monster_type_amount = pickle.load(f)
-        maze.monster_amount_rate = pickle.load(f)
+        maze.monster_number = pickle.load(f)
         maze.tradepost_update = pickle.load(f)
         maze.array = pickle.load(f)
 

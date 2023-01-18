@@ -1,6 +1,6 @@
 # game items object
 from library import logfun, pickrandom
-from components import dbrequests, skill
+from components import dbrequests, skill, initmod
 import random
 
 
@@ -78,14 +78,14 @@ def init_props(db_cursor, fate_rnd, base_props, modifier_list, de_buff_list):
     base_props['mods'] = {}
     add_price_expos = []
     for mod_dict in modifier_list:
-        add_price_expos.append(init_modifier(base_props, mod_dict, fate_rnd))
+        add_price_expos.append(initmod.init_modifier(base_props, mod_dict, fate_rnd))
 
     # inserting de_buffs
     for db_dict in de_buff_list:
         modifier_list = dbrequests.de_buff_get_mods(db_cursor, db_dict['de_buff_id'])
 
         for mod_dict in modifier_list:
-            add_price_expos.append(init_modifier(db_dict, mod_dict, fate_rnd))
+            add_price_expos.append(initmod.init_modifier(db_dict, mod_dict, fate_rnd))
 
     base_props['de_buffs'] = de_buff_list
 
@@ -100,39 +100,18 @@ def affix_add(db_cursor, loot_props, affix_dicts, fate_rnd):
     # inserting modifiers
     base_props['mods'] = {}
     for mod_dict in modifier_list:
-        init_modifier(base_props, mod_dict, fate_rnd)
+        initmod.init_modifier(base_props, mod_dict, fate_rnd)
 
     # inserting de_buffs
     for db_dict in de_buff_list:
         modifier_list = dbrequests.de_buff_get_mods(db_cursor, db_dict['de_buff_id'])
 
         for mod_dict in modifier_list:
-            init_modifier(db_dict, mod_dict, fate_rnd)
+            initmod.init_modifier(db_dict, mod_dict, fate_rnd)
 
     base_props['de_buffs'] = de_buff_list
 
     loot_props['affixes'].append(base_props)
-
-
-def init_modifier(parent_dict, mod_dict, fate_rnd):
-    parent_dict['mods'][mod_dict['parameter_name']] = {}
-    mod_value_base = fate_rnd.expo_rnd(mod_dict['value_base_min'], mod_dict['value_base_max'])
-    parent_dict['mods'][mod_dict['parameter_name']]['value_base'] = mod_value_base
-    parent_dict['mods'][mod_dict['parameter_name']]['value_type'] = mod_dict['value_type']
-    if mod_dict['value_spread_min'] is not None and mod_dict['value_spread_max'] is not None:
-        mod_value_spread = fate_rnd.expo_rnd(mod_dict['value_spread_min'], mod_dict['value_spread_max'])
-        parent_dict['mods'][mod_dict['parameter_name']]['value_spread'] = mod_value_spread
-    else:
-        mod_value_spread = 0
-
-    per_base = mod_dict['value_base_min'] + (mod_dict['value_spread_min'] or 0) / 2
-    mod_rolled = mod_value_base + mod_value_spread / 2 - per_base
-    mod_max = (mod_dict['value_base_max'] + (mod_dict['value_spread_max'] or 0) / 2) - per_base
-    if mod_max > 0:
-        price_expo_rate = 1 + mod_rolled / mod_max
-    else:
-        price_expo_rate = 1
-    return price_expo_rate
 
 
 # USE ONLY FOR LOCAL ITEM PARAMETERS- IT DOES NOT TAKE CHARACTER STATS INTO CALCULATION!
@@ -294,7 +273,7 @@ def calc_grade(db_cursor, grade_set_loot, loot_props, tile_sets, audio, fate_rnd
 
 def roll_affix(db_cursor, grade, loot_props, is_suffix=None):
     rnd_roll = random.randrange(0, 10001)
-    affix_ids = dbrequests.get_affixes(db_cursor, loot_props['lvl'], grade, (loot_props['item_type'],), rnd_roll, is_suffix=is_suffix)
+    affix_ids = dbrequests.get_affixes_loot(db_cursor, loot_props['lvl'], grade, (loot_props['item_type'],), rnd_roll, is_suffix=is_suffix)
     if len(affix_ids) > 0:
         return random.choice(affix_ids)
     else:

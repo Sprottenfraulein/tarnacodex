@@ -99,7 +99,6 @@ class PC:
 
         if not self.hot_cooling_set:
             return
-
         set_upd = False
         for i in self.hot_cooling_set:
             if i[1].cooldown_timer > 0:
@@ -198,7 +197,8 @@ class PC:
                 ('pc_step_01', 'pc_step_02', 'pc_step_03', 'pc_step_04', 'pc_step_05',
                  'pc_step_06', 'pc_step_07'))
             snd_channel = wins_dict['realm'].pygame_settings.audio.sound(rnd_step_sound)
-            snd_channel.set_volume(0.4)
+            if snd_channel is not None:
+                snd_channel.set_volume(0.4)
 
     def sq_is_free(self, realm, sq_x, sq_y):
         step_x, step_y = 1, 1
@@ -451,3 +451,4 @@ class PC:
                 self.state_change(2)
             else:
                 self.state_change(0)
+

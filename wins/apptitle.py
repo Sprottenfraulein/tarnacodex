@@ -927,7 +927,7 @@ class AppTitle:
         # dbrequests.chapter_progress_set(self.db, pc.char_sheet.id, self.wins_dict['realm'].maze.stage_index, 1, 1, 1, 1, 1, 1)
 
         self.wins_dict['realm'].maze = None
-        l = maze.Maze(self.db, self.animations, self.win_ui.tilesets, self.pygame_settings.audio, pc)
+        l = maze.Maze(self.db, self.animations, self.win_ui.tilesets, self.pygame_settings.audio, pc, self.resources)
 
         for i in range(0, len(l.exits)):
             if l.exits[i].dest == entry:
@@ -1047,6 +1047,8 @@ class AppTitle:
         self.pc.char_sheet.hp_get(100, percent=True)
         self.pc.char_sheet.mp_get(100, percent=True)
         self.pc.char_sheet.food_get(100, percent=True)
+
+        self.pc.char_sheet.quest_item_remove(self.wins_dict)
 
         gamesave.chapter_wipe(self.db, self.pc)
 
@@ -1214,6 +1216,7 @@ class AppTitle:
 
     def chapter_conclude(self, quest_item, wins_dict, pc):
         del quest_item.props['quest_item']
+        quest_item.props['price_sell'] = pc.char_sheet.level * 1000
         wins_dict['app_title'].chapter_end(pc, wins_dict['realm'].maze.chapter)
         pc.location = None
         pc.stage_entry = 'up'

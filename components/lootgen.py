@@ -8,7 +8,7 @@ def generate_loot(monster, realm, fate_rnd, pc, log=True):
     if 'affixes' in monster.stats:
         for affix in monster.stats['affixes']:
             try:
-                tr_groups.append((affix['treasure_group'], affix['treasure_amount']))
+                tr_groups.append((monster.stats['treasure_group'], affix['additional_treasure']))
             except KeyError:
                 pass
 
@@ -47,10 +47,8 @@ def generate_gold(monster, realm, fate_rnd, pc):
     gold_list = [monster.stats['gold']]     # value is in percents of default gold item amount value.
     if 'affixes' in monster.stats:
         for affix in monster.stats['affixes']:
-            try:
+            if affix['additional_gold'] is not None:
                 gold_list.append(affix['additional_gold'])  # affixed monster can have additional gold drop
-            except KeyError:
-                pass
 
     treasure_list = []
     for gold_pile in gold_list:

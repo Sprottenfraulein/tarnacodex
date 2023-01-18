@@ -45,6 +45,8 @@ def path2d(array2d, stop_list, xy, dest_xy, max_spaces, max_dist, parent_index=0
     spaces_list.sort(key=lambda x: (abs(dest_xy[0] - (xy[0] + x[0])) + abs(dest_xy[1] - (xy[1] + x[1]))))
     spaces_list = spaces_list[:4]
     # random.shuffle(spaces_list)
+    if xy == dest_xy:
+        return True, xy_sq_list, xy_ind_list
     for tile_x, tile_y in spaces_list:
         if goal:
             break

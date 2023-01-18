@@ -1,5 +1,6 @@
 from library import maths
-from components import treasure
+from components import treasure, debuff, dbrequests
+from library import particle, calc2darray
 import random
 
 
@@ -107,18 +108,18 @@ def shot_default(wins_dict, fate_rnd, pc, skill, item_adress, no_aim=False, just
         rnd_attack *= 4
 
     if pc.char_sheet.equipped[2][0].props['class'] == 'sling':
-        image_pack = (
-            realm.tilesets.get_image('item_effects', (16, 16), (2,)),
-            realm.tilesets.get_image('item_effects', (16, 16), (2,))
+        anim_pack = (
+            {'images': realm.tilesets.get_image('item_effects', (16, 16), (2,)), 'timings': (60,)},
+            {'images': realm.tilesets.get_image('item_effects', (16, 16), (2,)), 'timings': (60,)}
         )
     else:
-        image_pack = (
-            realm.tilesets.get_image('item_effects', (16, 16), (0,)),
-            realm.tilesets.get_image('item_effects', (16, 16), (1,))
+        anim_pack = (
+            {'images': realm.tilesets.get_image('item_effects', (16, 16), (0,)), 'timings': (60,)},
+            {'images': realm.tilesets.get_image('item_effects', (16, 16), (1,)), 'timings': (60,)}
         )
     speed = 0.5
     realm.spawn_projectile((pc.x_sq, pc.y_sq), (target.x_sq, target.y_sq), (rnd_attack, 'att_physical', is_crit, pc),
-                           speed, image_pack, collision_limit=1, blast_radius=0)
+                           speed, anim_pack, collision_limit=1, blast_radius=0)
 
     pc.food_change(wins_dict, -5)
     pc.act(wins_dict, (target.x_sq, target.y_sq), skill)
@@ -182,6 +183,10 @@ def spell_magical_arrow(wins_dict, fate_rnd, pc, skill, item_adress, no_aim=Fals
     pc.act(wins_dict, (target.x_sq, target.y_sq), skill)
 
     realm.pygame_settings.audio.sound(item_adress[0][item_adress[1]].props['sound_use'])
+
+    realm.particle_list.append(particle.Particle((pc.x_sq, pc.y_sq), (-4, -4),
+                                                 realm.animations.get_animation('effect_arcane_vortex')['default'],
+                                                 20))
 
     return False
 
@@ -250,6 +255,10 @@ def spell_dispel(wins_dict, fate_rnd, pc, skill, item_adress, no_aim=False, just
     pc.char_sheet.experience_get(wins_dict, pc, exp)
     pl_object.lock = None
     pl_object.image_update()
+
+    realm.particle_list.append(particle.Particle((pl_object.x_sq, pl_object.y_sq), (-4, -4),
+                                                 realm.animations.get_animation('effect_arcane_dust')['default'],
+                                                 20))
 
     wins_dict['context'].end()
     realm.pygame_settings.audio.sound(item_adress[0][item_adress[1]].props['sound_use'])
@@ -529,7 +538,8 @@ def pickup(wins_dict, fate_rnd, pc, skill, item_adress, no_aim=False, just_value
                     flags = realm.maze.flag_array[i][j]
                 except IndexError:
                     continue
-                if flags.vis and len(flags.item) > 0:
+                if flags.vis and len(flags.item) > 0 and calc2darray.path2d(realm.maze.flag_array, {'mov': False}, (j,i),
+                                                 (round(pc.x_sq), round(pc.y_sq)), 100, 10, r_max=10)[0]:
                     x_sq, y_sq = j, i
                     break
             else:
@@ -546,8 +556,9 @@ def pickup(wins_dict, fate_rnd, pc, skill, item_adress, no_aim=False, just_value
             return True
         if len(flags.item) == 0 or not flags.vis:
             return True
-        if maths.get_distance(pc.x_sq, pc.y_sq, x_sq, y_sq) > skill.props['range']:
-            realm.spawn_realmtext('new_txt', "Too far!", (0, 0), (0, -24), None, pc, None, 120, 'def_bold', 24)
+        if maths.get_distance(pc.x_sq, pc.y_sq, x_sq, y_sq) > skill.props['range'] or not calc2darray.path2d(realm.maze.flag_array, {'mov': False}, (x_sq, y_sq),
+                                                 (round(pc.x_sq), round(pc.y_sq)), 100, 10, r_max=10)[0]:
+            realm.spawn_realmtext('new_txt', "Can't reach!", (0, 0), (0, -24), None, pc, None, 120, 'def_bold', 24)
             return True
 
     for lt in flags.item[::-1]:
