@@ -19,7 +19,7 @@ class ResMan:
             'gray_light', 'bright_gold', 'indigo', 'fnt_attent', 'sun'
         )
         self.mob_levels = {
-            'common': (1, 5),
+            'common': (0, 5),
             'greater': (6, 10),
             'vile': (11, 15),
             'fierce': (16, 20),
@@ -149,7 +149,8 @@ class ResMan:
             ),
             'damage': {
                 'att_physical': 'hit_physical',
-                'att_arcane': 'fire_putout'
+                'att_arcane': 'fire_putout',
+                'att_fire': 'fire_putout'
             }
         }
 

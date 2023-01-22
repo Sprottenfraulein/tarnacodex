@@ -63,6 +63,9 @@ class Options:
                 self.win_ui.updated = True
             elif event.key == pygame.K_SPACE:
                 pass
+            if event.key == pygame.K_ESCAPE:
+                self.end()
+                self.wins_dict['realm'].pause = False
 
         # return True if interaction was made to prevent other windows from responding to this event
         if event.type == pygame.MOUSEBUTTONUP or event.type == pygame.MOUSEBUTTONDOWN:

@@ -84,7 +84,7 @@ class Target:
     def compose_mob_name(self):
         full_name = [self.mob_object.stats['label']]
         for k, v in self.resources.mob_levels.items():
-            if v[0] <= self.mob_object.stats['init_lvl'] <= v[1]:
+            if v[0] <= (self.mob_object.stats['lvl'] - self.mob_object.stats['init_lvl']) <= v[1]:
                 full_name.insert(0, k)
         if 'affixes' in self.mob_object.stats:
             for affix in self.mob_object.stats['affixes']:

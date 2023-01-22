@@ -310,7 +310,7 @@ class Trade:
                 cap_color='fnt_muted', sounds=self.win_ui.snd_packs['button'], page=None, mode=1, tags=(
                     'wpn_melee', 'wpn_ranged', 'wpn_magic', 'arm_head', 'arm_chest', 'acc_ring', 'orb_shield',
                     'orb_ammo', 'orb_source', 'use_wand', 'exp_tools', 'exp_lockpick', 'exp_food', 'exp_key',
-                    'light', 'aug_gem', 'sup_potion'), switch=True
+                    'light', 'aug_gem', 'sup_potion', 'use_learn'), switch=True
             ),
             self.win_ui.button_add(
                 'bttn_filter', caption='Weapons', size=(80, 24), cap_font='def_bold', cap_size=24,
@@ -339,7 +339,7 @@ class Trade:
             self.win_ui.button_add(
                 'bttn_filter', caption='Skills', size=(80, 24), cap_font='def_bold', cap_size=24,
                 cap_color='fnt_muted', sounds=self.win_ui.snd_packs['button'], page=None, tags=(
-                    'skill_melee', 'skill_ranged', 'skill_magic', 'skill_craft', 'skill_misc'), switch=True),
+                    'use_learn',), switch=True),
 
             self.win_ui.button_add(
                 'bttn_buyback', caption='Buy Back', size=(80, 24), cap_font='def_bold', cap_size=24,
@@ -434,7 +434,7 @@ class Trade:
         for ex in self.wins_dict['realm'].maze.exits:
             if ex.dest == 'up':
                 x_sq, y_sq = ex.x_sq, ex.y_sq
-        space_list = calc2darray.fill2d(self.wins_dict['realm'].maze.flag_array, {'mov': False, 'obj': 'True', 'door': True, 'floor': False},
+        space_list = calc2darray.fill2d(self.wins_dict['realm'].maze.flag_array, {'mov': False, 'obj': True, 'door': True, 'floor': False},
                                         (x_sq, y_sq), (x_sq, y_sq), 2, 3, r_max=5)
         x_sq, y_sq = space_list[1]
         new_chest = chest.Chest(x_sq, y_sq, 0, None, self.wins_dict['realm'].maze.tile_set, off_x=-4, off_y=-4,
@@ -461,27 +461,37 @@ class Trade:
         }
         self.wins_dict['dialogue'].launch(self.pc)
 
-    def goods_generate(self, goods_level_cap):
+    def goods_generate(self, pc):
+        goods_level_cap = pc.tradepost_level
         self.trade_bank.clear()
-        good_ids = dbrequests.treasure_get(self.db.cursor, goods_level_cap, 0, 999, shop=1)
-        food_ids = dbrequests.treasure_get(self.db.cursor, goods_level_cap, 0, 999, shop=1, item_type=('exp_food',))
+        good_ids = dbrequests.treasure_get(self.db.cursor, goods_level_cap, 0, 1, shop=1)
 
         for j in good_ids:
-            if j in food_ids:
-                for i in range(0, 5):
-                    self.trade_bank.append(treasure.Treasure(j, max(1, goods_level_cap), self.db.cursor,
-                                                             self.tilesets, self.resources, self.pygame_settings.audio,
-                                                             self.resources.fate_rnd, grade=1))
-            else:
-                for i in range(-1, 1):
-                    self.trade_bank.append(treasure.Treasure(j, max(1, goods_level_cap + i), self.db.cursor,
-                                                             self.tilesets, self.resources, self.pygame_settings.audio,
-                                                             self.resources.fate_rnd, grade=1))
-                    if 'condition' in self.trade_bank[-1].props:
-                        self.trade_bank[-1].props['condition'] = treasure.calc_loot_stat(self.trade_bank[-1].props,
-                                                                                         'condition_max')
-                    if 'charge' in self.trade_bank[-1].props:
-                        self.trade_bank[-1].props['charge'] = self.trade_bank[-1].props['charge_max']
+            for i in range(-1, 1):
+                self.trade_bank.append(treasure.Treasure(j['treasure_id'], max(1, goods_level_cap + i), self.db.cursor,
+                                                         self.tilesets, self.resources, self.pygame_settings.audio,
+                                                         self.resources.fate_rnd, grade=1))
+                if self.trade_bank[-1].props['item_type'] == 'exp_food':
+                    for k in range(0, 5):
+                        self.trade_bank.append(
+                            treasure.Treasure(j['treasure_id'], goods_level_cap, self.db.cursor,
+                                              self.tilesets, self.resources, self.pygame_settings.audio,
+                                              self.resources.fate_rnd, grade=1)
+                        )
+                    break
+                if 'condition' in self.trade_bank[-1].props:
+                    self.trade_bank[-1].props['condition'] = treasure.calc_loot_stat(self.trade_bank[-1].props,
+                                                                                     'condition_max')
+                if 'charge' in self.trade_bank[-1].props:
+                    self.trade_bank[-1].props['charge'] = self.trade_bank[-1].props['charge_max']
+                if 'use_learn' == self.trade_bank[-1].props['item_type']:
+                    if self.trade_bank[-1].props['usable_%s' % pc.char_sheet.type] == 0:
+                        del self.trade_bank[-1]
+                    else:
+                        self.trade_bank[-1] = treasure.Treasure(j['treasure_id'], goods_level_cap, self.db.cursor,
+                                          self.tilesets, self.resources, self.pygame_settings.audio,
+                                          self.resources.fate_rnd, grade=1)
+                    break
         """for i in (5, 6, 9):
             self.trade_bank.append(skill.Skill(i, goods_level_cap, self.db.cursor, self.win_ui.tilesets,
                                                self.win_ui.resources, self.pygame_settings.audio))"""

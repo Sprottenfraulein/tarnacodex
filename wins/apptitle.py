@@ -3,7 +3,7 @@ import pygame
 import settings
 import random
 from library import textinput, pydraw
-from components import maze, pc, charsheet, ui, skill, treasure, dbrequests, gamesave
+from components import maze, pc, charsheet, ui, skill, treasure, dbrequests, gamesave, debuff
 
 
 class AppTitle:
@@ -945,7 +945,7 @@ class AppTitle:
         self.wins_dict['realm'].pc = pc
 
         if l.tradepost_update or launch:
-            self.wins_dict['trade'].goods_generate(pc.tradepost_level)
+            self.wins_dict['trade'].goods_generate(pc)
             self.wins_dict['trade'].updated = True
             l.tradepost_update = False
             self.wins_dict['realm'].spawn_realmtext('new_txt', "I would like to visit a Trading Post sometime soon.",
@@ -1114,10 +1114,12 @@ class AppTitle:
                 p.char_sheet.hotbar[0] = treasure.Treasure(default_treasure[i], p.char_sheet.level, self.db.cursor, self.win_ui.tilesets,
                                                     self.win_ui.resources, self.pygame_settings.audio,
                                                     self.win_ui.resources.fate_rnd)
+                p.char_sheet.hotbar[0].props['charges'] = 9
             elif default_treasure[i] == 11:
                 p.char_sheet.hotbar[1] = treasure.Treasure(default_treasure[i], p.char_sheet.level, self.db.cursor, self.win_ui.tilesets,
                                                     self.win_ui.resources, self.pygame_settings.audio,
                                                     self.win_ui.resources.fate_rnd)
+                p.char_sheet.hotbar[1].props['charges'] = 9
             else:
                 for j in range(0, p.char_sheet.inventory.items_max):
                     if p.char_sheet.inventory[j] is None:
@@ -1128,6 +1130,7 @@ class AppTitle:
         """p.char_sheet.inventory[0] = treasure.Treasure(9, p.char_sheet.level, self.db.cursor, self.win_ui.tilesets,
                                                         self.win_ui.resources, self.pygame_settings.audio,
                                                         self.win_ui.resources.fate_rnd)"""
+        debuff.DeBuff(dbrequests.de_buff_get_by_id_with_mods(self.db.cursor, 3, self.resources.fate_rnd), p.char_sheet.de_buffs)
         self.pc = p
 
     def char_save(self, pc, maze):
@@ -1166,9 +1169,11 @@ class AppTitle:
     def char_delete(self):
         gamesave.char_wipe(self.db, self.savegames[self.save_selection]['char_id'])
         dbrequests.char_delete(self.db, self.savegames[self.save_selection]['char_id'])
-        self.win_ui.interactives.remove(self.save_ui_blocks_list[self.save_selection][0])
+        if self.save_ui_blocks_list[self.save_selection][0] in self.win_ui.interactives:
+            self.win_ui.interactives.remove(self.save_ui_blocks_list[self.save_selection][0])
         for i in range(1, len(self.save_ui_blocks_list[self.save_selection])):
-            self.win_ui.decoratives.remove(self.save_ui_blocks_list[self.save_selection][i])
+            if self.save_ui_blocks_list[self.save_selection][i] in self.win_ui.decoratives:
+                self.win_ui.decoratives.remove(self.save_ui_blocks_list[self.save_selection][i])
         self.save_ui_blocks_list[self.save_selection] = None
         self.savegames[self.save_selection] = None
         self.win_ui.updated = True

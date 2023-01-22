@@ -6,7 +6,7 @@ import random
 
 class Treasure:
     def __init__(self, treasure_id, lvl, db_cursor, tile_sets, resources, audio, fate_rnd, x_sq=-1, y_sq=-1,
-                 mob_stats=None, grade=None, log=True):
+                 mob_stats=None, grade=None, findmagic=0, log=True):
         self.x_sq = x_sq
         self.y_sq = y_sq
         self.off_x = self.off_y = 0
@@ -23,9 +23,9 @@ class Treasure:
 
         if grade is None:
             if mob_stats is not None and mob_stats['grade_set_loot'] is not None:
-                calc_grade(db_cursor, mob_stats['grade_set_loot'], base_props, tile_sets, audio, fate_rnd)
+                calc_grade(db_cursor, mob_stats['grade_set_loot'], base_props, tile_sets, audio, fate_rnd, findmagic)
             else:
-                calc_grade(db_cursor, 1, base_props, tile_sets, audio, fate_rnd)
+                calc_grade(db_cursor, 1, base_props, tile_sets, audio, fate_rnd, findmagic)
         else:
             self.props['grade'] = dbrequests.grade_get_by_id(db_cursor, 1)
 
@@ -84,6 +84,7 @@ def init_props(db_cursor, fate_rnd, base_props, modifier_list, de_buff_list):
     for db_dict in de_buff_list:
         modifier_list = dbrequests.de_buff_get_mods(db_cursor, db_dict['de_buff_id'])
 
+        db_dict['mods'] = {}
         for mod_dict in modifier_list:
             add_price_expos.append(initmod.init_modifier(db_dict, mod_dict, fate_rnd))
 
@@ -157,7 +158,7 @@ def condition_mod_rate(mod_add, item_props):
         cond_percent = item_props['condition'] * 100 // calc_loot_stat(item_props, 'condition_max')
         if cond_percent == 0:
             result = 0
-        elif cond_percent <= 25:
+        elif cond_percent <= 24:
             result = mod_add // 2
         else:
             result = mod_add
@@ -240,7 +241,7 @@ def calc_level(level, base_props, modifier_list, de_buff_list):
     base_props['lvl'] = level
 
 
-def calc_grade(db_cursor, grade_set_loot, loot_props, tile_sets, audio, fate_rnd):
+def calc_grade(db_cursor, grade_set_loot, loot_props, tile_sets, audio, fate_rnd, findmagic):
     if loot_props['lvl'] is None:
         lvl = 0
     else:
@@ -248,6 +249,9 @@ def calc_grade(db_cursor, grade_set_loot, loot_props, tile_sets, audio, fate_rnd
     grade_list = dbrequests.grade_set_get(db_cursor, grade_set_loot, lvl)
     if len(grade_list) > 0:
         if len(grade_list) > 1:
+            for gr in grade_list:
+                if gr['affix_amount'] == 0:
+                    gr['roll_chance'] -= gr['roll_chance'] * findmagic // 1000
             loot_props['grade'] = pickrandom.items_get([(grade, grade['roll_chance']) for grade in grade_list])[0]
         else:
             loot_props['grade'] = grade_list[0]

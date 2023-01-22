@@ -1,4 +1,4 @@
-from components import debuff
+from components import debuff, initmod
 import random
 
 
@@ -118,7 +118,7 @@ def treasure_get_by_id(cursor, key_id):
     column_names = [column[0] for column in cursor.description]
     de_buffs_list = []
     for row in rows:
-        de_buff_dict = debuff.DeBuff()
+        de_buff_dict = {}
         for i in range(0, len(column_names)):
             de_buff_dict[column_names[i]] = row[i]
         de_buffs_list.append(de_buff_dict)
@@ -126,7 +126,7 @@ def treasure_get_by_id(cursor, key_id):
 
 
 def treasure_get(cursor, lvl, treasure_group, roll, item_type=None, char_type=None, equipment_type=None, shop=None):
-    ex_str = "SELECT treasure_id FROM treasure WHERE (lvl is Null OR lvl<=?) AND treasure_group=? AND roll_chance>=?"
+    ex_str = "SELECT treasure_id, roll_chance FROM treasure WHERE (lvl is Null OR lvl<=?) AND treasure_group=? AND roll_chance>=?"
     if item_type is not None:
         itm_str = "'%s'" % "','".join(item_type)
         itm_query = ' AND item_type IN (%s)' % itm_str
@@ -144,9 +144,13 @@ def treasure_get(cursor, lvl, treasure_group, roll, item_type=None, char_type=No
         ex_str += eq_query
     cursor.execute(ex_str, (lvl, treasure_group, roll))
     rows = cursor.fetchall()
+    column_names = [column[0] for column in cursor.description]
     treasure_ids = []
     for row in rows:
-        treasure_ids.append(row[0])
+        tr_dict = {}
+        for i in range(0, len(column_names)):
+            tr_dict[column_names[i]] = row[i]
+        treasure_ids.append(tr_dict)
     return treasure_ids
 
 
@@ -178,6 +182,15 @@ def de_buff_get_by_id(cursor, de_buff_id):
             de_buff_dict[column_names[i]] = row[i]
         de_buff_list.append(de_buff_dict)
     return de_buff_list
+
+
+def de_buff_get_by_id_with_mods(cursor, de_buff_id, fate_rnd):
+    deb = de_buff_get_by_id(cursor, de_buff_id)[0]
+    mods = de_buff_get_mods(cursor, de_buff_id)
+    deb['mods'] = {}
+    for mod in mods:
+        initmod.init_modifier(deb, mod, fate_rnd)
+    return deb
 
 
 def affix_loot_get_by_id(cursor, key_id):

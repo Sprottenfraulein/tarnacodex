@@ -1,5 +1,5 @@
 from library import maths
-from components import treasure
+from components import treasure, debuff
 import random
 
 
@@ -36,6 +36,8 @@ class PC:
         self.char_portrait_index = 0
 
         self.hot_cooling_set = set()
+
+        self.dimmed_light = False
 
     def animate(self):
         # PC states:
@@ -96,6 +98,17 @@ class PC:
                 self.frame_timing = self.anim_timings[self.anim_frame]
             else:
                 self.anim_timer += 1
+
+        if len(self.char_sheet.de_buffs) > 0:
+            debs_upd = False
+            for deb in self.char_sheet.de_buffs.values():
+                if not deb.tick():
+                    debs_upd = True
+            if debs_upd:
+                self.char_sheet.de_buffs = {k: v for k, v in self.char_sheet.de_buffs.items() if v.timer_dur != 0}
+                self.char_sheet.calc_stats()
+                wins_dict['debuffs'].update(self)
+                wins_dict['charstats'].updated = True
 
         if not self.hot_cooling_set:
             return
@@ -159,17 +172,23 @@ class PC:
 
                 # Light source burns out gradually.
                 if self.char_sheet.equipped[6][0]:
-                    self.char_sheet.equipped[6][0].props['condition'] -=2
+                    self.char_sheet.equipped[6][0].props['condition'] -= 2
 
                     if self.char_sheet.equipped[6][0].CONDITION_PENALTY_LEVEL >= self.char_sheet.equipped[6][0].props['condition']:
-                        self.char_sheet.calc_stats()
+                        if not self.dimmed_light:
+                            self.char_sheet.calc_stats()
+                            wins_dict['debuffs'].update(self)
+                            self.dimmed_light = True
                         if self.char_sheet.equipped[6][0].CONDITION_BROKEN_LEVEL >= self.char_sheet.equipped[6][0].props['condition']:
                             self.char_sheet.equipped[6][0] = None
                             wins_dict['inventory'].updated = True
-
-                            wins_dict['realm'].spawn_realmtext(None, 'My torch has burnt out...', (0, 0), (0, -24),
+                            wins_dict['debuffs'].update(self)
+                            self.dimmed_light = True
+                            wins_dict['realm'].spawn_realmtext(None, 'My torch has burnt out!', (0, 0), (0, -24),
                                                                'fnt_celeb', self, None, 240, 'def_bold', 24)
                             wins_dict['realm'].sound_inrealm('fire_putout', self.x_sq, self.y_sq)
+                    else:
+                        self.dimmed_light = False
 
                 # visibility update
                 realm.calc_vision_alt()
@@ -283,6 +302,13 @@ class PC:
         if damage > self.char_sheet.hp > 1:
             damage = self.char_sheet.hp - 1
 
+        # Adding de_buffs
+        if 'de_buffs' in chosen_attack and chosen_attack['de_buffs']:
+            for d_b in chosen_attack['de_buffs']:
+                debuff.DeBuff(d_b, self.char_sheet.de_buffs)
+            wins_dict['debuffs'].update(self)
+
+
         self.char_sheet.hp_get(damage * -1)
 
         wins_dict['realm'].hit_fx(self.x_sq, self.y_sq, chosen_attack['attack_type'], is_crit, for_pc=True, forced_sound=False)
@@ -316,7 +342,12 @@ class PC:
         if self.char_sheet.hp <= 0:
             self.state_change(8)
             wins_dict['realm'].pygame_settings.audio.sound('death_%s' % self.char_sheet.type)
-            self.char_sheet.gold_coins -= self.char_sheet.gold_coins // 2
+
+            if self.char_sheet.level > 3 and self.char_sheet.gold_coins > 1000:
+                self.char_sheet.gold_coins //= 2
+                gold_penalty = self.char_sheet.gold_coins
+            else:
+                gold_penalty = 'none'
 
             if treasure.condition_equipment_change(self.char_sheet, -100):
                 self.char_sheet.calc_stats()
@@ -326,7 +357,7 @@ class PC:
                 wins_dict['demos'].death_hardcore(self, monster.stats, wins_dict['realm'].maze.chapter)
             else:
                 self.char_sheet.hp_get(100, percent=True)
-                wins_dict['demos'].death_soft(self, monster.stats, wins_dict['realm'].maze.chapter)
+                wins_dict['demos'].death_soft(self, monster.stats, wins_dict['realm'].maze.chapter, gold_penalty)
 
     def add_cooldowns(self, wins_dict, skill_id):
         """if 'skill_id' in socket.tags[0][socket.id].props:

@@ -25,37 +25,46 @@
     </select>
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="cc130b1c-00f5-48a7-860f-78f09248cfe9" name="Default Changelist" comment="* Default skill for Kingslayer has been changed to melee attack.&#10;* Dedicated sprites for Kingslayer and Cosmologist have been added, Champion sprite has been modified.&#10;* Skeleton monster sprite has been added.&#10;* Quest items code has been modified. &#10;  - Now any item can be a Quest item.&#10;* Grates have been added.&#10;* Chest sprites have been modified.&#10;* Now you can have up to 10 character saves.&#10;  - Title menu layout has been modified.&#10;* Necessary Database updates.&#10;* Other minor fixes.">
-      <change afterPath="$PROJECT_DIR$/components/debufficons.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/components/initmod.py" afterDir="false" />
+    <list default="true" id="cc130b1c-00f5-48a7-860f-78f09248cfe9" name="Default Changelist" comment="* World view has been altered.&#10;  - Now it's not a complete darkness behind the light circle, but basic maze layout without object or monsters.&#10;* Debuffs for the enemies have been implemented.&#10;* New item effects.&#10;* Projectiles for enemies has been added.&#10;* New enemies have been added.&#10;* New visual marks for higher-graded enemies.&#10;* New animations.&#10;* Monsters behavior has been altered.&#10;* Rates altered.&#10;* Other minor fixes.">
+      <change afterPath="$PROJECT_DIR$/TODO.txt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/wins/debuffs.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/components/animations.py" beforeDir="false" afterPath="$PROJECT_DIR$/components/animations.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/components/charsheet.py" beforeDir="false" afterPath="$PROJECT_DIR$/components/charsheet.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/components/chest.py" beforeDir="false" afterPath="$PROJECT_DIR$/components/chest.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/components/dbrequests.py" beforeDir="false" afterPath="$PROJECT_DIR$/components/dbrequests.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/components/debuff.py" beforeDir="false" afterPath="$PROJECT_DIR$/components/debuff.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/components/draganddrop.py" beforeDir="false" afterPath="$PROJECT_DIR$/components/draganddrop.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/components/gamesave.py" beforeDir="false" afterPath="$PROJECT_DIR$/components/gamesave.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/components/lock.py" beforeDir="false" afterPath="$PROJECT_DIR$/components/lock.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/components/lootgen.py" beforeDir="false" afterPath="$PROJECT_DIR$/components/lootgen.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/components/maze.py" beforeDir="false" afterPath="$PROJECT_DIR$/components/maze.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/components/monster.py" beforeDir="false" afterPath="$PROJECT_DIR$/components/monster.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/components/pc.py" beforeDir="false" afterPath="$PROJECT_DIR$/components/pc.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/components/projectile.py" beforeDir="false" afterPath="$PROJECT_DIR$/components/projectile.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/components/skillfuncs.py" beforeDir="false" afterPath="$PROJECT_DIR$/components/skillfuncs.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/components/tilesets.py" beforeDir="false" afterPath="$PROJECT_DIR$/components/tilesets.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/components/trap.py" beforeDir="false" afterPath="$PROJECT_DIR$/components/trap.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/components/treasure.py" beforeDir="false" afterPath="$PROJECT_DIR$/components/treasure.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/library/calc2darray.py" beforeDir="false" afterPath="$PROJECT_DIR$/library/calc2darray.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/library/particle.py" beforeDir="false" afterPath="$PROJECT_DIR$/library/particle.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/components/ui.py" beforeDir="false" afterPath="$PROJECT_DIR$/components/ui.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/library/cursor.py" beforeDir="false" afterPath="$PROJECT_DIR$/library/cursor.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/res/data/tables.db" beforeDir="false" afterPath="$PROJECT_DIR$/res/data/tables.db" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/res/tilesets/anthro_skeleton.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/res/tilesets/dung_bricks.png" beforeDir="false" afterPath="$PROJECT_DIR$/res/tilesets/dung_bricks.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/res/tilesets/de_buffs.png" beforeDir="false" afterPath="$PROJECT_DIR$/res/tilesets/de_buffs.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/res/tilesets/floor_items.png" beforeDir="false" afterPath="$PROJECT_DIR$/res/tilesets/floor_items.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/res/tilesets/inv_items.png" beforeDir="false" afterPath="$PROJECT_DIR$/res/tilesets/inv_items.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/res/tilesets/inv_skills.png" beforeDir="false" afterPath="$PROJECT_DIR$/res/tilesets/inv_skills.png" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/res/tilesets/item_effects.png" beforeDir="false" afterPath="$PROJECT_DIR$/res/tilesets/item_effects.png" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/resman.py" beforeDir="false" afterPath="$PROJECT_DIR$/resman.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/save/normal_commons.pd" beforeDir="false" afterPath="$PROJECT_DIR$/save/normal_commons.pd" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/settings.py" beforeDir="false" afterPath="$PROJECT_DIR$/settings.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/unf.py" beforeDir="false" afterPath="$PROJECT_DIR$/unf.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/wins/apptitle.py" beforeDir="false" afterPath="$PROJECT_DIR$/wins/apptitle.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/wins/context.py" beforeDir="false" afterPath="$PROJECT_DIR$/wins/context.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/wins/demos.py" beforeDir="false" afterPath="$PROJECT_DIR$/wins/demos.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/wins/inventory.py" beforeDir="false" afterPath="$PROJECT_DIR$/wins/inventory.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/wins/options.py" beforeDir="false" afterPath="$PROJECT_DIR$/wins/options.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/wins/pools.py" beforeDir="false" afterPath="$PROJECT_DIR$/wins/pools.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/wins/realm.py" beforeDir="false" afterPath="$PROJECT_DIR$/wins/realm.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/wins/splitter.py" beforeDir="false" afterPath="$PROJECT_DIR$/wins/splitter.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/wins/stash.py" beforeDir="false" afterPath="$PROJECT_DIR$/wins/stash.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/wins/target.py" beforeDir="false" afterPath="$PROJECT_DIR$/wins/target.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/wins/trade.py" beforeDir="false" afterPath="$PROJECT_DIR$/wins/trade.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -87,18 +96,19 @@
   &quot;keyToString&quot;: {
     &quot;RunOnceActivity.OpenProjectViewOnStart&quot;: &quot;true&quot;,
     &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
-    &quot;last_opened_file_path&quot;: &quot;/home/ezpink/Documents/python/unnamedfinal&quot;,
+    &quot;last_opened_file_path&quot;: &quot;/home/ezpink/Documents/python/unnamedfinal/wins&quot;,
     &quot;settings.editor.selected.configurable&quot;: &quot;com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable&quot;
   }
 }</component>
   <component name="RecentsManager">
-    <key name="MoveFile.RECENT_KEYS">
+    <key name="CopyFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$/wins" />
+      <recent name="D:\EZpink\Documents\python\unnamedfinal\wins" />
       <recent name="D:\EZpink\Documents\python\unnamedfinal\components" />
       <recent name="D:\EZpink\Documents\python\unnamedfinal\objects" />
       <recent name="D:\EZpink\Documents\python\unnamedfinal\library" />
     </key>
-    <key name="CopyFile.RECENT_KEYS">
-      <recent name="D:\EZpink\Documents\python\unnamedfinal\wins" />
+    <key name="MoveFile.RECENT_KEYS">
       <recent name="D:\EZpink\Documents\python\unnamedfinal\components" />
       <recent name="D:\EZpink\Documents\python\unnamedfinal\objects" />
       <recent name="D:\EZpink\Documents\python\unnamedfinal\library" />
@@ -143,13 +153,6 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1642253012991</updated>
-    </task>
-    <task id="LOCAL-00015" summary="Readme update">
-      <created>1642802848681</created>
-      <option name="number" value="00015" />
-      <option name="presentableId" value="LOCAL-00015" />
-      <option name="project" value="LOCAL" />
-      <updated>1642802848681</updated>
     </task>
     <task id="LOCAL-00016" summary="Monster population, loot drop.&#10;A lot of things reworked.&#10;Go around and kill mobs.">
       <created>1643026129965</created>
@@ -487,7 +490,14 @@
       <option name="project" value="LOCAL" />
       <updated>1673802024979</updated>
     </task>
-    <option name="localTasksCounter" value="64" />
+    <task id="LOCAL-00064" summary="* World view has been altered.&#10;  - Now it's not a complete darkness behind the light circle, but basic maze layout without object or monsters.&#10;* Debuffs for the enemies have been implemented.&#10;* New item effects.&#10;* Projectiles for enemies has been added.&#10;* New enemies have been added.&#10;* New visual marks for higher-graded enemies.&#10;* New animations.&#10;* Monsters behavior has been altered.&#10;* Rates altered.&#10;* Other minor fixes.">
+      <created>1674069826750</created>
+      <option name="number" value="00064" />
+      <option name="presentableId" value="LOCAL-00064" />
+      <option name="project" value="LOCAL" />
+      <updated>1674069826751</updated>
+    </task>
+    <option name="localTasksCounter" value="65" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -517,7 +527,6 @@
     <ignored-roots>
       <path value="$PROJECT_DIR$/Unnamed-Final" />
     </ignored-roots>
-    <MESSAGE value="A lot of bugs fixed." />
     <MESSAGE value="Hardcore mode added. Bugs fixed." />
     <MESSAGE value="Demo updated. Mistakes fixed. Options win added." />
     <MESSAGE value="Bugs fixed." />
@@ -542,6 +551,18 @@
     <MESSAGE value="* Database has been updated:&#10;    - New affixes and modifiers have been added.&#10;    - Grade-related tables have been added.&#10;    - Stage stats of testing chapter have been tweaked.&#10;* Loot affixes and affix color-coding now work.&#10;* Various calculations have been updated and fixed where necessary.&#10;* Dedicated tileset for chapter thumbnail pic has been added." />
     <MESSAGE value="* New test chapter (&quot;Layered Maze&quot;) with static levels.&#10;* No affixed items in Trade Post.&#10;* Container unpacking: loot drops on adjust squares.&#10;  - Bug fixed when loot was dropping behind the walls or obstacles.&#10;* All potions have cross-cooldown.&#10;  - All potions now has only up to nine gulps.&#10;  - Potion prices and effects adjusted.&#10;* Spells &quot;Magical Arrow&quot; and &quot;Dispel&quot; have been added. You can find them in Cosmologist's skillbook.&#10;  - To cast a spell you have to hold a magical weapon in your main hand. &#10;  - Magical weapon &quot;Wand&quot; has been added.&#10;* Starting equipment for all characters has been adjusted.&#10;* Ambient monster sounds have been disabled.&#10;* New sounds have been added.&#10;* Other minor fixes." />
     <MESSAGE value="* Default skill for Kingslayer has been changed to melee attack.&#10;* Dedicated sprites for Kingslayer and Cosmologist have been added, Champion sprite has been modified.&#10;* Skeleton monster sprite has been added.&#10;* Quest items code has been modified. &#10;  - Now any item can be a Quest item.&#10;* Grates have been added.&#10;* Chest sprites have been modified.&#10;* Now you can have up to 10 character saves.&#10;  - Title menu layout has been modified.&#10;* Necessary Database updates.&#10;* Other minor fixes." />
-    <option name="LAST_COMMIT_MESSAGE" value="* Default skill for Kingslayer has been changed to melee attack.&#10;* Dedicated sprites for Kingslayer and Cosmologist have been added, Champion sprite has been modified.&#10;* Skeleton monster sprite has been added.&#10;* Quest items code has been modified. &#10;  - Now any item can be a Quest item.&#10;* Grates have been added.&#10;* Chest sprites have been modified.&#10;* Now you can have up to 10 character saves.&#10;  - Title menu layout has been modified.&#10;* Necessary Database updates.&#10;* Other minor fixes." />
+    <MESSAGE value="* World view has been altered.&#10;  - Now it's not a complete darkness behind the light circle, but basic maze layout without object or monsters.&#10;* Debuffs for the enemies have been implemented.&#10;* New item effects.&#10;* Projectiles for enemies has been added.&#10;* New enemies have been added.&#10;* New visual marks for higher-graded enemies.&#10;* New animations.&#10;* Monsters behavior has been altered.&#10;* Rates altered.&#10;* Other minor fixes." />
+    <option name="LAST_COMMIT_MESSAGE" value="* World view has been altered.&#10;  - Now it's not a complete darkness behind the light circle, but basic maze layout without object or monsters.&#10;* Debuffs for the enemies have been implemented.&#10;* New item effects.&#10;* Projectiles for enemies has been added.&#10;* New enemies have been added.&#10;* New visual marks for higher-graded enemies.&#10;* New animations.&#10;* Monsters behavior has been altered.&#10;* Rates altered.&#10;* Other minor fixes." />
+  </component>
+  <component name="XDebuggerManager">
+    <breakpoint-manager>
+      <breakpoints>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/components/treasure.py</url>
+          <line>253</line>
+          <option name="timeStamp" value="28" />
+        </line-breakpoint>
+      </breakpoints>
+    </breakpoint-manager>
   </component>
 </project>

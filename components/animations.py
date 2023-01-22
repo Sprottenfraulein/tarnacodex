@@ -235,6 +235,14 @@ class Animations:
                 }
             }
             return animation
+        elif anim_id == 'effect_blood_swipe':
+            animation = {
+                'default': {
+                    'images': self.get_image('item_effects', (24, 24), (32, 33, 34, 35)),
+                    'timings': (5, 5, 5, 5)
+                }
+            }
+            return animation
         elif anim_id == 'effect_arcane_dust':
             animation = {
                 'default': {
@@ -248,6 +256,14 @@ class Animations:
                 'default': {
                     'images': self.get_image('item_effects', (32, 32), (5, 11, 17, 23, 29)),
                     'timings': (5, 5, 5, 5, 5)
+                }
+            }
+            return animation
+        elif anim_id == 'missile_fireball':
+            animation = {
+                'default': {
+                    'images': self.get_image('item_effects', (16, 16), (24, 25, 26, 27)),
+                    'timings': (4, 4, 4, 4)
                 }
             }
             return animation

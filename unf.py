@@ -4,7 +4,7 @@ from library import cursor, database, scheduler
 from components import tilesets, animations
 from wins import (
 	apptitle, realm, inventory, skillbook, context, target, hotbar, pools, charstats, overlay, dialogue,  demos,
-	options, trade, stash, splitter
+	options, trade, stash, splitter, debuffs
 )
 
 
@@ -37,7 +37,8 @@ def launch(pygame_settings, resources, log=False):
 		'options': options.Options(*win_init_args),
 		'trade': trade.Trade(*win_init_args),
 		'stash': stash.Stash(*win_init_args),
-		'splitter': splitter.Splitter(*win_init_args)
+		'splitter': splitter.Splitter(*win_init_args),
+		'debuffs': debuffs.Debuffs(*win_init_args),
 	}
 	active_wins = []
 	for win in wins_dict.values():

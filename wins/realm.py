@@ -90,7 +90,10 @@ class Realm:
                  (self.view_maze_height_sq + self.view_bleed_sq * 2) * self.square_size),
                 pygame.HWSURFACE).convert()
         self.view_size_scaled = (w,h)
-        framed_wins = (self.wins_dict['charstats'], self.wins_dict['pools'], self.wins_dict['hotbar'], self.wins_dict['inventory'], self.wins_dict['skillbook'])
+        framed_wins = (
+            self.wins_dict['charstats'], self.wins_dict['pools'], self.wins_dict['hotbar'],
+            self.wins_dict['inventory'], self.wins_dict['skillbook'], self.wins_dict['debuffs']
+        )
         for win in framed_wins:
             win.offset_x, win.offset_y = maths.rect_sticky_edges((win.offset_x, win.offset_y, win.win_w, win.win_h),
                                                                  [(ow.offset_x, ow.offset_y, ow.win_w, ow.win_h) for ow in framed_wins])
@@ -136,6 +139,7 @@ class Realm:
             self.active_wins.insert(0, self.wins_dict['hotbar'])
 
         self.wins_dict['target'].drop_aim()
+        self.wins_dict['debuffs'].update(self.pc)
 
         self.pc.ready()
         self.pause = False
@@ -245,6 +249,8 @@ class Realm:
             self.pc_loot_drop(self.mouse_pointer.xy, log)
 
         elif event.type == pygame.MOUSEMOTION:
+            if self.wins_dict['context'] in self.active_wins:
+                self.active_wins.remove(self.wins_dict['context'])
             self.mob_check(self.mouse_pointer.xy, None)
             if self.pc.move_instr_y != 0 or self.pc.move_instr_x != 0:
                 self.pc.move_instr_x, self.pc.move_instr_y = self.mouse_move(self.mouse_pointer.xy)
@@ -352,21 +358,24 @@ class Realm:
             for ren_pos_x in range(left_sq, right_sq):
                 if (0 <= ren_pos_y < self.maze.height) and (0 <= ren_pos_x < self.maze.width):
                     flags = self.maze.flag_array[ren_pos_y][ren_pos_x]
-                    decors = self.maze.decor_array[ren_pos_y][ren_pos_x]
-                    if decors == ' ':
-                        continue
-                    surface.blit(decors[0],
-                         ((ren_pos_x - self.ren_x_sq) * self.square_size,
-                          (ren_pos_y - self.ren_y_sq) * self.square_size))
+                    if flags.vis:
+                        decors = self.maze.decor_array[ren_pos_y][ren_pos_x]
+                        if decors == ' ':
+                            continue
+                        surface.blit(decors[0],
+                             ((ren_pos_x - self.ren_x_sq) * self.square_size,
+                              (ren_pos_y - self.ren_y_sq) * self.square_size))
+                    """if flags.floor and self.xy_pixels_to_squares(self.mouse_pointer.xy) == (ren_pos_x, ren_pos_y):
+                        surface.blit(self.shade_square, ((ren_pos_x - self.ren_x_sq) * self.square_size,
+                                                         (ren_pos_y - self.ren_y_sq) * self.square_size))"""
 
         for ren_pos_y in range(top_sq, bottom_sq):
             for ren_pos_x in range(left_sq, right_sq):
                 # body
                 if (0 <= ren_pos_y < self.maze.height) and (0 <= ren_pos_x < self.maze.width):
-
                     flags = self.maze.flag_array[ren_pos_y][ren_pos_x]
-                    decors = self.maze.decor_array[ren_pos_y][ren_pos_x]
                     if flags.vis:
+                        decors = self.maze.decor_array[ren_pos_y][ren_pos_x]
                         if flags.trap is not None and flags.trap.visible == 1:
                             try:
                                 surface.blit(flags.trap.images[self.maze.anim_frame],
@@ -442,50 +451,43 @@ class Realm:
                                              ((mon.x_sq - self.ren_x_sq - 0.4) * self.square_size,
                                               (mon.y_sq - self.ren_y_sq - 0.4) * self.square_size))
 
-                    if self.redraw_pc and round(self.pc.x_sq) == ren_pos_x and round(
-                            self.pc.y_sq) == ren_pos_y:
-                        self.pc_display(surface, self.ren_x_sq, self.ren_y_sq)
+                        if self.redraw_pc and round(self.pc.x_sq) == ren_pos_x and round(
+                                self.pc.y_sq) == ren_pos_y:
+                            self.pc_display(surface, self.ren_x_sq, self.ren_y_sq)
 
-                    if len(decors) > 1:
-                        for k in range(1, len(decors)):
-                            if self.redraw_maze_decor:
-                                try:
-                                    surface.blit(decors[k], ((ren_pos_x - self.ren_x_sq) * self.square_size,
-                                                             (ren_pos_y - self.ren_y_sq) * self.square_size))
-                                except TypeError:
-                                    # print('Realm.Stage_display: Wrong tile.')
-                                    pass
-                    if not flags.vis:
-                        #  self.shade_square.set_alpha(200 * (maths.get_distance(ren_pos_x, ren_pos_y, self.pc.x_sq, self.pc.y_sq) / 5))
-                        surface.blit(self.shade_square, ((ren_pos_x - self.ren_x_sq) * self.square_size,
-                                                         (ren_pos_y - self.ren_y_sq) * self.square_size))
-                    """else:
-                        try:
-                            if not self.maze.flag_array[ren_pos_y][ren_pos_x + 1].vis:
-                                surface.blit(self.dark_edges[0],
-                                             ((ren_pos_x - self.ren_x_sq) * self.square_size,
-                                              (ren_pos_y - self.ren_y_sq) * self.square_size))
+                        if len(decors) > 1:
+                            for k in range(1, len(decors)):
+                                if self.redraw_maze_decor:
+                                    try:
+                                        surface.blit(decors[k], ((ren_pos_x - self.ren_x_sq) * self.square_size,
+                                                                 (ren_pos_y - self.ren_y_sq) * self.square_size))
+                                    except TypeError:
+                                        # print('Realm.Stage_display: Wrong tile.')
+                                        pass
+                        """if not flags.vis:
+                            #  self.shade_square.set_alpha(200 * (maths.get_distance(ren_pos_x, ren_pos_y, self.pc.x_sq, self.pc.y_sq) / 5))
+                            surface.blit(self.shade_square, ((ren_pos_x - self.ren_x_sq) * self.square_size,
+                                                             (ren_pos_y - self.ren_y_sq) * self.square_size))"""
 
-                            if not self.maze.flag_array[ren_pos_y + 1][ren_pos_x].vis:
-                                surface.blit(self.dark_edges[1],
-                                             ((ren_pos_x - self.ren_x_sq) * self.square_size,
-                                              (ren_pos_y - self.ren_y_sq) * self.square_size))
+                        if ren_pos_x + 1 < self.maze.width and not self.maze.flag_array[ren_pos_y][ren_pos_x + 1].vis:
+                            surface.blit(self.dark_edges[0],
+                                         ((ren_pos_x - self.ren_x_sq) * self.square_size,
+                                          (ren_pos_y - self.ren_y_sq) * self.square_size))
 
-                            if not self.maze.flag_array[ren_pos_y][ren_pos_x - 1].vis:
-                                surface.blit(self.dark_edges[2],
-                                             ((ren_pos_x - self.ren_x_sq) * self.square_size,
-                                              (ren_pos_y - self.ren_y_sq) * self.square_size))
+                        if ren_pos_y + 1 < self.maze.height and not self.maze.flag_array[ren_pos_y + 1][ren_pos_x].vis:
+                            surface.blit(self.dark_edges[1],
+                                         ((ren_pos_x - self.ren_x_sq) * self.square_size,
+                                          (ren_pos_y - self.ren_y_sq) * self.square_size))
 
-                            if not self.maze.flag_array[ren_pos_y - 1][ren_pos_x].vis:
-                                surface.blit(self.dark_edges[3],
-                                             ((ren_pos_x - self.ren_x_sq) * self.square_size,
-                                              (ren_pos_y - self.ren_y_sq) * self.square_size))
+                        if ren_pos_x - 1 > -1 and not self.maze.flag_array[ren_pos_y][ren_pos_x - 1].vis:
+                            surface.blit(self.dark_edges[2],
+                                         ((ren_pos_x - self.ren_x_sq) * self.square_size,
+                                          (ren_pos_y - self.ren_y_sq) * self.square_size))
 
-
-                        except IndexError:
-                            # print('Realm.Stage_display: Wrong tile.')
-                            pass"""
-
+                        if ren_pos_y - 1 > -1 and not self.maze.flag_array[ren_pos_y - 1][ren_pos_x].vis:
+                            surface.blit(self.dark_edges[3],
+                                         ((ren_pos_x - self.ren_x_sq) * self.square_size,
+                                          (ren_pos_y - self.ren_y_sq) * self.square_size))
 
 
     def pc_display(self, surface, x_sq, y_sq):
@@ -611,8 +613,8 @@ class Realm:
             else:
                 trap.visible = -1
         if traps_detected:
-            self.spawn_realmtext('new_txt', "Watch out for the traps!", (0, 0), (0, 24), 'fnt_attent',
-                                 self.pc, None, 180, 'def_bold', 24)
+            """self.spawn_realmtext('new_txt', "Watch out for the traps!", (0, 0), (0, 24), 'fnt_attent',
+                                 self.pc, None, 180, 'def_bold', 24)"""
             self.sound_inrealm('realmtext_noise', self.pc.x_sq, self.pc.y_sq)
 
     def xy_pixels_to_squares(self, xy, do_round=True):
@@ -867,7 +869,14 @@ class Realm:
                 rnd_x_sq = random.randrange(-3 - is_crit, 4 + is_crit) / 10 + x_sq
                 rnd_y_sq = random.randrange(-3 - is_crit, 4 + is_crit) / 10 + y_sq
                 self.particle_list.append(particle.Particle((rnd_x_sq, rnd_y_sq), (-8, -8),
-                                          self.animations.get_animation('effect_dust_cloud')['default'],
+                                          self.animations.get_animation('effect_blood_cloud')['default'],
+                                          16, speed_xy=(0.25, 0.25)))
+        elif dam_type == 'att_fire':
+            for i in range(-1, is_crit * 4):
+                rnd_x_sq = random.randrange(-3 - is_crit, 4 + is_crit) / 10 + x_sq
+                rnd_y_sq = random.randrange(-3 - is_crit, 4 + is_crit) / 10 + y_sq
+                self.particle_list.append(particle.Particle((rnd_x_sq, rnd_y_sq), (-8, -8),
+                                          self.animations.get_animation('effect_blood_cloud')['default'],
                                           16, speed_xy=(0.25, 0.25)))
 
         if for_pc:

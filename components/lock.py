@@ -24,13 +24,13 @@ class Lock:
             lvl_dif = min(1, pc.char_sheet.level - self.lvl)
             skill = pc.char_sheet.profs['prof_picklock'] + lvl_dif * 250 + lockpick_mod     # 25% per level penalty
             rnd_roll = random.randrange(0, 1001)
-            if rnd_roll - skill >= 500:
+            if rnd_roll == 1000 or rnd_roll - skill >= 500:
                 self.jammed = True
                 wins_dict['realm'].spawn_realmtext('new_txt', "I've jammed $n the lock!", (0, 0), (0, -24), None, pc, None,
                                                    120, 'def_bold', 24)
                 wins_dict['realm'].pygame_settings.audio.sound('lock_jam')
                 return False
-            if skill >= rnd_roll:
+            if rnd_roll == 0 or skill >= rnd_roll:
                 wins_dict['realm'].spawn_realmtext('new_txt', "Easy as pie!", (0, 0), (0, -24), None, pc, None, 120,
                                                    'def_bold', 24)
 
@@ -50,7 +50,7 @@ class Lock:
                 return False
         elif len(pc_keys) > 0:
             for i in range(len(pc_keys) - 1, -1, -1):
-                if pc_keys[i].props['lvl'] == self.lvl:
+                if pc_keys[i].props['lvl'] >= self.lvl:
                     pc.char_sheet.inventory[pc.char_sheet.inventory.index(pc_keys[i])] = None
                     wins_dict['inventory'].updated = True
                     wins_dict['realm'].spawn_realmtext('new_txt', "I have a key $n for this one!", (0, 0), (0, -24),

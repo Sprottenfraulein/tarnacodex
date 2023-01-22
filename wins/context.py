@@ -46,12 +46,16 @@ class Context:
         # Here I need to write making changes to context_info_rich element
         for i in ('itm', 'skill', 'hot'):
             if i in element.tags:
-                break
-        else:
+                if element.id < len(element.tags[0]) and element.tags[0][element.id] is not None:
+                    itm = element.tags[0][element.id]
+                    self.context_define(pc, itm, element, trade=trade)
+                    return
+        if 'de_buff' in element.tags:
+            self.update_elements_de_buff(pc, element.tags[0], element, self.mouse_pointer.xy)
+            element.popup_active = True
+            self.active_wins.insert(0, self.wins_dict['context'])
             return
-        if element.id < len(element.tags[0]) and element.tags[0][element.id] is not None:
-            itm = element.tags[0][element.id]
-            self.context_define(pc, itm, element, trade=trade)
+
 
     def context_define(self, pc, itm, element, trade=False):
         if itm.props['item_type'] in ('wpn_melee', 'wpn_ranged', 'wpn_magic'):
@@ -62,6 +66,8 @@ class Context:
             self.wins_dict['context'].update_elements_armor(pc, itm, element, self.mouse_pointer.xy, trade=trade)
         elif itm.props['item_type'] in ('skill_melee', 'skill_ranged', 'skill_magic', 'skill_craft', 'skill_misc'):
             self.wins_dict['context'].update_elements_skill(pc, itm, element, self.mouse_pointer.xy, trade=trade)
+        elif itm.props['item_type'] in ('use_learn',):
+            self.wins_dict['context'].update_elements_certificate(pc, itm, element, self.mouse_pointer.xy, trade=trade)
         elif itm.props['item_type'] in ('sup_potion', 'exp_food'):
             self.wins_dict['context'].update_elements_supply(pc, itm, element, self.mouse_pointer.xy, trade=trade)
         elif itm.props['item_type'] == 'exp_lockpick':
@@ -271,7 +277,7 @@ class Context:
     def update_elements_skill(self, pc, item, element, mouse_xy, trade=False, log=True):
         self.win_ui_clear()
 
-        self.win_w = 320
+        self.win_w = 240
 
         # color based on grade
         decor_color = 'azure'
@@ -280,18 +286,25 @@ class Context:
         context_header, info_y = self.header_add(header_caption, decor_color)
 
         # calculating and rendering text
+        hl_text = {
+            'gradetype': 'Skill',
+            'mainvalue': '%s' % (pc.char_sheet.level or '-'),
+            'mv_caption': 'Level'
+        }
+        itm_headlines = self.headlines_add(hl_text, info_y)
+        itm_headlines.render_all()
+
         bl_text = {
             'desc': item.props['desc'] % getattr(skillfuncs, item.props['function_name'])(self.wins_dict, None, pc,
                                                                                           item,
                                                                                           (element.tags[0], element.id),
                                                                                           just_values=True)
         }
-        itm_bodylines = self.paragraph_add(self.itm_img_size, bl_text, info_y)
-
+        itm_bodylines = self.body_text_add(bl_text, info_y)
         itm_bodylines.render_all()
 
-        self.win_h = max(itm_bodylines.size[1] + info_y + self.image_body_space_size + self.win_border_size,
-                         self.itm_img_size[1] + info_y + self.image_body_space_size + self.win_border_size)
+        self.win_h = itm_bodylines.size[1] + info_y + self.itm_img_size[
+            1] + self.image_body_space_size + self.win_border_size
 
         self.win_surface()
 
@@ -302,6 +315,72 @@ class Context:
         itm_icon_panel = self.item_icon_add(item, info_y)
 
         self.win_ui.decoratives.append(context_header)
+        self.win_ui.decoratives.append(itm_headlines)
+        self.win_ui.decoratives.append(itm_bodylines)
+        self.win_ui.decoratives.append(itm_icon_panel)
+        self.win_ui.decoratives.append(bg_panel)
+
+        self.win_align(mouse_xy)
+
+        self.win_ui.draw(self.win_rendered)
+
+    def update_elements_certificate(self, pc, item, element, mouse_xy, trade=False, log=True):
+        self.win_ui_clear()
+
+        self.win_w = 240
+
+        # color based on grade
+        decor_color = 'azure'
+
+        header_caption = item.props['label'].upper()
+        context_header, info_y = self.header_add(header_caption, decor_color)
+
+        types = {
+            (1, 0, 0): 'Only for Champion',
+            (0, 1, 0): 'Only for Kingslayer',
+            (0, 0, 1): 'Only for Cosmologist',
+            (1, 0, 1): 'Not for Kingslayer',
+            (1, 1, 0): 'Not for Cosmologist',
+            (0, 1, 1): 'Not for Champion',
+            (1, 1, 1): 'For any character',
+        }[(
+            item.props['usable_champion'],
+            item.props['usable_kingslayer'],
+            item.props['usable_cosmologist'],
+        )]
+        hl_text = {
+            'gradetype': types,
+            'mainvalue': '%s' % (item.props['lvl'] or '-'),
+            'mv_caption': 'Level'
+        }
+        itm_headlines = self.headlines_add(hl_text, info_y)
+        itm_headlines.render_all()
+
+        # calculating and rendering text
+        bl_text = {
+            'desc': item.props['desc']
+        }
+        if trade:
+            bl_text['price'] = str('Buy price: %s' % treasure.calc_loot_stat(item.props, 'price_buy'))
+
+        itm_bodylines = self.body_text_add(bl_text, info_y)
+
+        itm_headlines.render_all()
+        itm_bodylines.render_all()
+
+        self.win_h = itm_bodylines.size[1] + info_y + self.itm_img_size[
+            1] + self.image_body_space_size + self.win_border_size
+
+        self.win_surface()
+
+        # background
+        bg_panel = self.background_add(decor_color)
+
+        # item icon
+        itm_icon_panel = self.item_icon_add(item, info_y)
+
+        self.win_ui.decoratives.append(context_header)
+        self.win_ui.decoratives.append(itm_headlines)
         self.win_ui.decoratives.append(itm_bodylines)
         self.win_ui.decoratives.append(itm_icon_panel)
         self.win_ui.decoratives.append(bg_panel)
@@ -342,8 +421,8 @@ class Context:
                 item.props['charge'], treasure.calc_loot_stat(item.props, 'charge_max'))
         if trade:
             body_text['price'] = str('Buy price: %s' % treasure.calc_loot_stat(item.props, 'price_buy'))
-        else:
-            body_text['price'] = str('Sell price: %s' % treasure.calc_loot_stat(item.props, 'price_sell'))
+        """else:
+            body_text['price'] = str('Sell price: %s' % treasure.calc_loot_stat(item.props, 'price_sell'))"""
 
         itm_bodylines = self.body_text_add(body_text, info_y)
 
@@ -599,6 +678,50 @@ class Context:
         self.win_ui.decoratives.append(context_header)
         self.win_ui.decoratives.append(itm_bodylines)
         self.win_ui.decoratives.append(itm_headlines)
+        self.win_ui.decoratives.append(itm_icon_panel)
+        self.win_ui.decoratives.append(bg_panel)
+
+        self.win_align(mouse_xy)
+
+        self.win_ui.draw(self.win_rendered)
+
+    def update_elements_de_buff(self, pc, item, element, mouse_xy, log=True):
+        self.win_ui_clear()
+
+        self.win_w = 240
+
+        # color based on grade
+        decor_color = 'gray_light'
+
+        header_caption = item['label'].upper()
+        context_header, info_y = self.header_add(header_caption, decor_color)
+
+        # calculating and rendering text
+        bl_text = {
+            'modifiers': self.decorated_modifiers(item['mods']),
+            'desc': item['desc']
+        }
+        if item['duration'] > 0:
+            bl_text['duration'] = '%s:%s' % (item.timer_dur // 3600, str(item.timer_dur % 3600 // 60).zfill(2))
+
+        itm_bodylines = self.body_text_add(bl_text, info_y)
+
+        itm_bodylines.render_all()
+
+        self.win_h = itm_bodylines.size[1] + info_y + self.itm_img_size[1] + self.image_body_space_size + self.win_border_size
+
+        self.win_surface()
+
+        # background
+        bg_panel = self.background_add(decor_color)
+
+        # item icon
+        itm_img_w, itm_img_h = self.itm_img_size[0], self.itm_img_size[1]
+        itm_icon_panel = self.win_ui.panel_add('inv_panel', (self.win_border_size, info_y), (itm_img_w, itm_img_h),
+                                               images=element.images, page=None, img_stretch=True)
+
+        self.win_ui.decoratives.append(context_header)
+        self.win_ui.decoratives.append(itm_bodylines)
         self.win_ui.decoratives.append(itm_icon_panel)
         self.win_ui.decoratives.append(bg_panel)
 

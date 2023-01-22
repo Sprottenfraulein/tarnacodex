@@ -42,6 +42,7 @@ class Pools:
         self.win_rendered = pygame.Surface((self.win_w, self.win_h)).convert()
 
         self.updated = False
+        self.mouse_over = False
 
     def launch(self, pc):
         self.pc = pc
@@ -55,6 +56,24 @@ class Pools:
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_SPACE:
                 self.wins_dict['pools'].toggle_all_wins(self.pc)
+            if event.key == pygame.K_ESCAPE:
+                self.wins_dict['options'].launch(self.pc)
+                self.wins_dict['options'].render()
+
+        if event.type == pygame.MOUSEMOTION:
+            if self.mouse_pointer.drag_item:
+                return
+            if (not self.offset_x <= mouse_x < self.offset_x + self.win_w
+                    or not self.offset_y <= mouse_y < self.offset_y + self.win_h):
+                if self.mouse_over:
+                    self.mouse_over = False
+                    self.updated = True
+                return False
+            else:
+                if not self.mouse_over:
+                    self.mouse_over = True
+                    self.updated = True
+                return True
 
         if event.type == pygame.MOUSEBUTTONUP or event.type == pygame.MOUSEBUTTONDOWN:
             return self.ui_click(self.win_ui.mouse_actions(mouse_x - self.offset_x, mouse_y - self.offset_y, event))
@@ -340,6 +359,28 @@ class Pools:
                                (81, 83 + self.pool_img_h - round(self.pool_img_h * food_rate)))
         self.win_rendered.blit(
             self.exp_pool_img.subsurface((0, 0, round(self.pool_exp_w * exp_rate), self.pool_exp_h)), (17, 152))
+
+        if self.mouse_over:
+            hp_caption = '%s/%s' % (self.pc.char_sheet.hp, self.pc.char_sheet.pools['HP'])
+            hp_cap_rect = self.pygame_settings.text_font.get_rect(hp_caption)
+            self.pygame_settings.text_font.render_to(self.win_rendered, (
+                44 + self.pool_img_w // 2 - hp_cap_rect.width // 2,
+                31 + self.pool_img_h // 2 - hp_cap_rect.height // 2
+            ), hp_caption, fgcolor=self.resources.colors['fnt_celeb'])
+
+            mp_caption = '%s/%s' % (self.pc.char_sheet.mp, self.pc.char_sheet.pools['MP'])
+            mp_cap_rect = self.pygame_settings.text_font.get_rect(mp_caption)
+            self.pygame_settings.text_font.render_to(self.win_rendered, (
+                12 + self.pool_img_w // 2 - mp_cap_rect.width // 2,
+                82 + self.pool_img_h // 2 - mp_cap_rect.height // 2
+            ), mp_caption, fgcolor=self.resources.colors['fnt_celeb'])
+
+            food_caption = '%s/%s' % (self.pc.char_sheet.food // 10, self.pc.char_sheet.pools['FOOD'] // 10)
+            food_cap_rect = self.pygame_settings.text_font.get_rect(food_caption)
+            self.pygame_settings.text_font.render_to(self.win_rendered, (
+                81 + self.pool_img_w // 2 - food_cap_rect.width // 2,
+                82 + self.pool_img_h // 2 - food_cap_rect.height // 2
+            ), food_caption, fgcolor=self.resources.colors['fnt_celeb'])
 
         self.updated = False
 

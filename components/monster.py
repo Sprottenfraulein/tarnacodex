@@ -4,6 +4,19 @@ from library import maths, calc2darray, logfun, pickrandom, particle
 from components import lootgen
 
 
+sprite_indexes = (
+    'face_north',
+    'face_east',
+    'face_south',
+    'face_west',
+    'act_north',
+    'act_east',
+    'act_south',
+    'act_west',
+    'lay_down'
+)
+
+
 class Monster:
     def __init__(self, x_sq, y_sq, anim_set, stats, state=2):
         self.x_sq = x_sq
@@ -43,6 +56,7 @@ class Monster:
         self.alive = True
         self.rest = True
         self.aggred = False
+        self.busy = False
         self.waypoints = None
         self.wp_ind_list = None
         self.wp_index = None
@@ -60,25 +74,8 @@ class Monster:
         # 5 act east
         # 6 act south
         # 7 act west
-        # 8 lay down
-        if self.state == 0:
-            anim_seq = self.anim_set['face_north']
-        elif self.state == 1:
-            anim_seq = self.anim_set['face_east']
-        elif self.state == 2:
-            anim_seq = self.anim_set['face_south']
-        elif self.state == 3:
-            anim_seq = self.anim_set['face_west']
-        elif self.state == 4:
-            anim_seq = self.anim_set['act_north']
-        elif self.state == 5:
-            anim_seq = self.anim_set['act_east']
-        elif self.state == 6:
-            anim_seq = self.anim_set['act_south']
-        elif self.state == 7:
-            anim_seq = self.anim_set['act_west']
-        elif self.state == 8:
-            anim_seq = self.anim_set['lay_down']
+        # 8 lay down a pochemy nerlzya napisat massiv [i]="face_"
+        anim_seq = self.anim_set[sprite_indexes[self.state]]
 
         self.image = anim_seq['images']
         self.anim_timings = anim_seq['timings']
@@ -122,7 +119,8 @@ class Monster:
 
         if self.waypoints is not None:
             if maths.get_distance(self.x_sq, self.y_sq, self.waypoints[self.wp_index][0],
-                                  self.waypoints[self.wp_index][1]) < self.speed / 5:
+                                  self.waypoints[self.wp_index][1]) < 0.5:
+                self.busy = False
                 if self.wp_index == 0:
                     self.waypoints = None
                 else:
@@ -130,14 +128,15 @@ class Monster:
             else:
                 wp_x, wp_y = self.waypoints[self.wp_index]
                 self.move_instr_x, self.move_instr_y = maths.sign(wp_x - self.x_sq), maths.sign(wp_y - self.y_sq)
-        elif pc_distance <= self.stats['aggro_distance'] * (realm.pc.char_sheet.profs['prof_provoke'] + 1000) // 1000:
+        elif not self.busy and pc_distance <= self.stats['aggro_distance'] * (realm.pc.char_sheet.profs['prof_provoke'] + 1000) // 1000:
             self.intercept(wins_dict, pc_distance)
         else:
-            if self.bhvr_timer == 0:
+            if self.bhvr_timer > 0:
+                self.bhvr_timer -= 1
+            else:
+                self.busy = False
                 self.direction_change(realm)
                 self.phase_change(realm)
-            else:
-                self.bhvr_timer -= 1
 
     def calc_path(self, realm, xy):
         goal_flag, self.waypoints, self.wp_ind_list = calc2darray.path2d(realm.maze.flag_array, {'mov': False},
@@ -210,10 +209,8 @@ class Monster:
 
     def intercept(self, wins_dict, pc_distance):
         realm = wins_dict['realm']
-        if not self.aggred and not self.waypoints:
-            realm.sound_inrealm(self.stats['sound_aggro'], self.x_sq, self.y_sq)
-            self.aggred = True
-        if calc2darray.cast_ray(realm.maze.flag_array, self.x_sq, self.y_sq, realm.pc.x_sq, realm.pc.y_sq, True):
+        self.busy = True
+        if calc2darray.cast_ray(realm.maze.flag_array, round(self.x_sq), round(self.y_sq), round(realm.pc.x_sq), round(realm.pc.y_sq), True):
             if self.attack_ranged(realm.pc, wins_dict, pc_distance):
                 return
             self.calc_path(realm, (round(realm.pc.x_sq), round(realm.pc.y_sq)))
@@ -221,6 +218,9 @@ class Monster:
             self.calc_path(realm, (round(realm.pc.x_sq), round(realm.pc.y_sq)))
         else:
             return
+        if not self.aggred:
+            realm.sound_inrealm(self.stats['sound_aggro'], self.x_sq, self.y_sq)
+            self.aggred = True
 
     # movement
     def move(self, step_x, step_y, realm):
@@ -348,6 +348,8 @@ class Monster:
         return True
 
     def wound(self, damage, dam_type, ranged, is_crit, wins_dict, fate_rnd, pc, no_reflect=False):
+        if not self.alive:
+            return
         self.hp -= damage
 
         wins_dict['realm'].hit_fx(self.x_sq, self.y_sq, dam_type, is_crit)
@@ -385,7 +387,7 @@ class Monster:
                 pc.wound(wins_dict, self, attack, fate_rnd, no_crit=True, no_reflect=True, no_evade=True)
 
         self.check(wins_dict, fate_rnd, pc)
-        if self.alive:
+        if self.alive and not self.attacking and not self.busy:
             self.intercept(wins_dict, maths.get_distance(self.x_sq, self.y_sq, pc.x_sq, pc.y_sq))
 
     def check(self, wins_dict, fate_rnd, pc):

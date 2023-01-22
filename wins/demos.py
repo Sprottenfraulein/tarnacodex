@@ -125,7 +125,7 @@ class Demos:
         self.wins_dict['app_title'].schedule_man.task_add('realm_tasks', schedule_delta_ending + 1, self.wins_dict['overlay'], 'fade_in',
                                                      (self.schedule_man.ticks_per_round, None))
 
-    def death_soft(self, pc, death_cause, chapter_dict):
+    def death_soft(self, pc, death_cause, chapter_dict, gold_penalty):
         self.controls_enabled = True
         self.width, self.height = self.pygame_settings.screen_res
         self.wins_dict['realm'].pause = True
@@ -145,7 +145,7 @@ class Demos:
                                          'center', 'top', self.width, 48)
         text_obj_2 = typography.Typography(self.pygame_settings,
                                          """%s the %s has been killed by %s. $n $n Gold coins lost: %s""" % (pc.char_sheet.name.capitalize(),
-                                                       pc.char_sheet.type.capitalize(), death_cause['label'], pc.char_sheet.gold_coins),
+                                                       pc.char_sheet.type.capitalize(), death_cause['label'], gold_penalty),
                                          (self.width // 2, self.height // 2 + 32), 'large', 16,
                                          self.resources.colors['fnt_celeb'], self.resources.colors['bg'],
                                          'center', 'top', self.width, 48)

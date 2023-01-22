@@ -367,6 +367,14 @@ class Stash:
                                 cond_y = cond * 150 // c_p_level
                                 pygame.draw.rect(self.inv_sockets_list[s_ind].rendered_panel, (255,cond_y,0),
                                                  self.inv_sockets_list[s_ind].rendered_panel.get_rect(), width=1)
+                        if 'amount' in self.common_stash[s_ind].props:
+                            self.pygame_settings.text_font.render_to(self.inv_sockets_list[s_ind].rendered_panel,
+                                                     (6, 34), str(self.common_stash[s_ind].props['amount']),
+                                                     fgcolor=self.resources.colors['fnt_celeb'])
+                        if 'charge' in self.common_stash[s_ind].props:
+                            self.pygame_settings.text_font.render_to(self.inv_sockets_list[s_ind].rendered_panel,
+                                                     (36, 6), str(self.common_stash[s_ind].props['charge']),
+                                                     fgcolor=self.resources.colors['cyan'])
 
         self.win_ui.draw(self.win_rendered)
         self.updated = False

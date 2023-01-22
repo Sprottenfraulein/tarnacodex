@@ -302,6 +302,11 @@ class UI:
                                                 self.resources.colors['fnt_celeb'],
                                                 self.resources.colors['transparent'],
                                                 'left', 'top', size[0], 0)
+        if 'duration' in text_dict:
+            text_dict['duration'] = typography.Typography(self.pygame_settings, text_dict['duration'], (0, 0), 'def_normal', 24,
+                                                          self.resources.colors['fnt_celeb'],
+                                                          self.resources.colors['transparent'],
+                                                          'left', 'top', size[0], 0)
 
         new_rich = fieldrich.FieldRich(self.resources, context_id, xy, size, fr_images=images, text_dict=text_dict,
                                        par_div_height=par_div_height, page=None, img_stretch=img_stretch)
@@ -317,6 +322,7 @@ class UI:
         if text_dict is None:
             text_dict = {
                 'desc': 'desc',
+                'duration': 'duration',
             }
         if images is None:
             images = (
@@ -332,8 +338,14 @@ class UI:
             'desc': typography.Typography(self.pygame_settings, text_dict['desc'], (0, 0), 'def_normal', 24,
                                           self.resources.colors['fnt_celeb'],
                                           self.resources.colors['transparent'],
-                                          'left', 'top', size[0], 0)
+                                          'left', 'top', size[0], 0),
         }
+        if 'duration' in text_dict:
+            info_text['duration'] = typography.Typography(self.pygame_settings, text_dict['duration'], (0, 0), 'def_normal', 24,
+                                                          self.resources.colors['fnt_celeb'],
+                                                          self.resources.colors['transparent'],
+                                                          'left', 'top', size[0], 0)
+
         for key, text in text_dict.items():
             if text == '':
                 del info_text[key]

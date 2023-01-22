@@ -1,5 +1,5 @@
 from components import lootgen, dbrequests, treasure
-from library import particle
+from library import particle, pickrandom
 import random
 
 
@@ -107,17 +107,18 @@ class Chest:
         if self.items_number > 0:
             if self.container is None:
                 self.container = []
-            roll = 1000
             goods_level_cap = self.lvl or pc.char_sheet.level
-            good_ids = dbrequests.treasure_get(realm.db.cursor, goods_level_cap,
-                                               self.treasure_group, roll, item_type=self.item_type,
-                                               char_type=self.char_type)
-            for i in range(0, self.items_number):
-                rnd_index = random.choice(good_ids)
-                self.container.append(treasure.Treasure(rnd_index, goods_level_cap, realm.db.cursor,
-                                                        realm.tilesets, realm.resources,
-                                                        realm.pygame_settings.audio,
-                                                        realm.resources.fate_rnd))
+            rnd_roll = random.randrange(1, 10001)
+            tr_ids_list = [(tr['treasure_id'], tr['roll_chance']) for tr in
+                           dbrequests.treasure_get(realm.db.cursor, goods_level_cap,
+                           self.treasure_group, rnd_roll, item_type=self.item_type,
+                           char_type=self.char_type)]
+            good_ids = pickrandom.items_get(tr_ids_list, self.items_number, items_pop=True)
+            for rnd_id in good_ids:
+                self.container.append(treasure.Treasure(rnd_id, goods_level_cap, realm.db.cursor, realm.tilesets,
+                                                        realm.resources, realm.pygame_settings.audio,
+                                                        realm.resources.fate_rnd,
+                                                        findmagic=pc.char_sheet.profs['prof_findmagic']))
             self.items_number = 0
         if self.container is not None and len(self.container) > 0:
             lootgen.drop_loot(self.x_sq, self.y_sq, realm, self.container)
@@ -126,7 +127,7 @@ class Chest:
             realm.maze.chests.remove(self)
             realm.maze.flag_array[self.y_sq][self.x_sq].obj = None
             realm.maze.flag_array[self.y_sq][self.x_sq].mov = True
-            realm.particle_list.append(particle.Particle((self.x_sq, self.y_sq),
-                                                        (self.off_x, self.off_y),
-                                                        realm.animations.get_animation('effect_dust_cloud')['default'],
-                                                        16))
+            realm.particle_list.append(particle.Particle(
+                (self.x_sq, self.y_sq), (self.off_x, self.off_y),
+                realm.animations.get_animation('effect_dust_cloud')['default'], 16
+            ))

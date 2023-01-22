@@ -21,7 +21,7 @@ class Inventory:
         self.win_w = 320
         self.win_h = 510
         self.offset_x = 0
-        self.offset_y = 16
+        self.offset_y = 64
         self.inv_sckt_total = 24
         self.inv_sockets_list = []
         self.eq_sockets_list = None

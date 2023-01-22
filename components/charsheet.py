@@ -31,7 +31,7 @@ class CharSheet:
         self.mp = 0
         self.food = 1000
 
-        self.exp_rate = 2
+        self.exp_rate = 2.3
         self.exp_rate_multiplier = 100
 
         self.experience = 0
@@ -94,7 +94,7 @@ class CharSheet:
             'prof_findore': 0,     # in  tenths of percents (1000 is 100%intelligence
             'prof_findmagic': 0,   # in  tenths of percents (1000 is 100%)
 
-            'prof_light': 0,  # in  tenths of percents (1000 is 100%)
+            'prof_light': 0,       # in  tenths of percents (1000 is 100%)
                                    # in  tenths of percents (1000 is 100%)
             'prof_lore': 0,        # in  tenths of percents (1000 is 100%)
             'prof_trade': 0,       # in  tenths of percents (1000 is 100%)
@@ -109,7 +109,7 @@ class CharSheet:
         self.inventory = itemlist.ItemList(items_max=24, all_to_none=True, filters={
             'item_types': ['wpn_melee', 'wpn_ranged', 'wpn_magic', 'arm_head', 'arm_chest', 'acc_ring', 'orb_shield',
                            'orb_ammo', 'orb_source', 'use_wand', 'exp_lockpick', 'exp_tools', 'exp_food', 'exp_key',
-                           'light', 'aug_gem', 'sup_potion']
+                           'light', 'aug_gem', 'sup_potion', 'use_learn']
         })
         # Equipment dictionary
         self.equipped = [
@@ -145,7 +145,7 @@ class CharSheet:
 
         self.hotbar = itemlist.ItemList(all_to_none=True, items_max=9, filters={
             'item_types': ['skill_melee', 'skill_ranged', 'skill_magic', 'skill_craft', 'skill_misc', 'sup_potion',
-                           'exp_food', 'exp_lockpick', 'exp_key', 'exp_tools']
+                           'exp_food', 'exp_lockpick', 'exp_key', 'exp_tools', 'use_learn']
         })
 
         self.gold_coins = 0
@@ -336,6 +336,13 @@ class CharSheet:
                     mod += self.condition_mod_rate(mod_add, eq_itm.props)
                 for aff in eq_itm.props['affixes']:
                     mod += self.eq_affix_mod(aff, stat_name)
+                for de_buff in eq_itm.props['de_buffs']:
+                    if stat_name in de_buff['mods']:
+                        if de_buff['mods'][stat_name]['value_type'] in (1, 3):
+                            mod += de_buff['mods'][stat_name]['value_base']
+                        elif de_buff['mods'][stat_name]['value_type'] == 2:
+                            base_stat = self.get_char_stat(stat_name)
+                            mod += round(base_stat * de_buff['mods'][stat_name]['value_base'] / 1000)
                 # mod_add = treasure.calc_loot_stat(eq_itm.props, stat_name)
                 # mod += self.condition_mod_rate(mod, eq_itm.props)
         return mod
@@ -346,15 +353,23 @@ class CharSheet:
             return True
         return False
 
-
     def eq_affix_mod(self, affix, stat_name):
+        mod = 0
         if stat_name in affix['mods']:
             if affix['mods'][stat_name]['value_type'] in (1, 3):
-                return affix['mods'][stat_name]['value_base']
+                mod += affix['mods'][stat_name]['value_base']
             elif affix['mods'][stat_name]['value_type'] == 2:
                 base_stat = self.get_char_stat(stat_name)
-                return round(base_stat * affix['mods'][stat_name]['value_base'] / 1000)
-        return 0
+                mod += round(base_stat * affix['mods'][stat_name]['value_base'] / 1000)
+        if 'de_buffs' in affix:
+            for de_buff in affix['de_buffs']:
+                if stat_name in de_buff['mods']:
+                    if de_buff['mods'][stat_name]['value_type'] in (1, 3):
+                        mod += de_buff['mods'][stat_name]['value_base']
+                    elif de_buff['mods'][stat_name]['value_type'] == 2:
+                        base_stat = self.get_char_stat(stat_name)
+                        mod += round(base_stat * de_buff['mods'][stat_name]['value_base'] / 1000)
+        return mod
 
     def get_char_stat(self, stat_name):
         for st_gr in (self.attributes, self.profs):
@@ -397,7 +412,7 @@ class CharSheet:
 
     def buff_mod(self, stat_name):
         mod = 0
-        for de_buff in self.de_buffs:
+        for de_buff in self.de_buffs.values():
             if stat_name in de_buff['mods']:
                 mod += de_buff['mods'][stat_name]['value_base']
                 if 'value_spread' in de_buff['mods'][stat_name]:
@@ -476,7 +491,7 @@ class CharSheet:
             hp_mod = round(self.pools['HP'] * value / 100)
             self.hp += hp_mod
         else:
-            self.hp += value
+            self.hp += round(value)
         self.hp = min(self.hp, self.pools['HP'])
         self.hp = max(self.hp, 0)
         return hp_mod
@@ -487,7 +502,7 @@ class CharSheet:
             mp_mod = round(self.pools['MP'] * value / 100)
             self.mp += mp_mod
         else:
-            self.mp += value
+            self.mp += round(value)
         self.mp = min(self.mp, self.pools['MP'])
         self.mp = max(self.mp, 0)
         return mp_mod
@@ -498,7 +513,7 @@ class CharSheet:
             food_mod = round(self.pools['FOOD'] * value / 100)
             self.food += food_mod
         else:
-            self.food += value
+            self.food += round(value)
         self.food = min(self.food, self.pools['FOOD'])
         self.food = max(self.food, 0)
         return food_mod
@@ -624,3 +639,13 @@ class CharSheet:
         for i in range(len(self.inventory), self.inventory.items_max):
             self.inventory.append(None)
         pass
+
+    def has_skill(self, skill_id):
+        for wnd in (self.skills, self.hotbar):
+            for i in range(0, len(wnd)):
+                sk = wnd[i]
+                if not sk or 'skill_id' not in sk.props:
+                    continue
+                if sk.props['skill_id'] == skill_id:
+                    return True
+        return False

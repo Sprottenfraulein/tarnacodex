@@ -102,4 +102,6 @@ def item_move(win, element, mb_event, m_bttn, in_realm, skillfuncs):
             if in_realm:
                 win.wins_dict['realm'].calc_vision_alt()
             win.wins_dict['charstats'].updated = True
+            win.wins_dict['pools'].updated = True
+            win.wins_dict['debuffs'].update(win.pc)
         win.render_slots()

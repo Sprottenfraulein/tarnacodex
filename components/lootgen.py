@@ -1,28 +1,30 @@
 from components import treasure, dbrequests
-from library import calc2darray, logfun
+from library import calc2darray, logfun, pickrandom
 import random
 
 
 def generate_loot(monster, realm, fate_rnd, pc, log=True):
-    tr_groups = [(monster.stats['treasure_group'], monster.stats['treasure_amount'])]
+    tr_group = monster.stats['treasure_group']
+    tr_amount = monster.stats['treasure_amount']
     if 'affixes' in monster.stats:
         for affix in monster.stats['affixes']:
-            try:
-                tr_groups.append((monster.stats['treasure_group'], affix['additional_treasure']))
-            except KeyError:
-                pass
+            if affix['additional_treasure'] is not None:
+                tr_amount += affix['additional_treasure']
 
     treasure_list = []
-    for tr_group, tr_amount in tr_groups:
-        actual_amount = fate_rnd.expo_rnd(0, round(tr_amount * 2))
-        rnd_roll = random.randrange(0, 10001)
-        tr_ids_list = dbrequests.treasure_get(realm.db.cursor, monster.stats['lvl'], tr_group, rnd_roll)
-        for i in range(0, actual_amount):
-            rnd_id = tr_ids_list[random.randrange(0, len(tr_ids_list))]
-            new_tr = treasure.Treasure(rnd_id, monster.stats['lvl'], realm.db.cursor, realm.tilesets, realm.resources,
-                                       realm.pygame_settings.audio, fate_rnd, mob_stats=monster.stats)
-            treasure.loot_validate(new_tr.props)
-            treasure_list.append(new_tr)
+    actual_amount = max(round(fate_rnd.expo_rnd(0, tr_amount + 1)), monster.stats['grade']['grade_level'])
+    rnd_roll = random.randrange(1, 10001)
+    tr_ids_list = [
+        (tr['treasure_id'], tr['roll_chance'])
+        for tr in dbrequests.treasure_get(realm.db.cursor, monster.stats['lvl'], tr_group, rnd_roll)
+    ]
+    rnd_ids = pickrandom.items_get(tr_ids_list, actual_amount, items_pop=True)
+    for rnd_id in rnd_ids:
+        new_tr = treasure.Treasure(rnd_id, monster.stats['lvl'], realm.db.cursor, realm.tilesets, realm.resources,
+                                   realm.pygame_settings.audio, fate_rnd, mob_stats=monster.stats,
+                                   findmagic=pc.char_sheet.profs['prof_findmagic'])
+        treasure.loot_validate(new_tr.props)
+        treasure_list.append(new_tr)
 
     # SPECIAL QUEST STATEMENT
     if (realm.maze.stage_index == realm.maze.chapter['stage_number'] - 1

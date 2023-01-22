@@ -28,12 +28,12 @@ class Trap:
         lvl_dif = min(1, pc.char_sheet.level - self.lvl)
         skill = pc.char_sheet.profs['prof_disarm'] + lvl_dif * 250 + tool_mod  # 25% per level penalty
         rnd_roll = random.randrange(0, 1001)
-        if rnd_roll - skill >= 500:
+        if rnd_roll == 1000 or rnd_roll - skill >= 500:
             """wins_dict['realm'].spawn_realmtext('new_txt', "Oh no!", (0, 0), (0, -24), None, pc, None,
                                                120, 'def_bold', 24)"""
             self.trigger(wins_dict, pc)
             return False
-        if skill >= rnd_roll:
+        if rnd_roll == 0 or skill >= rnd_roll:
             wins_dict['realm'].spawn_realmtext('new_txt', "Easy as pie!", (0, 0), (0, -24), None, pc, None, 120,
                                                'def_bold', 24)
 
