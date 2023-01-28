@@ -12,17 +12,41 @@ def generate_loot(monster, realm, fate_rnd, pc, log=True):
                 tr_amount += affix['additional_treasure']
 
     treasure_list = []
-    actual_amount = max(round(fate_rnd.expo_rnd(0, tr_amount + 1)), monster.stats['grade']['grade_level'])
+    if pc.char_sheet.level == 1:
+        rnd_rate = tr_amount + 1
+    elif pc.char_sheet.level == 2:
+        rnd_rate = tr_amount + 1
+    elif pc.char_sheet.level == 3:
+        rnd_rate = tr_amount
+    elif pc.char_sheet.level < 6:
+        rnd_rate = random.randrange(0, tr_amount + 1)
+    else:
+        rnd_rate = fate_rnd.expo_rnd(0, tr_amount + 1)
+    actual_amount = max(rnd_rate, monster.stats['grade']['grade_level'])
+
+    itm_lvl_spread_list = [
+        (-2, 400),
+        (-1, 1000),
+        (0, 400),
+        (1, 200)
+    ]
+
     rnd_roll = random.randrange(1, 10001)
     tr_ids_list = [
         (tr['treasure_id'], tr['roll_chance'])
-        for tr in dbrequests.treasure_get(realm.db.cursor, monster.stats['lvl'], tr_group, rnd_roll)
+        for tr in dbrequests.treasure_get(
+            realm.db.cursor,
+            max(1, monster.stats['lvl'] + pickrandom.items_get(itm_lvl_spread_list, 1)[0]),
+            tr_group, rnd_roll
+        )
     ]
     rnd_ids = pickrandom.items_get(tr_ids_list, actual_amount, items_pop=True)
     for rnd_id in rnd_ids:
-        new_tr = treasure.Treasure(rnd_id, monster.stats['lvl'], realm.db.cursor, realm.tilesets, realm.resources,
-                                   realm.pygame_settings.audio, fate_rnd, mob_stats=monster.stats,
-                                   findmagic=pc.char_sheet.profs['prof_findmagic'])
+        new_tr = treasure.Treasure(
+            rnd_id, max(1, monster.stats['lvl'] + pickrandom.items_get(itm_lvl_spread_list, 1)[0]),
+            realm.db.cursor, realm.tilesets, realm.resources, realm.pygame_settings.audio, fate_rnd,
+            mob_stats=monster.stats, findmagic=pc.char_sheet.profs['prof_findmagic']
+        )
         treasure.loot_validate(new_tr.props)
         treasure_list.append(new_tr)
 
@@ -53,12 +77,20 @@ def generate_gold(monster, realm, fate_rnd, pc):
                 gold_list.append(affix['additional_gold'])  # affixed monster can have additional gold drop
 
     treasure_list = []
+
     for gold_pile in gold_list:
-        new_gold = treasure.Treasure(6, monster.stats['lvl'], realm.db.cursor, realm.tilesets, realm.resources,
-                                   realm.pygame_settings.audio, fate_rnd)
+        new_gold = treasure.Treasure(
+            6, monster.stats['lvl'], realm.db.cursor,
+            realm.tilesets, realm.resources, realm.pygame_settings.audio, fate_rnd
+        )
         amount = new_gold.props['amount'] + new_gold.props['amount'] * gold_pile // 100
-        new_gold.props['amount'] = amount * monster.stats['lvl']
+        new_gold.props['amount'] = round(amount * (treasure.SCALE_RATE_GOLD * (monster.stats['lvl'] * (monster.stats['lvl'] + 1) / 2)))
         new_gold.props['amount'] += (new_gold.props['amount'] * pc.char_sheet.profs['prof_findgold'] // 1000)
+
+        if pc.char_sheet.level == 1:
+            new_gold.props['amount'] *= 2
+        elif pc.char_sheet.level == 2:
+            new_gold.props['amount'] = round(new_gold.props['amount'] * 1.5)
 
         if new_gold.props['amount'] >= 10000:
             new_gold.props['grade'] = {'grade_level': 3}

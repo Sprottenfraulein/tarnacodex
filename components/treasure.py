@@ -4,6 +4,9 @@ from components import dbrequests, skill, initmod
 import random
 
 
+SCALE_RATE_GOLD = 0.2
+
+
 class Treasure:
     def __init__(self, treasure_id, lvl, db_cursor, tile_sets, resources, audio, fate_rnd, x_sq=-1, y_sq=-1,
                  mob_stats=None, grade=None, findmagic=0, log=True):
@@ -157,8 +160,6 @@ def condition_mod_rate(mod_add, item_props):
     if 'condition' in item_props:
         cond_percent = item_props['condition'] * 100 // calc_loot_stat(item_props, 'condition_max')
         if cond_percent == 0:
-            result = 0
-        elif cond_percent <= 24:
             result = mod_add // 2
         else:
             result = mod_add
@@ -227,23 +228,25 @@ def sounds_update(db_cursor, loot_props):
 
 
 def calc_level(level, base_props, modifier_list, de_buff_list):
-    base_props['price_buy'] = base_props['price_buy'] * level
-    base_props['price_sell'] = base_props['price_sell'] * level
-    for mod in modifier_list:
+    scale_rate_price = 1
+    scale_rate_attrs = 1
+    base_props['price_buy'] = round(base_props['price_buy'] * (scale_rate_price * (level * (level + 1) / 2)))
+    base_props['price_sell'] = round(base_props['price_sell'] * (scale_rate_price * (level * (level + 1) / 2)))
+    """for mod in modifier_list:
         if mod['value_scalable'] == 0:
             continue
-        mod['value_base_min'] = mod['value_base_min'] * level
-        mod['value_base_max'] = mod['value_base_max'] * level
+        mod['value_base_min'] = round(mod['value_base_min'] * level * scale_rate_attrs)
+        mod['value_base_max'] = round(mod['value_base_max'] * level * scale_rate_attrs)
         if mod['value_spread_min'] is None:
             continue
-        mod['value_spread_min'] = mod['value_spread_min'] * level
-        mod['value_spread_max'] = mod['value_spread_max'] * level
+        mod['value_spread_min'] = round(mod['value_spread_min'] * level * scale_rate_attrs)
+        mod['value_spread_max'] = round(mod['value_spread_max'] * level * scale_rate_attrs)"""
     base_props['lvl'] = level
 
 
 def calc_grade(db_cursor, grade_set_loot, loot_props, tile_sets, audio, fate_rnd, findmagic):
     if loot_props['lvl'] is None:
-        lvl = 0
+        lvl = 1
     else:
         lvl = loot_props['lvl']
     grade_list = dbrequests.grade_set_get(db_cursor, grade_set_loot, lvl)

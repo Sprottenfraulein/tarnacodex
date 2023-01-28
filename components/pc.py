@@ -1,5 +1,5 @@
 from library import maths
-from components import treasure, debuff
+from components import treasure, debuff, skillfuncs
 import random
 
 
@@ -78,7 +78,7 @@ class PC:
     def tick(self, realm, fate_rnd, wins_dict, active_wins):
         if not self.alive:
             return
-        if self.busy is None and (self.move_instr_x != 0 or self.move_instr_y != 0):
+        if self.move_instr_x != 0 or self.move_instr_y != 0:
             self.move(self.move_instr_x, self.move_instr_y, realm, wins_dict, active_wins)
 
         elif self.busy is not None:
@@ -169,6 +169,8 @@ class PC:
 
             if abs(self.x_sq - self.prev_x_sq) >= 1 or abs(self.y_sq - self.prev_y_sq) >= 1:
                 self.food_change(wins_dict, -2)
+                if self.char_sheet.food < 250:
+                    self.autofood(wins_dict)
 
                 # Light source burns out gradually.
                 if self.char_sheet.equipped[6][0]:
@@ -204,12 +206,9 @@ class PC:
                     flags.trap.trigger(wins_dict, self)
 
                 # Check for gold coins on the floor
-                if flags.item is None:
-                    return
-                for itm in flags.item:
-                    if itm.props['treasure_id'] == 6:
-                        realm.coins_collect(itm, flags.item, self)
-                        break
+                for lt in flags.item[::-1]:
+                    if lt.props['treasure_id'] == 6:
+                        realm.coins_collect(self.x_sq, self.y_sq)
 
         if self.anim_frame in (1, 3) and self.anim_timer == 0:
             rnd_step_sound = random.choice(
@@ -299,8 +298,8 @@ class PC:
         damage = max(1, round(damage - damage * (pc_def_points / (pc_def_points + monster.stats['lvl'] * 20))))
 
         # Last HP last chance.
-        if damage > self.char_sheet.hp > 1:
-            damage = self.char_sheet.hp - 1
+        """if damage > self.char_sheet.hp > 1:
+            damage = self.char_sheet.hp - 1"""
 
         # Adding de_buffs
         if 'de_buffs' in chosen_attack and chosen_attack['de_buffs']:
@@ -314,7 +313,7 @@ class PC:
         wins_dict['realm'].hit_fx(self.x_sq, self.y_sq, chosen_attack['attack_type'], is_crit, for_pc=True, forced_sound=False)
 
         # 100% HP damage = 10 points of condition
-        if treasure.condition_equipment_change(self.char_sheet, round(-10 * rnd_dmg / self.char_sheet.pools['HP'])):
+        if treasure.condition_equipment_change(self.char_sheet, round(-2 * rnd_dmg / self.char_sheet.pools['HP'])):
             self.char_sheet.calc_stats()
 
         wins_dict['pools'].updated = True
@@ -340,24 +339,61 @@ class PC:
                                            font='large', size=info_size, frict_x=0.1, frict_y=0.15)
 
         if self.char_sheet.hp <= 0:
-            self.state_change(8)
-            wins_dict['realm'].pygame_settings.audio.sound('death_%s' % self.char_sheet.type)
+            if self.autoheal(wins_dict) > 0:
+                return
 
-            if self.char_sheet.level > 3 and self.char_sheet.gold_coins > 1000:
-                self.char_sheet.gold_coins //= 2
-                gold_penalty = self.char_sheet.gold_coins
-            else:
-                gold_penalty = 'none'
+            self.die(wins_dict, monster.stats)
 
-            if treasure.condition_equipment_change(self.char_sheet, -100):
-                self.char_sheet.calc_stats()
+    def autoheal(self, wins_dict):
+        if self.hardcore_char:
+            return self.char_sheet.hp
+        healing_items = [
+            itm for itm in self.char_sheet.hotbar
+            if itm is not None and 'treasure_id' in itm.props
+            and itm.props['use_skill'] is not None
+            and itm.props['use_skill'].props['skill_id'] == 4
+        ]
+        healing_items.sort(key=lambda x: x.props['lvl'], reverse=True)
+        if healing_items:
+            getattr(skillfuncs, healing_items[0].props['use_skill'].props['function_name'])(
+                wins_dict, wins_dict['realm'].resources.fate_rnd, self,
+                healing_items[0].props['use_skill'],
+                (self.char_sheet.hotbar, self.char_sheet.hotbar.index(healing_items[0])), True)
+        return self.char_sheet.hp
 
-            if self.hardcore_char:
-                self.hardcore_char = 2
-                wins_dict['demos'].death_hardcore(self, monster.stats, wins_dict['realm'].maze.chapter)
-            else:
-                self.char_sheet.hp_get(100, percent=True)
-                wins_dict['demos'].death_soft(self, monster.stats, wins_dict['realm'].maze.chapter, gold_penalty)
+    def autopower(self, wins_dict):
+        if self.hardcore_char:
+            return self.char_sheet.mp
+        power_items = [
+            itm for itm in self.char_sheet.hotbar
+            if itm is not None and 'treasure_id' in itm.props
+            and itm.props['use_skill'] is not None
+            and itm.props['use_skill'].props['skill_id'] == 7
+        ]
+        power_items.sort(key=lambda x: x.props['lvl'], reverse=True)
+        if power_items:
+            getattr(skillfuncs, power_items[0].props['use_skill'].props['function_name'])(
+                wins_dict, wins_dict['realm'].resources.fate_rnd, self,
+                power_items[0].props['use_skill'],
+                (self.char_sheet.hotbar, self.char_sheet.hotbar.index(power_items[0])), True)
+        return self.char_sheet.mp
+
+    def autofood(self, wins_dict):
+        if self.hardcore_char:
+            return self.char_sheet.food
+        food_items = [
+            itm for itm in self.char_sheet.hotbar
+            if itm is not None and 'treasure_id' in itm.props
+            and itm.props['use_skill'] is not None
+            and itm.props['use_skill'].props['skill_id'] == 8
+        ]
+        food_items.sort(key=lambda x: x.props['mods']['food_pool']['value_base'], reverse=True)
+        if food_items:
+            getattr(skillfuncs, food_items[0].props['use_skill'].props['function_name'])(
+                wins_dict, wins_dict['realm'].resources.fate_rnd, self,
+                food_items[0].props['use_skill'],
+                (self.char_sheet.hotbar, self.char_sheet.hotbar.index(food_items[0])), True)
+        return self.char_sheet.food
 
     def add_cooldowns(self, wins_dict, skill_id):
         """if 'skill_id' in socket.tags[0][socket.id].props:
@@ -450,16 +486,32 @@ class PC:
             self.char_sheet.food_get(value)
             self.food_delta += abs(value)
         else:
-            self.state_change(8)
-            if self.hardcore_char:
-                self.hardcore_char = 2
-                wins_dict['demos'].death_hardcore(self, {'label': 'hunger'}, wins_dict['realm'].maze.chapter)
-            else:
-                self.char_sheet.food_get(100, percent=True)
-                wins_dict['demos'].death_soft(self, {'label': 'hunger'}, wins_dict['realm'].maze.chapter)
+            self.char_sheet.food_get(100, percent=True)
+            self.die(wins_dict, {'label': 'hunger'})
+            return
         if self.food_delta >= 20:
             wins_dict['pools'].updated = True
             self.food_delta = 0
+
+    def die(self, wins_dict, killer):
+        self.state_change(8)
+        wins_dict['realm'].pygame_settings.audio.sound('death_%s' % self.char_sheet.type)
+
+        if self.char_sheet.level > 3 and self.char_sheet.gold_coins > 1000:
+            self.char_sheet.gold_coins //= 2
+            gold_penalty = self.char_sheet.gold_coins
+        else:
+            gold_penalty = 'none'
+
+        if treasure.condition_equipment_change(self.char_sheet, -100):
+            self.char_sheet.calc_stats()
+
+        if self.hardcore_char:
+            self.hardcore_char = 2
+            wins_dict['demos'].death_hardcore(self, killer, wins_dict['realm'].maze.chapter)
+        else:
+            self.char_sheet.hp_get(100, percent=True)
+            wins_dict['demos'].death_soft(self, killer, wins_dict['realm'].maze.chapter, gold_penalty)
 
     def stop(self):
         self.alive = False

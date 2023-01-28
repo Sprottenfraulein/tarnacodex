@@ -91,7 +91,7 @@ class Chest:
                 new_gold = treasure.Treasure(6, goods_level_cap, realm.db.cursor, realm.tilesets, realm.resources,
                                              realm.pygame_settings.audio, realm.resources.fate_rnd)
                 amount = new_gold.props['amount']
-                new_gold.props['amount'] = amount * goods_level_cap * 10
+                new_gold.props['amount'] = round(amount * (treasure.SCALE_RATE_GOLD * (goods_level_cap * (goods_level_cap + 1) / 2)))
                 if new_gold.props['amount'] >= 10000:
                     new_gold.props['grade'] = {'grade_level': 3}
                 elif new_gold.props['amount'] >= 1000:

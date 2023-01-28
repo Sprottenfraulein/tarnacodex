@@ -1,0 +1,51 @@
+TARNA CODEX "TO DO" LIST
+JAN 28, 2023
+
+Urgent feature:         !
+Necessary feature:      *
+Questionable feature:   ?
+Partly done:            v
+Complete:               V
+Declined feature:       -
+
+* torches with various buffs and debuffs
+* Monster stuck in a phase sometimes. Fix is needed.
+* Scroll of de-leveling. (Somehow I need to strip the char of equipment that will become too high level after downleveling)
+* Story system: linear task list, tied to character, persistent between chapters. Cutscenes on task completion.
+  - Dialog window before cutscene ("You have completed a task. Watch the cutscene?" YES NO)
+* Invisibility to monsters buff for 5 seconds upon arriving at a new stage of maze.
+* Room with ladder to the final maze floor is locked with special lock. You have to collect the special key pieces from every level to open it.
+* Signs or notes that are generated in maze based on player's level and chapter or stage.
+* Beginning a new chapter requires spending some resource (GOLD, or specialized items like MAP, GEMS or STONES)
+* CRAFTING RECIPES (rare drop from monsters) that use CRAFTING skill. Require crafting resources and GOLD to create EQUIPMENT.
+* New SKILLS for characters (field-of-attack for the champion, etc.):
+    v Roundstrike for CHAMPION (damage all nearby enemies).
+        V New sprite for skill effect.
+        V New sprite for the skill.
+        * New sound for skill effect.
+    * Powerstrike for CHAMPION (increased damage to the target).
+        * New sprite for skill effect.
+        V New sprite for the skill.
+        * New sound for skill effect.
+    * Bullethell for KINGSLAYER (shoot at all nearby enemies).
+        V New sprite for the skill.
+        * New sound for skill effect.
+    * Deadlyshot for KINGSLAYER (increased damage to the target).
+        V New sprite for the skill.
+        * New sound for skill effect.
+    * Elemental spells for COSMOLOGIST.
+        * New sprites for skill effects.
+        * New sprites for the skills.
+        * New sounds for skill effects.
+* New drop: resources, recipes.
+* New monsters with various features.
+    * Monster attacks with debuff effects.
+* New monster sprites.
+
+v Skill of repairing your equipment. Critical failure in repairing worsen equipment condition stat.
+v AFFIXES for crafted equipment (crafting bonus is provided by specialized AFFIX - see DRAFT.TXT for details).
+
+V De_buffs visiualization and calculation for PC.
+
+? PICKAXE to gather ORE (resource for crafting).
+? RATIONS with several charges (to be sold in trading post) to eat properly. Fresh FOOD only in drops.

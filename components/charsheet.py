@@ -401,8 +401,6 @@ class CharSheet:
         if 'condition' in item_props:
             cond_percent = item_props['condition'] * 100 // treasure.calc_loot_stat(item_props, 'condition_max')
             if cond_percent == 0:
-                result = 0
-            elif cond_percent <= 25:
                 result = mod_add // 2
             else:
                 result = mod_add
@@ -493,7 +491,7 @@ class CharSheet:
         else:
             self.hp += round(value)
         self.hp = min(self.hp, self.pools['HP'])
-        self.hp = max(self.hp, 0)
+        # self.hp = max(self.hp, 0)
         return hp_mod
 
     def mp_get(self, value=100, percent=False):
@@ -504,7 +502,7 @@ class CharSheet:
         else:
             self.mp += round(value)
         self.mp = min(self.mp, self.pools['MP'])
-        self.mp = max(self.mp, 0)
+        # self.mp = max(self.mp, 0)
         return mp_mod
 
     def food_get(self, value=100, percent=False):

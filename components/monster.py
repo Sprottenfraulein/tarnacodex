@@ -139,10 +139,9 @@ class Monster:
                 self.phase_change(realm)
 
     def calc_path(self, realm, xy):
-        goal_flag, self.waypoints, self.wp_ind_list = calc2darray.path2d(realm.maze.flag_array, {'mov': False},
-                                                                         xy,
-                                                                         (round(self.x_sq), round(self.y_sq)), 100, 10,
-                                                                         r_max=10)
+        goal_flag, self.waypoints, self.wp_ind_list = calc2darray.path2d(
+            realm.maze.flag_array, {'mov': False}, xy, (round(self.x_sq), round(self.y_sq)), 100, 10, r_max=10
+        )
         if goal_flag:
             self.dir_to_waypoint(-1)
             return True
@@ -182,30 +181,53 @@ class Monster:
         self.move_instr_x = self.move_instr_y = 0
 
     def direction_change(self, realm):
-        if self.stats['area_distance'] is None or maths.get_distance(self.origin_x_sq, self.origin_y_sq, self.x_sq,
-                                                                     self.y_sq) < self.stats['area_distance']:
-            self.move_instr_x = random.randrange(-1, 2)
-            self.move_instr_y = random.randrange(-1, 2)
+        if self.stats['area_distance'] is None or maths.get_distance(
+                self.origin_x_sq, self.origin_y_sq, self.x_sq, self.y_sq
+        ) < self.stats['area_distance']:
+            dirs_x, dirs_y = self.get_free_dirs(realm)
+            self.move_instr_x, self.move_instr_y = random.choice(dirs_x), random.choice(dirs_y)
             return
-        """if calc2darray.cast_ray(realm.maze.flag_array, self.x_sq, self.y_sq, self.origin_x_sq, self.origin_y_sq, True):
-            self.move_instr_x, self.move_instr_y = maths.sign(round(self.origin_x_sq) - round(self.x_sq)), maths.sign(
-                round(self.origin_y_sq) - round(self.y_sq))
-        elif not self.calc_path(realm, (round(self.origin_x_sq), round(self.origin_y_sq))):
-                self.move_instr_x = random.randrange(-1, 2)
-                self.move_instr_y = random.randrange(-1, 2)"""
         if (realm.maze.flag_array[round(self.y_sq)][round(self.x_sq)].vis or
                 realm.maze.flag_array[round(realm.pc.y_sq)][round(realm.pc.x_sq)].vis):
+            self.phase_change(realm)
             return
-        """realm.particle_list.append(particle.Particle((self.x_sq, self.y_sq), (-4, -4),
-                                                     realm.animations.get_animation('effect_dust_cloud')['default'], 16))"""
-
         realm.maze.flag_array[round(self.y_sq)][round(self.x_sq)].mon = None
         self.x_sq = self.origin_x_sq
         self.y_sq = self.origin_y_sq
         realm.maze.flag_array[round(self.y_sq)][round(self.x_sq)].mon = self
-        """realm.particle_list.append(particle.Particle((self.x_sq, self.y_sq), (-4, -4),
-                                                     realm.animations.get_animation('effect_dust_cloud')['default'],
-                                                     16))"""
+
+    def get_free_dirs(self, realm):
+        x_dirs = [0]
+        y_dirs = [0]
+        try:
+            if ((realm.maze.flag_array[round(self.y_sq) + 1][round(self.x_sq)].mon is None
+                 or not realm.maze.flag_array[round(self.y_sq) + 1][round(self.x_sq)].mon.alive)
+               and realm.maze.flag_array[round(self.y_sq) + 1][round(self.x_sq)].mov):
+                y_dirs.append(1)
+        except IndexError:
+            pass
+        try:
+            if ((realm.maze.flag_array[round(self.y_sq) - 1][round(self.x_sq)].mon is None
+                 or not realm.maze.flag_array[round(self.y_sq) - 1][round(self.x_sq)].mon.alive)
+               and realm.maze.flag_array[round(self.y_sq) - 1][round(self.x_sq)].mov):
+                y_dirs.append(-1)
+        except IndexError:
+            pass
+        try:
+            if ((realm.maze.flag_array[round(self.y_sq)][round(self.x_sq) + 1].mon is None
+                 or not realm.maze.flag_array[round(self.y_sq)][round(self.x_sq) + 1].mon.alive)
+               and realm.maze.flag_array[round(self.y_sq)][round(self.x_sq) + 1].mov):
+                x_dirs.append(1)
+        except IndexError:
+            pass
+        try:
+            if ((realm.maze.flag_array[round(self.y_sq)][round(self.x_sq) - 1].mon is None
+                 or not realm.maze.flag_array[round(self.y_sq)][round(self.x_sq) - 1].mon.alive)
+               and realm.maze.flag_array[round(self.y_sq)][round(self.x_sq) - 1].mov):
+                x_dirs.append(-1)
+        except IndexError:
+            pass
+        return x_dirs, y_dirs
 
     def intercept(self, wins_dict, pc_distance):
         realm = wins_dict['realm']
@@ -219,7 +241,10 @@ class Monster:
         else:
             return
         if not self.aggred:
-            realm.sound_inrealm(self.stats['sound_aggro'], self.x_sq, self.y_sq)
+            try:
+                realm.sound_inrealm(self.stats['sound_aggro'], self.x_sq, self.y_sq)
+            except KeyError:
+                pass
             self.aggred = True
 
     # movement
@@ -255,9 +280,10 @@ class Monster:
         step_y *= may_y
 
         if step_x == 0 and step_y == 0:
-            if self.waypoints is not None:
-                self.waypoints = None
-                self.phase_change(realm)
+            self.waypoints = None
+            self.x_sq = round(self.x_sq)
+            self.y_sq = round(self.y_sq)
+            self.direction_change(realm)
             return
 
         realm.maze.flag_array[round(self.y_sq)][round(self.x_sq)].mon = None
@@ -268,30 +294,18 @@ class Monster:
         realm.maze.flag_array[round(self.y_sq)][round(self.x_sq)].mon = self
 
     def sq_is_free(self, realm, sq_x, sq_y):
-        step_x, step_y = 1, 1
-        if sq_x != round(self.x_sq) or sq_y != round(self.y_sq):
-            if realm.maze.flag_array[sq_y][sq_x].mon is not None:
-                if realm.maze.flag_array[round(self.y_sq)][sq_x].mon is None or not realm.maze.flag_array[round(self.y_sq)][sq_x].mon.alive:
-                    step_y = 0
-                    # self.move_instr_x *= -1
-                elif realm.maze.flag_array[sq_y][round(self.x_sq)].mon is None or not realm.maze.flag_array[sq_y][round(self.x_sq)].mon.alive:
-                    step_x = 0
-                    # self.move_instr_y *= -1
-                else:
-                    self.phase_change(realm)
-                    step_x = step_y = 0
+        if round(sq_x) != round(self.x_sq) or round(sq_y) != round(self.y_sq):
             if not realm.maze.flag_array[sq_y][sq_x].mov:
-                if realm.maze.flag_array[round(self.y_sq)][sq_x].mov:
-                    step_y = 0
-                    # self.move_instr_x *= -1
-
-                elif realm.maze.flag_array[sq_y][round(self.x_sq)].mov:
-                    step_x = 0
-                    # self.move_instr_y *= -1
-                else:
-                    self.phase_change(realm)
-                    step_x = step_y = 0
-        return step_x, step_y
+                for yy, xx, sy, sx in (round(self.y_sq), sq_x, 0, 1), (sq_y, round(self.x_sq), 1, 0):
+                    if ((realm.maze.flag_array[yy][xx].mon is None or not realm.maze.flag_array[yy][xx].mon.alive)
+                       and realm.maze.flag_array[yy][xx].mov):
+                        return sx, sy
+                return 0, 0
+            elif realm.maze.flag_array[sq_y][sq_x].mon is not None and realm.maze.flag_array[sq_y][sq_x].mon.alive:
+                realm.maze.flag_array[sq_y][sq_x].mon.waypoints = None
+                realm.maze.flag_array[sq_y][sq_x].mon.direction_change(realm)
+                return 0, 0
+        return 1, 1
 
     def attack(self, wins_dict, fate_rnd, pc):
         if len(self.stats['attacks_melee']) == 0:
@@ -425,7 +439,10 @@ class Monster:
 
         lootgen.drop_loot(round(self.x_sq), round(self.y_sq), wins_dict['realm'], loot_total)
 
-        wins_dict['realm'].sound_inrealm(self.stats['sound_defeat'], self.x_sq, self.y_sq)
+        try:
+            wins_dict['realm'].sound_inrealm(self.stats['sound_defeat'], self.x_sq, self.y_sq)
+        except KeyError:
+            pass
         # wins_dict['realm'].maze.flag_array[round(self.y_sq)][round(self.x_sq)].mon = None
         wins_dict['target'].drop_aim()
 

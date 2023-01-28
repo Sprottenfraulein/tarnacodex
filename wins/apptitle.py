@@ -47,6 +47,7 @@ class AppTitle:
         self.field_charname_edit = None
         self.bttn_continue_chapter = None
         self.bttn_hardcore = None
+        self.bttn_char_delete = None
         self.char_selection = 0
         self.chapter_selection = 0
         self.save_selection = None
@@ -121,6 +122,15 @@ class AppTitle:
         # PAGE 0
         if element.id in ('input_name',) and m_bttn == 1 and mb_event == 'down':
             self.win_ui.key_focus = element
+        elif element.id == 'bttn_hardcore' and m_bttn == 1 and element.mode == 1 and mb_event == 'up' and element.sw_op == True:
+            self.wins_dict['dialogue'].dialogue_elements = {
+                'header': 'Attention',
+                'text': 'You have chosen Hardcore mode. $n $n '
+                        '* Your character death will be permanent. $n '
+                        '* Auto-usage of supplies placed on Hotbar disabled.',
+                'bttn_cancel': 'OK'
+            }
+            self.wins_dict['dialogue'].launch(pc)
         elif element.id == 'new_char' and m_bttn == 1 and mb_event == 'up' and element.mode == 1:
             self.win_ui.key_focus = None
             if len(self.savegames) < 10 or (len(self.savegames) == 10 and None in self.savegames):
@@ -200,6 +210,7 @@ class AppTitle:
                 for inter in self.win_ui.interactives:
                     if inter == element and element.mode == 0:
                         self.save_selection = inter.id
+                        self.bttn_char_delete.page.add(0)
                     elif 'saveswitch' in inter.tags:
                         inter.mode = 0
                         inter.render()
@@ -220,6 +231,11 @@ class AppTitle:
             self.win_ui.key_focus = None
 
             self.save_selection = None
+            self.bttn_char_delete.page.clear()
+            for sb in self.save_ui_blocks_list:
+                if sb is None:
+                    continue
+                sb[0].mode = 0
 
         elif element.id == 'new_char_begin' and m_bttn == 1 and mb_event == 'up' and element.mode == 1:
             self.win_ui.key_focus = None
@@ -405,16 +421,18 @@ class AppTitle:
                                    cap_color='fnt_muted',
                                    sounds=self.win_ui.snd_packs['button']),
         ]
-        if len(self.savegames) > 0:
-            main_menu.insert(-1, self.win_ui.button_add('delete_char', caption='Delete Character', size=(menu_btn_w, menu_btn_h),
+        self.bttn_char_delete = self.win_ui.button_add('delete_char', caption='Delete Character', size=(menu_btn_w, menu_btn_h),
                                                     cap_font='large', cap_size=16,cap_color='fnt_muted',
-                                                    sounds=self.win_ui.snd_packs['button']))
+                                                    sounds=self.win_ui.snd_packs['button'])
+        main_menu.insert(-1, self.bttn_char_delete)
 
         for i in range(0, len(main_menu)):
             main_menu[i].tags = ['lightup']
             main_menu[i].page = (0,)
             main_menu[i].rendered_rect.left = round(menu_btn_h)
             main_menu[i].rendered_rect.centery = round(self.pygame_settings.screen_res[1] / 2) + (menu_btn_h * 1.2) * i - 120
+
+        self.bttn_char_delete.page = set()
 
         main_menu[-1].rendered_rect.centery = round(self.pygame_settings.screen_res[1] / 2) + (
                     menu_btn_h * 1.2) * 7
@@ -487,7 +505,7 @@ class AppTitle:
         # CHAPTERS CHOICE
         chapter_menu = []
         for i in range(0, min(5, len(self.chapters))):
-            new_bttn = self.win_ui.button_add(i, caption=self.chapters[i]['label'].capitalize(),
+            new_bttn = self.win_ui.button_add(i, caption=self.chapters[i]['label'],
                                               size=(menu_btn_w, menu_btn_h), cap_font='large', cap_size=16,
                                               cap_color='fnt_muted', sounds=self.win_ui.snd_packs['button'],
                                               switch=True, mode=0)
@@ -973,7 +991,7 @@ class AppTitle:
         if self.pc.location is not None:
             self.curr_chapter_img_panel.images_update(
                 self.win_ui.tilesets.get_image('chapter_thumbs', (60, 60), (self.pc.location[0]['chapter_image_index'],)))
-            self.curr_chapter_title_string.text_obj.caption = self.pc.location[0]['label'].capitalize()
+            self.curr_chapter_title_string.text_obj.caption = self.pc.location[0]['label']
             self.curr_chapter_title_string.render_all()
             self.curr_chapter_desc_string.text_obj.caption = self.pc.location[0]['desc']
             self.curr_chapter_desc_string.render_all()
@@ -1037,7 +1055,7 @@ class AppTitle:
         self.chapter_desc_string.text_obj.caption = self.chapters[self.chapter_selection]['desc']
         self.chapter_desc_string.render_all()
 
-        self.chapter_title_string.text_obj.caption = self.chapters[self.chapter_selection]['label'].capitalize()
+        self.chapter_title_string.text_obj.caption = self.chapters[self.chapter_selection]['label']
         self.chapter_title_string.render_all()
 
     def chapter_begin(self):
@@ -1130,7 +1148,7 @@ class AppTitle:
         """p.char_sheet.inventory[0] = treasure.Treasure(9, p.char_sheet.level, self.db.cursor, self.win_ui.tilesets,
                                                         self.win_ui.resources, self.pygame_settings.audio,
                                                         self.win_ui.resources.fate_rnd)"""
-        debuff.DeBuff(dbrequests.de_buff_get_by_id_with_mods(self.db.cursor, 3, self.resources.fate_rnd), p.char_sheet.de_buffs)
+        # debuff.DeBuff(dbrequests.de_buff_get_by_id_with_mods(self.db.cursor, 3, self.resources.fate_rnd), p.char_sheet.de_buffs)
         self.pc = p
 
     def char_save(self, pc, maze):
@@ -1178,6 +1196,7 @@ class AppTitle:
         self.savegames[self.save_selection] = None
         self.win_ui.updated = True
         self.save_selection = None
+        self.bttn_char_delete.page.remove(0)
 
     def clear_quick_view(self):
         self.wins_dict['stash'].end()
@@ -1221,7 +1240,7 @@ class AppTitle:
 
     def chapter_conclude(self, quest_item, wins_dict, pc):
         del quest_item.props['quest_item']
-        quest_item.props['price_sell'] = pc.char_sheet.level * 1000
+        # quest_item.props['price_sell'] = pc.char_sheet.level * 1000
         wins_dict['app_title'].chapter_end(pc, wins_dict['realm'].maze.chapter)
         pc.location = None
         pc.stage_entry = 'up'

@@ -10,6 +10,19 @@ class Stairs:
         self.tilename = tilename
 
     def use(self, wins_dict, active_wins, pc):
+        if pc.location[1] > 0 or self.dest == "down":
+            wins_dict['dialogue'].dialogue_elements = {
+                'header': 'Attention',
+                'text': 'Move to the next stage?',
+                'bttn_cancel': 'NO',
+                'bttn_ok': 'YES'
+            }
+            wins_dict['dialogue'].delayed_action['bttn_ok'] = (self, 'change_stage', (wins_dict, active_wins, pc))
+            wins_dict['dialogue'].launch(pc)
+        else:
+            self.change_stage(wins_dict, active_wins, pc)
+
+    def change_stage(self, wins_dict, active_wins, pc):
         if self.dest == 'up':
             if pc.location[1] > 0:
                 pc.location[1] -= 1

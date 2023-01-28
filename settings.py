@@ -39,6 +39,12 @@ tilesets = (
 
     ('anthro_skeleton_red', 'res/tilesets/anthro_skeleton_red.png'),
     ('anthro_skeleton_yellow', 'res/tilesets/anthro_skeleton_yellow.png'),
+    ('monster_spider_light', 'res/tilesets/monster_spider_light.png'),
+    ('monster_spider_pale', 'res/tilesets/monster_spider_pale.png'),
+    ('monster_slime_green', 'res/tilesets/monster_slime_green.png'),
+    ('monster_gel_yellow', 'res/tilesets/monster_gel_yellow.png'),
+    ('anthro_knight_blue', 'res/tilesets/anthro_knight_blue.png'),
+    ('anthro_knight_blue_rich', 'res/tilesets/anthro_knight_blue_rich.png'),
 
     ('anthro_champion', 'res/tilesets/anthro_champion.png'),
     ('anthro_kingslayer', 'res/tilesets/anthro_kingslayer.png'),

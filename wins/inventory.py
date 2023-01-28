@@ -125,7 +125,14 @@ class Inventory:
 
         if element.id == 'sell_panel' and m_bttn == 1 and mb_event == 'up' and self.mouse_pointer.drag_item is not None:
             item = self.mouse_pointer.drag_item[0][self.mouse_pointer.drag_item[1]]
-            if 'treasure_id' in item.props:
+            if 'quest_item' in item.props:
+                self.wins_dict['dialogue'].dialogue_elements = {
+                    'header': 'Attention',
+                    'text': "%s is not allowed to sell the item!" % self.pc.char_sheet.name,
+                    'bttn_cancel': 'OK',
+                }
+                self.wins_dict['dialogue'].launch(self.pc)
+            elif 'treasure_id' in item.props:
                 price = treasure.calc_loot_stat(item.props, 'price_sell')
                 price = price + price * self.pc.char_sheet.profs['prof_trade'] // 1000
                 self.wins_dict['dialogue'].dialogue_elements = {

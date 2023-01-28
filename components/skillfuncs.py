@@ -26,9 +26,6 @@ def attack_default(wins_dict, fate_rnd, pc, skill_obj, item_adress, no_aim=False
         realm.wins_dict['dialogue'].launch(pc)
         return True
 
-    if not skill_reqs_check(realm, skill_obj, pc):
-        return True
-
     target = wins_dict['target'].mob_object
     if target is None or not target.alive:
         if no_aim:
@@ -42,8 +39,11 @@ def attack_default(wins_dict, fate_rnd, pc, skill_obj, item_adress, no_aim=False
         realm.schedule_man.task_add('realm_tasks', 8, realm, 'remove_realmtext', ('new_txt',))"""
         return True
 
+    if not skill_reqs_check(realm, skill_obj, pc):
+        return False
+
     if not skill_costs_check(realm, skill_obj, pc):
-        return True
+        return False
 
     rnd_attack = random.randrange(att_val_min, att_val_max + 1)
     is_crit = (random.randrange(1, 1001) <= pc.char_sheet.profs['prof_crit'])
@@ -65,6 +65,69 @@ def attack_default(wins_dict, fate_rnd, pc, skill_obj, item_adress, no_aim=False
     return False
 
 
+def attack_powerful(wins_dict, fate_rnd, pc, skill_obj, item_adress, no_aim=False, just_values=False):
+    realm = wins_dict['realm']
+    att_rate = 2
+
+    att_val_min, att_val_max = pc.char_sheet.attacks['att_base']
+    att_mods = pc.char_sheet.calc_attack_mod('att_physical')
+    att_val_min += (att_val_min * att_mods // 1000)  # att_mods comprehended as procents
+    att_val_max += (att_val_max * att_mods // 1000)  # att_mods comprehended as procents
+    dam_min = att_val_min * 2
+    dam_max = att_val_max * 2
+
+    if just_values:
+        if not skill_reqs_check(realm, skill_obj, pc):
+            return '-', '-', '-'
+        else:
+            return dam_min, dam_max, skill_obj.props['cost_mp']
+
+    if item_adress[0] in (pc.char_sheet.inventory, pc.char_sheet.skills):
+        realm.wins_dict['dialogue'].dialogue_elements = {
+            'header': 'Attention',
+            'text': "This item may be used from Hotbar!",
+            'bttn_cancel': 'OK'
+        }
+        realm.wins_dict['dialogue'].launch(pc)
+        return True
+
+    if not skill_reqs_check(realm, skill_obj, pc):
+        return True
+
+    target = wins_dict['target'].mob_object
+    if target is None or not target.alive:
+        if no_aim:
+            realm.spawn_realmtext('new_txt', "Attack what?", (0, 0), (0, -24), None, pc, None, 120, 'def_bold', 24)
+        return True
+
+    if round(maths.get_distance(pc.x_sq, pc.y_sq, target.x_sq, target.y_sq), 1) > skill_obj.props['range']:
+        """realm.schedule_man.task_add('realm_tasks', 1, realm, 'spawn_realmtext',
+                                    ('new_txt', "Too far!",
+                                     (0, 0), (0, -24), None, True, realm.pc))
+        realm.schedule_man.task_add('realm_tasks', 8, realm, 'remove_realmtext', ('new_txt',))"""
+        return True
+
+    rnd_attack = random.randrange(att_val_min * att_rate, att_val_max * att_rate + 1)
+
+    if not skill_costs_check(realm, skill_obj, pc):
+        return True
+
+    is_crit = (random.randrange(1, 1001) <= pc.char_sheet.profs['prof_crit'])
+    if is_crit:
+        rnd_attack *= 4
+
+    damage = rnd_attack * (100 - target.stats['def_physical']) // 100  # reduce attack by percent of def
+
+    target.wound(damage, 'att_physical', False, is_crit, wins_dict, fate_rnd, pc)
+
+    pc.food_change(wins_dict, -5)
+    pc.act(wins_dict, (target.x_sq, target.y_sq), skill_obj)
+    # realm.pygame_settings.audio.sound(skill.props['sound_use'])
+    realm.pygame_settings.audio.sound(skill_obj.props['sound_use'])
+
+    return False
+
+
 def attack_butterfly(wins_dict, fate_rnd, pc, skill_obj, item_adress, no_aim=False, just_values=False):
     realm = wins_dict['realm']
 
@@ -76,12 +139,12 @@ def attack_butterfly(wins_dict, fate_rnd, pc, skill_obj, item_adress, no_aim=Fal
         if not skill_reqs_check(realm, skill_obj, pc):
             return '-', '-', '-'
         else:
-            return att_val_min, att_val_max, skill_obj.props['cost_mp'] * skill_obj.props['lvl']
+            return att_val_min, att_val_max, skill_obj.props['cost_mp']
 
     if not skill_reqs_check(realm, skill_obj, pc):
         return True
 
-    if not skill_costs_check(realm, skill_obj, pc, rate=skill_obj.props['lvl']):
+    if not skill_costs_check(realm, skill_obj, pc):
         return True
 
     for target in realm.mobs_short:
@@ -93,13 +156,13 @@ def attack_butterfly(wins_dict, fate_rnd, pc, skill_obj, item_adress, no_aim=Fal
                 rnd_attack *= 4
             target.wound(damage, 'att_physical', False, is_crit, wins_dict, fate_rnd, pc)
 
-    realm.particle_list.append(particle.Particle((pc.x_sq, pc.y_sq), (-4, -4),
+    realm.particle_list.append(particle.Particle((pc.x_sq, pc.y_sq), (-16, -16),
                                                  realm.animations.get_animation('effect_blood_swipe')['default'],
-                                                 20))
+                                                 25))
 
     pc.food_change(wins_dict, -5)
     pc.act(wins_dict, None, skill_obj)
-    # realm.pygame_settings.audio.sound(skill.props['sound_use'])
+    realm.pygame_settings.audio.sound(skill_obj.props['sound_use'])
     return False
 
 
@@ -263,20 +326,19 @@ def spell_magical_arrow(wins_dict, fate_rnd, pc, skill_obj, item_adress, no_aim=
 
 def spell_fireball(wins_dict, fate_rnd, pc, skill_obj, item_adress, no_aim=False, just_values=False):
     realm = wins_dict['realm']
+    att_rate = 2
 
     att_val_min, att_val_max = pc.char_sheet.attacks['att_base']
     att_mods = pc.char_sheet.calc_attack_mod('att_fire')
     att_val_min += (att_val_min * att_mods // 1000)  # att_mods comprehended as procents
     att_val_max += (att_val_max * att_mods // 1000)  # att_mods comprehended as procents
-    fb_dam_min = att_val_min * 2
-    fb_dam_max = att_val_max * 2
-    mp_cost_min = att_val_min * skill_obj.props['cost_mp']
-    mp_cost_max = att_val_max * skill_obj.props['cost_mp']
+    mp_cost_min = round(att_val_min * skill_obj.props['cost_mp'])
+    mp_cost_max = round(att_val_max * skill_obj.props['cost_mp'])
     if just_values:
         if not skill_reqs_check(realm, skill_obj, pc):
             return '-', '-', '-', '-'
         else:
-            return fb_dam_min, fb_dam_max, mp_cost_min, mp_cost_max
+            return att_val_min * att_rate, att_val_max * att_rate, mp_cost_min, mp_cost_max
 
     if item_adress[0] in (pc.char_sheet.inventory, pc.char_sheet.skills):
         realm.wins_dict['dialogue'].dialogue_elements = {
@@ -308,9 +370,9 @@ def spell_fireball(wins_dict, fate_rnd, pc, skill_obj, item_adress, no_aim=False
         realm.schedule_man.task_add('realm_tasks', 8, realm, 'remove_realmtext', ('new_txt',))"""
         return True
 
-    rnd_attack = random.randrange(fb_dam_min, fb_dam_max + 1)
+    rnd_attack = random.randrange(att_val_min * att_rate, att_val_max * att_rate + 1)
 
-    if not skill_costs_check(realm, skill_obj, pc, rate=rnd_attack):
+    if not skill_costs_check(realm, skill_obj, pc, rate=rnd_attack // att_rate):
         return True
 
     is_crit = (random.randrange(1, 1001) <= pc.char_sheet.profs['prof_crit'])
@@ -451,7 +513,7 @@ def repair(wins_dict, fate_rnd, pc, skill_obj, item_adress, no_aim=False, just_v
         return True
 
     # Custom requirements check.
-    if skill_obj.props['cost_mp'] > pc.char_sheet.mp:
+    if skill_obj.props['cost_mp'] > pc.char_sheet.mp and skill_obj.props['cost_mp'] > pc.autopower(wins_dict):
         realm.spawn_realmtext('new_txt', "Not enough powers!", (0, 0), (0, -24), None, pc, None, 120, 'def_bold', 24)
         return True
     else:
@@ -773,10 +835,8 @@ def pickup(wins_dict, fate_rnd, pc, skill_obj, item_adress, no_aim=False, just_v
             realm.spawn_realmtext('new_txt', "Can't reach!", (0, 0), (0, -24), None, pc, None, 120, 'def_bold', 24)
             return True
 
+    realm.coins_collect(pc.x_sq, pc.y_sq, radius=skill_obj.props['range'])
     for lt in flags.item[::-1]:
-        if lt.props['treasure_id'] == 6:
-            realm.coins_collect(lt, flags.item, pc)
-            break
         for i in range(0, pc.char_sheet.inventory.items_max):
             if pc.char_sheet.inventory[i] is None:
                 pc.char_sheet.inventory[i] = lt
@@ -815,7 +875,8 @@ def learn_skill(wins_dict, fate_rnd, pc, skill_obj, item_adress, no_aim=False, j
             98: 20,  # Butterfly skill
             99: 15,  # Dispel spell
             100: 5,  # Pick locks skill
-            101: 6   # Disarm skill
+            101: 6,   # Disarm skill
+            105: 21  # Powerful strike skill
         }[item_adress[0][item_adress[1]].props['treasure_id']]
     except KeyError:
         return True
@@ -865,15 +926,16 @@ def learn_skill(wins_dict, fate_rnd, pc, skill_obj, item_adress, no_aim=False, j
     realm.pygame_settings.audio.sound(item_adress[0][item_adress[1]].props['sound_use'])
     pc.char_sheet.item_remove(wins_dict, item_adress[0][item_adress[1]])
     wins_dict['context'].end()
-
+    realm.spawn_realmtext('new_txt', "I have learned a new Skill!", (0, 0), (0, -24), None, pc, None, 120,
+                          'def_bold', 24)
     pc.act(wins_dict, None, skill_obj)
 
     return False
 
 
 def skill_reqs_check(realm, skill_obj, pc):
-    if pc.busy is not None:
-        return False
+    """if pc.busy is not None:
+        return False"""
     if skill_obj.cooldown_timer > 0:
         return False
 
@@ -909,14 +971,14 @@ def skill_reqs_check(realm, skill_obj, pc):
 
 
 def skill_costs_check(realm, skill_obj, pc, rate=1):
-    if skill_obj.props['cost_mp'] * rate > pc.char_sheet.mp:
+    if skill_obj.props['cost_mp'] * rate > pc.char_sheet.mp and pc.autopower(realm.wins_dict) < skill_obj.props['cost_mp'] * rate:
         realm.spawn_realmtext('new_txt', "Not enough powers!", (0, 0), (0, -24), None, pc, None, 120, 'def_bold', 24)
         return False
     else:
         pc.char_sheet.mp_get(skill_obj.props['cost_mp'] * rate * -1)
         realm.wins_dict['pools'].updated = True
 
-    if skill_obj.props['cost_hp'] * rate > pc.char_sheet.hp:
+    if skill_obj.props['cost_hp'] * rate > pc.char_sheet.hp and pc.autoheal(realm.wins_dict) < skill_obj.props['cost_hp'] * rate:
         realm.spawn_realmtext('new_txt', "Not enough health!", (0, 0), (0, -24), None, pc, None, 120, 'def_bold', 24)
         return False
     else:

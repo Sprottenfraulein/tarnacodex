@@ -10,10 +10,11 @@ class Maze:
         self.animations = animations
         self.resources = resources
 
-        self.MOB_SCALE_RATE = 1.8
-        self.EXP_SCALE_RATE = 1.3
+        self.MOB_HP_SCALE_RATE = 0.3
+        self.MOB_DMG_SCALE_RATE = 0.2
+        self.EXP_SCALE_RATE = 0.3
         # self.GOLD_SCALE_RATE = 1.3
-        self.TRAP_SCALE_RATE = 1.8
+        self.TRAP_SCALE_RATE = 0.2
 
         self.chapter, self.stage_index = pc.location
         self.stage_dict = get_chapter_stage(db, self.chapter, self.stage_index)
@@ -83,10 +84,9 @@ class Maze:
             getattr(self, self.stage_dict['maze_algorythm'])(pc, 0, 0, self.height-1, self.width-1,
                                                              self.stage_dict['room_min_width'],
                                                              self.stage_dict['room_min_height'], True)
+        self.flag_array = flags_create(self, self.array)
         if len(stage_progress) == 0 or stage_progress[0]['monsters_rolled'] == 0 or not use_saves:
             populate(self.db, self, pc, self.animations)
-
-        self.flag_array = flags_create(self, self.array)
         self.decor_array = decor_maze(self.array, self.tile_set, self.flag_array)
         flags_update(self, self.flag_array)
 
@@ -539,32 +539,54 @@ def compare_grid_pattern(maze, lab_x, lab_y, pattern_matrix, matrix_width, matri
 def traps_set(maze, attacks_table_point, db, pc):
     traps_num = round(maze.width * maze.height * progression.scale_to_lvl(maze.trap_rate, maze.lvl) // 100)
     room_rnd_list = [(rm, rm.rating) for rm in maze.rooms]
-    trapped_rooms = pickrandom.items_get(room_rnd_list, items_number=traps_num)
-    for trap_room in trapped_rooms:
-        trap_params_list = dbrequests.trap_params_get(db.cursor, attacks_table_point, maze.lvl)
-        if not trap_params_list:
-            continue
-        label, rang, dam_type, dam_val_base, dam_val_spread, init_lvl, sound_trigger = random.choice(trap_params_list)
+    trap_density = (    # Level, Percents of a room space
+        (1, 10),
+        (5, 20),
+        (10, 30),
+        (15, 40),
+        (20, 50),
+        (25, 60),
+        (30, 70),
+        (40, 80),
+        (50, 90),
+        (60, 100)
+    )
+    for lv, dens in trap_density:
+        if maze.lvl <= lv:
+            tr_dens = dens
+            break
+    else:
+        tr_dens = trap_density[-1][1]
+    while traps_num > 0 and len(room_rnd_list) > 0:
+        tr_room = pickrandom.items_get(room_rnd_list, items_pop=True)[0]
+        rm_space = ((tr_room.right - 2) - (tr_room.left + 1)) * ((tr_room.bottom - 2) - (tr_room.top + 1))
+        max_traps = rm_space * tr_dens // 100
+        for i in range(0, max_traps):
+            trap_params_list = dbrequests.trap_params_get(db.cursor, attacks_table_point, maze.lvl)
+            if not trap_params_list:
+                traps_num = 0
+                break
+            label, rang, dam_type, dam_val_base, dam_val_spread, init_lvl, sound_trigger = random.choice(trap_params_list)
+            dam_val_base, dam_val_spread, lvl = traps_scale(maze, dam_val_base, dam_val_spread)
+            x_sq = random.randrange(tr_room.left + 1, tr_room.right - 1)
+            y_sq = random.randrange(tr_room.top + 1, tr_room.bottom - 1)
+            for ot in tr_room.traps:
+                if ot.x_sq == x_sq and ot.y_sq == y_sq:
+                    continue
+            new_trap = trap.Trap(x_sq, y_sq, lvl, maze.tile_set, label, rang,
+                                 dam_type, dam_val_base, dam_val_spread, sound_trigger)
+            new_trap.mob_utility_obj = maze.mob_utility_obj
+            tr_room.traps.append(new_trap)
+            tr_room.rating += 25
+            maze.traps.append(new_trap)
+            traps_num -= 1
 
-        lvl = maze.stage_dict['lvl'] or pc.char_sheet.level
-        dam_val_base = round(dam_val_base * lvl / init_lvl * maze.TRAP_SCALE_RATE)
-        dam_val_spread = round(dam_val_spread * lvl / init_lvl * maze.TRAP_SCALE_RATE)
 
-        x_sq = random.randrange(trap_room.left + 1, trap_room.right)
-        y_sq = random.randrange(trap_room.top + 1, trap_room.bottom)
-        no_place = False
-        for ot in trap_room.traps:
-            if ot.x_sq == x_sq and ot.y_sq == y_sq:
-                no_place = True
-        if no_place or x_sq is None or y_sq is None:
-            x_sq = random.randrange(trap_room.left + 1, trap_room.right)
-            y_sq = random.randrange(trap_room.top + 1, trap_room.bottom)
-        new_trap = trap.Trap(x_sq, y_sq, lvl, maze.tile_set, label, rang,
-                             dam_type, dam_val_base, dam_val_spread, sound_trigger)
-        new_trap.mob_utility_obj = maze.mob_utility_obj
-        trap_room.traps.append(new_trap)
-        trap_room.rating += 25
-        maze.traps.append(new_trap)
+def traps_scale(maze, dam_val_base, dam_val_spread):
+    lvl = maze.lvl
+    dam_val_base = round(dam_val_base + dam_val_base * maze.TRAP_SCALE_RATE * (lvl - 1))
+    dam_val_spread = round(dam_val_spread + dam_val_spread * maze.TRAP_SCALE_RATE * (lvl - 1))
+    return dam_val_base, dam_val_spread, lvl
 
 
 def doors_set(maze, tile_set, db, attack_table_point, bonus_rooms):
@@ -583,9 +605,7 @@ def doors_set(maze, tile_set, db, attack_table_point, bonus_rooms):
             trap_params_list = dbrequests.trap_params_get(db.cursor, attack_table_point, maze.lvl)
             if trap_params_list:
                 label, rang, dam_type, dam_val_base, dam_val_spread, init_lvl, sound_trigger = random.choice(trap_params_list)
-                lvl = maze.lvl
-                dam_val_base = round(dam_val_base * lvl / init_lvl * maze.TRAP_SCALE_RATE)
-                dam_val_spread = round(dam_val_spread * lvl / init_lvl * maze.TRAP_SCALE_RATE)
+                dam_val_base, dam_val_spread, lvl = traps_scale(maze, dam_val_base, dam_val_spread)
 
                 new_trap = trap.Trap(None, None, maze.lvl, maze.tile_set, label, rang, dam_type, dam_val_base,
                                      dam_val_spread, sound_trigger)
@@ -692,9 +712,7 @@ def chest_set(maze, room, tileset, chest_number, db, attack_table_point):
             if not trap_params_list:
                 continue
             label, rang, dam_type, dam_val_base, dam_val_spread, init_lvl, sound_trigger = random.choice(trap_params_list)
-            lvl = maze.lvl
-            dam_val_base = round(dam_val_base * lvl / init_lvl * maze.TRAP_SCALE_RATE)
-            dam_val_spread = round(dam_val_spread * lvl / init_lvl * maze.TRAP_SCALE_RATE)
+            dam_val_base, dam_val_spread, lvl = traps_scale(maze, dam_val_base, dam_val_spread)
             new_trap = trap.Trap(None, None, maze.lvl, maze.tile_set, label, rang, dam_type, dam_val_base,
                                  dam_val_spread, sound_trigger)
             new_trap.mob_utility_obj = maze.mob_utility_obj
@@ -751,17 +769,41 @@ def mob_populate_alg_1(db, maze, animations, maze_monster_pool, monster_number, 
             pass
     if not rooms_list:
         return
-    for i in range(0, monster_number):
-        rm = random.choice(rooms_list)
-        mon_x_sq = random.randrange(rm.left + 1, rm.right)
-        mon_y_sq = random.randrange(rm.top + 1, rm.bottom)
-        for mon in maze.mobs:
-            if mon.x_sq == mon_x_sq and mon.y_sq == mon_y_sq:
-                break
+    random.shuffle(rooms_list)
+    random.shuffle(maze_monster_pool)
+    reserved_rooms = []
+    while len(maze_monster_pool) > 0 and (len(rooms_list) > 0 or len(reserved_rooms) > 0):
+        if len(rooms_list) > 0:
+            rm = rooms_list.pop()
+            if len(rm.traps) > 0:
+                reserved_rooms.append(rm)
+                continue
         else:
-            rnd_mob = maze_monster_pool[random.randrange(0, len(maze_monster_pool))]
-            nmon = monster.Monster(mon_x_sq, mon_y_sq, animations.get_animation(rnd_mob['animation']), rnd_mob, state=0)
-            maze.mobs.append(nmon)
+            rm = reserved_rooms.pop()
+        rm_space = ((rm.right - 2) - (rm.left + 1)) * ((rm.bottom - 2) - (rm.top + 1))
+        room_mobs = []
+        mob_types_set = set()
+        for j in range(len(maze_monster_pool) - 1, -1, -1):
+            mob = maze_monster_pool[j]
+            if mob['monster_id'] not in mob_types_set and len(mob_types_set) > 1:
+                continue
+            mob_types_set.add(mob['monster_id'])
+            room_mobs.append(mob)
+            del maze_monster_pool[j]
+            if len(room_mobs) == rm_space:
+                break
+        x_sq = (rm.left + rm.right - 1) // 2
+        y_sq = (rm.top + rm.bottom - 1) // 2
+        space_list = calc2darray.fill2d(maze.flag_array,
+                                        {'mov': False, 'obj': True, 'door': True, 'floor': False},
+                                        (x_sq, y_sq), (x_sq, y_sq), len(room_mobs) + 1, 10, r_max=20)
+        for mon_x_sq, mon_y_sq in space_list[1:]:
+            rm_mob = room_mobs.pop()
+            maze.mobs.append(
+                monster.Monster(
+                    mon_x_sq, mon_y_sq, animations.get_animation(rm_mob['animation']), rm_mob, state=0
+                )
+            )
 
 
 def roll_monsters(db_cursor, max_level, max_grade, monster_types, mon_amount=1):
@@ -775,15 +817,15 @@ def roll_monsters(db_cursor, max_level, max_grade, monster_types, mon_amount=1):
 
 def scale_mob(mob_stats, level, maze):
     init_level = mob_stats['lvl']
-    mob_stats['hp_max'] = round(mob_stats['hp_max'] * level / init_level * maze.MOB_SCALE_RATE)
+    mob_stats['hp_max'] = round(mob_stats['hp_max'] + mob_stats['hp_max'] * (maze.MOB_HP_SCALE_RATE * ((level - 1) * level / 2)))
 
-    mob_stats['exp'] = round(mob_stats['exp'] * level / init_level * maze.EXP_SCALE_RATE)
+    mob_stats['exp'] = round(mob_stats['exp'] + mob_stats['exp'] * maze.EXP_SCALE_RATE * (level - 1))
     # Gold being scaled during drop generation.
     # mob_stats['gold'] = round(mob_stats['gold'] * level / init_level * scale_rate)
     for m_a in mob_stats['attacks_melee']:
-        mob_scale_attack(m_a, level, init_level, maze.MOB_SCALE_RATE)
+        mob_scale_attack(m_a, level, init_level, maze.MOB_DMG_SCALE_RATE)
     for m_r in mob_stats['attacks_ranged']:
-        mob_scale_attack(m_r, level, init_level, maze.MOB_SCALE_RATE)
+        mob_scale_attack(m_r, level, init_level, maze.MOB_DMG_SCALE_RATE)
 
     mob_stats['init_lvl'] = init_level
     mob_stats['lvl'] = level
@@ -792,8 +834,8 @@ def scale_mob(mob_stats, level, maze):
 
 
 def mob_scale_attack(m_a, level, init_level, scale_rate):
-    m_a['attack_val_base'] = round(m_a['attack_val_base'] * level / init_level * scale_rate)
-    m_a['attack_val_spread'] = round(m_a['attack_val_spread'] * level / init_level * scale_rate)
+    m_a['attack_val_base'] = round(m_a['attack_val_base'] + m_a['attack_val_base'] * scale_rate * (level - 1))
+    m_a['attack_val_spread'] = round(m_a['attack_val_spread'] + m_a['attack_val_spread'] * scale_rate * (level - 1))
 
 
 def monster_apply_grade(db, mob_stats, fate_rnd):

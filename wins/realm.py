@@ -626,6 +626,7 @@ class Realm:
             return x_sq, y_sq
 
     def square_check(self, xy):
+        max_range = 3
         x_sq, y_sq = self.xy_pixels_to_squares(xy)
         try:
             flags = self.maze.flag_array[y_sq][x_sq]
@@ -634,26 +635,23 @@ class Realm:
         if not flags.vis:
             return True
         pc_dist = maths.get_distance(self.pc.x_sq, self.pc.y_sq, x_sq, y_sq)
-        if pc_dist > 3 or not calc2darray.path2d(self.maze.flag_array, {'mov': False}, (x_sq, y_sq),
+        if pc_dist > max_range or not calc2darray.path2d(self.maze.flag_array, {'mov': False}, (x_sq, y_sq),
                                                  (round(self.pc.x_sq), round(self.pc.y_sq)), 100, 10, r_max=10)[0]:
             return True
 
         if len(flags.item) > 0:
             # picking up items
+            self.coins_collect(self.pc.x_sq, self.pc.y_sq, radius=max_range)
             for lt in flags.item[::-1]:
-                if lt.props['treasure_id'] == 6:
-                    self.coins_collect(lt, flags.item, self.pc)
-                    return False
-                else:
-                    self.maze.flag_array[y_sq][x_sq].item.remove(lt)
-                    self.mouse_pointer.catcher[0] = lt
-                    self.mouse_pointer.drag_item = [self.mouse_pointer.catcher, 0]
-                    self.mouse_pointer.image = lt.props['image_floor'][0]
-                    self.maze.loot.remove(lt)
-                    self.sound_inrealm('item_move', x_sq, y_sq)
-                    # self.loot_short.remove(lt)
-                    # self.render_update()
-                    return False
+                self.maze.flag_array[y_sq][x_sq].item.remove(lt)
+                self.mouse_pointer.catcher[0] = lt
+                self.mouse_pointer.drag_item = [self.mouse_pointer.catcher, 0]
+                self.mouse_pointer.image = lt.props['image_floor'][0]
+                self.maze.loot.remove(lt)
+                self.sound_inrealm('item_move', x_sq, y_sq)
+                # self.loot_short.remove(lt)
+                # self.render_update()
+                return False
         if flags.door is not None:
             # doors
             if flags.door.use(self.wins_dict, self.active_wins, self.pc):
@@ -817,16 +815,30 @@ class Realm:
     def obj_jump_add(self, object):
         self.jumping_objects.append([object, 20, 20])
 
-    def coins_collect(self, itm, flag_items, pc):
-        self.spawn_realmtext('new_txt', "%s gold" % itm.props['amount'], (0, 0), (0, 0),
-                                           'bright_gold', itm, (0, 0), 45, 'large', 16, 0, 0)
-        pc.char_sheet.gold_coins += itm.props['amount']
-        self.sound_inrealm(itm.props['sound_pickup'], itm.x_sq, itm.y_sq)
-        self.maze.loot.remove(itm)
-        # realm.loot_short.remove(itm)
-        self.wins_dict['inventory'].updated = True
-        self.wins_dict['trade'].updated = True
-        flag_items.remove(itm)
+    def coins_collect(self, x_sq, y_sq, radius=2):
+        collected = False
+        for i in range(radius * -1, radius + 1):
+            for j in range(radius * -1, radius + 1):
+                try:
+                    flags = self.maze.flag_array[round(y_sq) + j][round(x_sq) + i]
+                except IndexError:
+                    continue
+                if not flags.item:
+                    continue
+                for itm in flags.item[::-1]:
+                    if itm.props['treasure_id'] != 6:
+                        continue
+                    collected = True
+                    self.spawn_realmtext('new_txt', "%s gold" % itm.props['amount'], (0, 0), (0, 0),
+                                         'bright_gold', itm, (0, 0), 45, 'large', 16, 0, 0)
+                    self.pc.char_sheet.gold_coins += itm.props['amount']
+                    self.maze.loot.remove(itm)
+                    # realm.loot_short.remove(itm)
+                    flags.item.remove(itm)
+        if collected:
+            self.sound_inrealm('coins_pickup', self.pc.x_sq, self.pc.y_sq)
+            self.wins_dict['inventory'].updated = True
+            self.wins_dict['trade'].updated = True
 
     def loot_spawn_add(self, item, x_sq, y_sq):
         self.obj_jump_add(item)

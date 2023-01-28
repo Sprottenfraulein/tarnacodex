@@ -484,6 +484,8 @@ class Trade:
                                                                                      'condition_max')
                 if 'charge' in self.trade_bank[-1].props:
                     self.trade_bank[-1].props['charge'] = self.trade_bank[-1].props['charge_max']
+                if 'amount' in self.trade_bank[-1].props:
+                    self.trade_bank[-1].props['amount'] = self.trade_bank[-1].props['amount_max']
                 if 'use_learn' == self.trade_bank[-1].props['item_type']:
                     if self.trade_bank[-1].props['usable_%s' % pc.char_sheet.type] == 0:
                         del self.trade_bank[-1]
