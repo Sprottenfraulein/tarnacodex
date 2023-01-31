@@ -86,7 +86,7 @@ class Context:
             )
         elif itm.props['item_type'] == 'light':
             self.wins_dict['context'].update_elements_light(pc, itm, element, self.mouse_pointer.xy, trade=trade)
-        elif itm.props['item_type'] in ('aug_gem',):
+        elif itm.props['item_type'] in ('aug_gem', 'misc_man'):
             self.wins_dict['context'].update_elements_charm(pc, itm, element, self.mouse_pointer.xy, trade=trade)
         elif itm.props['item_type'] in ('exp_key',):
             self.wins_dict['context'].update_elements_key(pc, itm, element, self.mouse_pointer.xy, trade=trade)

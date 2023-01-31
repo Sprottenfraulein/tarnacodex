@@ -36,7 +36,9 @@ class PG:
 		self.text_font = pygame.freetype.Font(resources.fonts['def_bold'], 24)
 		logfun.put('Pygame initialized successfully.', log)
 
-	def set_display(self, w, h, mode=pygame.RESIZABLE):
+	def set_display(self, w, h, mode=pygame.SWSURFACE):
+		# For fullscreen mode:
+		# mode = pygame.HWACCEL | pygame.HWSURFACE | pygame.FULLSCREEN
 		self.screen_res = (w, h)
 		self.screen = pygame.display.set_mode(self.screen_res, mode)
 		pygame.display.update()

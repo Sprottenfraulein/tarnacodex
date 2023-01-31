@@ -126,15 +126,21 @@ def treasure_get_by_id(cursor, key_id):
 
 
 def treasure_get(cursor, lvl, treasure_group, roll, item_type=None, char_type=None, equipment_type=None, shop=None):
-    ex_str = "SELECT treasure_id, roll_chance FROM treasure WHERE (lvl is Null OR lvl<=?) AND treasure_group=? AND roll_chance>=?"
+    ex_str = "SELECT treasure_id, roll_chance FROM treasure WHERE (lvl is Null OR lvl<=?) AND treasure_group IN (0, ?) AND roll_chance>=?"
     if item_type is not None:
         itm_str = "'%s'" % "','".join(item_type)
         itm_query = ' AND item_type IN (%s)' % itm_str
         ex_str += itm_query
     if char_type is not None:
-        char_str = "'%s'" % "','".join(char_type)
-        char_query = ' AND char_type IN (%s)' % char_str
-        ex_str += char_query
+        for cht in char_type:
+            try:
+                char_query = ' AND %s=1' % {
+                    'champion': 'usable_champion','kingslayer': 'usable_kingslayer','cosmologist': 'usable_cosmologist'
+                }[cht]
+                ex_str += char_query
+            except KeyError:
+                continue
+
     if equipment_type is not None:
         eq_str = "'%s'" % "','".join(equipment_type)
         eq_query = ' AND eq_type IN (%s)' % eq_str
@@ -599,9 +605,77 @@ def images_get_by_id(cursor, image_ids):
     rows = cursor.fetchall()
     column_names = [column[0] for column in cursor.description]
     image_list = []
-    image_dict = {}
     for row in rows:
+        image_dict = {}
         for i in range(0, len(column_names)):
             image_dict[column_names[i]] = row[i]
         image_list.append(image_dict)
     return image_list
+
+
+def manuscript_get(cursor, tag_list, level, rnd_roll):
+    insertion = ','.join(['"%s"' % i for i in tag_list if i.isalpha()])
+    ex_str = "SELECT * FROM manuscripts WHERE lvl<=? AND roll_chance>=? AND tag in (%s)" % insertion
+    cursor.execute(ex_str, (level, rnd_roll))
+    rows = cursor.fetchall()
+    column_names = [column[0] for column in cursor.description]
+    man_list = []
+    for row in rows:
+        man_dict = {}
+        for i in range(0, len(column_names)):
+            man_dict[column_names[i]] = row[i]
+        man_list.append(man_dict)
+    return man_list
+
+
+def manuscript_get_by_id(cursor, man_id):
+    ex_str = "SELECT * FROM manuscripts WHERE manuscript_id=?"
+    cursor.execute(ex_str, (man_id,))
+    rows = cursor.fetchall()
+    column_names = [column[0] for column in cursor.description]
+    man_dict = {}
+    for i in range(0, len(column_names)):
+        man_dict[column_names[i]] = rows[0][i]
+    return man_dict
+
+
+def mission_get(cursor, level, chapter_id, stage_index, char_type, mission_id=None):
+    if mission_id is not None:
+        ex_str = "SELECT * FROM missions WHERE mission_id=?"
+        cursor.execute(ex_str, (mission_id,))
+    else:
+        ex_str = "SELECT * FROM missions WHERE lvl<=? AND chapter_id in (?, 0) AND %s=1 AND stage_index<=?" % (char_type,)
+        cursor.execute(ex_str, (level, chapter_id, stage_index))
+    rows = cursor.fetchall()
+    column_names = [column[0] for column in cursor.description]
+    mission_list = []
+    for row in rows:
+        mission_dict = {}
+        for i in range(0, len(column_names)):
+            mission_dict[column_names[i]] = row[i]
+
+        ex_str = "SELECT treasure_id, amount FROM mission_task_sets WHERE mission_id=?"
+        cursor.execute(ex_str, (mission_dict['mission_id'],))
+        tr_rows = cursor.fetchall()
+        mission_dict['tasks'] = tuple([tr for tr in tr_rows])
+
+        mission_list.append(mission_dict)
+    return mission_list
+
+
+def mission_tasks_get(cursor, treasure_ids):
+    ex_str = (
+        "SELECT t.treasure_id, t.label, tileset, width, height, `index` FROM images i JOIN treasure_image_sets tis "
+        "ON tis.image_id=i.image_id JOIN treasure t ON tis.treasure_id=t.treasure_id "
+        "WHERE tis.treasure_id IN (%s) AND tis.image_type=0" % ','.join([str(tr_id) for tr_id in treasure_ids])
+    )
+    cursor.execute(ex_str)
+    rows = cursor.fetchall()
+    column_names = [column[0] for column in cursor.description]
+    task_list = []
+    for row in rows:
+        task_dict = {}
+        for i in range(0, len(column_names)):
+            task_dict[column_names[i]] = row[i]
+        task_list.append(task_dict)
+    return task_list

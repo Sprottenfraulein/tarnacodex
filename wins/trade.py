@@ -1,8 +1,8 @@
 # trade window
 import pygame
-import math
-from library import textinput, pydraw, maths, itemlist, calc2darray
-from components import ui, treasure, dbrequests, chest, skill
+import math, random
+from library import textinput, pydraw, maths, itemlist, calc2darray, pickrandom
+from components import ui, treasure, dbrequests, chest, skill, textinserts
 
 
 class Trade:
@@ -42,6 +42,8 @@ class Trade:
         self.updated = False
 
     def launch(self, pc):
+        if self in self.active_wins:
+            return
         self.pc = pc
         self.create_elements(log=True)
         self.filter_list()
@@ -138,8 +140,9 @@ class Trade:
             if mb_event == 'up':
                 self.mouse_pointer.drag_ui = None
                 framed_wins = [fw for fw in (
-                self.wins_dict['charstats'], self.wins_dict['pools'], self.wins_dict['hotbar'],
-                self.wins_dict['inventory'], self.wins_dict['skillbook']) if fw in self.active_wins]
+                    self.wins_dict['charstats'], self.wins_dict['pools'], self.wins_dict['hotbar'],
+                    self.wins_dict['inventory'], self.wins_dict['skillbook'], self.wins_dict['tasks']
+                ) if fw in self.active_wins]
                 self.offset_x, self.offset_y = maths.rect_sticky_edges(
                     (self.offset_x, self.offset_y, self.win_w, self.win_h),
                     [(ow.offset_x, ow.offset_y, ow.win_w, ow.win_h) for ow in framed_wins])
@@ -310,20 +313,24 @@ class Trade:
                 cap_color='fnt_muted', sounds=self.win_ui.snd_packs['button'], page=None, mode=1, tags=(
                     'wpn_melee', 'wpn_ranged', 'wpn_magic', 'arm_head', 'arm_chest', 'acc_ring', 'orb_shield',
                     'orb_ammo', 'orb_source', 'use_wand', 'exp_tools', 'exp_lockpick', 'exp_food', 'exp_key',
-                    'light', 'aug_gem', 'sup_potion', 'use_learn'), switch=True
+                    'light', 'aug_gem', 'sup_potion', 'use_learn', 'misc_man'), switch=True
             ),
             self.win_ui.button_add(
                 'bttn_filter', caption='Weapons', size=(80, 24), cap_font='def_bold', cap_size=24,
                 cap_color='fnt_muted', sounds=self.win_ui.snd_packs['button'], page=None, tags=(
-                    'wpn_melee', 'wpn_ranged', 'orb_ammo'), switch=True),
+                    'wpn_melee', 'wpn_ranged'), switch=True),
+            self.win_ui.button_add(
+                'bttn_filter', caption='Ammo', size=(80, 24), cap_font='def_bold', cap_size=24,
+                cap_color='fnt_muted', sounds=self.win_ui.snd_packs['button'], page=None, tags=(
+                    'orb_ammo',), switch=True),
             self.win_ui.button_add(
                 'bttn_filter', caption='Armor', size=(80, 24), cap_font='def_bold', cap_size=24,
                 cap_color='fnt_muted', sounds=self.win_ui.snd_packs['button'], page=None, tags=(
-                    'arm_head', 'arm_chest', 'orb_shield', 'acc_ring'), switch=True),
+                    'arm_head', 'arm_chest', 'orb_shield'), switch=True),
             self.win_ui.button_add(
                 'bttn_filter', caption='Magical', size=(80, 24), cap_font='def_bold', cap_size=24,
                 cap_color='fnt_muted', sounds=self.win_ui.snd_packs['button'], page=None, tags=(
-                    'wpn_magic', 'orb_source', 'use_wand'), switch=True),
+                    'wpn_magic', 'orb_source', 'use_wand', 'acc_ring'), switch=True),
             self.win_ui.button_add(
                 'bttn_filter', caption='Potions', size=(80, 24), cap_font='def_bold', cap_size=24,
                 cap_color='fnt_muted', sounds=self.win_ui.snd_packs['button'], page=None, tags=(
@@ -340,6 +347,10 @@ class Trade:
                 'bttn_filter', caption='Skills', size=(80, 24), cap_font='def_bold', cap_size=24,
                 cap_color='fnt_muted', sounds=self.win_ui.snd_packs['button'], page=None, tags=(
                     'use_learn',), switch=True),
+            self.win_ui.button_add(
+                'bttn_filter', caption='Mail', size=(80, 24), cap_font='def_bold', cap_size=24,
+                cap_color='fnt_muted', sounds=self.win_ui.snd_packs['button'], page=None, tags=(
+                    'misc_man',), switch=True),
 
             self.win_ui.button_add(
                 'bttn_buyback', caption='Buy Back', size=(80, 24), cap_font='def_bold', cap_size=24,
@@ -471,6 +482,26 @@ class Trade:
                 self.trade_bank.append(treasure.Treasure(j['treasure_id'], max(1, goods_level_cap + i), self.db.cursor,
                                                          self.tilesets, self.resources, self.pygame_settings.audio,
                                                          self.resources.fate_rnd, grade=1))
+                if self.trade_bank[-1].props['item_type'] == 'misc_man':
+                    # SPECIAL MANUSCRIPT STATEMENT
+                    for k in range(0, 3):
+                        rnd_roll = random.randrange(1, 10001)
+                        mans_list = [
+                            (mn, mn['roll_chance'])
+                            for mn in dbrequests.manuscript_get(self.db.cursor, (self.trade_bank[-1].props['class'],),
+                                                                self.trade_bank[-1].props['lvl'], rnd_roll)
+                        ]
+                        if len(mans_list) == 0:
+                            del self.trade_bank[-1]
+                            break
+                        self.trade_bank[-1].props['desc'] = textinserts.insert(self.wins_dict['realm'], pc,
+                                                                  pickrandom.items_get(mans_list, 1)[0]['desc'])
+                        self.trade_bank.append(
+                            treasure.Treasure(j['treasure_id'], max(1, goods_level_cap + i), self.db.cursor,
+                                              self.tilesets, self.resources, self.pygame_settings.audio,
+                                              self.resources.fate_rnd, grade=1))
+                    break
+
                 if self.trade_bank[-1].props['item_type'] == 'exp_food':
                     for k in range(0, 5):
                         self.trade_bank.append(

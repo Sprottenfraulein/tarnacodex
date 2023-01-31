@@ -1,4 +1,4 @@
-from components import treasure, dbrequests
+from components import treasure, dbrequests, textinserts
 from library import calc2darray, logfun, pickrandom
 import random
 
@@ -49,6 +49,19 @@ def generate_loot(monster, realm, fate_rnd, pc, log=True):
         )
         treasure.loot_validate(new_tr.props)
         treasure_list.append(new_tr)
+
+        # SPECIAL MANUSCRIPT STATEMENT
+        if new_tr.props['item_type'] == 'misc_man':  # Manuscript item treasure_id
+            rnd_roll = random.randrange(1, 10001)
+            mans_list = [
+                (mn, mn['roll_chance'])
+                for mn in dbrequests.manuscript_get(realm.db.cursor, (new_tr.props['class'],), new_tr.props['lvl'],
+                                                    rnd_roll)
+            ]
+            if len(mans_list) == 0:
+                del treasure_list[-1]
+            else:
+                new_tr.props['desc'] = textinserts.insert(realm, pc, pickrandom.items_get(mans_list, 1)[0]['desc'])
 
     # SPECIAL QUEST STATEMENT
     if (realm.maze.stage_index == realm.maze.chapter['stage_number'] - 1

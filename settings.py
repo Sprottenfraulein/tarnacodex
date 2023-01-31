@@ -2,7 +2,8 @@
 
 # System settings
 # Application resolution.
-APP_RES = (1296, 816)
+APP_RES = (1600, 900)
+# APP_RES = (1680, 1050)
 app_scale = 2
 # Application caption (visible in window title or OS apps manager)
 APP_CAPTION = 'TARNA CODEX'

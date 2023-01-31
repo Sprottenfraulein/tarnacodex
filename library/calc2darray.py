@@ -140,4 +140,4 @@ def cast_ray(flag_array, x1, y1, x2, y2, sightonly=False):
             # test ray calculation
             temp_x += step_x
             temp_y += step_y
-        return squares
+        return set(squares)

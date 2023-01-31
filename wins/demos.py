@@ -28,6 +28,8 @@ class Demos:
         self.end_mark = None
 
         self.controls_enabled = True
+        self.render = True
+        self.dark_bg = True
 
     def event_check(self, event, log=True):
         if not self.controls_enabled:
@@ -39,6 +41,7 @@ class Demos:
             self.pause = 0
             self.schedule_man.pause = 0
             self.controls_enabled = False
+            self.render = False
 
         # return True if interaction was made to prevent other windows from responding to this event
         if (event.type == pygame.MOUSEBUTTONDOWN or (event.type == pygame.KEYDOWN and event.key == pygame.K_SPACE)) and self.pausable:
@@ -56,6 +59,8 @@ class Demos:
         self.text_list.append([text_obj, duration, 0, speed, fade_in, fade_out])
 
     def demo_run(self, pc, text_list, image_list, gameover=False):
+        self.render = True
+        self.dark_bg = True
         self.controls_enabled = True
         self.width, self.height = self.pygame_settings.screen_res
 
@@ -126,6 +131,8 @@ class Demos:
                                                      (self.schedule_man.ticks_per_round, None))
 
     def death_soft(self, pc, death_cause, chapter_dict, gold_penalty):
+        self.dark_bg = False
+        self.render = True
         self.controls_enabled = True
         self.width, self.height = self.pygame_settings.screen_res
         self.wins_dict['realm'].pause = True
@@ -165,6 +172,8 @@ class Demos:
                                                      (20, None))
 
     def death_hardcore(self, pc, death_cause, chapter_dict):
+        self.dark_bg = False
+        self.render = True
         self.controls_enabled = True
         self.demo_to_title = True
         self.width, self.height = self.pygame_settings.screen_res
@@ -269,8 +278,12 @@ class Demos:
                 del self.text_list[i]
 
     def draw(self, surface):
+        if not self.render:
+            return
         # surface.blit(self.win_rendered, (self.offset_x, self.offset_y))
-        for panel in self.picture_list:
-            panel[0].draw(surface)
+        if self.dark_bg:
+            surface.fill((1, 1, 1))
+        for pan in self.picture_list:
+            pan[0].draw(surface)
         for text in self.text_list:
             text[0].draw(surface)

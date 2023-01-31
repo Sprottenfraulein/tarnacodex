@@ -4,7 +4,7 @@ from library import cursor, database, scheduler
 from components import tilesets, animations
 from wins import (
 	apptitle, realm, inventory, skillbook, context, target, hotbar, pools, charstats, overlay, dialogue,  demos,
-	options, trade, stash, splitter, debuffs
+	options, trade, stash, splitter, debuffs, tasks
 )
 
 
@@ -39,6 +39,7 @@ def launch(pygame_settings, resources, log=False):
 		'stash': stash.Stash(*win_init_args),
 		'splitter': splitter.Splitter(*win_init_args),
 		'debuffs': debuffs.Debuffs(*win_init_args),
+		'tasks': tasks.Tasks(*win_init_args),
 	}
 	active_wins = []
 	for win in wins_dict.values():
@@ -82,7 +83,7 @@ def bigloop(pygame_settings, resources, wins_dict, active_wins, mouse_pointer, s
 
 
 		# DRAWING
-		pygame_settings.screen.fill((10,10,10))
+		# pygame_settings.screen.fill((10,10,10))
 		# drawing active windows
 		for win in reversed(active_wins):
 			win.draw(pygame_settings.screen)

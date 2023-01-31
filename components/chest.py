@@ -1,4 +1,4 @@
-from components import lootgen, dbrequests, treasure
+from components import lootgen, dbrequests, treasure, textinserts
 from library import particle, pickrandom
 import random
 
@@ -115,10 +115,25 @@ class Chest:
                            char_type=self.char_type)]
             good_ids = pickrandom.items_get(tr_ids_list, self.items_number, items_pop=True)
             for rnd_id in good_ids:
-                self.container.append(treasure.Treasure(rnd_id, goods_level_cap, realm.db.cursor, realm.tilesets,
+                new_tr = treasure.Treasure(rnd_id, goods_level_cap, realm.db.cursor, realm.tilesets,
                                                         realm.resources, realm.pygame_settings.audio,
                                                         realm.resources.fate_rnd,
-                                                        findmagic=pc.char_sheet.profs['prof_findmagic']))
+                                                        findmagic=pc.char_sheet.profs['prof_findmagic'])
+                self.container.append(new_tr)
+                # SPECIAL MANUSCRIPT STATEMENT
+                if new_tr.props['item_type'] == 'misc_man':  # Manuscript item treasure_id
+                    rnd_roll = random.randrange(1, 10001)
+                    mans_list = [
+                        (mn, mn['roll_chance'])
+                        for mn in
+                        dbrequests.manuscript_get(realm.db.cursor, (new_tr.props['class'],), new_tr.props['lvl'],
+                                                  rnd_roll)
+                    ]
+                    if len(mans_list) == 0:
+                        del self.container[-1]
+                    else:
+                        new_tr.props['desc'] = textinserts.insert(realm, pc,
+                                                                  pickrandom.items_get(mans_list, 1)[0]['desc'])
             self.items_number = 0
         if self.container is not None and len(self.container) > 0:
             lootgen.drop_loot(self.x_sq, self.y_sq, realm, self.container)

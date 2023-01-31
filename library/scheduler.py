@@ -39,16 +39,19 @@ class Scheduler(counter.Counter):
             return
 
         for schedule in self.schedules.values():
-            if schedule[0] >= len(schedule[1]):
+            sch_cnt = schedule[0]
+            if sch_cnt >= len(schedule[1]):
                 continue
-            while schedule[0] < len(schedule[1]) and schedule[1][schedule[0]][0] <= self.rounds:
-                getattr(schedule[1][schedule[0]][1], schedule[1][schedule[0]][2])(*schedule[1][schedule[0]][3])
-                if schedule[0] < len(schedule[1]):
-                    schedule[0] += 1
+            while sch_cnt < len(schedule[1]) and schedule[1][sch_cnt][0] <= self.rounds:
+                getattr(schedule[1][sch_cnt][1], schedule[1][sch_cnt][2])(*schedule[1][sch_cnt][3])
+                if sch_cnt < len(schedule[1]):
+                    sch_cnt += 1
                 else:
                     break
 
-            if schedule[0] >= self.history_size:
+            if sch_cnt >= self.history_size:
                 for i in range(0, self.history_size):
                     del schedule[1][0]
-                    schedule[0] -= 1
+                    sch_cnt -= 1
+
+            schedule[0] = sch_cnt

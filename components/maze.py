@@ -314,9 +314,7 @@ def decor_maze(maze, tile_set, flag_array):
             ('.',       '+',        '?'),
             ('?',       '#',        '?'),
         ),
-        [
-            random.choice(tile_set['floor_ground']),
-        ], replace=True)
+        (tile_set['floor_ground'], None), replace=True)
 
     decorate(maze, fine_maze, maze_width, maze_height,
          (
@@ -324,179 +322,183 @@ def decor_maze(maze, tile_set, flag_array):
              ('#', '+', '#'),
              ('?', '?', '?'),
          ),
-         [
-             random.choice(tile_set['floor_ground']),
-         ], replace=True)
+         (tile_set['floor_ground'], None), replace=True)
 
     decorate(maze, fine_maze, maze_width, maze_height,
-             (
-                 ('?', '#', '?'),
-                 ('0', '+', '?'),
-                 ('?', '#', '?'),
-             ),
-             [
-                 random.choice(tile_set['floor_tiled']),
-             ], replace=True)
+         (
+             ('?', '#', '?'),
+             ('0', '+', '?'),
+             ('?', '#', '?'),
+         ),
+         (tile_set['floor_tiled'], None), replace=True)
 
     decorate(maze, fine_maze, maze_width, maze_height,
-             (
-                 ('?', '0', '?'),
-                 ('#', '+', '#'),
-                 ('?', '?', '?'),
-             ),
-             [
-                 random.choice(tile_set['floor_tiled']),
-             ], replace=True)
+         (
+             ('?', '0', '?'),
+             ('#', '+', '#'),
+             ('?', '?', '?'),
+         ),
+         (tile_set['floor_tiled'], None), replace=True)
 
     decorate(maze, fine_maze, maze_width, maze_height,
-             (
-                 ('?', ('.', '0'), '?'),
-                 ('?', '#', ('.', '0')),
-                 ('?', '#', '?')
-             ),
-             (
-                 random.choice(tile_set['wall_corner_ne']),
-             ))
+         (
+             ('?', '.', '?'),
+             ('?', '#', '.'),
+             ('?', '#', '?')
+         ),
+         (tile_set['floor_ground'], tile_set['wall_corner_ne']), replace=True)
 
     decorate(maze, fine_maze, maze_width, maze_height,
-             (
-                 ('?', ' ', '?'),
-                 ('?', '#', ' '),
-                 ('?', '#', '?')
-             ),
-             [
-                 random.choice(tile_set['wall_corner_ne']),
-             ], replace=True)
+         (
+             ('?', '0', '?'),
+             ('?', '#', '0'),
+             ('?', '#', '?')
+         ),
+         (tile_set['floor_ground'], tile_set['wall_corner_ne']), replace=True)
 
     decorate(maze, fine_maze, maze_width, maze_height,
-             (
-                 ('?', '?', '?'),
-                 (('#', '+'), '#', '#'),
-                 ('?', '?', '?')
-             ),
-             (
-                 random.choice(tile_set['wall_hor']),
-             ))
+         (
+             ('?', ' ', '?'),
+             ('?', '#', ' '),
+             ('?', '#', '?')
+         ),
+         (None, tile_set['wall_corner_ne']), replace=True)
 
     decorate(maze, fine_maze, maze_width, maze_height,
-             (
-                 ('?', ('#', '+'), '?'),
-                 ('?', '#', '?'),
-                 ('?', '#', '?')
-             ),
-             (
-                 random.choice(tile_set['wall_ver']),
-             ))
+         (
+             ('?', '?', '?'),
+             (('#', '+'), '#', '#'),
+             ('?', '?', '?')
+         ),
+         (None, tile_set['wall_hor']), replace=True)
 
     decorate(maze, fine_maze, maze_width, maze_height,
-             (
-                 ('?', '?', '?'),
-                 (('.', '0'), '#', '#'),
-                 ('?', ('.', '0'), '?')
-             ),
-             (
-                 random.choice(tile_set['wall_corner_sw']),
-             ))
+         (
+             ('?', ('#', '+'), '?'),
+             ('?', '#', '?'),
+             ('?', '#', '?')
+         ),
+         (None, tile_set['wall_ver']), replace=True)
 
     decorate(maze, fine_maze, maze_width, maze_height,
-             (
-                 ('?', '?', '?'),
-                 (' ', '#', '#'),
-                 ('?', ' ', '?')
-             ),
-             [
-                 random.choice(tile_set['wall_corner_sw']),
-             ], replace=True)
+         (
+             ('?', '?', '?'),
+             ('.', '#', '#'),
+             ('?', '.', '?')
+         ),
+         (tile_set['floor_ground'], tile_set['wall_corner_sw']), replace=True)
 
     decorate(maze, fine_maze, maze_width, maze_height,
-             (
-                 ('?', ('#', '+'), '?'),
-                 (('#', '+'), '#', ('.', ' ', '0')),
-                 ('?', ('.', ' ', '0'), '?')
-             ),
-             (
-                 random.choice(tile_set['wall_corner_se']),
-             ))
+         (
+             ('?', '?', '?'),
+             ('0', '#', '#'),
+             ('?', '0', '?')
+         ),
+         (tile_set['floor_tiled'], tile_set['wall_corner_sw']), replace=True)
 
     decorate(maze, fine_maze, maze_width, maze_height,
-             (
-                 ('?', ('.', '0', ' '), '?'),
-                 ('?', '#', ('.', '0', ' ')),
-                 ('?', '#', '?')
-             ),
-             (
-                 random.choice(tile_set['wall_corner_ne']),
-             ))
+         (
+             ('?', '?', '?'),
+             (' ', '#', '#'),
+             ('?', ' ', '?')
+         ),
+         (None, tile_set['wall_corner_sw']), replace=True)
 
     decorate(maze, fine_maze, maze_width, maze_height,
-             (
-                 ('?', '?', '?'),
-                 ('?', '#', '#'),
-                 ('?', '#', '?')
-             ),
-             (
-                 random.choice(tile_set['wall_corner_nw']),
-             ))
+         (
+             ('?', ('#', '+'), '?'),
+             (('#', '+'), '#', ('.', ' ', '0')),
+             ('?', ('.', ' ', '0'), '?')
+         ),
+         (None, tile_set['wall_corner_se']), replace=True)
 
     decorate(maze, fine_maze, maze_width, maze_height,
-             (
-                 ('?', ('#', '+'), '?'),
-                 (('.', '0'), '#', ('.', '0')),
-                 ('?', ('.', '0'), '?')
-             ),
-             (
-                 random.choice(tile_set['wall_end_s']),
-             ))
+         (
+             ('?', '?', '?'),
+             ('?', '#', '#'),
+             ('?', '#', '?')
+         ),
+         (None, tile_set['wall_corner_nw']), replace=True)
 
     decorate(maze, fine_maze, maze_width, maze_height,
-             (
-                 ('?', ('.', '0'), '?'),
-                 (('#', '+'), '#', ('.', '0')),
-                 ('?', ('.', '0'), '?')
-             ),
-             (
-                 random.choice(tile_set['wall_end_e']),
-             ))
+         (
+             ('?', ('#', '+'), '?'),
+             ('.', '#', ('.', '0')),
+             ('?', '.', '?')
+         ),
+         (tile_set['floor_ground'], tile_set['wall_end_s']), replace=True)
 
     decorate(maze, fine_maze, maze_width, maze_height,
-             (
-                 ('?', '?', '?'),
-                 (('#', '+'), '#', '+'),
-                 ('?', ('.', '0'), '?')
-             ),
-             [
-                 random.choice(tile_set['doorway_hor_l']),
-             ], replace=True)
+         (
+             ('?', ('#', '+'), '?'),
+             ('0', '#', ('.', '0')),
+             ('?', '0', '?')
+         ),
+         (tile_set['floor_tiled'], tile_set['wall_end_s']), replace=True)
 
     decorate(maze, fine_maze, maze_width, maze_height,
-             (
-                 ('?', '?', '?'),
-                 ('#', '+', '#'),
-                 ('?', ('.', '0'), '?')
-             ),
-             (
-                 random.choice(tile_set['doorway_hor_r']),
-             ))
+         (
+             ('?', '.', '?'),
+             (('#', '+'), '#', '.'),
+             ('?', ('.', '0'), '?')
+         ),
+         (tile_set['floor_ground'], tile_set['wall_end_e']), replace=True)
 
     decorate(maze, fine_maze, maze_width, maze_height,
-             (
-                 ('?', '#', '?'),
-                 ('?', '+', ('.', '0')),
-                 ('?', '#', '?')
-             ),
-             (
-                 random.choice(tile_set['doorway_ver_b']),
-             ))
+         (
+             ('?', '0', '?'),
+             (('#', '+'), '#', '0'),
+             ('?', ('.', '0'), '?')
+         ),
+         (tile_set['floor_tiled'], tile_set['wall_end_e']), replace=True)
 
     decorate(maze, fine_maze, maze_width, maze_height,
-             (
-                 ('?', ('#', '+'), '?'),
-                 (('.', '0'), '#', ('.', '0')),
-                 ('?', '+', '?')
-             ),
-             [
-                 random.choice(tile_set['doorway_ver_t']),
-             ], replace=True)
+         (
+             ('?', '?', '?'),
+             (('#', '+'), '#', '+'),
+             ('?', ('.', '0'), '?')
+         ),
+         (tile_set['doorway_hor_l'], None), replace=True)
+
+    decorate(maze, fine_maze, maze_width, maze_height,
+         (
+             ('?', '?', '?'),
+             ('#', '+', '#'),
+             ('?', '.', '?')
+         ),
+         (tile_set['floor_ground'], tile_set['doorway_hor_r']), replace=True)
+
+    decorate(maze, fine_maze, maze_width, maze_height,
+         (
+             ('?', '?', '?'),
+             ('#', '+', '#'),
+             ('?', '0', '?')
+         ),
+         (tile_set['floor_tiled'], tile_set['doorway_hor_r']), replace=True)
+
+    decorate(maze, fine_maze, maze_width, maze_height,
+         (
+             ('?', '#', '?'),
+             ('?', '+', '.'),
+             ('?', '#', '?')
+         ),
+         (tile_set['floor_ground'], tile_set['doorway_ver_b']), replace=True)
+
+    decorate(maze, fine_maze, maze_width, maze_height,
+         (
+             ('?', '#', '?'),
+             ('?', '+', '0'),
+             ('?', '#', '?')
+         ),
+         (tile_set['floor_tiled'], tile_set['doorway_ver_b']), replace=True)
+
+    decorate(maze, fine_maze, maze_width, maze_height,
+         (
+             ('?', ('#', '+'), '?'),
+             (('.', '0'), '#', ('.', '0')),
+             ('?', '+', '?')
+         ),
+         (tile_set['doorway_ver_t'], None), replace=True)
     return fine_maze
 
 
@@ -505,9 +507,16 @@ def decorate(maze, fine_maze, maze_width, maze_height, pattern, tiles_list, repl
     if locations is not False:
         for location in locations:
             if replace:
-                fine_maze[location[1]][location[0]] = tiles_list.copy()
+                fine_maze[location[1]][location[0]] = tuple([tile and random.choice(tile) for tile in tiles_list])
             else:
-                fine_maze[location[1]][location[0]].extend(tiles_list)
+                dec_list = list(fine_maze[location[1]][location[0]])
+                for i in range(0, len(tiles_list)):
+                    if tiles_list[i] is None:
+                        continue
+                    if i >= len(dec_list):
+                        dec_list.append(random.choice(tiles_list[i]))
+                    elif dec_list[i] is None:
+                        dec_list[i] = random.choice(tiles_list[i])
 
 
 def pattern_find(maze, start_x, start_y, end_x, end_y, pattern_matrix, step_hor, step_ver, offset_x, offset_y):

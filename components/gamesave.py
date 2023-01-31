@@ -88,9 +88,10 @@ def save_char(wins_dict, pc, maze, db, tileset):
             'gold_coins': pc.char_sheet.gold_coins
         }
         pickle.dump(pc_obj_vars, f)
+        pickle.dump(pc.char_sheet.missions, f)
 
         wins_offsets = {}
-        for win in ('charstats', 'hotbar','inventory','pools', 'skillbook', 'trade', 'stash', 'debuffs'):
+        for win in ('charstats', 'hotbar','inventory','pools', 'skillbook', 'trade', 'stash', 'debuffs', 'tasks'):
             wins_offsets[win] = wins_dict[win].offset_x, wins_dict[win].offset_y
         pickle.dump(wins_offsets, f)
         pickle.dump((wins_dict['realm'].view_offset_x_sq, wins_dict['realm'].view_offset_y_sq), f)
@@ -137,8 +138,9 @@ def load_char(wins_dict, pc, db_cursor, tileset):
         pc.location = pickle.load(f)
         pc.char_portrait_index = pickle.load(f)
         pc_obj_vars = pickle.load(f)
+        pc.char_sheet.missions = pickle.load(f)
         wins_offsets = pickle.load(f)
-        for win in ('charstats', 'hotbar', 'inventory', 'pools', 'skillbook', 'trade', 'stash', 'debuffs'):
+        for win in ('charstats', 'hotbar', 'inventory', 'pools', 'skillbook', 'trade', 'stash', 'debuffs', 'tasks'):
             wins_dict[win].offset_x, wins_dict[win].offset_y = wins_offsets[win]
         try:
             wins_dict['realm'].view_offset_x_sq, wins_dict['realm'].view_offset_y_sq = pickle.load(f)
@@ -227,7 +229,7 @@ def common_stash_load(pc, db, tileset):
         stash = itemlist.ItemList(items_max=60, all_to_none=True, filters={
         'item_types': ['wpn_melee', 'wpn_ranged', 'wpn_magic', 'arm_head', 'arm_chest', 'acc_ring', 'orb_shield',
                        'orb_ammo', 'orb_source', 'use_wand', 'exp_lockpick', 'exp_tools', 'exp_food', 'exp_key',
-                       'light', 'aug_gem', 'sup_potion', 'use_learn']
+                       'light', 'aug_gem', 'sup_potion', 'use_learn', 'misc_man']
         })
         stash_gold = 0
         common_stash_save(stash, stash_gold, pc, db, tileset)

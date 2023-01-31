@@ -365,6 +365,10 @@ class AppTitle:
                 if not self.wins_dict['hotbar'] in self.active_wins:
                     self.wins_dict['hotbar'].updated = True
                     self.active_wins.insert(0, self.wins_dict['hotbar'])
+            elif element.id == 'quick_miss':
+                if not self.wins_dict['tasks'] in self.active_wins:
+                    self.wins_dict['tasks'].launch(self.pc)
+                    self.active_wins.insert(0, self.wins_dict['tasks'])
             elif element.id == 'quick_char':
                 if not self.wins_dict['charstats'] in self.active_wins:
                     self.wins_dict['charstats'].launch(self.pc)
@@ -384,6 +388,10 @@ class AppTitle:
             elif element.id == 'quick_hot':
                 if self.wins_dict['hotbar'] in self.active_wins:
                     self.active_wins.remove(self.wins_dict['hotbar'])
+            elif element.id == 'quick_miss':
+                if self.wins_dict['tasks'] in self.active_wins:
+                    self.active_wins.remove(self.wins_dict['tasks'])
+                    self.wins_dict['tasks'].end()
             elif element.id == 'quick_char':
                 if self.wins_dict['charstats'] in self.active_wins:
                     self.active_wins.remove(self.wins_dict['charstats'])
@@ -549,7 +557,7 @@ class AppTitle:
         self.char_title_string = \
             self.win_ui.text_add('char_title',
                                  (0, chapter_menu[0].rendered_rect.top + 120 + 8),
-                                 caption="%s's story:" % self.chars[self.char_selection]['label'].capitalize(),
+                                 caption="%s's character traits:" % self.chars[self.char_selection]['label'].capitalize(),
                                  h_align='center', v_align='top', size=(menu_btn_w, 32),
                                  cap_color='fnt_celeb', cap_font='large', cap_size=14, page=(1,))
         self.char_title_string.rendered_rect.centerx = menu_btn_h + menu_btn_w + (self.pygame_settings.screen_res[0] / 2 - menu_btn_h - menu_btn_w) / 2
@@ -619,7 +627,7 @@ class AppTitle:
         self.chapter_title_string = \
             self.win_ui.text_add('chapter_title',
                                  (0,chapter_menu[0].rendered_rect.top + 120 + 8),
-                                 caption=self.chapters[0]['label'], h_align='center', v_align='top',
+                                 caption='%s briefing:' % self.chapters[0]['label'], h_align='center', v_align='top',
                                  size=(menu_btn_w, 32),
                                  cap_color='fnt_celeb', cap_font='large', cap_size=14, page=(1, 2))
         self.chapter_title_string.rendered_rect.centerx = self.pygame_settings.screen_res[0] / 2 + (self.pygame_settings.screen_res[0] / 2 - menu_btn_h - menu_btn_w) / 2
@@ -647,7 +655,7 @@ class AppTitle:
         self.curr_chapter_title_string = \
             self.win_ui.text_add('chapter_title',
                                  (0, chapter_menu[0].rendered_rect.top + 120 + 8),
-                                 caption=self.chapters[0]['label'], h_align='center', v_align='top',
+                                 caption='%s briefing:' % self.chapters[0]['label'], h_align='center', v_align='top',
                                  size=(menu_btn_w, 32),
                                  cap_color='fnt_celeb', cap_font='large', cap_size=14, page=(2,))
         self.curr_chapter_title_string.rendered_rect.centerx = menu_btn_h + menu_btn_w + (self.pygame_settings.screen_res[0] / 2 - menu_btn_h - menu_btn_w) / 2
@@ -702,18 +710,19 @@ class AppTitle:
 
         # QUICK VIEW character windows buttons
         quick_btn_w = 60
-        quick_btn_h = 34
+        quick_btn_h = 28
         bttns_per_row = 2
         bttn_texture = self.win_ui.random_texture((quick_btn_w, quick_btn_h), 'red_glass')
         bttn_icons = (
             self.win_ui.tilesets.get_image('interface', (24, 24,), (20, 21)),
             self.win_ui.tilesets.get_image('interface', (24, 24,), (22, 23)),
             self.win_ui.tilesets.get_image('interface', (24, 24,), (24, 25)),
+            self.win_ui.tilesets.get_image('interface', (24, 24,), (30, 31)),
             self.win_ui.tilesets.get_image('interface', (24, 24,), (26, 27)),
             self.win_ui.tilesets.get_image('dung_chests', (24, 24,), (7, 6)),
         )
         bttn_img_list = []
-        for i in range(0, 5):
+        for i in range(0, 6):
             bttn_up_img = pydraw.square((0, 0), (quick_btn_w, quick_btn_h),
                                         (self.win_ui.resources.colors['gray_light'],
                                          self.win_ui.resources.colors['gray_dark'],
@@ -741,10 +750,12 @@ class AppTitle:
                                    sounds=self.win_ui.snd_packs['button'], images=bttn_img_list[1], switch=True),
             self.win_ui.button_add('quick_hot', size=(quick_btn_w, quick_btn_h),
                                    sounds=self.win_ui.snd_packs['button'], images=bttn_img_list[2], switch=True),
-            self.win_ui.button_add('quick_char', size=(quick_btn_w, quick_btn_h),
+            self.win_ui.button_add('quick_miss', size=(quick_btn_w, quick_btn_h),
                                    sounds=self.win_ui.snd_packs['button'], images=bttn_img_list[3], switch=True),
-            self.win_ui.button_add('quick_stash', size=(quick_btn_w, quick_btn_h),
+            self.win_ui.button_add('quick_char', size=(quick_btn_w, quick_btn_h),
                                    sounds=self.win_ui.snd_packs['button'], images=bttn_img_list[4], switch=True),
+            self.win_ui.button_add('quick_stash', size=(quick_btn_w, quick_btn_h),
+                                   sounds=self.win_ui.snd_packs['button'], images=bttn_img_list[5], switch=True),
         )
         for i in range(0, len(char_quick_menu)):
             char_quick_menu[i].tags = ['quick_view']
@@ -970,6 +981,8 @@ class AppTitle:
                                                     (0, 0), (0, -24), 'bright_gold', pc, None, 240, 'def_bold', 24)
             self.wins_dict['realm'].pygame_settings.audio.sound('news_bell')
 
+        self.pc.char_sheet.missions_check(self.wins_dict, pc)
+
         self.wins_dict['realm'].launch()
         if self.wins_dict['realm'] not in self.active_wins:
             self.active_wins.append(self.wins_dict['realm'])
@@ -984,14 +997,14 @@ class AppTitle:
         self.char_desc_string.text_obj.caption = self.chars[self.char_selection]['desc']
         self.char_desc_string.render_all()
 
-        self.char_title_string.text_obj.caption = "%s's story:" % self.chars[self.char_selection]['label'].capitalize()
+        self.char_title_string.text_obj.caption = "%s's character traits:" % self.chars[self.char_selection]['label'].capitalize()
         self.char_title_string.render_all()
 
     def char_loaded_info_update(self):
         if self.pc.location is not None:
             self.curr_chapter_img_panel.images_update(
                 self.win_ui.tilesets.get_image('chapter_thumbs', (60, 60), (self.pc.location[0]['chapter_image_index'],)))
-            self.curr_chapter_title_string.text_obj.caption = self.pc.location[0]['label']
+            self.curr_chapter_title_string.text_obj.caption = '%s briefing:' % self.pc.location[0]['label']
             self.curr_chapter_title_string.render_all()
             self.curr_chapter_desc_string.text_obj.caption = self.pc.location[0]['desc']
             self.curr_chapter_desc_string.render_all()
@@ -1033,6 +1046,8 @@ class AppTitle:
             self.wins_dict['skillbook'].launch(self.pc)
         if self.wins_dict['stash'].pc != self.pc:
             self.wins_dict['stash'].launch(self.pc)
+        if self.wins_dict['tasks'].pc != self.pc:
+            self.wins_dict['tasks'].launch(self.pc)
 
         # self.location_change(pygame_settings, self.wins_dict, self.active_wins, p, 'up', launch=True)
         self.win_ui.page = 2
@@ -1055,7 +1070,7 @@ class AppTitle:
         self.chapter_desc_string.text_obj.caption = self.chapters[self.chapter_selection]['desc']
         self.chapter_desc_string.render_all()
 
-        self.chapter_title_string.text_obj.caption = self.chapters[self.chapter_selection]['label']
+        self.chapter_title_string.text_obj.caption = '%s briefing:' % self.chapters[self.chapter_selection]['label']
         self.chapter_title_string.render_all()
 
     def chapter_begin(self):

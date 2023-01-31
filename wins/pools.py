@@ -92,9 +92,10 @@ class Pools:
                 self.active_wins.insert(0, self.wins_dict['pools'])
             if mb_event == 'up':
                 self.mouse_pointer.drag_ui = None
-                framed_wins = [fw for fw in
-                               (self.wins_dict['charstats'], self.wins_dict['pools'], self.wins_dict['hotbar'], self.wins_dict['inventory'], self.wins_dict['skillbook'])
-                               if fw in self.active_wins]
+                framed_wins = [fw for fw in (
+                    self.wins_dict['charstats'], self.wins_dict['pools'], self.wins_dict['hotbar'],
+                    self.wins_dict['inventory'], self.wins_dict['skillbook'], self.wins_dict['tasks']
+                ) if fw in self.active_wins]
                 self.offset_x, self.offset_y = maths.rect_sticky_edges(
                     (self.offset_x, self.offset_y, self.win_w, self.win_h),
                     [(ow.offset_x, ow.offset_y, ow.win_w, ow.win_h) for ow in framed_wins])
@@ -123,6 +124,11 @@ class Pools:
                 if not self.wins_dict['hotbar'] in self.active_wins:
                     self.wins_dict['hotbar'].render()
                     self.active_wins.insert(0, self.wins_dict['hotbar'])
+            elif element.id == 'miss':
+                if not self.wins_dict['tasks'] in self.active_wins:
+                    self.wins_dict['tasks'].launch(self.pc)
+                    self.wins_dict['tasks'].render()
+                    self.active_wins.insert(0, self.wins_dict['tasks'])
             elif element.id == 'char':
                 if not self.wins_dict['charstats'] in self.active_wins:
                     self.wins_dict['charstats'].launch(self.pc)
@@ -147,6 +153,10 @@ class Pools:
             elif element.id == 'hot':
                 if self.wins_dict['hotbar'] in self.active_wins:
                     self.active_wins.remove(self.wins_dict['hotbar'])
+            elif element.id == 'miss':
+                if self.wins_dict['tasks'] in self.active_wins:
+                    self.active_wins.remove(self.wins_dict['tasks'])
+                    self.wins_dict['tasks'].end()
             elif element.id == 'char':
                 if self.wins_dict['charstats'] in self.active_wins:
                     self.active_wins.remove(self.wins_dict['charstats'])
@@ -218,16 +228,22 @@ class Pools:
             self.pools_menu[2].mode = 0
             self.pools_menu[2].render()
 
-        if self.wins_dict['charstats'] in self.active_wins and charstats:
-            self.active_wins.remove(self.wins_dict['charstats'])
-            self.wins_dict['charstats'].end()
+        if self.wins_dict['tasks'] in self.active_wins and charstats:
+            self.active_wins.remove(self.wins_dict['tasks'])
+            self.wins_dict['tasks'].end()
             self.pools_menu[3].mode = 0
             self.pools_menu[3].render()
 
-        if self.wins_dict['options'] in self.active_wins and options:
-            self.wins_dict['options'].end()
+        if self.wins_dict['charstats'] in self.active_wins and charstats:
+            self.active_wins.remove(self.wins_dict['charstats'])
+            self.wins_dict['charstats'].end()
             self.pools_menu[4].mode = 0
             self.pools_menu[4].render()
+
+        if self.wins_dict['options'] in self.active_wins and options:
+            self.wins_dict['options'].end()
+            self.pools_menu[5].mode = 0
+            self.pools_menu[5].render()
 
         self.pygame_settings.audio.sound(self.resources.sound_presets['button'][3])
         self.updated = True
@@ -273,8 +289,8 @@ class Pools:
 
         # HUD BUTTONS
         pools_btn_w = 54
-        pools_btn_h = 34
-        bttns_per_col = 5
+        pools_btn_h = 28
+        bttns_per_col = 6
         settings_btn_h = 35
         # MAIN MENU
         bttn_texture = self.win_ui.random_texture((pools_btn_w, pools_btn_h), 'red_glass')
@@ -283,11 +299,12 @@ class Pools:
             self.tilesets.get_image('interface', (24, 24,), (20, 21)),
             self.tilesets.get_image('interface', (24, 24,), (22, 23)),
             self.tilesets.get_image('interface', (24, 24,), (24, 25)),
+            self.tilesets.get_image('interface', (24, 24,), (30, 31)),
             self.tilesets.get_image('interface', (24, 24,), (26, 27)),
             self.tilesets.get_image('interface', (24, 24,), (28, 29))
         )
         bttn_img_list = []
-        for i in range(0, 5):
+        for i in range(0, 6):
             bttn_up_img = pydraw.square((0, 0), (pools_btn_w, pools_btn_h),
                                         (self.resources.colors['gray_light'],
                                          self.resources.colors['gray_dark'],
@@ -316,10 +333,12 @@ class Pools:
                                    sounds=self.win_ui.snd_packs['button'], images=bttn_img_list[1], switch=True),
             self.win_ui.button_add('hot', size=(pools_btn_w, pools_btn_h), cap_size=24, cap_color='fnt_muted',
                                    sounds=self.win_ui.snd_packs['button'], images=bttn_img_list[2], switch=True, mode=1),
-            self.win_ui.button_add('char', size=(pools_btn_w, pools_btn_h), cap_size=24, cap_color='fnt_muted',
+            self.win_ui.button_add('miss', size=(pools_btn_w, pools_btn_h), cap_size=24, cap_color='fnt_muted',
                                    sounds=self.win_ui.snd_packs['button'], images=bttn_img_list[3], switch=True),
+            self.win_ui.button_add('char', size=(pools_btn_w, pools_btn_h), cap_size=24, cap_color='fnt_muted',
+                                   sounds=self.win_ui.snd_packs['button'], images=bttn_img_list[4], switch=True),
             self.win_ui.button_add('opts', size=(pools_btn_w, pools_btn_h), cap_size=24, cap_color='fnt_muted',
-                                   sounds=self.win_ui.snd_packs['button'], images=bttn_img_list[4]),
+                                   sounds=self.win_ui.snd_packs['button'], images=bttn_img_list[5]),
         )
         for i in range(0, len(self.pools_menu)):
             self.pools_menu[i].tags = ['hud']

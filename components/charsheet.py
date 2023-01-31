@@ -109,7 +109,7 @@ class CharSheet:
         self.inventory = itemlist.ItemList(items_max=24, all_to_none=True, filters={
             'item_types': ['wpn_melee', 'wpn_ranged', 'wpn_magic', 'arm_head', 'arm_chest', 'acc_ring', 'orb_shield',
                            'orb_ammo', 'orb_source', 'use_wand', 'exp_lockpick', 'exp_tools', 'exp_food', 'exp_key',
-                           'light', 'aug_gem', 'sup_potion', 'use_learn']
+                           'light', 'aug_gem', 'sup_potion', 'use_learn', 'misc_man']
         })
         # Equipment dictionary
         self.equipped = [
@@ -147,6 +147,8 @@ class CharSheet:
             'item_types': ['skill_melee', 'skill_ranged', 'skill_magic', 'skill_craft', 'skill_misc', 'sup_potion',
                            'exp_food', 'exp_lockpick', 'exp_key', 'exp_tools', 'use_learn']
         })
+
+        self.missions = {}
 
         self.gold_coins = 0
         self.base_light = 6
@@ -528,15 +530,17 @@ class CharSheet:
                 found_list.extend(self.inventory_search(item_type))
         return found_list
 
-    def inventory_search_by_id(self, item_id):
+    def inventory_search_by_id(self, item_id, level=None, amount=1):
         found_list = []
         for itm in self.inventory:
+            if amount == 0:
+                return found_list
             if itm is None:
                 continue
             if itm.props['treasure_id'] == item_id:
-                found_list.append(itm)
-            elif 'container' in itm.props and itm.props['container'] is not None:
-                found_list.extend(self.inventory_search_by_id(item_id))
+                if level is None or itm.props['lvl'] is None or itm.props['lvl'] >= level:
+                    found_list.append(itm)
+                    amount -= 1
         return found_list
 
     def equipped_search_by_id(self, item_id):
@@ -549,17 +553,17 @@ class CharSheet:
                     found_list.append(itm)
         return found_list
 
-    def inventory_remove(self, item_type):
-        for itm in self.inventory[:]:
+    def inventory_remove_by_id(self, item_id, level=None, amount=1):
+        for i in range(0, len(self.inventory)):
+            itm = self.inventory[i]
+            if amount == 0:
+                break
             if itm is None:
                 continue
-            if itm.props['item_type'] == item_type:
-                self.inventory.remove(itm)
-                return itm
-            elif 'container' in itm.props and itm.props['container'] is not None:
-                con_itm = self.inventory_remove(item_type)
-                if con_itm:
-                    return con_itm
+            if itm.props['treasure_id'] == item_id:
+                if level is None or itm.props['lvl'] is None or itm.props['lvl'] >= level:
+                    self.inventory[i] = None
+                    amount -= 1
 
     def item_remove(self, wins_dict, item):
         if item in self.inventory:
@@ -647,3 +651,25 @@ class CharSheet:
                 if sk.props['skill_id'] == skill_id:
                     return True
         return False
+
+    def missions_check(self, wins_dict, pc):
+        missions_updated = False
+        available_missions = dbrequests.mission_get(self.db.cursor, self.level, pc.location[0]['chapter_id'],
+                                                    pc.location[1], self.type)
+        for i in range(0, len(available_missions)):
+            new_mission = available_missions.pop()
+            if new_mission['mission_id'] not in self.missions or self.missions[new_mission['mission_id']]['once'] == 0:
+                self.missions[new_mission['mission_id']] = new_mission
+                new_mission['lvl'] = pc.char_sheet.level
+                missions_updated = True
+        if missions_updated:
+            wins_dict['tasks'].updated = True
+        return missions_updated
+
+    def mission_task_check(self, mission):
+        for tr_id, amount in mission['tasks']:
+            if len(self.inventory_search_by_id(tr_id, mission['lvl'], amount)) < amount:
+                return False
+        for tr_id, amount in mission['tasks']:
+            self.inventory_remove_by_id(tr_id, mission['lvl'], amount)
+        return True

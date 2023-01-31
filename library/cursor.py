@@ -17,7 +17,7 @@ class Cursor:
         self.catcher = itemlist.ItemList(items_max=1, filters={
             'item_types': ['wpn_melee', 'wpn_ranged', 'wpn_magic', 'arm_head', 'arm_chest', 'acc_ring', 'orb_shield',
                            'orb_ammo', 'orb_source', 'use_wand', 'exp_food', 'exp_tools', 'exp_lockpick', 'exp_key',
-                           'light', 'aug_gem', 'sup_potion', 'use_learn']
+                           'light', 'aug_gem', 'sup_potion', 'use_learn', 'misc_man']
         })
         self.catcher.append(None)
 

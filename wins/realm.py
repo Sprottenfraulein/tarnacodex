@@ -353,142 +353,151 @@ class Realm:
     def stage_render(self, surface, top_sq, left_sq, bottom_sq, right_sq, clear=True):
         if clear:
             surface.fill((1, 1, 1))
-
         for ren_pos_y in range(top_sq, bottom_sq):
             for ren_pos_x in range(left_sq, right_sq):
-                if (0 <= ren_pos_y < self.maze.height) and (0 <= ren_pos_x < self.maze.width):
-                    flags = self.maze.flag_array[ren_pos_y][ren_pos_x]
-                    if flags.vis:
-                        decors = self.maze.decor_array[ren_pos_y][ren_pos_x]
-                        if decors == ' ':
-                            continue
-                        surface.blit(decors[0],
+                if not ((0 <= ren_pos_y < self.maze.height) and (0 <= ren_pos_x < self.maze.width)):
+                    continue
+                flags = self.maze.flag_array[ren_pos_y][ren_pos_x]
+                decor_array = self.maze.decor_array[ren_pos_y][ren_pos_x]
+                if decor_array == ' ' or not flags.vis or decor_array[0] is None:
+                    continue
+                surface.blit(decor_array[0],
                              ((ren_pos_x - self.ren_x_sq) * self.square_size,
                               (ren_pos_y - self.ren_y_sq) * self.square_size))
-                    """if flags.floor and self.xy_pixels_to_squares(self.mouse_pointer.xy) == (ren_pos_x, ren_pos_y):
-                        surface.blit(self.shade_square, ((ren_pos_x - self.ren_x_sq) * self.square_size,
-                                                         (ren_pos_y - self.ren_y_sq) * self.square_size))"""
+                if flags.trap is not None and flags.trap.visible == 1:
+                    try:
+                        surface.blit(flags.trap.images[self.maze.anim_frame],
+                                     ((flags.trap.x_sq - self.ren_x_sq) * self.square_size + flags.trap.off_x,
+                                      (flags.trap.y_sq - self.ren_y_sq) * self.square_size + flags.trap.off_y))
+                    except IndexError:
+                        surface.blit(flags.trap.images[(self.maze.anim_frame + 1) % (len(flags.trap.images))],
+                                     ((flags.trap.x_sq - self.ren_x_sq) * self.square_size + flags.trap.off_x,
+                                      (flags.trap.y_sq - self.ren_y_sq) * self.square_size + flags.trap.off_y))
 
         for ren_pos_y in range(top_sq, bottom_sq):
             for ren_pos_x in range(left_sq, right_sq):
-                # body
-                if (0 <= ren_pos_y < self.maze.height) and (0 <= ren_pos_x < self.maze.width):
-                    flags = self.maze.flag_array[ren_pos_y][ren_pos_x]
-                    if flags.vis:
-                        decors = self.maze.decor_array[ren_pos_y][ren_pos_x]
-                        if flags.trap is not None and flags.trap.visible == 1:
-                            try:
-                                surface.blit(flags.trap.images[self.maze.anim_frame],
-                                             ((flags.trap.x_sq - self.ren_x_sq) * self.square_size + flags.trap.off_x,
-                                              (flags.trap.y_sq - self.ren_y_sq) * self.square_size + flags.trap.off_y))
-                            except IndexError:
-                                surface.blit(flags.trap.images[(self.maze.anim_frame + 1) % (len(flags.trap.images))],
-                                             ((flags.trap.x_sq - self.ren_x_sq) * self.square_size + flags.trap.off_x,
-                                              (flags.trap.y_sq - self.ren_y_sq) * self.square_size + flags.trap.off_y))
+                if not ((0 <= ren_pos_y < self.maze.height) and (0 <= ren_pos_x < self.maze.width)):
+                    continue
+                flags = self.maze.flag_array[ren_pos_y][ren_pos_x]
+                decor_array = self.maze.decor_array[ren_pos_y][ren_pos_x]
+                if decor_array == ' ' or not flags.vis:
+                    continue
 
-                        # drawing doors
-                        if flags.door is not None:
-                            try:
-                                surface.blit(flags.door.image[self.maze.anim_frame],
-                                             ((flags.door.x_sq - self.ren_x_sq) * self.square_size + flags.door.off_x,
-                                              (flags.door.y_sq - self.ren_y_sq) * self.square_size + flags.door.off_y))
-                            except IndexError:
-                                surface.blit(flags.door.image[(self.maze.anim_frame + 1) % (len(flags.door.image))],
-                                             ((flags.door.x_sq - self.ren_x_sq) * self.square_size + flags.door.off_x,
-                                              (flags.door.y_sq - self.ren_y_sq) * self.square_size + flags.door.off_y))
-                            if flags.door.alignment:
-                                if not self.maze.flag_array[flags.door.y_sq - 1][flags.door.x_sq].vis:
-                                    surface.fill((1, 1, 1), ((flags.door.x_sq - self.ren_x_sq) * self.square_size,
-                                                             (flags.door.y_sq - self.ren_y_sq - 1) * self.square_size,
-                                                             self.square_size, self.square_size))
-                            else:
-                                if not self.maze.flag_array[flags.door.y_sq][flags.door.x_sq - 1].vis:
-                                    surface.fill((1, 1, 1), ((flags.door.x_sq - self.ren_x_sq - 1) * self.square_size,
-                                                             (flags.door.y_sq - self.ren_y_sq) * self.square_size,
-                                                             self.square_size, self.square_size))
+                # drawing doors
+                if flags.door is not None:
+                    try:
+                        surface.blit(flags.door.image[self.maze.anim_frame],
+                                     ((flags.door.x_sq - self.ren_x_sq) * self.square_size + flags.door.off_x,
+                                      (flags.door.y_sq - self.ren_y_sq) * self.square_size + flags.door.off_y))
+                    except IndexError:
+                        surface.blit(flags.door.image[(self.maze.anim_frame + 1) % (len(flags.door.image))],
+                                     ((flags.door.x_sq - self.ren_x_sq) * self.square_size + flags.door.off_x,
+                                      (flags.door.y_sq - self.ren_y_sq) * self.square_size + flags.door.off_y))
+                    if flags.door.alignment:
+                        if not self.maze.flag_array[flags.door.y_sq - 1][flags.door.x_sq].vis:
+                            surface.fill((1, 1, 1), ((flags.door.x_sq - self.ren_x_sq) * self.square_size,
+                                                     (flags.door.y_sq - self.ren_y_sq - 1) * self.square_size,
+                                                     self.square_size, self.square_size))
+                    else:
+                        if not self.maze.flag_array[flags.door.y_sq][flags.door.x_sq - 1].vis:
+                            surface.fill((1, 1, 1), ((flags.door.x_sq - self.ren_x_sq - 1) * self.square_size,
+                                                     (flags.door.y_sq - self.ren_y_sq) * self.square_size,
+                                                     self.square_size, self.square_size))
 
-                        if flags.obj is not None:
-                            try:
-                                surface.blit(flags.obj.image[self.maze.anim_frame],
-                                             ((flags.obj.x_sq - self.ren_x_sq) * self.square_size + flags.obj.off_x,
-                                              (flags.obj.y_sq - self.ren_y_sq) * self.square_size + flags.obj.off_y))
-                            except IndexError:
-                                surface.blit(flags.obj.image[(self.maze.anim_frame + 1) % (len(flags.obj.image))],
-                                             ((flags.obj.x_sq - self.ren_x_sq) * self.square_size + flags.obj.off_x,
-                                              (flags.obj.y_sq - self.ren_y_sq) * self.square_size + flags.obj.off_y))
+                if flags.obj is not None:
+                    try:
+                        surface.blit(flags.obj.image[self.maze.anim_frame],
+                                     ((flags.obj.x_sq - self.ren_x_sq) * self.square_size + flags.obj.off_x,
+                                      (flags.obj.y_sq - self.ren_y_sq) * self.square_size + flags.obj.off_y))
+                    except IndexError:
+                        surface.blit(flags.obj.image[(self.maze.anim_frame + 1) % (len(flags.obj.image))],
+                                     ((flags.obj.x_sq - self.ren_x_sq) * self.square_size + flags.obj.off_x,
+                                      (flags.obj.y_sq - self.ren_y_sq) * self.square_size + flags.obj.off_y))
 
-                        # drawing loot
-                        if flags.item is not None:
-                            for loot in flags.item:
-                                try:
-                                    surface.blit(loot.props['image_floor'][self.maze.anim_frame],
-                                                 ((loot.x_sq - self.ren_x_sq) * self.square_size + loot.off_x,
-                                                  (loot.y_sq - self.ren_y_sq) * self.square_size + loot.off_y))
-                                except IndexError:
-                                    surface.blit(
-                                        loot.props['image_floor'][
-                                            (self.maze.anim_frame + 1) % (len(loot.props['image_floor']))],
-                                        ((loot.x_sq - self.ren_x_sq) * self.square_size + loot.off_x,
-                                         (loot.y_sq - self.ren_y_sq) * self.square_size + loot.off_y))
+                # drawing loot
+                if flags.item is not None:
+                    for loot in flags.item:
+                        try:
+                            surface.blit(loot.props['image_floor'][self.maze.anim_frame],
+                                         ((loot.x_sq - self.ren_x_sq) * self.square_size + loot.off_x,
+                                          (loot.y_sq - self.ren_y_sq) * self.square_size + loot.off_y))
+                        except IndexError:
+                            surface.blit(
+                                loot.props['image_floor'][
+                                    (self.maze.anim_frame + 1) % (len(loot.props['image_floor']))],
+                                ((loot.x_sq - self.ren_x_sq) * self.square_size + loot.off_x,
+                                 (loot.y_sq - self.ren_y_sq) * self.square_size + loot.off_y))
 
-                        # mobs rendering
-                        if flags.mon is not None:
-                            mon = flags.mon
-                            if mon.aimed:
-                                surface.blit(self.target_mark[self.maze.anim_frame],
-                                             ((mon.x_sq - self.ren_x_sq + 0.15) * self.square_size + mon.off_x,
-                                              (mon.y_sq - self.ren_y_sq + 0.2) * self.square_size + mon.off_y))
-                            """if mon.waypoints is not None:
-                                for wp in mon.waypoints:
-                                    surface.blit(self.target_mark[0],
-                                                 ((wp[0] - self.ren_x_sq + 0.15) * self.square_size,
-                                                  (wp[1] - self.ren_y_sq + 0.2) * self.square_size))"""
-                            surface.blit(mon.image[mon.anim_frame],
-                                         ((mon.x_sq - self.ren_x_sq - 0.1) * self.square_size + mon.off_x,
-                                          (mon.y_sq - self.ren_y_sq - 0.1) * self.square_size + mon.off_y))
-                            if mon.stats['grade']['grade_level'] > 0 and mon.hp > 0:
-                                surface.blit(mon.anim_set['affix_mark']['images'][self.maze.anim_frame],
-                                             ((mon.x_sq - self.ren_x_sq - 0.4) * self.square_size,
-                                              (mon.y_sq - self.ren_y_sq - 0.4) * self.square_size))
+                # mobs rendering
+                if flags.mon is not None:
+                    mon = flags.mon
+                    if mon.aimed:
+                        surface.blit(self.target_mark[self.maze.anim_frame],
+                                     ((mon.x_sq - self.ren_x_sq + 0.15) * self.square_size + mon.off_x,
+                                      (mon.y_sq - self.ren_y_sq + 0.2) * self.square_size + mon.off_y))
+                    """if mon.waypoints is not None:
+                        for wp in mon.waypoints:
+                            surface.blit(self.target_mark[0],
+                                         ((wp[0] - self.ren_x_sq + 0.15) * self.square_size,
+                                          (wp[1] - self.ren_y_sq + 0.2) * self.square_size))"""
+                    surface.blit(mon.image[mon.anim_frame],
+                                 ((mon.x_sq - self.ren_x_sq - 0.1) * self.square_size + mon.off_x,
+                                  (mon.y_sq - self.ren_y_sq - 0.1) * self.square_size + mon.off_y))
+                    if mon.stats['grade']['grade_level'] > 0 and mon.hp > 0:
+                        surface.blit(mon.anim_set['affix_mark']['images'][self.maze.anim_frame],
+                                     ((mon.x_sq - self.ren_x_sq - 0.4) * self.square_size,
+                                      (mon.y_sq - self.ren_y_sq - 0.4) * self.square_size))
 
-                        if self.redraw_pc and round(self.pc.x_sq) == ren_pos_x and round(
-                                self.pc.y_sq) == ren_pos_y:
-                            self.pc_display(surface, self.ren_x_sq, self.ren_y_sq)
+                if self.redraw_pc and round(self.pc.x_sq) == ren_pos_x and round(self.pc.y_sq) == ren_pos_y:
+                    self.pc_display(surface, self.ren_x_sq, self.ren_y_sq)
 
-                        if len(decors) > 1:
-                            for k in range(1, len(decors)):
-                                if self.redraw_maze_decor:
-                                    try:
-                                        surface.blit(decors[k], ((ren_pos_x - self.ren_x_sq) * self.square_size,
-                                                                 (ren_pos_y - self.ren_y_sq) * self.square_size))
-                                    except TypeError:
-                                        # print('Realm.Stage_display: Wrong tile.')
-                                        pass
-                        """if not flags.vis:
-                            #  self.shade_square.set_alpha(200 * (maths.get_distance(ren_pos_x, ren_pos_y, self.pc.x_sq, self.pc.y_sq) / 5))
-                            surface.blit(self.shade_square, ((ren_pos_x - self.ren_x_sq) * self.square_size,
-                                                             (ren_pos_y - self.ren_y_sq) * self.square_size))"""
+                for ren_z in range(1, len(decor_array)):
+                    # body
+                    decor = decor_array[ren_z]
+                    if decor is None:
+                        continue
+                    surface.blit(decor,
+                                 ((ren_pos_x - self.ren_x_sq) * self.square_size,
+                                  (ren_pos_y - self.ren_y_sq) * self.square_size))
 
-                        if ren_pos_x + 1 < self.maze.width and not self.maze.flag_array[ren_pos_y][ren_pos_x + 1].vis:
-                            surface.blit(self.dark_edges[0],
-                                         ((ren_pos_x - self.ren_x_sq) * self.square_size,
-                                          (ren_pos_y - self.ren_y_sq) * self.square_size))
+                if (ren_pos_y > 0 and self.maze.flag_array[ren_pos_y - 1][ren_pos_x].vis
+                        and self.maze.array[ren_pos_y][ren_pos_x] == '+'
+                        and self.maze.array[ren_pos_y - 1][ren_pos_x] == '#'):
+                    surface.blit(self.maze.tile_set['doorway_ver_bar'][0],
+                                 ((ren_pos_x - self.ren_x_sq) * self.square_size,
+                                 (ren_pos_y - self.ren_y_sq - 1) * self.square_size))
+                elif (ren_pos_x > 0 and self.maze.flag_array[ren_pos_y][ren_pos_x - 1].vis
+                      and self.maze.array[ren_pos_y][ren_pos_x] == '+'
+                      and self.maze.array[ren_pos_y][ren_pos_x - 1] == '#'):
+                    surface.blit(self.maze.tile_set['doorway_hor_bar'][0],
+                                 ((ren_pos_x - self.ren_x_sq - 1) * self.square_size,
+                                  (ren_pos_y - self.ren_y_sq) * self.square_size))
 
-                        if ren_pos_y + 1 < self.maze.height and not self.maze.flag_array[ren_pos_y + 1][ren_pos_x].vis:
-                            surface.blit(self.dark_edges[1],
-                                         ((ren_pos_x - self.ren_x_sq) * self.square_size,
-                                          (ren_pos_y - self.ren_y_sq) * self.square_size))
+        for ren_pos_y in range(top_sq, bottom_sq):
+            for ren_pos_x in range(left_sq, right_sq):
+                if not ((0 <= ren_pos_y < self.maze.height) and (0 <= ren_pos_x < self.maze.width)):
+                    continue
+                flags = self.maze.flag_array[ren_pos_y][ren_pos_x]
+                decor_array = self.maze.decor_array[ren_pos_y][ren_pos_x]
+                if decor_array == ' ' or not flags.vis:
+                    continue
 
-                        if ren_pos_x - 1 > -1 and not self.maze.flag_array[ren_pos_y][ren_pos_x - 1].vis:
-                            surface.blit(self.dark_edges[2],
-                                         ((ren_pos_x - self.ren_x_sq) * self.square_size,
-                                          (ren_pos_y - self.ren_y_sq) * self.square_size))
-
-                        if ren_pos_y - 1 > -1 and not self.maze.flag_array[ren_pos_y - 1][ren_pos_x].vis:
-                            surface.blit(self.dark_edges[3],
-                                         ((ren_pos_x - self.ren_x_sq) * self.square_size,
-                                          (ren_pos_y - self.ren_y_sq) * self.square_size))
-
+                if ren_pos_x + 1 < self.maze.width and not self.maze.flag_array[ren_pos_y][ren_pos_x + 1].vis:
+                    surface.blit(self.dark_edges[0],
+                                 ((ren_pos_x - self.ren_x_sq) * self.square_size,
+                                  (ren_pos_y - self.ren_y_sq) * self.square_size))
+                if ren_pos_y + 1 < self.maze.height and not self.maze.flag_array[ren_pos_y + 1][ren_pos_x].vis:
+                    surface.blit(self.dark_edges[1],
+                                 ((ren_pos_x - self.ren_x_sq) * self.square_size,
+                                  (ren_pos_y - self.ren_y_sq) * self.square_size))
+                if ren_pos_x - 1 > -1 and not self.maze.flag_array[ren_pos_y][ren_pos_x - 1].vis:
+                    surface.blit(self.dark_edges[2],
+                                 ((ren_pos_x - self.ren_x_sq) * self.square_size,
+                                  (ren_pos_y - self.ren_y_sq) * self.square_size))
+                if ren_pos_y - 1 > -1 and not self.maze.flag_array[ren_pos_y - 1][ren_pos_x].vis:
+                    surface.blit(self.dark_edges[3],
+                                 ((ren_pos_x - self.ren_x_sq) * self.square_size,
+                                  (ren_pos_y - self.ren_y_sq) * self.square_size))
 
     def pc_display(self, surface, x_sq, y_sq):
         try:
