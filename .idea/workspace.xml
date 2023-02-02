@@ -25,40 +25,21 @@
     </select>
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="cc130b1c-00f5-48a7-860f-78f09248cfe9" name="Default Changelist" comment="* Main menu fixes and updates.&#10;* New monsters.&#10;* Ravenstone test chapter tweaks.&#10;* Monsters and traps generation updates and tweaks.&#10;* Level progressions tweaks.&#10;* New items (rings).&#10;* Error fixes.">
-      <change afterPath="$PROJECT_DIR$/components/textinserts.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/wins/tasks.py" afterDir="false" />
+    <list default="true" id="cc130b1c-00f5-48a7-860f-78f09248cfe9" name="Default Changelist" comment="* Intro added:&#10;  - Intro subtitles added (no pics and sound yet).&#10;* Task system added.&#10;  - Database updated accordingly.&#10;  - Tasks window added.&#10;* World rendering algorithms tweaked and fixed and everything now looks better.&#10;  - TEMPORARILY dungeon tiles replaced by placeholder set. Sorry for inconvenience.&#10;* Old saves are no longer valid. Create a new character.&#10;* Manuscripts added.&#10;* Text insertions added.&#10;* Some errors and bugs fixed.">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/components/charsheet.py" beforeDir="false" afterPath="$PROJECT_DIR$/components/charsheet.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/components/chest.py" beforeDir="false" afterPath="$PROJECT_DIR$/components/chest.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/components/dbrequests.py" beforeDir="false" afterPath="$PROJECT_DIR$/components/dbrequests.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/components/draganddrop.py" beforeDir="false" afterPath="$PROJECT_DIR$/components/draganddrop.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/components/gamesave.py" beforeDir="false" afterPath="$PROJECT_DIR$/components/gamesave.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/components/lootgen.py" beforeDir="false" afterPath="$PROJECT_DIR$/components/lootgen.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/components/maze.py" beforeDir="false" afterPath="$PROJECT_DIR$/components/maze.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/components/tilesets.py" beforeDir="false" afterPath="$PROJECT_DIR$/components/tilesets.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/library/calc2darray.py" beforeDir="false" afterPath="$PROJECT_DIR$/library/calc2darray.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/library/cursor.py" beforeDir="false" afterPath="$PROJECT_DIR$/library/cursor.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/library/scheduler.py" beforeDir="false" afterPath="$PROJECT_DIR$/library/scheduler.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/main.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pginit.py" beforeDir="false" afterPath="$PROJECT_DIR$/pginit.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/res/data/tables.db" beforeDir="false" afterPath="$PROJECT_DIR$/res/data/tables.db" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/res/tilesets/dark_bricks.png" beforeDir="false" afterPath="$PROJECT_DIR$/res/tilesets/dark_bricks.png" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/res/tilesets/dung_bricks.png" beforeDir="false" afterPath="$PROJECT_DIR$/res/tilesets/dung_bricks.png" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/res/tilesets/interface.png" beforeDir="false" afterPath="$PROJECT_DIR$/res/tilesets/interface.png" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/save/hardcore_commons.pd" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/save/normal_commons.pd" beforeDir="false" afterPath="$PROJECT_DIR$/save/normal_commons.pd" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/settings.py" beforeDir="false" afterPath="$PROJECT_DIR$/settings.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/unf.py" beforeDir="false" afterPath="$PROJECT_DIR$/unf.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/wins/apptitle.py" beforeDir="false" afterPath="$PROJECT_DIR$/wins/apptitle.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/wins/charstats.py" beforeDir="false" afterPath="$PROJECT_DIR$/wins/charstats.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/wins/context.py" beforeDir="false" afterPath="$PROJECT_DIR$/wins/context.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/wins/debuffs.py" beforeDir="false" afterPath="$PROJECT_DIR$/wins/debuffs.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/wins/demos.py" beforeDir="false" afterPath="$PROJECT_DIR$/wins/demos.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/wins/hotbar.py" beforeDir="false" afterPath="$PROJECT_DIR$/wins/hotbar.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/wins/inventory.py" beforeDir="false" afterPath="$PROJECT_DIR$/wins/inventory.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/wins/pools.py" beforeDir="false" afterPath="$PROJECT_DIR$/wins/pools.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/wins/realm.py" beforeDir="false" afterPath="$PROJECT_DIR$/wins/realm.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/wins/skillbook.py" beforeDir="false" afterPath="$PROJECT_DIR$/wins/skillbook.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/wins/stash.py" beforeDir="false" afterPath="$PROJECT_DIR$/wins/stash.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/wins/tasks.py" beforeDir="false" afterPath="$PROJECT_DIR$/wins/tasks.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/wins/trade.py" beforeDir="false" afterPath="$PROJECT_DIR$/wins/trade.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -148,13 +129,6 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1642253012991</updated>
-    </task>
-    <task id="LOCAL-00018" summary="Scheduler fix">
-      <created>1643029945509</created>
-      <option name="number" value="00018" />
-      <option name="presentableId" value="LOCAL-00018" />
-      <option name="project" value="LOCAL" />
-      <updated>1643029945509</updated>
     </task>
     <task id="LOCAL-00019" summary="Item managing updated. Skillbook added. Character sheet updated.">
       <created>1643105574327</created>
@@ -492,7 +466,14 @@
       <option name="project" value="LOCAL" />
       <updated>1674910058807</updated>
     </task>
-    <option name="localTasksCounter" value="67" />
+    <task id="LOCAL-00067" summary="* Intro added:&#10;  - Intro subtitles added (no pics and sound yet).&#10;* Task system added.&#10;  - Database updated accordingly.&#10;  - Tasks window added.&#10;* World rendering algorithms tweaked and fixed and everything now looks better.&#10;  - TEMPORARILY dungeon tiles replaced by placeholder set. Sorry for inconvenience.&#10;* Old saves are no longer valid. Create a new character.&#10;* Manuscripts added.&#10;* Text insertions added.&#10;* Some errors and bugs fixed.">
+      <created>1675148793745</created>
+      <option name="number" value="00067" />
+      <option name="presentableId" value="LOCAL-00067" />
+      <option name="project" value="LOCAL" />
+      <updated>1675148793746</updated>
+    </task>
+    <option name="localTasksCounter" value="68" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -522,7 +503,6 @@
     <ignored-roots>
       <path value="$PROJECT_DIR$/Unnamed-Final" />
     </ignored-roots>
-    <MESSAGE value="Bugs fixed." />
     <MESSAGE value="More names added." />
     <MESSAGE value="Traps, burglary skills for Kingslayer, food added. Fixed mistakes, optimised code, reworked some things." />
     <MESSAGE value="Readme updated" />
@@ -547,6 +527,7 @@
     <MESSAGE value="* World view has been altered.&#10;  - Now it's not a complete darkness behind the light circle, but basic maze layout without object or monsters.&#10;* Debuffs for the enemies have been implemented.&#10;* New item effects.&#10;* Projectiles for enemies has been added.&#10;* New enemies have been added.&#10;* New visual marks for higher-graded enemies.&#10;* New animations.&#10;* Monsters behavior has been altered.&#10;* Rates altered.&#10;* Other minor fixes." />
     <MESSAGE value="* Old maze render returned.&#10;* Maze generation tweaked.&#10;* Loot generation tweaked.&#10;* New Character buff added.&#10;* Certificates and Spellbooks added.&#10;* Skill targeting altered (more intuitive and streamlined now)&#10;* Lots of fixes." />
     <MESSAGE value="* Main menu fixes and updates.&#10;* New monsters.&#10;* Ravenstone test chapter tweaks.&#10;* Monsters and traps generation updates and tweaks.&#10;* Level progressions tweaks.&#10;* New items (rings).&#10;* Error fixes." />
-    <option name="LAST_COMMIT_MESSAGE" value="* Main menu fixes and updates.&#10;* New monsters.&#10;* Ravenstone test chapter tweaks.&#10;* Monsters and traps generation updates and tweaks.&#10;* Level progressions tweaks.&#10;* New items (rings).&#10;* Error fixes." />
+    <MESSAGE value="* Intro added:&#10;  - Intro subtitles added (no pics and sound yet).&#10;* Task system added.&#10;  - Database updated accordingly.&#10;  - Tasks window added.&#10;* World rendering algorithms tweaked and fixed and everything now looks better.&#10;  - TEMPORARILY dungeon tiles replaced by placeholder set. Sorry for inconvenience.&#10;* Old saves are no longer valid. Create a new character.&#10;* Manuscripts added.&#10;* Text insertions added.&#10;* Some errors and bugs fixed." />
+    <option name="LAST_COMMIT_MESSAGE" value="* Intro added:&#10;  - Intro subtitles added (no pics and sound yet).&#10;* Task system added.&#10;  - Database updated accordingly.&#10;  - Tasks window added.&#10;* World rendering algorithms tweaked and fixed and everything now looks better.&#10;  - TEMPORARILY dungeon tiles replaced by placeholder set. Sorry for inconvenience.&#10;* Old saves are no longer valid. Create a new character.&#10;* Manuscripts added.&#10;* Text insertions added.&#10;* Some errors and bugs fixed." />
   </component>
 </project>

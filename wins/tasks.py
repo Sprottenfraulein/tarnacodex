@@ -1,7 +1,7 @@
 # char stats window
 import pygame
 import random
-from library import textinput, pydraw, maths, calc2darray
+from library import textinput, pydraw, maths, calc2darray, pickrandom
 from components import ui, textinserts, dbrequests, chest, treasure
 
 
@@ -131,7 +131,7 @@ class Tasks:
                             inter.render()
 
                         self.updated = True
-                    elif inter.id == 'bttn_task':
+                    elif inter != element and inter.id == 'bttn_task':
                         inter.mode = 0
                         if inter.text_obj.color != self.resources.colors['fnt_muted']:
                             inter.text_obj.color = self.resources.colors['fnt_muted']
@@ -226,7 +226,7 @@ class Tasks:
         tasks_list = []
         miss_index = 0
         for miss_id, miss_props in self.pc.char_sheet.missions.items():
-            if 'complete' in miss_props:
+            if 'complete' in miss_props and miss_props['once'] == 1:
                 continue
             new_bttn = self.win_ui.button_add(
                 'bttn_task', caption='%s, lv.%s' % (miss_props['label'], miss_props['lvl']), size=(220, bttn_h),
@@ -270,7 +270,12 @@ class Tasks:
             self.task_reqs.clear()
 
         # Creating new elements and changing text description.
-        self.task_desc.text_obj.caption = textinserts.insert(self.wins_dict['realm'], self.pc, (task_props['desc']))
+        self.task_desc.text_obj.caption = (
+                '%s $n $n Completion requirements $n '
+                '(All items must be level %s or higher):'
+                % (textinserts.insert(self.wins_dict['realm'], self.pc, (task_props['desc'])),
+                   task_props['lvl'])
+        )
         self.task_desc.render_all()
 
         task_list = dbrequests.mission_tasks_get(self.db.cursor, [task[0] for task in task_props['tasks']])
@@ -294,9 +299,9 @@ class Tasks:
             self.win_ui.decoratives.insert(0, req_panel)
             self.task_reqs.append(req_panel)
             req_text = self.win_ui.text_add(
-                'req_text', (298, self.task_desc.rendered_rect.bottom + 32 + 56 * i),
+                'req_text', (298, self.task_desc.rendered_rect.bottom + 32 + 56 * i + 18),
                 caption='%s x%s' % (task_list[i]['label'], amount),
-                h_align='left', v_align='middle', size=(self.win_w - 236 - 8 - 8 - 52, 48),
+                h_align='left', size=(self.win_w - 236 - 8 - 8 - 52, 24),
                 cap_color='fnt_celeb', cap_font='def_normal', cap_size=24
             )
             self.win_ui.decoratives.insert(0, req_text)
@@ -322,7 +327,7 @@ class Tasks:
             x_sq, y_sq, alignment, None, self.wins_dict['realm'].maze.tile_set, off_x=-4, off_y=-4,
             lvl=mission['lvl'], items_number=mission['reward_treasure_amount'], gp_number=mission['reward_gold_piles'],
             treasure_group=mission['reward_treasure_group'], item_type=None, char_type=(self.pc.char_sheet.type,),
-            container=[self.reward_manuscript_get(mission)], disappear=True
+            container=self.reward_treasure_get(mission), disappear=True
         )
         self.wins_dict['realm'].maze.chests.append(new_chest)
         self.wins_dict['realm'].maze.chests.append(new_chest)
@@ -343,6 +348,43 @@ class Tasks:
                                                               (self.pc, text_list, image_list, False))
             self.wins_dict['app_title'].schedule_man.task_add('realm_tasks', 2, self.wins_dict['overlay'], 'fade_in',
                                                               (20, None))
+
+        if not self.wins_dict['realm'].maze.flag_array[y_sq][x_sq].vis:
+            self.wins_dict['realm'].schedule_man.task_add('realm_tasks', 1, self, 'shipment_reminder', ())
+
+    def shipment_reminder(self):
+        self.wins_dict['dialogue'].dialogue_elements = {
+            'header': 'Attention',
+            'text': 'Your package awaits you near the upstairs of the current floor!',
+            'bttn_cancel': 'OK'
+        }
+        self.wins_dict['dialogue'].launch(self.pc)
+
+    def reward_treasure_get(self, mission):
+        treasure_list = [self.reward_manuscript_get(mission)]
+        for tr_id, amount in mission['non_rnd_reward']:
+            for i in range(0, amount):
+                new_tr = treasure.Treasure(
+                    tr_id, mission['lvl'], self.db.cursor, self.tilesets,  self.resources, self.pygame_settings.audio,
+                    self.resources.fate_rnd, grade=1
+                )
+                treasure.loot_validate(new_tr.props)
+                treasure_list.append(new_tr)
+
+                # SPECIAL MANUSCRIPT STATEMENT
+                if new_tr.props['item_type'] == 'misc_man':  # Manuscript item treasure_id
+                    rnd_roll = random.randrange(1, 10001)
+                    mans_list = [
+                        (mn, mn['roll_chance'])
+                        for mn in dbrequests.manuscript_get(
+                            self.db.cursor, (new_tr.props['class'],), new_tr.props['lvl'], rnd_roll
+                        )
+                    ]
+                    if len(mans_list) == 0:
+                        del treasure_list[-1]
+                    else:
+                        new_tr.props['desc'] = textinserts.insert(self, self.pc, pickrandom.items_get(mans_list, 1)[0]['desc'])
+        return treasure_list
 
     def reward_manuscript_get(self, mission):
         new_man = treasure.Treasure(

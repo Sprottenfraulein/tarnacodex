@@ -283,7 +283,11 @@ class AppTitle:
                 else:
                     self.wins_dict['dialogue'].dialogue_elements = {
                         'header': 'Attention',
-                        'text': '%s has to be level %s for the chapter!' % (self.pc.char_sheet.name, self.chapters[self.chapter_selection]['lvl']),
+                        'text': '%s has to be level %s to start %s!' % (
+                            self.pc.char_sheet.name.capitalize(),
+                            self.chapters[self.chapter_selection]['lvl'],
+                            self.chapters[self.chapter_selection]['label']
+                        ),
                         'bttn_cancel': 'OK'
                     }
                     self.wins_dict['dialogue'].launch(pc)
@@ -291,7 +295,11 @@ class AppTitle:
                 if not self.chapter_level_check(self.pc, self.chapters[self.chapter_selection]):
                     self.wins_dict['dialogue'].dialogue_elements = {
                         'header': 'Attention',
-                        'text': '%s has to be level %s for the chapter!' % (self.pc.char_sheet.name, self.chapters[self.chapter_selection]['lvl']),
+                        'text': '%s has to be level %s to start %s!' % (
+                            self.pc.char_sheet.name.capitalize(),
+                            self.chapters[self.chapter_selection]['lvl'],
+                            self.chapters[self.chapter_selection]['label']
+                        ),
                         'bttn_cancel': 'OK'
                     }
                     self.wins_dict['dialogue'].launch(pc)
@@ -317,7 +325,9 @@ class AppTitle:
             elif self.pc.hardcore_char == 2:
                 self.wins_dict['dialogue'].dialogue_elements = {
                     'header': 'Hardcore character attention',
-                    'text': 'Unfortunately, your character has been slain! $n During the creation process you have chosen game mode featuring permanent character death. $n To play the game, create another character!',
+                    'text': 'Unfortunately, your character has been slain! $n During the creation process '
+                            'you have chosen game mode featuring permanent character death. $n '
+                            'To play the game, create another character!',
                     'bttn_cancel': 'OK'
                 }
                 self.wins_dict['dialogue'].launch(pc)
@@ -1054,15 +1064,7 @@ class AppTitle:
         self.win_ui.updated = True
 
     def chapter_level_check(self, pch, chapter):
-        if chapter['lvl'] > pch.char_sheet.level:
-            self.wins_dict['dialogue'].dialogue_elements = {
-                'header': 'Attention',
-                'text': 'Choose a character you want to delete!',
-                'bttn_cancel': 'OK'
-            }
-            self.wins_dict['dialogue'].launch(pc)
-            return False
-        return True
+        return chapter['lvl'] <= pch.char_sheet.level
 
     def chapter_info_update(self):
         self.chapter_img_panel.images_update(self.win_ui.tilesets.get_image('chapter_thumbs', (60, 60), (self.chapters[self.chapter_selection]['chapter_image_index'],)))

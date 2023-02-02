@@ -264,6 +264,7 @@ def save_maze(pc, maze, db, tile_sets, animations):
         pickle.dump(maze.monster_number, f)
         pickle.dump(maze.tradepost_update, f)
         pickle.dump(maze.array, f)
+        pickle.dump(maze.decor_rnds, f)
 
         for mob in maze.mobs:
             mob.aimed = False
@@ -348,6 +349,7 @@ def load_maze(pc, maze, db, tile_sets, animations):
         maze.monster_number = pickle.load(f)
         maze.tradepost_update = pickle.load(f)
         maze.array = pickle.load(f)
+        maze.decor_rnds = pickle.load(f)
 
         maze.rooms = pickle.load(f)
         maze.doors = pickle.load(f)

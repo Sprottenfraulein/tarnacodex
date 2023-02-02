@@ -462,12 +462,12 @@ class Trade:
         self.wins_dict['inventory'].updated = True
 
         if not self.wins_dict['realm'].maze.flag_array[y_sq][x_sq].vis:
-            self.wins_dict['realm'].schedule_man.task_add('realm_tasks', 1, self.wins_dict['trade'], 'shipment_reminder', ())
+            self.wins_dict['realm'].schedule_man.task_add('realm_tasks', 1, self, 'shipment_reminder', ())
 
     def shipment_reminder(self):
         self.wins_dict['dialogue'].dialogue_elements = {
             'header': 'Attention',
-            'text': 'Your package awaits you near the upstairs of the current floor!',
+            'text': 'Reward for the Task completion awaits you near the upstairs of the current floor!',
             'bttn_cancel': 'OK'
         }
         self.wins_dict['dialogue'].launch(self.pc)

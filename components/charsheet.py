@@ -658,12 +658,23 @@ class CharSheet:
                                                     pc.location[1], self.type)
         for i in range(0, len(available_missions)):
             new_mission = available_missions.pop()
-            if new_mission['mission_id'] not in self.missions or self.missions[new_mission['mission_id']]['once'] == 0:
-                self.missions[new_mission['mission_id']] = new_mission
-                new_mission['lvl'] = pc.char_sheet.level
-                missions_updated = True
+            for req_id in new_mission['reqs']:
+                if req_id not in self.missions or 'complete' not in self.missions[req_id]:
+                    break
+            else:
+                if new_mission['mission_id'] not in self.missions:
+                    self.missions[new_mission['mission_id']] = new_mission
+                    new_mission['lvl'] = pc.char_sheet.level
+                    missions_updated = True
+                elif (self.missions[new_mission['mission_id']]['once'] == 0
+                        and 'complete' in self.missions[new_mission['mission_id']]
+                      and self.missions[new_mission['mission_id']]['lvl'] < pc.char_sheet.level):
+                    self.missions[new_mission['mission_id']]['lvl'] = pc.char_sheet.level
+                    missions_updated = True
         if missions_updated:
-            wins_dict['tasks'].updated = True
+            wins_dict['tasks'].restart()
+            wins_dict['realm'].spawn_realmtext('new_txt', "There are the new Tasks!", (0, 0), (0, -24), None, pc, None,
+                                               120, 'def_bold', 24)
         return missions_updated
 
     def mission_task_check(self, mission):

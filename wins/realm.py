@@ -65,7 +65,7 @@ class Realm:
         self.location_label = typography.Typography(self.pygame_settings, 'Player character location', (
             self.view_size_scaled[0], 0
         ), 'def_normal', 24, self.resources.colors['sun'], self.resources.colors['bg'],
-        'right', 'top', self.view_size_scaled[0] // 2, 24, shadow=True)
+                                                    'right', 'top', self.view_size_scaled[0] // 2, 24, shadow=True)
 
         self.view_maze_surface = None
         self.vision_sq_prev = None
@@ -84,19 +84,20 @@ class Realm:
         self.view_maze_height_sq = math.ceil(h / self.square_scale / self.square_size)
         if (self.view_maze_surface is None or self.view_maze_surface.get_rect().size
                 != ((self.view_maze_width_sq + self.view_bleed_sq * 2) * self.square_size,
-                (self.view_maze_height_sq + self.view_bleed_sq * 2) * self.square_size)):
+                    (self.view_maze_height_sq + self.view_bleed_sq * 2) * self.square_size)):
             self.view_maze_surface = pygame.Surface(
                 ((self.view_maze_width_sq + self.view_bleed_sq * 2) * self.square_size,
                  (self.view_maze_height_sq + self.view_bleed_sq * 2) * self.square_size),
                 pygame.HWSURFACE).convert()
-        self.view_size_scaled = (w,h)
+        self.view_size_scaled = (w, h)
         framed_wins = (
             self.wins_dict['charstats'], self.wins_dict['pools'], self.wins_dict['hotbar'],
             self.wins_dict['inventory'], self.wins_dict['skillbook'], self.wins_dict['debuffs']
         )
         for win in framed_wins:
             win.offset_x, win.offset_y = maths.rect_sticky_edges((win.offset_x, win.offset_y, win.win_w, win.win_h),
-                                                                 [(ow.offset_x, ow.offset_y, ow.win_w, ow.win_h) for ow in framed_wins])
+                                                                 [(ow.offset_x, ow.offset_y, ow.win_w, ow.win_h) for ow
+                                                                  in framed_wins])
             win.offset_x, win.offset_y = maths.rect_in_bounds(win.offset_x, win.offset_y, win.win_w, win.win_h, 0,
                                                               0, w, h)
         self.location_label.x = self.view_size_scaled[0]
@@ -262,7 +263,7 @@ class Realm:
                 (self.pc.char_sheet.hotbar, index), no_aim
             )
         elif ('treasure_id' in self.pc.char_sheet.hotbar[index].props
-                and self.pc.char_sheet.hotbar[index].props['use_skill'] is not None):
+              and self.pc.char_sheet.hotbar[index].props['use_skill'] is not None):
             return getattr(skillfuncs, self.pc.char_sheet.hotbar[index].props['use_skill'].props['function_name'])(
                 self.wins_dict, self.resources.fate_rnd, self.pc, self.pc.char_sheet.hotbar[index].props['use_skill'],
                 (self.pc.char_sheet.hotbar, index), no_aim
@@ -278,14 +279,14 @@ class Realm:
         for mob in self.mobs_short:
             mob.tick(self.wins_dict, self.resources.fate_rnd, self)
 
-        for i in range(len(self.text_short) -1, -1, -1):
+        for i in range(len(self.text_short) - 1, -1, -1):
             self.text_short[i].tick()
 
-        for i in range(len(self.missiles_list) -1, -1, -1):
+        for i in range(len(self.missiles_list) - 1, -1, -1):
             if not self.missiles_list[i].tick(self.wins_dict, self.resources.fate_rnd):
                 del self.missiles_list[i]
 
-        for i in range(len(self.particle_list) -1, -1, -1):
+        for i in range(len(self.particle_list) - 1, -1, -1):
             if not self.particle_list[i].tick():
                 del self.particle_list[i]
 
@@ -317,8 +318,10 @@ class Realm:
         if self.redraw_maze_text:
             for txt in self.text_short:
                 txt.draw(screen,
-                 (txt.x_sq - self.view_maze_x_sq - self.view_bleed_sq) * self.square_size * self.square_scale + txt.off_x,
-                 (txt.y_sq - self.view_maze_y_sq - self.view_bleed_sq) * self.square_size * self.square_scale + txt.off_y)
+                         (
+                                     txt.x_sq - self.view_maze_x_sq - self.view_bleed_sq) * self.square_size * self.square_scale + txt.off_x,
+                         (
+                                     txt.y_sq - self.view_maze_y_sq - self.view_bleed_sq) * self.square_size * self.square_scale + txt.off_y)
 
         screen.blit(self.location_label.rendered_text, self.location_label.rendered_rect)
 
@@ -465,7 +468,7 @@ class Realm:
                         and self.maze.array[ren_pos_y - 1][ren_pos_x] == '#'):
                     surface.blit(self.maze.tile_set['doorway_ver_bar'][0],
                                  ((ren_pos_x - self.ren_x_sq) * self.square_size,
-                                 (ren_pos_y - self.ren_y_sq - 1) * self.square_size))
+                                  (ren_pos_y - self.ren_y_sq - 1) * self.square_size))
                 elif (ren_pos_x > 0 and self.maze.flag_array[ren_pos_y][ren_pos_x - 1].vis
                       and self.maze.array[ren_pos_y][ren_pos_x] == '+'
                       and self.maze.array[ren_pos_y][ren_pos_x - 1] == '#'):
@@ -538,7 +541,9 @@ class Realm:
 
         self.vision_sq_prev = calc2darray.calc_vision_rays(
             self.maze.flag_array, orig_xy[0], orig_xy[1],
-            max(self.maze.stage_dict['base_light'], round(self.pc.char_sheet.base_light + self.pc.char_sheet.base_light * self.pc.char_sheet.profs['prof_light'] // 1000)),
+            max(self.maze.stage_dict['base_light'], round(
+                self.pc.char_sheet.base_light + self.pc.char_sheet.base_light * self.pc.char_sheet.profs[
+                    'prof_light'] // 1000)),
             self.vision_sq_prev
         )
         self.traps_search(self.vision_sq_prev)
@@ -645,7 +650,8 @@ class Realm:
             return True
         pc_dist = maths.get_distance(self.pc.x_sq, self.pc.y_sq, x_sq, y_sq)
         if pc_dist > max_range or not calc2darray.path2d(self.maze.flag_array, {'mov': False}, (x_sq, y_sq),
-                                                 (round(self.pc.x_sq), round(self.pc.y_sq)), 100, 10, r_max=10)[0]:
+                                                         (round(self.pc.x_sq), round(self.pc.y_sq)), 100, 10, r_max=10)[
+            0]:
             return True
 
         if len(flags.item) > 0:
@@ -749,7 +755,7 @@ class Realm:
     def spawn_realmtext(self, rt_id, caption, xy_sq, offset_xy, color=None, stick_obj=None, speed_xy=None,
                         kill_timer=None, font='def_bold', size=24, frict_x=0, frict_y=0):
         if speed_xy is None:
-            speed_xy = (0,0)
+            speed_xy = (0, 0)
         if color is None:
             color = self.resources.colors['fnt_celeb']
         else:
@@ -760,8 +766,23 @@ class Realm:
                                         self.resources.colors['bg'], 'center', 'bottom', 160, 64, shadow=True)
         new_rt = realmtext.RealmText(self, rt_id, xy_sq, text_obj=new_tpg, stick_obj=stick_obj, offset_xy=offset_xy,
                                      speed_xy=speed_xy, kill_timer=kill_timer, frict_x=frict_x, frict_y=frict_y)
+        # Move text if there is another one in place.
+        self.spread_realm_text(new_rt)
+
         self.maze.text.append(new_rt)
         self.text_short.append(new_rt)
+
+    def spread_realm_text(self, txt):
+        for txt2 in self.maze.text:
+            if txt == txt2:
+                continue
+            if (
+                    txt.stick_obj is not None and txt.stick_obj == txt2.stick_obj
+                    and txt.off_y + txt.text_obj.rendered_rect.height > txt2.off_y
+                    and txt.off_y < txt2.off_y + txt2.text_obj.rendered_rect.height
+            ):
+                txt2.off_y = txt.off_y - txt2.text_obj.rendered_rect.height
+                self.spread_realm_text(txt2)
 
     def remove_realmtext(self, text_id=None):
         if text_id is None:
@@ -779,7 +800,7 @@ class Realm:
     def spawn_projectile(self, origin_xy, dest_xy, attack, speed, image_pack, off_xy=None, duration=None,
                          destroy_on_limit=True, collision_limit=1, blast_radius=0, blast_sound=None):
         if off_xy is None:
-            off_xy = (0,0)
+            off_xy = (0, 0)
         distance = maths.get_distance(origin_xy[0], origin_xy[1], dest_xy[0], dest_xy[1])
         direction = maths.xy_dist_to_rads(origin_xy[0], origin_xy[1], dest_xy[0], dest_xy[1])
         speed_step_x_sq, speed_step_y_sq = maths.rads_dist_to_xy(origin_xy[0], origin_xy[1], direction, speed)
@@ -799,8 +820,9 @@ class Realm:
             venture_direction = 'descended'
         else:
             venture_direction = 'ascended'
-        self.location_label.caption = '%s (%s, stage %s, level %s), %s.' % (self.maze.stage_dict['label'], self.maze.chapter['label'],
-                                                                  self.pc.location[1] + 1, self.maze.lvl, venture_direction)
+        self.location_label.caption = '%s (%s, stage %s, level %s), %s.' % (
+        self.maze.stage_dict['label'], self.maze.chapter['label'],
+        self.pc.location[1] + 1, self.maze.lvl, venture_direction)
         self.location_label.render()
 
     def obj_jump(self, obj_list):
@@ -809,8 +831,9 @@ class Realm:
                 obj_list[i][1] -= 1
             else:
                 self.particle_list.append(particle.Particle((obj_list[i][0].x_sq, obj_list[i][0].y_sq),
-                                           (obj_list[i][0].off_x, obj_list[i][0].off_y),
-                                           self.animations.get_animation('effect_dust_cloud')['default'], 16, speed_xy=(-0.25,-0.25)))
+                                                            (obj_list[i][0].off_x, obj_list[i][0].off_y),
+                                                            self.animations.get_animation('effect_dust_cloud')[
+                                                                'default'], 16, speed_xy=(-0.25, -0.25)))
                 try:
                     sound = obj_list[i][0].props['sound_drop']
                 except AttributeError:
@@ -818,8 +841,10 @@ class Realm:
                 self.sound_inrealm(sound, obj_list[i][0].x_sq, obj_list[i][0].y_sq)
                 del obj_list[i]
                 continue
-            obj_list[i][0].off_x = math.sin(obj_list[i][1] / obj_list[i][2] * 3.14) * (self.square_size * self.square_scale) * -1
-            obj_list[i][0].off_y = math.sin(obj_list[i][1] / obj_list[i][2] * 3.14) * (self.square_size * self.square_scale) * -1
+            obj_list[i][0].off_x = math.sin(obj_list[i][1] / obj_list[i][2] * 3.14) * (
+                        self.square_size * self.square_scale) * -1
+            obj_list[i][0].off_y = math.sin(obj_list[i][1] / obj_list[i][2] * 3.14) * (
+                        self.square_size * self.square_scale) * -1
 
     def obj_jump_add(self, object):
         self.jumping_objects.append([object, 20, 20])
@@ -839,7 +864,7 @@ class Realm:
                         continue
                     collected = True
                     self.spawn_realmtext('new_txt', "%s gold" % itm.props['amount'], (0, 0), (0, 0),
-                                         'bright_gold', itm, (0, 0), 45, 'large', 16, 0, 0)
+                                         'bright_gold', itm, (0, -0.1), 45, 'large', 16, 0, 0)
                     self.pc.char_sheet.gold_coins += itm.props['amount']
                     self.maze.loot.remove(itm)
                     # realm.loot_short.remove(itm)
@@ -883,22 +908,25 @@ class Realm:
                 rnd_x_sq = random.randrange(-3 - is_crit, 4 + is_crit) / 10 + x_sq
                 rnd_y_sq = random.randrange(-3 - is_crit, 4 + is_crit) / 10 + y_sq
                 self.particle_list.append(particle.Particle((rnd_x_sq, rnd_y_sq), (-8, -8),
-                                          self.animations.get_animation('effect_blood_cloud')['default'],
-                                          16, speed_xy=(0.25, 0.25)))
+                                                            self.animations.get_animation('effect_blood_cloud')[
+                                                                'default'],
+                                                            16, speed_xy=(0.25, 0.25)))
         elif dam_type == 'att_arcane':
             for i in range(-1, is_crit * 4):
                 rnd_x_sq = random.randrange(-3 - is_crit, 4 + is_crit) / 10 + x_sq
                 rnd_y_sq = random.randrange(-3 - is_crit, 4 + is_crit) / 10 + y_sq
                 self.particle_list.append(particle.Particle((rnd_x_sq, rnd_y_sq), (-8, -8),
-                                          self.animations.get_animation('effect_blood_cloud')['default'],
-                                          16, speed_xy=(0.25, 0.25)))
+                                                            self.animations.get_animation('effect_blood_cloud')[
+                                                                'default'],
+                                                            16, speed_xy=(0.25, 0.25)))
         elif dam_type == 'att_fire':
             for i in range(-1, is_crit * 4):
                 rnd_x_sq = random.randrange(-3 - is_crit, 4 + is_crit) / 10 + x_sq
                 rnd_y_sq = random.randrange(-3 - is_crit, 4 + is_crit) / 10 + y_sq
                 self.particle_list.append(particle.Particle((rnd_x_sq, rnd_y_sq), (-8, -8),
-                                          self.animations.get_animation('effect_blood_cloud')['default'],
-                                          16, speed_xy=(0.25, 0.25)))
+                                                            self.animations.get_animation('effect_blood_cloud')[
+                                                                'default'],
+                                                            16, speed_xy=(0.25, 0.25)))
 
         if for_pc:
             self.pygame_settings.audio.sound('pc_hit')

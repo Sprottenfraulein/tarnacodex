@@ -659,6 +659,16 @@ def mission_get(cursor, level, chapter_id, stage_index, char_type, mission_id=No
         tr_rows = cursor.fetchall()
         mission_dict['tasks'] = tuple([tr for tr in tr_rows])
 
+        ex_str = "SELECT mission_req_id FROM mission_req_sets WHERE mission_id=?"
+        cursor.execute(ex_str, (mission_dict['mission_id'],))
+        tr_rows = cursor.fetchall()
+        mission_dict['reqs'] = tuple([tr[0] for tr in tr_rows])
+
+        ex_str = "SELECT treasure_id, amount FROM mission_reward_sets WHERE mission_id=?"
+        cursor.execute(ex_str, (mission_dict['mission_id'],))
+        tr_rows = cursor.fetchall()
+        mission_dict['non_rnd_reward'] = tuple([tr for tr in tr_rows])
+
         mission_list.append(mission_dict)
     return mission_list
 

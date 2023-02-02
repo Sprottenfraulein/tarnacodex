@@ -1,5 +1,5 @@
 def item_move(win, element, mb_event, m_bttn, in_realm, skillfuncs):
-    if m_bttn == 3 and in_realm:
+    if m_bttn == 3 and in_realm and mb_event == 'down':
         if element.id < len(element.tags[0]) and element.tags[0][element.id] is not None:
             if 'skill_id' in element.tags[0][element.id].props:
                 getattr(skillfuncs, element.tags[0][element.id].props['function_name'])(

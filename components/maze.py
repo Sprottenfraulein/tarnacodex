@@ -52,6 +52,7 @@ class Maze:
         self.monster_number = self.stage_dict['monster_number']
 
         self.array = maze_array(self.width, self.height)
+        self.decor_rnds = []
         self.decor_array = None
 
         self.rooms = None
@@ -87,7 +88,7 @@ class Maze:
         self.flag_array = flags_create(self, self.array)
         if len(stage_progress) == 0 or stage_progress[0]['monsters_rolled'] == 0 or not use_saves:
             populate(self.db, self, pc, self.animations)
-        self.decor_array = decor_maze(self.array, self.tile_set, self.flag_array)
+        self.decor_array = decor_maze(self)
         flags_update(self, self.flag_array)
 
     def generate_1(self, pc, top, left, bottom, right, min_width, min_height, prop, vert_chance=50):
@@ -291,232 +292,267 @@ def rooms_join(maze, room1, room2, ap, bp, align, corr_width, door_byte, corr_by
     return corridor, attached
 
 
-def decor_maze(maze, tile_set, flag_array):
-    maze_height = len(maze)
+def decor_maze(maze):
+    read_rnds = False
+    if maze.decor_rnds:
+        read_rnds = True
+        decor_rnds_copy = maze.decor_rnds.copy()
+    maze_height = len(maze.array)
     try:
-        maze_width = len(maze[0])
+        maze_width = len(maze.array[0])
     except IndexError:
         return
     fine_maze = maze_array(maze_width, maze_height)
 
     for i in range(maze_height):
         for j in range(maze_width):
-            if maze[i][j] == '0':
-                fine_maze[i][j] = [random.choice(tile_set['floor_tiled']),]
-            elif maze[i][j] == ' ':
+            if maze.array[i][j] == '0':
+                if read_rnds:
+                    fine_maze[i][j] = (maze.tile_set['floor_tiled'][maze.decor_rnds.pop()],)
+                else:
+                    rnd = random.randrange(0, len(maze.tile_set['floor_tiled']))
+                    fine_maze[i][j] = (maze.tile_set['floor_tiled'][rnd],)
+                    maze.decor_rnds.append(rnd)
+            elif maze.array[i][j] == ' ':
                 pass
             else:
-                fine_maze[i][j] = [random.choice(tile_set['floor_ground']), ]
+                if read_rnds:
+                    fine_maze[i][j] = (maze.tile_set['floor_ground'][maze.decor_rnds.pop()],)
+                else:
+                    rnd = random.randrange(0, len(maze.tile_set['floor_ground']))
+                    fine_maze[i][j] = (maze.tile_set['floor_ground'][rnd],)
+                    maze.decor_rnds.append(rnd)
 
-    decorate(maze, fine_maze, maze_width, maze_height,
+    decorate(maze, fine_maze, maze_width, maze_height, read_rnds,
         (
             ('?',       '#',        '?'),
             ('.',       '+',        '?'),
             ('?',       '#',        '?'),
         ),
-        (tile_set['floor_ground'], None), replace=True)
+        (maze.tile_set['floor_ground'], None), replace=True)
 
-    decorate(maze, fine_maze, maze_width, maze_height,
+    decorate(maze, fine_maze, maze_width, maze_height, read_rnds,
          (
              ('?', '.', '?'),
              ('#', '+', '#'),
              ('?', '?', '?'),
          ),
-         (tile_set['floor_ground'], None), replace=True)
+         (maze.tile_set['floor_ground'], None), replace=True)
 
-    decorate(maze, fine_maze, maze_width, maze_height,
+    decorate(maze, fine_maze, maze_width, maze_height, read_rnds,
          (
              ('?', '#', '?'),
              ('0', '+', '?'),
              ('?', '#', '?'),
          ),
-         (tile_set['floor_tiled'], None), replace=True)
+         (maze.tile_set['floor_tiled'], None), replace=True)
 
-    decorate(maze, fine_maze, maze_width, maze_height,
+    decorate(maze, fine_maze, maze_width, maze_height, read_rnds,
          (
              ('?', '0', '?'),
              ('#', '+', '#'),
              ('?', '?', '?'),
          ),
-         (tile_set['floor_tiled'], None), replace=True)
+         (maze.tile_set['floor_tiled'], None), replace=True)
 
-    decorate(maze, fine_maze, maze_width, maze_height,
+    decorate(maze, fine_maze, maze_width, maze_height, read_rnds,
          (
              ('?', '.', '?'),
              ('?', '#', '.'),
              ('?', '#', '?')
          ),
-         (tile_set['floor_ground'], tile_set['wall_corner_ne']), replace=True)
+         (maze.tile_set['floor_ground'], maze.tile_set['wall_corner_ne']), replace=True)
 
-    decorate(maze, fine_maze, maze_width, maze_height,
+    decorate(maze, fine_maze, maze_width, maze_height, read_rnds,
          (
              ('?', '0', '?'),
              ('?', '#', '0'),
              ('?', '#', '?')
          ),
-         (tile_set['floor_ground'], tile_set['wall_corner_ne']), replace=True)
+         (maze.tile_set['floor_ground'], maze.tile_set['wall_corner_ne']), replace=True)
 
-    decorate(maze, fine_maze, maze_width, maze_height,
+    decorate(maze, fine_maze, maze_width, maze_height, read_rnds,
          (
              ('?', ' ', '?'),
              ('?', '#', ' '),
              ('?', '#', '?')
          ),
-         (None, tile_set['wall_corner_ne']), replace=True)
+         (None, maze.tile_set['wall_corner_ne']), replace=True)
 
-    decorate(maze, fine_maze, maze_width, maze_height,
+    decorate(maze, fine_maze, maze_width, maze_height, read_rnds,
          (
              ('?', '?', '?'),
              (('#', '+'), '#', '#'),
              ('?', '?', '?')
          ),
-         (None, tile_set['wall_hor']), replace=True)
+         (None, maze.tile_set['wall_hor']), replace=True)
 
-    decorate(maze, fine_maze, maze_width, maze_height,
+    decorate(maze, fine_maze, maze_width, maze_height, read_rnds,
          (
              ('?', ('#', '+'), '?'),
              ('?', '#', '?'),
              ('?', '#', '?')
          ),
-         (None, tile_set['wall_ver']), replace=True)
+         (None, maze.tile_set['wall_ver']), replace=True)
 
-    decorate(maze, fine_maze, maze_width, maze_height,
+    decorate(maze, fine_maze, maze_width, maze_height, read_rnds,
          (
              ('?', '?', '?'),
              ('.', '#', '#'),
              ('?', '.', '?')
          ),
-         (tile_set['floor_ground'], tile_set['wall_corner_sw']), replace=True)
+         (maze.tile_set['floor_ground'], maze.tile_set['wall_corner_sw']), replace=True)
 
-    decorate(maze, fine_maze, maze_width, maze_height,
+    decorate(maze, fine_maze, maze_width, maze_height, read_rnds,
          (
              ('?', '?', '?'),
              ('0', '#', '#'),
              ('?', '0', '?')
          ),
-         (tile_set['floor_tiled'], tile_set['wall_corner_sw']), replace=True)
+         (maze.tile_set['floor_tiled'], maze.tile_set['wall_corner_sw']), replace=True)
 
-    decorate(maze, fine_maze, maze_width, maze_height,
+    decorate(maze, fine_maze, maze_width, maze_height, read_rnds,
          (
              ('?', '?', '?'),
              (' ', '#', '#'),
              ('?', ' ', '?')
          ),
-         (None, tile_set['wall_corner_sw']), replace=True)
+         (None, maze.tile_set['wall_corner_sw']), replace=True)
 
-    decorate(maze, fine_maze, maze_width, maze_height,
+    decorate(maze, fine_maze, maze_width, maze_height, read_rnds,
          (
              ('?', ('#', '+'), '?'),
              (('#', '+'), '#', ('.', ' ', '0')),
              ('?', ('.', ' ', '0'), '?')
          ),
-         (None, tile_set['wall_corner_se']), replace=True)
+         (None, maze.tile_set['wall_corner_se']), replace=True)
 
-    decorate(maze, fine_maze, maze_width, maze_height,
+    decorate(maze, fine_maze, maze_width, maze_height, read_rnds,
          (
              ('?', '?', '?'),
              ('?', '#', '#'),
              ('?', '#', '?')
          ),
-         (None, tile_set['wall_corner_nw']), replace=True)
+         (None, maze.tile_set['wall_corner_nw']), replace=True)
 
-    decorate(maze, fine_maze, maze_width, maze_height,
+    decorate(maze, fine_maze, maze_width, maze_height, read_rnds,
          (
              ('?', ('#', '+'), '?'),
              ('.', '#', ('.', '0')),
              ('?', '.', '?')
          ),
-         (tile_set['floor_ground'], tile_set['wall_end_s']), replace=True)
+         (maze.tile_set['floor_ground'], maze.tile_set['wall_end_s']), replace=True)
 
-    decorate(maze, fine_maze, maze_width, maze_height,
+    decorate(maze, fine_maze, maze_width, maze_height, read_rnds,
          (
              ('?', ('#', '+'), '?'),
              ('0', '#', ('.', '0')),
              ('?', '0', '?')
          ),
-         (tile_set['floor_tiled'], tile_set['wall_end_s']), replace=True)
+         (maze.tile_set['floor_tiled'], maze.tile_set['wall_end_s']), replace=True)
 
-    decorate(maze, fine_maze, maze_width, maze_height,
+    decorate(maze, fine_maze, maze_width, maze_height, read_rnds,
          (
              ('?', '.', '?'),
              (('#', '+'), '#', '.'),
              ('?', ('.', '0'), '?')
          ),
-         (tile_set['floor_ground'], tile_set['wall_end_e']), replace=True)
+         (maze.tile_set['floor_ground'], maze.tile_set['wall_end_e']), replace=True)
 
-    decorate(maze, fine_maze, maze_width, maze_height,
+    decorate(maze, fine_maze, maze_width, maze_height, read_rnds,
          (
              ('?', '0', '?'),
              (('#', '+'), '#', '0'),
              ('?', ('.', '0'), '?')
          ),
-         (tile_set['floor_tiled'], tile_set['wall_end_e']), replace=True)
+         (maze.tile_set['floor_tiled'], maze.tile_set['wall_end_e']), replace=True)
 
-    decorate(maze, fine_maze, maze_width, maze_height,
+    decorate(maze, fine_maze, maze_width, maze_height, read_rnds,
          (
              ('?', '?', '?'),
              (('#', '+'), '#', '+'),
              ('?', ('.', '0'), '?')
          ),
-         (tile_set['doorway_hor_l'], None), replace=True)
+         (maze.tile_set['doorway_hor_l'], None), replace=True)
 
-    decorate(maze, fine_maze, maze_width, maze_height,
+    decorate(maze, fine_maze, maze_width, maze_height, read_rnds,
          (
              ('?', '?', '?'),
              ('#', '+', '#'),
              ('?', '.', '?')
          ),
-         (tile_set['floor_ground'], tile_set['doorway_hor_r']), replace=True)
+         (maze.tile_set['floor_ground'], maze.tile_set['doorway_hor_r']), replace=True)
 
-    decorate(maze, fine_maze, maze_width, maze_height,
+    decorate(maze, fine_maze, maze_width, maze_height, read_rnds,
          (
              ('?', '?', '?'),
              ('#', '+', '#'),
              ('?', '0', '?')
          ),
-         (tile_set['floor_tiled'], tile_set['doorway_hor_r']), replace=True)
+         (maze.tile_set['floor_tiled'], maze.tile_set['doorway_hor_r']), replace=True)
 
-    decorate(maze, fine_maze, maze_width, maze_height,
+    decorate(maze, fine_maze, maze_width, maze_height, read_rnds,
          (
              ('?', '#', '?'),
              ('?', '+', '.'),
              ('?', '#', '?')
          ),
-         (tile_set['floor_ground'], tile_set['doorway_ver_b']), replace=True)
+         (maze.tile_set['floor_ground'], maze.tile_set['doorway_ver_b']), replace=True)
 
-    decorate(maze, fine_maze, maze_width, maze_height,
+    decorate(maze, fine_maze, maze_width, maze_height, read_rnds,
          (
              ('?', '#', '?'),
              ('?', '+', '0'),
              ('?', '#', '?')
          ),
-         (tile_set['floor_tiled'], tile_set['doorway_ver_b']), replace=True)
+         (maze.tile_set['floor_tiled'], maze.tile_set['doorway_ver_b']), replace=True)
 
-    decorate(maze, fine_maze, maze_width, maze_height,
+    decorate(maze, fine_maze, maze_width, maze_height, read_rnds,
          (
              ('?', ('#', '+'), '?'),
              (('.', '0'), '#', ('.', '0')),
              ('?', '+', '?')
          ),
-         (tile_set['doorway_ver_t'], None), replace=True)
+         (maze.tile_set['doorway_ver_t'], None), replace=True)
+
+    if not read_rnds:
+        maze.decor_rnds.reverse()
+    else:
+        maze.decor_rnds = decor_rnds_copy
     return fine_maze
 
 
-def decorate(maze, fine_maze, maze_width, maze_height, pattern, tiles_list, replace=False):
-    locations = pattern_find(maze, -1, -1, maze_width + 1, maze_height + 1, pattern, 1, 1, 1, 1)
+def decorate(maze, fine_maze, maze_width, maze_height, read_rnds, pattern, tiles_list, replace=False):
+    locations = pattern_find(maze.array, -1, -1, maze_width + 1, maze_height + 1, pattern, 1, 1, 1, 1)
     if locations is not False:
         for location in locations:
             if replace:
-                fine_maze[location[1]][location[0]] = tuple([tile and random.choice(tile) for tile in tiles_list])
+                new_pie = []
+                for tile in tiles_list:
+                    if tile is None:
+                        new_pie.append(None)
+                    else:
+                        if read_rnds:
+                            rnd = maze.decor_rnds.pop()
+                        else:
+                            rnd = random.randrange(0, len(tile))
+                            maze.decor_rnds.append(rnd)
+                        new_pie.append(tile[rnd])
+                fine_maze[location[1]][location[0]] = tuple(new_pie)
             else:
                 dec_list = list(fine_maze[location[1]][location[0]])
                 for i in range(0, len(tiles_list)):
                     if tiles_list[i] is None:
                         continue
+                    if read_rnds:
+                        rnd = maze.decor_rnds.pop()
+                    else:
+                        rnd = random.randrange(0, len(tiles_list[i]))
                     if i >= len(dec_list):
-                        dec_list.append(random.choice(tiles_list[i]))
+                        dec_list.append(tiles_list[i][rnd])
                     elif dec_list[i] is None:
-                        dec_list[i] = random.choice(tiles_list[i])
+                        dec_list[i] = tiles_list[i][rnd]
+                fine_maze[location[1]][location[0]] = tuple(dec_list)
 
 
 def pattern_find(maze, start_x, start_y, end_x, end_y, pattern_matrix, step_hor, step_ver, offset_x, offset_y):
