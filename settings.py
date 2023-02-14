@@ -46,6 +46,8 @@ tilesets = (
     ('monster_gel_yellow', 'res/tilesets/monster_gel_yellow.png'),
     ('anthro_knight_blue', 'res/tilesets/anthro_knight_blue.png'),
     ('anthro_knight_blue_rich', 'res/tilesets/anthro_knight_blue_rich.png'),
+    ('monster_mimic_chest', 'res/tilesets/monster_mimic_chest.png'),
+    ('giant_spider_light', 'res/tilesets/giant_spider_light.png'),
 
     ('anthro_champion', 'res/tilesets/anthro_champion.png'),
     ('anthro_kingslayer', 'res/tilesets/anthro_kingslayer.png'),
@@ -68,6 +70,8 @@ sounds = (
     ('paper_hide', 'res/sounds/paper_02.wav'),
     ('realmtext_noise', 'res/sounds/stone_01.wav'),
     ('important_jingle', 'res/sounds/owl_01.wav'),
+    ('thunder_blast', 'res/sounds/thunder_02.wav'),
+    ('thunder_rolling', 'res/sounds/thunder_01.wav'),
 
     ('pc_step_01', 'res/sounds/step_01.wav'),
     ('pc_step_02', 'res/sounds/step_02.wav'),
@@ -94,7 +98,7 @@ sounds = (
     ('potion_pickup', 'res/sounds/bottle_02.wav'),
     ('potion_drop', 'res/sounds/bottle_01.wav'),
     ('potion_drink', 'res/sounds/drink_01.wav'),
-    ('tools_drop', 'res/sounds/clank_01.wav'),
+    ('tools_drop', 'res/sounds/clank_02.wav'),
     ('tools_pickup', 'res/sounds/clank_02.wav'),
     ('lockpick_drop', 'res/sounds/clank_04.wav'),
     ('lockpick_pickup', 'res/sounds/clank_03.wav'),
@@ -122,6 +126,11 @@ sounds = (
     ('plate_drop', 'res/sounds/plate_01.wav'),
     ('fire_pickup', 'res/sounds/torch_01.wav'),
     ('fire_putout', 'res/sounds/torch_03.wav'),
+    ('sand_drop', 'res/sounds/sandy_01.wav'),
+    ('sand_pickup', 'res/sounds/sandy_02.wav'),
+    ('dig', 'res/sounds/dig_01.wav'),
+    ('bones_drop', 'res/sounds/bones_01.wav'),
+    ('bones_pickup', 'res/sounds/bones_02.wav'),
 
     ('melee_swipe', 'res/sounds/swipe_01.wav'),
     ('hit_slice', 'res/sounds/slice_01.wav'),
@@ -131,15 +140,28 @@ sounds = (
     ('bow_shot', 'res/sounds/shot_01.wav'),
     ('pc_hit', 'res/sounds/hit_physical_02.wav'),
     ('hit_blast', 'res/sounds/blast_01.wav'),
+    ('hit_ring', 'res/sounds/crit_damage_01.wav'),
+    ('range_squirt', 'res/sounds/squirt_01.wav'),
 
     ('death_champion', 'res/sounds/moan_03.wav'),
     ('death_kingslayer', 'res/sounds/moan_01.wav'),
     ('death_cosmologist', 'res/sounds/moan_02.wav'),
 
     ('claws_tear', 'res/sounds/tear_01.wav'),
-    ('undead_amb', 'res/sounds/snarl_01.wav'),
+    ('undead_amb', 'res/sounds/bones_03.wav'),
     ('undead_aggro', 'res/sounds/snarl_03.wav'),
     ('undead_defeat', 'res/sounds/snarl_02.wav'),
+    ('goo_amb', 'res/sounds/goo_03.wav'),
+    ('goo_aggro', 'res/sounds/goo_02.wav'),
+    ('goo_defeat', 'res/sounds/goo_01.wav'),
+    ('insect_amb', 'res/sounds/chitin_03.wav'),
+    ('insect_aggro', 'res/sounds/chitin_01.wav'),
+    ('insect_defeat', 'res/sounds/chitin_02.wav'),
+    ('knight_amb', 'res/sounds/clank_05.wav'),
+    ('knight_aggro', 'res/sounds/human_01.wav'),
+    ('knight_defeat', 'res/sounds/moan_04.wav'),
+
+    ('laugh_chamber', 'res/sounds/laugh_01.wav'),
 
     ('cast_dispel', 'res/sounds/magic_ringing_02.wav'),
     ('cast_magical_arrow', 'res/sounds/magic_ringing_01.wav')

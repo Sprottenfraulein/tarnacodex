@@ -977,7 +977,8 @@ class AppTitle:
 
         self.maze_save(pc, l)
         dbrequests.chapter_progress_set(self.db, pc.char_sheet.id, l.stage_index, 1, 1, 1, 1, 1, 1)
-        pc.tradepost_level = max(l.lvl, pc.tradepost_level)
+        # pc.tradepost_level = max(l.lvl, pc.tradepost_level)
+        pc.tradepost_level = max(pc.char_sheet.level, pc.tradepost_level)
         self.char_save(pc, l)
 
         self.wins_dict['realm'].maze = l
@@ -991,8 +992,6 @@ class AppTitle:
                                                     (0, 0), (0, -24), 'bright_gold', pc, None, 240, 'def_bold', 24)
             self.wins_dict['realm'].pygame_settings.audio.sound('news_bell')
 
-        self.pc.char_sheet.missions_check(self.wins_dict, pc)
-
         self.wins_dict['realm'].launch()
         if self.wins_dict['realm'] not in self.active_wins:
             self.active_wins.append(self.wins_dict['realm'])
@@ -1000,6 +999,7 @@ class AppTitle:
             self.active_wins.remove(self)
 
         self.wins_dict['realm'].render_update()
+        self.pc.char_sheet.missions_check(self.wins_dict, pc)
 
     def char_info_update(self):
         self.char_img_panel.images_update(self.win_ui.tilesets.get_image('char_portraits', (60,60), (self.char_selection,)))
@@ -1232,7 +1232,7 @@ class AppTitle:
 
     def ending_check(self, pc):
         quest_item_id = self.wins_dict['realm'].maze.chapter['quest_item_id']
-        quest_item_list = pc.char_sheet.inventory_search_by_id(quest_item_id) + pc.char_sheet.equipped_search_by_id(quest_item_id)
+        quest_item_list = pc.char_sheet.inventory_search_by_id(quest_item_id, amount=-1) + pc.char_sheet.equipped_search_by_id(quest_item_id)
         for qi in quest_item_list:
             if qi is not None and 'quest_item' in qi.props:
                 self.wins_dict['dialogue'].dialogue_elements = {

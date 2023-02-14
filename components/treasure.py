@@ -262,6 +262,12 @@ def calc_grade(db_cursor, grade_set_loot, loot_props, tile_sets, audio, fate_rnd
         loot_props['grade'] = None
         return
 
+    if loot_props['item_type'] not in (
+        'wpn_melee', 'wpn_ranged', 'wpn_magic', 'arm_head', 'arm_chest', 'acc_ring', 'orb_shield',
+        'orb_ammo', 'orb_source', 'light', 'aug_gem'
+    ):
+        return
+
     if loot_props['grade']['affix_amount'] > 0:
         affix_ids = set()
         if loot_props['grade']['affix_amount'] >= 2:
@@ -303,6 +309,13 @@ def condition_equipment_change(char_sheet, value, socket=None):
                     recalc_pc_stats = True
     return recalc_pc_stats
 
+
+def condition_change(itm, value):
+    itm.props['condition'] += value
+    loot_validate(itm.props)
+    if itm.props['condition'] <= 0:
+        return False
+    return True
 
 def item_expo_price(loot_props, add_price_expos):
     additional_price_buy = 0

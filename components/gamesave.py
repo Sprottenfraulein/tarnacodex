@@ -229,7 +229,7 @@ def common_stash_load(pc, db, tileset):
         stash = itemlist.ItemList(items_max=60, all_to_none=True, filters={
         'item_types': ['wpn_melee', 'wpn_ranged', 'wpn_magic', 'arm_head', 'arm_chest', 'acc_ring', 'orb_shield',
                        'orb_ammo', 'orb_source', 'use_wand', 'exp_lockpick', 'exp_tools', 'exp_food', 'exp_key',
-                       'light', 'aug_gem', 'sup_potion', 'use_learn', 'misc_man']
+                       'light', 'aug_gem', 'sup_potion', 'use_learn', 'misc_man', 'exp_res', 'use_craft']
         })
         stash_gold = 0
         common_stash_save(stash, stash_gold, pc, db, tileset)

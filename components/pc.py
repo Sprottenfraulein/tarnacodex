@@ -169,8 +169,6 @@ class PC:
 
             if abs(self.x_sq - self.prev_x_sq) >= 1 or abs(self.y_sq - self.prev_y_sq) >= 1:
                 self.food_change(wins_dict, -2)
-                if self.char_sheet.food < 250:
-                    self.autofood(wins_dict)
 
                 # Light source burns out gradually.
                 if self.char_sheet.equipped[6][0]:
@@ -183,6 +181,7 @@ class PC:
                             self.dimmed_light = True
                         if self.char_sheet.equipped[6][0].CONDITION_BROKEN_LEVEL >= self.char_sheet.equipped[6][0].props['condition']:
                             self.char_sheet.equipped[6][0] = None
+                            self.char_sheet.calc_stats()
                             wins_dict['inventory'].updated = True
                             wins_dict['debuffs'].update(self)
                             self.dimmed_light = True
@@ -307,7 +306,6 @@ class PC:
                 debuff.DeBuff(d_b, self.char_sheet.de_buffs)
             wins_dict['debuffs'].update(self)
 
-
         self.char_sheet.hp_get(damage * -1)
 
         wins_dict['realm'].hit_fx(self.x_sq, self.y_sq, chosen_attack['attack_type'], is_crit, for_pc=True, forced_sound=False)
@@ -321,7 +319,7 @@ class PC:
         if not no_crit and is_crit:
             info_color = 'fnt_attent'
             info_size = 20
-
+            self.state_change(8)
         else:
             info_color = 'fnt_attent'
             info_size = 16
@@ -331,17 +329,17 @@ class PC:
                                                color=info_color, stick_obj=self, speed_xy=(0, inf_crit_sp_y),
                                                kill_timer=25,
                                                font='large', size=16, frict_y=0.1)
-            wins_dict['realm'].pygame_settings.audio.sound('hit_blast')
 
         wins_dict['realm'].spawn_realmtext(None, str(damage * -1), (0, 0), None,
                                            color=info_color, stick_obj=self, speed_xy=(inf_sp_x, inf_sp_y),
                                            kill_timer=25,
                                            font='large', size=info_size, frict_x=0.1, frict_y=0.15)
 
+        if self.char_sheet.hp < self.char_sheet.pools['HP'] // 4:
+            if self.autoheal(wins_dict) < self.char_sheet.pools['HP'] // 4:
+                wins_dict['realm'].spawn_realmtext('new_txt', "I'm dying!", (0, 0), (0, -24), 'bloody', self, None, 120,
+                                      'def_bold', 24)
         if self.char_sheet.hp <= 0:
-            if self.autoheal(wins_dict) > 0:
-                return
-
             self.die(wins_dict, monster.stats)
 
     def autoheal(self, wins_dict):
@@ -482,16 +480,20 @@ class PC:
         self.animate()
 
     def food_change(self, wins_dict, value):
-        if self.char_sheet.food > 0:
-            self.char_sheet.food_get(value)
-            self.food_delta += abs(value)
-        else:
+        self.char_sheet.food_get(value)
+        self.food_delta += abs(value)
+        if self.char_sheet.food < 250:
+            self.autofood(wins_dict)
+        if self.char_sheet.food <= 0:
             self.char_sheet.food_get(100, percent=True)
             self.die(wins_dict, {'label': 'hunger'})
             return
         if self.food_delta >= 20:
             wins_dict['pools'].updated = True
             self.food_delta = 0
+            if self.char_sheet.food < 250:
+                wins_dict['realm'].spawn_realmtext('new_txt', "I am hungry!", (0, 0), (0, -24), 'fnt_header', self, None,
+                                      120, 'def_bold', 24)
 
     def die(self, wins_dict, killer):
         self.state_change(8)

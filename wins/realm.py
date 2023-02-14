@@ -1,7 +1,7 @@
 import pygame
 import random
 from library import calc2darray, maths, logfun, typography, particle
-from components import realmtext, skillfuncs, projectile
+from components import realmtext, skillfuncs, projectile, maze
 import math
 
 
@@ -133,6 +133,8 @@ class Realm:
             self.wins_dict['skillbook'].launch(self.pc)
         if self.wins_dict['pools'].pc != self.pc:
             self.wins_dict['pools'].launch(self.pc)
+        if self.wins_dict['tasks'].pc != self.pc:
+            self.wins_dict['tasks'].launch(self.pc)
 
         if self.wins_dict['pools'] not in self.active_wins:
             self.active_wins.insert(0, self.wins_dict['pools'])
@@ -222,6 +224,12 @@ class Realm:
                 self.hot_activate(5, True)
             elif event.key == pygame.K_7 and self.pc.char_sheet.hotbar[6] is not None:
                 self.hot_activate(6, True)
+            elif event.key == pygame.K_8 and self.pc.char_sheet.hotbar[7] is not None:
+                self.hot_activate(7, True)
+            elif event.key == pygame.K_9 and self.pc.char_sheet.hotbar[8] is not None:
+                self.hot_activate(8, True)
+            elif event.key == pygame.K_0 and self.pc.char_sheet.hotbar[9] is not None:
+                self.hot_activate(9, True)
 
         if event.type == pygame.MOUSEBUTTONDOWN:
             # removing popup if active
@@ -419,37 +427,39 @@ class Realm:
 
                 # drawing loot
                 if flags.item is not None:
+                    offset = 0
                     for loot in flags.item:
                         try:
                             surface.blit(loot.props['image_floor'][self.maze.anim_frame],
-                                         ((loot.x_sq - self.ren_x_sq) * self.square_size + loot.off_x,
-                                          (loot.y_sq - self.ren_y_sq) * self.square_size + loot.off_y))
+                                         ((loot.x_sq - self.ren_x_sq) * self.square_size + loot.off_x - offset,
+                                          (loot.y_sq - self.ren_y_sq) * self.square_size + loot.off_y - offset))
                         except IndexError:
                             surface.blit(
                                 loot.props['image_floor'][
                                     (self.maze.anim_frame + 1) % (len(loot.props['image_floor']))],
-                                ((loot.x_sq - self.ren_x_sq) * self.square_size + loot.off_x,
-                                 (loot.y_sq - self.ren_y_sq) * self.square_size + loot.off_y))
+                                ((loot.x_sq - self.ren_x_sq) * self.square_size + loot.off_x - offset,
+                                 (loot.y_sq - self.ren_y_sq) * self.square_size + loot.off_y - offset))
+                        offset += self.square_scale * 2
 
                 # mobs rendering
                 if flags.mon is not None:
                     mon = flags.mon
                     if mon.aimed:
                         surface.blit(self.target_mark[self.maze.anim_frame],
-                                     ((mon.x_sq - self.ren_x_sq + 0.15) * self.square_size + mon.off_x,
-                                      (mon.y_sq - self.ren_y_sq + 0.2) * self.square_size + mon.off_y))
+                                     ((mon.x_sq - self.ren_x_sq + 0.15 + mon.off_x) * self.square_size,
+                                      (mon.y_sq - self.ren_y_sq + 0.2 + mon.off_y) * self.square_size))
                     """if mon.waypoints is not None:
                         for wp in mon.waypoints:
                             surface.blit(self.target_mark[0],
                                          ((wp[0] - self.ren_x_sq + 0.15) * self.square_size,
                                           (wp[1] - self.ren_y_sq + 0.2) * self.square_size))"""
                     surface.blit(mon.image[mon.anim_frame],
-                                 ((mon.x_sq - self.ren_x_sq - 0.1) * self.square_size + mon.off_x,
-                                  (mon.y_sq - self.ren_y_sq - 0.1) * self.square_size + mon.off_y))
+                                 ((mon.x_sq - self.ren_x_sq - 0.1 + mon.off_x) * self.square_size,
+                                  (mon.y_sq - self.ren_y_sq - 0.1 + mon.off_y) * self.square_size))
                     if mon.stats['grade']['grade_level'] > 0 and mon.hp > 0:
                         surface.blit(mon.anim_set['affix_mark']['images'][self.maze.anim_frame],
-                                     ((mon.x_sq - self.ren_x_sq - 0.4) * self.square_size,
-                                      (mon.y_sq - self.ren_y_sq - 0.4) * self.square_size))
+                                     ((mon.x_sq - self.ren_x_sq - 0.4 + mon.off_x) * self.square_size,
+                                      (mon.y_sq - self.ren_y_sq - 0.4 + mon.off_y) * self.square_size))
 
                 if self.redraw_pc and round(self.pc.x_sq) == ren_pos_x and round(self.pc.y_sq) == ren_pos_y:
                     self.pc_display(surface, self.ren_x_sq, self.ren_y_sq)
@@ -678,7 +688,7 @@ class Realm:
             return False
         if flags.obj is not None:
             # objects
-            flags.obj.use(self.wins_dict, self.active_wins, self.pc)
+            flags.obj.use(self.wins_dict, self.active_wins, self.pc, maze)
             return False
         return True
 
@@ -763,7 +773,7 @@ class Realm:
         new_tpg = typography.Typography(self.pygame_settings,
                                         caption,
                                         (0, 0), font, size, color,
-                                        self.resources.colors['bg'], 'center', 'bottom', 160, 64, shadow=True)
+                                        self.resources.colors['bg'], 'center', 'bottom', 160, 1, shadow=True)
         new_rt = realmtext.RealmText(self, rt_id, xy_sq, text_obj=new_tpg, stick_obj=stick_obj, offset_xy=offset_xy,
                                      speed_xy=speed_xy, kill_timer=kill_timer, frict_x=frict_x, frict_y=frict_y)
         # Move text if there is another one in place.
@@ -889,18 +899,17 @@ class Realm:
         self.pygame_settings.audio.sound_panned(sound_name, direction, volume, forced)
 
     def monster_sound_ambience(self):
-        # Switched off. Annoying as hell.
-        return
-        if self.maze.anim_frame != 0 or self.maze.anim_timer != 0:
+        pass
+        """if self.maze.anim_frame != 0 or self.maze.anim_timer != 0:
             return
-        if random.randrange(0, 24) > 0:
+        if random.randrange(0, 12) > 0:
             return
         if len(self.mobs_short) == 0:
             return
         random_monster = random.choice(self.mobs_short)
         if random_monster.aggred:
             return
-        self.sound_inrealm(random_monster.stats['sound_amb'], random_monster.x_sq, random_monster.y_sq)
+        self.sound_inrealm(random_monster.stats['sound_amb'], random_monster.x_sq, random_monster.y_sq)"""
 
     def hit_fx(self, x_sq, y_sq, dam_type, is_crit, forced_sound=True, for_pc=False):
         if dam_type == 'att_physical':
@@ -931,7 +940,7 @@ class Realm:
         if for_pc:
             self.pygame_settings.audio.sound('pc_hit')
             if is_crit:
-                self.pygame_settings.audio.sound('hit_blast')
+                self.pygame_settings.audio.sound('hit_ring')
         else:
             self.sound_inrealm(self.resources.sound_presets['damage'][dam_type], x_sq, y_sq, forced=forced_sound)
             if is_crit:

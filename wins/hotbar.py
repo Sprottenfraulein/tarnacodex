@@ -21,7 +21,7 @@ class Hotbar:
         self.pc = None
         self.win_w = 0
         self.win_h = 0
-        self.hot_sckt_total = 7  # not counting 2 mandatory left click and right click sockets
+        self.hot_sckt_total = 10  # not counting 2 mandatory left click and right click sockets
         self.hot_sckt_size = 48
         self.hot_sockets_list = []
         self.hot_sockets_image = None
@@ -133,6 +133,18 @@ class Hotbar:
                                                                     self.win_h,
                                                                     0, 0, self.pygame_settings.screen_res[0],
                                                                     self.pygame_settings.screen_res[1])
+        elif element.id == 'win_header' and m_bttn == 3 and mb_event == 'down':
+            self.active_wins.remove(self)
+            if in_realm:
+                targ_win = self.wins_dict['pools']
+                bttn_id = 'hot'
+            else:
+                targ_win = self.wins_dict['app_title']
+                bttn_id = 'quick_hot'
+            for el in targ_win.win_ui.interactives:
+                if el.id == bttn_id:
+                    el.mouse_up(1)
+            self.wins_dict['pools'].updated = in_realm
 
         # PAGE 0
         if 'hot' not in element.tags:
@@ -158,24 +170,24 @@ class Hotbar:
         hot_sckt_left = 16 + 19
         hot_sckt_right = 16
         hot_sckt_top = 12
-        hot_sckt_per_row = 7
+        hot_sckt_per_row = 10
 
         # self.win_w = (hot_sckt_per_row + 2) * self.hot_sckt_size + hot_sckt_left + hot_sckt_right * 2
-        self.win_w = 511
+        self.win_w = 511 + 48 * 3
         self.win_h = math.ceil(self.hot_sckt_total / hot_sckt_per_row) * self.hot_sckt_size + hot_sckt_top * 2
 
         self.win_rendered = pygame.Surface((self.win_w, self.win_h)).convert()
         self.win_rendered.set_colorkey(self.win_ui.resources.colors['transparent'])
 
         # HOTBAR
-        hot_texture = self.win_ui.random_texture((self.win_w, self.win_h), 'black_rock')
+        hot_texture = self.win_ui.random_texture((511, self.win_h), 'black_rock')
         hot_image = pydraw.square((0, 0), (self.win_w, self.win_h),
                                   (self.win_ui.resources.colors['gray_light'],
                                    self.win_ui.resources.colors['gray_dark'],
                                    self.win_ui.resources.colors['gray_mid'],
                                    self.win_ui.resources.colors['black']),
                                   sq_outsize=1, sq_bsize=2, sq_ldir=0, sq_fill=False,
-                                  sq_image=hot_texture)
+                                  sq_image=hot_texture, img_stretch=True)
         # HOTBAR BACKGROUND
         hot_image = pydraw.square((hot_sckt_left - 1, hot_sckt_top - 1),
                                   (hot_sckt_per_row * self.hot_sckt_size + 2,
@@ -214,7 +226,7 @@ class Hotbar:
                                                tags=(self.pc.char_sheet.hotbar, 'hot'), win=self)
             self.hot_sockets_list.append(hot_socket)
             label_element = self.win_ui.text_add('shortcut', (s_x, s_y), (self.hot_sckt_size, self.hot_sckt_size),
-                                                 caption=str(i + 1),
+                                                 caption=str(i + 1).replace('10', '0'),
                                                  h_align='left', v_align='top', cap_color='gray_dark',
                                                  cap_font='def_bold', cap_size=24)
             self.win_ui.decoratives.append(label_element)

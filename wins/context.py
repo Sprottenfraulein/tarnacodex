@@ -66,12 +66,18 @@ class Context:
             self.wins_dict['context'].update_elements_armor(pc, itm, element, self.mouse_pointer.xy, trade=trade)
         elif itm.props['item_type'] in ('acc_ring',):
             self.wins_dict['context'].update_elements_accessory(pc, itm, element, self.mouse_pointer.xy, trade=trade)
-        elif itm.props['item_type'] in ('skill_melee', 'skill_ranged', 'skill_magic', 'skill_craft', 'skill_misc'):
+        elif itm.props['item_type'] in ('skill_melee', 'skill_ranged', 'skill_magic', 'skill_craft', 'skill_misc', ):
             self.wins_dict['context'].update_elements_skill(pc, itm, element, self.mouse_pointer.xy, trade=trade)
         elif itm.props['item_type'] in ('use_learn',):
             self.wins_dict['context'].update_elements_certificate(pc, itm, element, self.mouse_pointer.xy, trade=trade)
+        elif itm.props['item_type'] in ('use_wand', ):
+            self.wins_dict['context'].update_elements_wand(pc, itm, element, self.mouse_pointer.xy, trade=trade)
+        elif itm.props['item_type'] in ('use_craft'):
+            self.wins_dict['context'].update_elements_recipe(pc, itm, element, self.mouse_pointer.xy, trade=trade)
         elif itm.props['item_type'] in ('sup_potion', 'exp_food'):
             self.wins_dict['context'].update_elements_supply(pc, itm, element, self.mouse_pointer.xy, trade=trade)
+        elif itm.props['item_type'] in ('exp_res',):
+            self.wins_dict['context'].update_elements_resource(pc, itm, element, self.mouse_pointer.xy, trade=trade)
         elif itm.props['item_type'] == 'exp_lockpick':
             self.wins_dict['context'].update_elements_lockpick(
                 pc, itm, (
@@ -425,6 +431,128 @@ class Context:
         }
         if trade:
             bl_text['price'] = str('Buy price: %s' % treasure.calc_loot_stat(item.props, 'price_buy'))
+        else:
+            bl_text['price'] = str('Sell price: %s' % treasure.calc_loot_stat(item.props, 'price_sell'))
+
+        itm_bodylines = self.body_text_add(bl_text, info_y)
+
+        itm_headlines.render_all()
+        itm_bodylines.render_all()
+
+        self.win_h = itm_bodylines.size[1] + info_y + self.itm_img_size[
+            1] + self.image_body_space_size + self.win_border_size
+
+        self.win_surface()
+
+        # background
+        bg_panel = self.background_add(decor_color)
+
+        # item icon
+        itm_icon_panel = self.item_icon_add(item, info_y)
+
+        self.win_ui.decoratives.append(context_header)
+        self.win_ui.decoratives.append(itm_headlines)
+        self.win_ui.decoratives.append(itm_bodylines)
+        self.win_ui.decoratives.append(itm_icon_panel)
+        self.win_ui.decoratives.append(bg_panel)
+
+        self.win_align(mouse_xy)
+
+        self.win_ui.draw(self.win_rendered)
+
+    def update_elements_wand(self, pc, item, element, mouse_xy, trade=False, log=True):
+        self.win_ui_clear()
+
+        self.win_w = 240
+
+        # color based on grade
+        decor_color = 'azure'
+
+        header_caption = item.props['label'].upper()
+        context_header, info_y = self.header_add(header_caption, decor_color)
+
+        hl_text = {
+            'gradetype': item.props['class'].capitalize(),
+            'mainvalue': '%s' % (item.props['lvl'] or '-'),
+            'mv_caption': 'Level'
+        }
+        itm_headlines = self.headlines_add(hl_text, info_y)
+        itm_headlines.render_all()
+
+        # calculating and rendering text
+        bl_text = {
+            'desc': (item.props['desc'] % getattr(skillfuncs, item.props['use_skill'].props['function_name'])(self.wins_dict, None, pc, item.props['use_skill'], (element.tags[0], element.id), just_values=True) + ' ')
+        }
+        if 'charge' in item.props:
+            bl_text['charges'] = 'Charge: %s/%s' % (
+                item.props['charge'], treasure.calc_loot_stat(item.props, 'charge_max'))
+        if 'condition' in item.props:
+            bl_text['condition'] = 'Condition: %s/%s' % (
+                item.props['condition'], treasure.calc_loot_stat(item.props, 'condition_max'))
+        if trade:
+            bl_text['price'] = str('Buy price: %s' % treasure.calc_loot_stat(item.props, 'price_buy'))
+        else:
+            bl_text['price'] = str('Sell price: %s' % treasure.calc_loot_stat(item.props, 'price_sell'))
+
+        itm_bodylines = self.body_text_add(bl_text, info_y)
+
+        itm_headlines.render_all()
+        itm_bodylines.render_all()
+
+        self.win_h = itm_bodylines.size[1] + info_y + self.itm_img_size[
+            1] + self.image_body_space_size + self.win_border_size
+
+        self.win_surface()
+
+        # background
+        bg_panel = self.background_add(decor_color)
+
+        # item icon
+        itm_icon_panel = self.item_icon_add(item, info_y)
+
+        self.win_ui.decoratives.append(context_header)
+        self.win_ui.decoratives.append(itm_headlines)
+        self.win_ui.decoratives.append(itm_bodylines)
+        self.win_ui.decoratives.append(itm_icon_panel)
+        self.win_ui.decoratives.append(bg_panel)
+
+        self.win_align(mouse_xy)
+
+        self.win_ui.draw(self.win_rendered)
+
+    def update_elements_recipe(self, pc, item, element, mouse_xy, trade=False, log=True):
+        self.win_ui_clear()
+
+        self.win_w = 240
+
+        # color based on grade
+        decor_color = 'azure'
+
+        header_caption = item.props['label'].upper()
+        context_header, info_y = self.header_add(header_caption, decor_color)
+
+        hl_text = {
+            'gradetype': 'Recipe',
+            'mainvalue': '%s' % (item.props['lvl'] or '-'),
+            'mv_caption': 'Level'
+        }
+        itm_headlines = self.headlines_add(hl_text, info_y)
+        itm_headlines.render_all()
+
+        # calculating and rendering text
+        bl_text = {
+            'desc': (
+                item.props['desc'] % getattr(
+                    skillfuncs, item.props['use_skill'].props['function_name']
+                )(
+                    self.wins_dict, None, pc, item.props['use_skill'], (element.tags[0], element.id), just_values=True
+                ) + ' '
+            )
+        }
+        if trade:
+            bl_text['price'] = str('Buy price: %s' % treasure.calc_loot_stat(item.props, 'price_buy'))
+        else:
+            bl_text['price'] = str('Sell price: %s' % treasure.calc_loot_stat(item.props, 'price_sell'))
 
         itm_bodylines = self.body_text_add(bl_text, info_y)
 
@@ -484,8 +612,66 @@ class Context:
                 item.props['charge'], treasure.calc_loot_stat(item.props, 'charge_max'))
         if trade:
             body_text['price'] = str('Buy price: %s' % treasure.calc_loot_stat(item.props, 'price_buy'))
-        """else:
-            body_text['price'] = str('Sell price: %s' % treasure.calc_loot_stat(item.props, 'price_sell'))"""
+        else:
+            body_text['price'] = str('Sell price: %s' % treasure.calc_loot_stat(item.props, 'price_sell'))
+
+        itm_bodylines = self.body_text_add(body_text, info_y)
+
+        itm_headlines.render_all()
+        itm_bodylines.render_all()
+
+        self.win_h = itm_bodylines.size[1] + info_y + self.itm_img_size[1] + self.image_body_space_size + self.win_border_size
+
+        self.win_surface()
+
+        # background
+        bg_panel = self.background_add(decor_color)
+
+        # item icon
+        itm_icon_panel = self.item_icon_add(item, info_y)
+
+        self.win_ui.decoratives.append(context_header)
+        self.win_ui.decoratives.append(itm_bodylines)
+        self.win_ui.decoratives.append(itm_headlines)
+        self.win_ui.decoratives.append(itm_icon_panel)
+        self.win_ui.decoratives.append(bg_panel)
+
+        self.win_align(mouse_xy)
+
+        self.win_ui.draw(self.win_rendered)
+
+    def update_elements_resource(self, pc, item, element, mouse_xy, trade=False, log=True):
+        self.win_ui_clear()
+
+        self.win_w = 240
+
+        # color based on grade
+        decor_color = item.props['grade']['color']
+
+        header_caption = treasure.loot_calc_name(item.props).upper()
+        context_header, info_y = self.header_add(header_caption, decor_color)
+
+        # calculating and rendering text
+        hl_text = {
+            'gradetype': 'Ingredient',
+            'mainvalue': '%s' % (item.props['lvl'] or '-'),
+            'mv_caption': 'Level'
+        }
+        itm_headlines = self.headlines_add(hl_text, info_y)
+
+        body_text = {
+            'desc': item.props['desc']
+        }
+        if 'charge' in item.props:
+            body_text['charges'] = 'Charge: %s/%s' % (
+                item.props['charge'], treasure.calc_loot_stat(item.props, 'charge_max'))
+        if 'condition' in item.props:
+            body_text['condition'] = 'Condition: %s/%s' % (
+                item.props['condition'], treasure.calc_loot_stat(item.props, 'condition_max'))
+        if trade:
+            body_text['price'] = str('Buy price: %s' % treasure.calc_loot_stat(item.props, 'price_buy'))
+        else:
+            body_text['price'] = str('Sell price: %s' % treasure.calc_loot_stat(item.props, 'price_sell'))
 
         itm_bodylines = self.body_text_add(body_text, info_y)
 
@@ -539,7 +725,10 @@ class Context:
             'affix_de_buffs': ' $n '.join(
                 [self.decorated_de_buffs(affx['de_buffs']) for affx in item.props['affixes'] if affx['de_buffs']]),
             'desc': item.props['desc'] % ((treasure.calc_loot_stat(item.props, 'prof_picklock') + pc.char_sheet.profs[
-                'prof_picklock']) // 10)
+                'prof_picklock']) // 10),
+            'condition': str('Condition: %s/%s' % (
+                math.ceil(item.props['condition'] / 10),
+                math.ceil(treasure.calc_loot_stat(item.props, 'condition_max') / 10)))
         }
         if trade:
             body_text['price'] = str('Buy price: %s' % treasure.calc_loot_stat(item.props, 'price_buy'))

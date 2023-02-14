@@ -22,7 +22,10 @@ def generate_loot(monster, realm, fate_rnd, pc, log=True):
         rnd_rate = random.randrange(0, tr_amount + 1)
     else:
         rnd_rate = fate_rnd.expo_rnd(0, tr_amount + 1)
-    actual_amount = max(rnd_rate, monster.stats['grade']['grade_level'])
+    # Level difference penalty and grade bonus
+    actual_amount = max(
+        0, max(rnd_rate, monster.stats['grade']['grade_level']) - (abs(monster.stats['lvl'] - pc.char_sheet.level) > 2)
+    )
 
     itm_lvl_spread_list = [
         (-2, 400),
@@ -31,16 +34,25 @@ def generate_loot(monster, realm, fate_rnd, pc, log=True):
         (1, 200)
     ]
 
-    rnd_roll = random.randrange(1, 10001)
+    """rnd_roll = random.randrange(1, 10001)
     tr_ids_list = [
         (tr['treasure_id'], tr['roll_chance'])
         for tr in dbrequests.treasure_get(
             realm.db.cursor,
             max(1, monster.stats['lvl'] + pickrandom.items_get(itm_lvl_spread_list, 1)[0]),
-            tr_group, rnd_roll
+            rnd_roll, treasure_group=tr_group
+        )
+    ]"""
+    tr_ids_list = [
+        tr['treasure_id']
+        for tr in dbrequests.treasure_get(
+            realm.db.cursor,
+            max(1, monster.stats['lvl'] + pickrandom.items_get(itm_lvl_spread_list, 1)[0]),
+            random.randrange(1, 10001), treasure_group=tr_group
         )
     ]
-    rnd_ids = pickrandom.items_get(tr_ids_list, actual_amount, items_pop=True)
+    # rnd_ids = pickrandom.items_get(tr_ids_list, actual_amount, items_pop=True)
+    rnd_ids = random.sample(tr_ids_list, min(actual_amount, len(tr_ids_list)))
     for rnd_id in rnd_ids:
         new_tr = treasure.Treasure(
             rnd_id, max(1, monster.stats['lvl'] + pickrandom.items_get(itm_lvl_spread_list, 1)[0]),
@@ -66,24 +78,33 @@ def generate_loot(monster, realm, fate_rnd, pc, log=True):
     # SPECIAL QUEST STATEMENT
     if (realm.maze.stage_index == realm.maze.chapter['stage_number'] - 1
             and not [mob for mob in realm.maze.mobs if mob.alive]):
-        new_tr = treasure.Treasure(realm.maze.chapter['quest_item_id'], monster.stats['lvl'], realm.db.cursor,
-                                   realm.tilesets, realm.resources, realm.pygame_settings.audio, fate_rnd)
+        if realm.maze.chapter['quest_item_id']:
+            new_tr = treasure.Treasure(realm.maze.chapter['quest_item_id'], monster.stats['lvl'], realm.db.cursor,
+                                       realm.tilesets, realm.resources, realm.pygame_settings.audio, fate_rnd)
+        else:
+            rnd_roll = random.randrange(1, 10001)
+            tr_id = random.choice(dbrequests.treasure_get(realm.db.cursor, monster.stats['lvl'], rnd_roll,
+                                                          treasure_group=400, item_class=('blackrock',)))['treasure_id']
+            new_tr = treasure.Treasure(tr_id, monster.stats['lvl'], realm.db.cursor,
+                                       realm.tilesets, realm.resources, realm.pygame_settings.audio, fate_rnd)
         new_tr.props['quest_item'] = True
         treasure.loot_validate(new_tr.props)
         treasure_list.append(new_tr)
 
         # Special Blackrock statement. If the item in player's inventory, monsters, traps and doors have to be rerolled.
-        for i in range(0, realm.maze.chapter['stage_number'] - 1):
-            dbrequests.chapter_progress_set(realm.db, pc.char_sheet.id, i, 1, 0, 1, 0, 0, 1)
-        realm.spawn_realmtext('new_txt', "This is it! I need to go back now.", (0, 0), (0, -24),
-                                           'cyan', pc, None, 240, 'def_bold', 24)
-        realm.sound_inrealm('realmtext_noise', pc.x_sq, pc.y_sq)
+        realm.wins_dict['dialogue'].dialogue_elements = {
+            'header': 'Attention',
+            'text': 'The quest item has been dropped! Now take it to the exit on the first Stage to conclude your quest.',
+            'bttn_ok': 'OK'
+        }
+        realm.wins_dict['dialogue'].delayed_action['bttn_ok'] = (realm.maze, 'longwayhome_reroll', (realm,))
+        realm.wins_dict['dialogue'].launch(realm.pc)
 
     return treasure_list
 
 
 def generate_gold(monster, realm, fate_rnd, pc):
-    gold_list = [monster.stats['gold']]     # value is in percents of default gold item amount value.
+    gold_list = [monster.stats['gold']]  # value is in percents of default gold item amount value.
     if 'affixes' in monster.stats:
         for affix in monster.stats['affixes']:
             if affix['additional_gold'] is not None:
@@ -97,8 +118,13 @@ def generate_gold(monster, realm, fate_rnd, pc):
             realm.tilesets, realm.resources, realm.pygame_settings.audio, fate_rnd
         )
         amount = new_gold.props['amount'] + new_gold.props['amount'] * gold_pile // 100
-        new_gold.props['amount'] = round(amount * (treasure.SCALE_RATE_GOLD * (monster.stats['lvl'] * (monster.stats['lvl'] + 1) / 2)))
+        new_gold.props['amount'] = round(
+            amount * (treasure.SCALE_RATE_GOLD * (monster.stats['lvl'] * (monster.stats['lvl'] + 1) / 2)))
         new_gold.props['amount'] += (new_gold.props['amount'] * pc.char_sheet.profs['prof_findgold'] // 1000)
+        # Level difference penalty
+        new_gold.props['amount'] = round(
+            new_gold.props['amount'] * (1 - min(3, max(0, abs(monster.stats['lvl'] - pc.char_sheet.level) - 1)) * 0.25)
+        )
 
         if pc.char_sheet.level == 1:
             new_gold.props['amount'] *= 2
@@ -124,7 +150,8 @@ def generate_gold(monster, realm, fate_rnd, pc):
 
 def drop_loot(x_sq, y_sq, realm, loot_list):
     space_list = calc2darray.fill2d(realm.maze.flag_array, {'mov': False, 'obj': True, 'door': True, 'floor': False},
-                                          (x_sq, y_sq), (x_sq, y_sq), len(loot_list) + 1, 2, r_max=20)
+                                    (round(x_sq), round(y_sq)), (round(x_sq), round(y_sq)), len(loot_list) + 1, 2,
+                                    r_max=20)
     for i in range(len(loot_list) - 1, -1, -1):
         lt_x_sq, lt_y_sq = random.choice(space_list)
 

@@ -109,7 +109,7 @@ class CharSheet:
         self.inventory = itemlist.ItemList(items_max=24, all_to_none=True, filters={
             'item_types': ['wpn_melee', 'wpn_ranged', 'wpn_magic', 'arm_head', 'arm_chest', 'acc_ring', 'orb_shield',
                            'orb_ammo', 'orb_source', 'use_wand', 'exp_lockpick', 'exp_tools', 'exp_food', 'exp_key',
-                           'light', 'aug_gem', 'sup_potion', 'use_learn', 'misc_man']
+                           'light', 'aug_gem', 'sup_potion', 'use_learn', 'misc_man', 'exp_res', 'use_craft']
         })
         # Equipment dictionary
         self.equipped = [
@@ -143,9 +143,9 @@ class CharSheet:
             }),
         ]
 
-        self.hotbar = itemlist.ItemList(all_to_none=True, items_max=9, filters={
+        self.hotbar = itemlist.ItemList(all_to_none=True, items_max=12, filters={
             'item_types': ['skill_melee', 'skill_ranged', 'skill_magic', 'skill_craft', 'skill_misc', 'sup_potion',
-                           'exp_food', 'exp_lockpick', 'exp_key', 'exp_tools', 'use_learn']
+                           'exp_food', 'exp_lockpick', 'exp_key', 'exp_tools', 'use_learn', 'use_craft']
         })
 
         self.missions = {}
@@ -427,11 +427,25 @@ class CharSheet:
             pass
         return mod_sum
 
-    def experience_get(self, wins_dict, pc, exp_value):
-        self.experience += exp_value
-        """wins_dict['realm'].schedule_man.task_add('realm_tasks', 1, wins_dict['realm'], 'spawn_realmtext',
-                                                 ('new_txt', "%s exp" % exp_value,
-                                                  (0, 0), (0, -24), 'sun', pc, (0,0), 30, 'large', 16, 0, 0))"""
+    def experience_get(self, wins_dict, pc, challenge_level, exp_value):
+        exp_color = 'sun'
+        level_diff = min(3, max(0, abs(pc.char_sheet.level - challenge_level) - 1))
+        if challenge_level is not None:
+            new_exp_value = round(exp_value - exp_value * (level_diff * 0.25))
+        else:
+            new_exp_value = exp_value
+        if level_diff == 1:
+            exp_color = 'fnt_header'
+        if level_diff == 2:
+            exp_color = 'fnt_muted'
+        elif level_diff == 3:
+            exp_color = 'bloody'
+        if new_exp_value < 0:
+            exp_color = 'bloody'
+        self.experience += new_exp_value
+        wins_dict['realm'].spawn_realmtext('new_txt', '%s exp.' % new_exp_value,
+                                               (0, 0), (0, -24), exp_color, pc, (0, -2), 60, 'large', 16, 0,
+                                               0.17)
         if not self.exp_prev_lvl <= self.experience < self.exp_next_lvl:
             old_level = self.level
             self.level = self.calc_level(self.experience)
@@ -540,7 +554,8 @@ class CharSheet:
             if itm.props['treasure_id'] == item_id:
                 if level is None or itm.props['lvl'] is None or itm.props['lvl'] >= level:
                     found_list.append(itm)
-                    amount -= 1
+                    if amount > 0:
+                        amount -= 1
         return found_list
 
     def equipped_search_by_id(self, item_id):
@@ -563,7 +578,8 @@ class CharSheet:
             if itm.props['treasure_id'] == item_id:
                 if level is None or itm.props['lvl'] is None or itm.props['lvl'] >= level:
                     self.inventory[i] = None
-                    amount -= 1
+                    if amount > 0:
+                        amount -= 1
 
     def item_remove(self, wins_dict, item):
         if item in self.inventory:
@@ -667,8 +683,9 @@ class CharSheet:
                     new_mission['lvl'] = pc.char_sheet.level
                     missions_updated = True
                 elif (self.missions[new_mission['mission_id']]['once'] == 0
-                        and 'complete' in self.missions[new_mission['mission_id']]
-                      and self.missions[new_mission['mission_id']]['lvl'] < pc.char_sheet.level):
+                      and 'complete' in self.missions[new_mission['mission_id']]
+                      and self.missions[new_mission['mission_id']]['complete'] >=
+                      self.missions[new_mission['mission_id']]['lvl'] != pc.char_sheet.level):
                     self.missions[new_mission['mission_id']]['lvl'] = pc.char_sheet.level
                     missions_updated = True
         if missions_updated:

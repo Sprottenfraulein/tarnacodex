@@ -125,11 +125,18 @@ def treasure_get_by_id(cursor, key_id):
     return treasure_dict, modifiers_list, de_buffs_list
 
 
-def treasure_get(cursor, lvl, treasure_group, roll, item_type=None, char_type=None, equipment_type=None, shop=None):
-    ex_str = "SELECT treasure_id, roll_chance FROM treasure WHERE (lvl is Null OR lvl<=?) AND treasure_group IN (0, ?) AND roll_chance>=?"
+def treasure_get(cursor, lvl, roll, treasure_group=None, item_type=None, item_class=None, char_type=None, equipment_type=None, shop=None):
+    ex_str = "SELECT treasure_id, roll_chance FROM treasure WHERE (lvl is Null OR lvl<=?) AND roll_chance>=?"
+    if treasure_group is not None:
+        itm_query = ' AND treasure_group IN (0, %s)' % treasure_group
+        ex_str += itm_query
     if item_type is not None:
         itm_str = "'%s'" % "','".join(item_type)
         itm_query = ' AND item_type IN (%s)' % itm_str
+        ex_str += itm_query
+    if item_class is not None:
+        itm_str = "'%s'" % "','".join(item_class)
+        itm_query = ' AND class IN (%s)' % itm_str
         ex_str += itm_query
     if char_type is not None:
         for cht in char_type:
@@ -148,7 +155,7 @@ def treasure_get(cursor, lvl, treasure_group, roll, item_type=None, char_type=No
     if shop is not None:
         eq_query = ' AND shop=%s' % shop
         ex_str += eq_query
-    cursor.execute(ex_str, (lvl, treasure_group, roll))
+    cursor.execute(ex_str, (lvl, roll))
     rows = cursor.fetchall()
     column_names = [column[0] for column in cursor.description]
     treasure_ids = []
@@ -302,7 +309,7 @@ def treasure_sounds_get(cursor, treasure_id, grade):
 
 
 def get_affixes_loot(cursor, max_level, max_grade, item_types, roll, is_suffix=None):
-    ex_str = "SELECT affix_id FROM affixes_loot WHERE affix_level<=? AND item_grade<=? AND roll_chance>=?"
+    ex_str = "SELECT affix_id FROM affixes_loot WHERE lvl<=? AND item_grade<=? AND roll_chance>=?"
     for t in item_types:
         ex_str += ' AND %s=1' % t
     bindings = [max_level, max_grade, roll]
@@ -318,7 +325,8 @@ def get_affixes_loot(cursor, max_level, max_grade, item_types, roll, is_suffix=N
 
 
 def get_affixes_mob(cursor, max_level, max_grade, mob_type, roll, is_suffix=None):
-    ex_str = "SELECT affix_id FROM affixes_mon WHERE lvl<=? AND monster_grade<=? AND roll_chance>=? AND monster_type=?"
+    ex_str = ("SELECT affix_id FROM affixes_mon WHERE lvl<=? AND monster_grade<=? "
+              "AND roll_chance>=? AND (monster_type is Null OR monster_type=?)")
     bindings = [max_level, max_grade, roll, mob_type]
     if is_suffix is not None:
         ex_str += ' AND suffix=?'
@@ -411,12 +419,12 @@ def affixed_attack_get(cursor, affix_id):
 
 
 def get_monsters(cursor, max_level, max_grade, monster_types, roll):
-    ex_str = "SELECT monster_id FROM monsters WHERE lvl<=? AND grade<=? AND roll_chance>=?"
+    ex_str = "SELECT monster_id FROM monsters WHERE lvl<=? AND roll_chance>=?"
     if monster_types is not None:
         mon_str = ','.join(monster_types)
         mon_query = ' AND monster_type IN (%s)' % mon_str
         ex_str += mon_query
-    bindings = [max_level, max_grade, roll]
+    bindings = [max_level, roll]
     cursor.execute(ex_str, bindings)
     rows = cursor.fetchall()
     monster_ids = []
@@ -689,3 +697,27 @@ def mission_tasks_get(cursor, treasure_ids):
             task_dict[column_names[i]] = row[i]
         task_list.append(task_dict)
     return task_list
+
+
+def get_recipe_ingredients(cursor, recipe_id):
+    ex_str = "SELECT * FROM crafting_ingredient_sets WHERE recipe_treasure_id=?"
+    cursor.execute(ex_str, (recipe_id,))
+    rows = cursor.fetchall()
+    column_names = [column[0] for column in cursor.description]
+    ingredient_list = []
+    for row in rows:
+        ingredient_dict = {}
+        for i in range(0, len(column_names)):
+            ingredient_dict[column_names[i]] = row[i]
+        ingredient_list.append(ingredient_dict)
+    return ingredient_list
+
+
+def get_recipe_result(cursor, recipe_id):
+    ex_str = "SELECT result_treasure_id FROM crafting_result_sets WHERE recipe_treasure_id=?"
+    cursor.execute(ex_str, (recipe_id,))
+    rows = cursor.fetchall()
+    result_list = []
+    for row in rows:
+        result_list.append(row[0])
+    return result_list

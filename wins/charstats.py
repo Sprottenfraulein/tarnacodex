@@ -83,6 +83,12 @@ class CharStats:
 
         if self.wins_dict['realm'] in self.active_wins and self.pc is not None:
             self.pc.move_instr_x = self.pc.move_instr_y = 0
+            in_realm = True
+        else:
+            in_realm = False
+
+        if self.wins_dict['realm'] in self.active_wins and self.pc is not None:
+            self.pc.move_instr_x = self.pc.move_instr_y = 0
         # dragging window
         if element.id == 'win_header' and m_bttn == 1:
             if mb_event == 'down':
@@ -103,6 +109,19 @@ class CharStats:
                                                                     self.win_h,
                                                                     0, 0, self.pygame_settings.screen_res[0],
                                                                     self.pygame_settings.screen_res[1])
+        elif element.id == 'win_header' and m_bttn == 3 and mb_event == 'down':
+            self.active_wins.remove(self)
+            self.end()
+            if in_realm:
+                targ_win = self.wins_dict['pools']
+                bttn_id = 'char'
+            else:
+                targ_win = self.wins_dict['app_title']
+                bttn_id = 'quick_char'
+            for el in targ_win.win_ui.interactives:
+                if el.id == bttn_id:
+                    el.mouse_up(1)
+            self.wins_dict['pools'].updated = in_realm
 
         # PAGE 0
 

@@ -10,11 +10,11 @@ class Maze:
         self.animations = animations
         self.resources = resources
 
-        self.MOB_HP_SCALE_RATE = 0.3
-        self.MOB_DMG_SCALE_RATE = 0.2
+        self.MOB_HP_SCALE_RATE = 0.5
+        self.MOB_DMG_SCALE_RATE = 0.4
         self.EXP_SCALE_RATE = 0.3
         # self.GOLD_SCALE_RATE = 1.3
-        self.TRAP_SCALE_RATE = 0.2
+        self.TRAP_SCALE_RATE = 0.5
 
         self.chapter, self.stage_index = pc.location
         self.stage_dict = get_chapter_stage(db, self.chapter, self.stage_index)
@@ -32,7 +32,7 @@ class Maze:
         else:
             self.lvl = self.stage_dict['lvl']
 
-        self.mob_utility_obj = monster.Monster(0, 0, None, {
+        self.mob_utility_obj = monster.Lurker(0, 0, None, {
             'label': 'deadly trap',
             'crit_chance': 5,
             'hp_max': None,
@@ -64,7 +64,7 @@ class Maze:
         self.loot = itemlist.ItemList(filters={
                 'item_types': ['wpn_melee', 'wpn_ranged', 'wpn_magic', 'arm_head', 'arm_chest', 'acc_ring', 'orb_shield',
                                'orb_ammo', 'orb_source', 'use_wand', 'exp_tools', 'exp_lockpick', 'exp_food', 'exp_key',
-                               'light', 'aug_gem', 'sup_potion'],
+                               'light', 'aug_gem', 'sup_potion', 'use_learn', 'use_craft', 'exp_res', 'misc_man'],
             })
         self.text = []
 
@@ -144,6 +144,14 @@ class Maze:
             self.loot.append(lt)
             flags = self.flag_array[y_sq][x_sq]
             flags.item.append(lt)
+
+    def longwayhome_reroll(self, realm):
+        for i in range(0, realm.maze.chapter['stage_number'] - 1):
+            dbrequests.chapter_progress_set(realm.db, realm.pc.char_sheet.id, i, 1, 0, 1, 0, 0, 1)
+        realm.spawn_realmtext('new_txt', "This is it! I need to go back now.", (0, 0), (0, -24),
+                              'cyan', realm.pc, None, 240, 'def_bold', 24)
+        realm.sound_inrealm('realmtext_noise', realm.pc.x_sq, realm.pc.y_sq)
+
 
 
 def get_room_sequence(rooms):
@@ -798,7 +806,7 @@ def populate(db, maze, pc, animations):
         else:
             mon['grade'] = None
         del mon['grade_set_monster']
-        monster_apply_grade(db, mon, maze.resources.fate_rnd)
+        monster_apply_grade(db, mon, pop_level, maze.resources.fate_rnd)
         scale_mob(mon, pop_level, maze)
 
     getattr(maze, maze.stage_dict['populate_algorythm'])(db, maze, animations, maze_monster_pool,
@@ -844,11 +852,35 @@ def mob_populate_alg_1(db, maze, animations, maze_monster_pool, monster_number, 
                                         (x_sq, y_sq), (x_sq, y_sq), len(room_mobs) + 1, 10, r_max=20)
         for mon_x_sq, mon_y_sq in space_list[1:]:
             rm_mob = room_mobs.pop()
-            maze.mobs.append(
-                monster.Monster(
-                    mon_x_sq, mon_y_sq, animations.get_animation(rm_mob['animation']), rm_mob, state=0
-                )
+            mob_add(maze, mon_x_sq, mon_y_sq, animations, rm_mob)
+
+
+def mob_add(maze, mon_x_sq, mon_y_sq, animations, mob_props):
+    if mob_props['behavior'] == 'lurker':
+        maze.mobs.append(
+            monster.Lurker(
+                mon_x_sq, mon_y_sq, animations.get_animation(mob_props['animation']), mob_props, state=0
             )
+        )
+    elif mob_props['behavior'] == 'mimic':
+        maze.mobs.append(
+            monster.Mimic(
+                mon_x_sq, mon_y_sq, animations.get_animation(mob_props['animation']), mob_props, state=0
+            )
+        )
+    elif mob_props['behavior'] == 'giant':
+        maze.mobs.append(
+            monster.Giant(
+                mon_x_sq, mon_y_sq, animations.get_animation(mob_props['animation']), mob_props, state=0
+            )
+        )
+    else:   # Catch-all safe option
+        maze.mobs.append(
+            monster.Lurker(
+                mon_x_sq, mon_y_sq, animations.get_animation(mob_props['animation']), mob_props, state=0
+            )
+        )
+    maze.flag_array[mon_y_sq][mon_x_sq].mon = maze.mobs[-1]
 
 
 def roll_monsters(db_cursor, max_level, max_grade, monster_types, mon_amount=1):
@@ -883,17 +915,17 @@ def mob_scale_attack(m_a, level, init_level, scale_rate):
     m_a['attack_val_spread'] = round(m_a['attack_val_spread'] + m_a['attack_val_spread'] * scale_rate * (level - 1))
 
 
-def monster_apply_grade(db, mob_stats, fate_rnd):
+def monster_apply_grade(db, mob_stats, pop_level, fate_rnd):
     if mob_stats['grade'] is None:
         return
 
     if mob_stats['grade']['affix_amount'] > 0:
         affix_ids = set()
         if mob_stats['grade']['affix_amount'] >= 2:
-            affix_ids.add(mob_roll_affix(db.cursor, mob_stats['grade']['grade_level'], mob_stats, is_suffix=0))
+            affix_ids.add(mob_roll_affix(db.cursor, mob_stats['grade']['grade_level'], pop_level, mob_stats['monster_type'], is_suffix=0))
         if mob_stats['grade']['affix_amount'] >= 3:
-            affix_ids.add(mob_roll_affix(db.cursor, mob_stats['grade']['grade_level'], mob_stats, is_suffix=0))
-        affix_ids.add(mob_roll_affix(db.cursor, mob_stats['grade']['grade_level'], mob_stats))
+            affix_ids.add(mob_roll_affix(db.cursor, mob_stats['grade']['grade_level'], pop_level, mob_stats['monster_type'], is_suffix=0))
+        affix_ids.add(mob_roll_affix(db.cursor, mob_stats['grade']['grade_level'], pop_level, mob_stats['monster_type']))
         if None in affix_ids:
             affix_ids.remove(None)
         for aff in affix_ids:
@@ -911,10 +943,9 @@ def monster_apply_grade(db, mob_stats, fate_rnd):
     target.wound(damage, 'att_physical', False, is_crit, wins_dict, fate_rnd, pc)"""
 
 
-def mob_roll_affix(db_cursor, grade, mob_stats, is_suffix=None):
+def mob_roll_affix(db_cursor, grade, pop_level, monster_type, is_suffix=None):
     rnd_roll = random.randrange(0, 10001)
-    affix_ids = dbrequests.get_affixes_mob(db_cursor, mob_stats['lvl'], grade, mob_stats['monster_type'], rnd_roll,
-                                            is_suffix=is_suffix)
+    affix_ids = dbrequests.get_affixes_mob(db_cursor, pop_level, grade, monster_type, rnd_roll, is_suffix=is_suffix)
     if len(affix_ids) > 0:
         return random.choice(affix_ids)
     else:
@@ -1001,3 +1032,4 @@ def get_chapter_stage(db, chapter, stage_index):
         return stage[0]
     else:
         return None
+

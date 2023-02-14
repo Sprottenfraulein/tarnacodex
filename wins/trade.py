@@ -150,6 +150,8 @@ class Trade:
                                                                     self.win_h,
                                                                     0, 0, self.pygame_settings.screen_res[0],
                                                                     self.pygame_settings.screen_res[1])
+        elif element.id == 'win_header' and m_bttn == 3 and mb_event == 'down':
+            self.end()
 
         if element.id == 'bttn_close' and m_bttn == 1 and mb_event == 'up':
             self.end()
@@ -313,7 +315,7 @@ class Trade:
                 cap_color='fnt_muted', sounds=self.win_ui.snd_packs['button'], page=None, mode=1, tags=(
                     'wpn_melee', 'wpn_ranged', 'wpn_magic', 'arm_head', 'arm_chest', 'acc_ring', 'orb_shield',
                     'orb_ammo', 'orb_source', 'use_wand', 'exp_tools', 'exp_lockpick', 'exp_food', 'exp_key',
-                    'light', 'aug_gem', 'sup_potion', 'use_learn', 'misc_man'), switch=True
+                    'light', 'aug_gem', 'sup_potion', 'use_learn', 'misc_man', 'use_craft', 'exp_res'), switch=True
             ),
             self.win_ui.button_add(
                 'bttn_filter', caption='Weapons', size=(80, 24), cap_font='def_bold', cap_size=24,
@@ -347,6 +349,10 @@ class Trade:
                 'bttn_filter', caption='Skills', size=(80, 24), cap_font='def_bold', cap_size=24,
                 cap_color='fnt_muted', sounds=self.win_ui.snd_packs['button'], page=None, tags=(
                     'use_learn',), switch=True),
+            self.win_ui.button_add(
+                'bttn_filter', caption='Craft', size=(80, 24), cap_font='def_bold', cap_size=24,
+                cap_color='fnt_muted', sounds=self.win_ui.snd_packs['button'], page=None, tags=(
+                    'use_craft', 'exp_res'), switch=True),
             self.win_ui.button_add(
                 'bttn_filter', caption='Mail', size=(80, 24), cap_font='def_bold', cap_size=24,
                 cap_color='fnt_muted', sounds=self.win_ui.snd_packs['button'], page=None, tags=(
@@ -449,7 +455,7 @@ class Trade:
                                         (x_sq, y_sq), (x_sq, y_sq), 2, 3, r_max=5)
         x_sq, y_sq = space_list[1]
         new_chest = chest.Chest(x_sq, y_sq, 0, None, self.wins_dict['realm'].maze.tile_set, off_x=-4, off_y=-4,
-                                container=ordered_goods, disappear=True)
+                                container=ordered_goods, disappear=True, allow_mimic=False)
         self.wins_dict['realm'].maze.chests.append(new_chest)
         self.wins_dict['realm'].maze.flag_array[y_sq][x_sq].obj = new_chest
         self.wins_dict['realm'].maze.flag_array[y_sq][x_sq].mov = False
@@ -467,7 +473,7 @@ class Trade:
     def shipment_reminder(self):
         self.wins_dict['dialogue'].dialogue_elements = {
             'header': 'Attention',
-            'text': 'Reward for the Task completion awaits you near the upstairs of the current floor!',
+            'text': 'Your order delivery awaits you near the upstairs of the current floor!',
             'bttn_cancel': 'OK'
         }
         self.wins_dict['dialogue'].launch(self.pc)
@@ -475,7 +481,7 @@ class Trade:
     def goods_generate(self, pc):
         goods_level_cap = pc.tradepost_level
         self.trade_bank.clear()
-        good_ids = dbrequests.treasure_get(self.db.cursor, goods_level_cap, 0, 1, shop=1)
+        good_ids = dbrequests.treasure_get(self.db.cursor, goods_level_cap, 1, shop=1)
 
         for j in good_ids:
             for i in range(-1, 1):
@@ -503,6 +509,14 @@ class Trade:
                     break
 
                 if self.trade_bank[-1].props['item_type'] == 'exp_food':
+                    for k in range(0, 5):
+                        self.trade_bank.append(
+                            treasure.Treasure(j['treasure_id'], goods_level_cap, self.db.cursor,
+                                              self.tilesets, self.resources, self.pygame_settings.audio,
+                                              self.resources.fate_rnd, grade=1)
+                        )
+                    break
+                if self.trade_bank[-1].props['treasure_id'] == 130:
                     for k in range(0, 5):
                         self.trade_bank.append(
                             treasure.Treasure(j['treasure_id'], goods_level_cap, self.db.cursor,

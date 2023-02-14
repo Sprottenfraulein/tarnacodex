@@ -87,12 +87,12 @@ class Demos:
             if cap['music_name'] is not None:
                 self.wins_dict['app_title'].schedule_man.task_add(
                     'realm_tasks', cap['schedule_delta'],  self.wins_dict['demos'].pygame_settings.audio,
-                    'music', (cap['music_name'])
+                    'music', (cap['music_name'],)
                 )
             if cap['sound_name'] is not None:
                 self.wins_dict['app_title'].schedule_man.task_add(
                     'realm_tasks', cap['schedule_delta'],  self.wins_dict['demos'].pygame_settings.audio,
-                    'sound', (cap['sound_name'])
+                    'sound', (cap['sound_name'],)
                 )
             time_ending = max(time_ending, cap['schedule_delta'] * self.schedule_man.ticks_per_round + cap['duration'])
         for img in image_list:

@@ -118,6 +118,19 @@ class Tasks:
                                                                     self.win_h,
                                                                     0, 0, self.pygame_settings.screen_res[0],
                                                                     self.pygame_settings.screen_res[1])
+        elif element.id == 'win_header' and m_bttn == 3 and mb_event == 'down':
+            self.active_wins.remove(self)
+            self.end()
+            if in_realm:
+                targ_win = self.wins_dict['pools']
+                bttn_id = 'miss'
+            else:
+                targ_win = self.wins_dict['app_title']
+                bttn_id = 'quick_miss'
+            for el in targ_win.win_ui.interactives:
+                if el.id == bttn_id:
+                    el.mouse_up(1)
+            self.wins_dict['pools'].updated = in_realm
 
         if element.id == 'bttn_task':
             if m_bttn == 1 and mb_event == 'down':
@@ -228,6 +241,8 @@ class Tasks:
         for miss_id, miss_props in self.pc.char_sheet.missions.items():
             if 'complete' in miss_props and miss_props['once'] == 1:
                 continue
+            if 'complete' in miss_props and miss_props['once'] == 0 and miss_props['complete'] >= miss_props['lvl']:
+                continue
             new_bttn = self.win_ui.button_add(
                 'bttn_task', caption='%s, lv.%s' % (miss_props['label'], miss_props['lvl']), size=(220, bttn_h),
                 cap_font='def_bold', cap_size=24, cap_color='fnt_muted', sounds=self.win_ui.snd_packs['button'],
@@ -314,12 +329,17 @@ class Tasks:
     def reward(self, mission):
         self.wins_dict['inventory'].updated = True
         self.pc.char_sheet.experience_get(
-            self.wins_dict, self.pc,
+            self.wins_dict, self.pc, mission['lvl'],
             self.TASK_EXP_REWARD_BASE * mission['reward_exp'] // 100 * mission['lvl']
         )
+        x_sq = self.pc.x_sq
+        y_sq = self.pc.y_sq
+        for ex in self.wins_dict['realm'].maze.exits:
+            if ex.dest == 'up':
+                x_sq, y_sq = ex.x_sq, ex.y_sq
         space_list = calc2darray.fill2d(
             self.wins_dict['realm'].maze.flag_array, {'mov': False, 'obj': 'True', 'floor': False},
-            (round(self.pc.x_sq), round(self.pc.y_sq)), (round(self.pc.x_sq), round(self.pc.y_sq)), 2, 5, r_max=5
+            (x_sq, y_sq), (round(self.pc.x_sq), round(self.pc.y_sq)), 2, 5, r_max=5
         )
         x_sq, y_sq = space_list[1]
         alignment = random.choice((0, 1))
@@ -327,7 +347,7 @@ class Tasks:
             x_sq, y_sq, alignment, None, self.wins_dict['realm'].maze.tile_set, off_x=-4, off_y=-4,
             lvl=mission['lvl'], items_number=mission['reward_treasure_amount'], gp_number=mission['reward_gold_piles'],
             treasure_group=mission['reward_treasure_group'], item_type=None, char_type=(self.pc.char_sheet.type,),
-            container=self.reward_treasure_get(mission), disappear=True
+            container=self.reward_treasure_get(mission), disappear=True, allow_mimic=False
         )
         self.wins_dict['realm'].maze.chests.append(new_chest)
         self.wins_dict['realm'].maze.chests.append(new_chest)
@@ -336,10 +356,9 @@ class Tasks:
         self.wins_dict['realm'].obj_jump_add(new_chest)
         self.wins_dict['realm'].sound_inrealm('item_throw', x_sq, y_sq)
 
-        self.pc.char_sheet.missions[mission['mission_id']]['complete'] = True
+        self.pc.char_sheet.missions[mission['mission_id']]['complete'] = self.pc.char_sheet.level
         self.task_selected = None
         self.bttn_complete.enabled = False
-        self.restart()
 
         # Run demo if exists.
         text_list, image_list = dbrequests.chapter_demo_get(self.db.cursor, self.pc.location[0]['chapter_id'], mission['demo_tag'])
@@ -351,6 +370,7 @@ class Tasks:
 
         if not self.wins_dict['realm'].maze.flag_array[y_sq][x_sq].vis:
             self.wins_dict['realm'].schedule_man.task_add('realm_tasks', 1, self, 'shipment_reminder', ())
+        self.restart()
 
     def shipment_reminder(self):
         self.wins_dict['dialogue'].dialogue_elements = {
