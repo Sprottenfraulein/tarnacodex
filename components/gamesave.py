@@ -226,7 +226,7 @@ def common_stash_load(pc, db, tileset):
 
     filename = "./save/%s" % stash_name
     if not os.path.exists(filename):
-        stash = itemlist.ItemList(items_max=60, all_to_none=True, filters={
+        stash = itemlist.ItemList(items_max=100, all_to_none=True, filters={
         'item_types': ['wpn_melee', 'wpn_ranged', 'wpn_magic', 'arm_head', 'arm_chest', 'acc_ring', 'orb_shield',
                        'orb_ammo', 'orb_source', 'use_wand', 'exp_lockpick', 'exp_tools', 'exp_food', 'exp_key',
                        'light', 'aug_gem', 'sup_potion', 'use_learn', 'misc_man', 'exp_res', 'use_craft']

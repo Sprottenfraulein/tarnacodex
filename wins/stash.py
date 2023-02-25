@@ -19,10 +19,10 @@ class Stash:
 
         self.pc = None
         self.win_w = 512
-        self.win_h = 510
+        self.win_h = 506 + 196
         self.offset_x = (pygame_settings.screen_res[0] - self.win_w) // 2
         self.offset_y = 16
-        self.inv_sckt_total = 60
+        self.inv_sckt_total = 100
         self.inv_sockets_list = []
         self.inv_sockets_image = None
 
@@ -188,6 +188,9 @@ class Stash:
         elif element.id == 'bttn_retrieve_coins' and m_bttn == 1 and mb_event == 'up':
             self.wins_dict['splitter'].launch(self.pc, 'How many coins do you want to retrieve:', self.common_stash_gold,
                                               0, self.common_stash_gold, (self, 'gold_from_stash'))
+        elif element.id == 'bttn_sort' and m_bttn == 1 and mb_event == 'up':
+            self.common_stash.sort(key=self.pc.char_sheet.sort_func)
+            self.updated = True
 
         if 'itm' in element.tags:
             draganddrop.item_move(self, element, mb_event, m_bttn, in_realm, skillfuncs)
@@ -208,14 +211,14 @@ class Stash:
         inv_sckt_top = 148
         inv_sckt_per_row = 10
         # INVENTORY
-        inv_texture = self.win_ui.random_texture((self.win_w, self.win_h), 'black_rock')
+        inv_texture = self.win_ui.random_texture((self.win_w // 2, self.win_h // 2), 'black_rock')
         inv_image = pydraw.square((0, 0), (self.win_w, self.win_h),
                                   (self.resources.colors['gray_light'],
                                    self.resources.colors['gray_dark'],
                                    self.resources.colors['gray_mid'],
                                    self.resources.colors['black']),
                                   sq_outsize=1, sq_bsize=2, sq_ldir=0, sq_fill=False,
-                                  sq_image=inv_texture)
+                                  sq_image=inv_texture, img_stretch=True)
         # INVENTORY BACKGROUND
         inv_image = pydraw.square((inv_sckt_left - 1, inv_sckt_top - 1),
                                   (inv_sckt_per_row * inv_sckt_size + 2,
@@ -306,6 +309,11 @@ class Stash:
                                            images=(self.win_ui.tilesets.get_image(
                                                      *self.resources.sprites['gold_coins_icon'])),
                                            page=None, img_stretch=True)
+
+        bttn_sort = self.win_ui.button_add('bttn_sort', xy=(16 + spl_btn_w * 2 + 8 + 8, self.win_h - 24 - 16),
+                                           caption='Sort', size=(48, 24), cap_font='def_bold', cap_size=24,
+                                           cap_color='fnt_muted', sounds=self.win_ui.snd_packs['button'], page=None)
+        self.win_ui.interactives.append(bttn_sort)
 
         self.restore_cooling_sockets()
 

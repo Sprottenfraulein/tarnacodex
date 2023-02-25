@@ -143,7 +143,7 @@ class Pools:
             if element.id == 'inv':
                 if self.wins_dict['inventory'] in self.active_wins:
                     self.active_wins.remove(self.wins_dict['inventory'])
-                    self.pc.char_sheet.itemlist_cleanall_inventory(self.wins_dict, self.pc)
+                    # self.pc.char_sheet.itemlist_cleanall_inventory(self.wins_dict, self.pc)
                     self.wins_dict['inventory'].end()
             elif element.id == 'skb':
                 if self.wins_dict['skillbook'] in self.active_wins:
@@ -211,7 +211,7 @@ class Pools:
     def close_all_wins(self, pc, inventory=True, skills=True, hotbar=True, charstats=True, options=True):
         if self.wins_dict['inventory'] in self.active_wins and inventory:
             self.active_wins.remove(self.wins_dict['inventory'])
-            self.pc.char_sheet.itemlist_cleanall_inventory(self.wins_dict, pc)
+            # self.pc.char_sheet.itemlist_cleanall_inventory(self.wins_dict, pc)
             self.wins_dict['inventory'].end()
             self.pools_menu[0].mode = 0
             self.pools_menu[0].render()

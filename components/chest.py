@@ -94,6 +94,20 @@ class Chest:
 
     def container_unpack(self, wins_dict, active_wins, pc):
         realm = wins_dict['realm']
+        self.container_fill(realm, pc)
+        if self.container is not None and len(self.container) > 0:
+            lootgen.drop_loot(self.x_sq, self.y_sq, realm, self.container)
+            self.container.clear()
+        if self.disappear:
+            realm.maze.chests.remove(self)
+            realm.maze.flag_array[self.y_sq][self.x_sq].obj = None
+            realm.maze.flag_array[self.y_sq][self.x_sq].mov = True
+            realm.particle_list.append(particle.Particle(
+                (self.x_sq, self.y_sq), (self.off_x, self.off_y),
+                realm.animations.get_animation('effect_dust_cloud')['default'], 16
+            ))
+
+    def container_fill(self, realm, pc):
         if self.gp_number > 0:
             if self.container is None:
                 self.container = []
@@ -153,17 +167,6 @@ class Chest:
                         new_tr.props['desc'] = textinserts.insert(realm, pc,
                                                                   pickrandom.items_get(mans_list, 1)[0]['desc'])
             self.items_number = 0
-        if self.container is not None and len(self.container) > 0:
-            lootgen.drop_loot(self.x_sq, self.y_sq, realm, self.container)
-            self.container.clear()
-        if self.disappear:
-            realm.maze.chests.remove(self)
-            realm.maze.flag_array[self.y_sq][self.x_sq].obj = None
-            realm.maze.flag_array[self.y_sq][self.x_sq].mov = True
-            realm.particle_list.append(particle.Particle(
-                (self.x_sq, self.y_sq), (self.off_x, self.off_y),
-                realm.animations.get_animation('effect_dust_cloud')['default'], 16
-            ))
 
     def mimic(self, wins_dict, pc, maze_module):
         if not self.allow_mimic:
@@ -171,10 +174,6 @@ class Chest:
         is_mimic = random.randrange(0, 6) == 5
         if not is_mimic:
             return False
-
-        wins_dict['realm'].maze.chests.remove(self)
-        wins_dict['realm'].maze.flag_array[self.y_sq][self.x_sq].obj = None
-        wins_dict['realm'].maze.flag_array[self.y_sq][self.x_sq].mov = True
         mon_id = random.choice((11,))
         new_mon = dbrequests.monster_get_by_id(wins_dict['realm'].db.cursor, mon_id)
         grade_list = dbrequests.grade_set_get(wins_dict['realm'].db.cursor, new_mon['grade_set_monster'], wins_dict['realm'].maze.lvl)
@@ -186,6 +185,13 @@ class Chest:
         else:
             new_mon['grade'] = None
         del new_mon['grade_set_monster']
+
+        self.container_fill(wins_dict['realm'], pc)
+        new_mon.inventory.extend(self.container)
+        wins_dict['realm'].maze.chests.remove(self)
+        wins_dict['realm'].maze.flag_array[self.y_sq][self.x_sq].obj = None
+        wins_dict['realm'].maze.flag_array[self.y_sq][self.x_sq].mov = True
+
         maze_module.monster_apply_grade(wins_dict['realm'].db, new_mon, wins_dict['realm'].maze.lvl,
                                                     wins_dict['realm'].resources.fate_rnd)
         maze_module.scale_mob(new_mon, wins_dict['realm'].maze.lvl, wins_dict['realm'].maze)

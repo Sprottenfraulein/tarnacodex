@@ -106,7 +106,7 @@ class CharSheet:
         self.de_buffs = {}
         self.modifiers = {}
         # Inventory list
-        self.inventory = itemlist.ItemList(items_max=24, all_to_none=True, filters={
+        self.inventory = itemlist.ItemList(items_max=48, all_to_none=True, filters={
             'item_types': ['wpn_melee', 'wpn_ranged', 'wpn_magic', 'arm_head', 'arm_chest', 'acc_ring', 'orb_shield',
                            'orb_ammo', 'orb_source', 'use_wand', 'exp_lockpick', 'exp_tools', 'exp_food', 'exp_key',
                            'light', 'aug_gem', 'sup_potion', 'use_learn', 'misc_man', 'exp_res', 'use_craft']
@@ -661,7 +661,7 @@ class CharSheet:
         pass
 
     def itemlist_cleanall_inventory(self, wins_dict, pc):
-        for i in range(len(self.inventory) -1, -1, -1):
+        """for i in range(len(self.inventory) -1, -1, -1):
             if self.inventory[i] is None:
                 del self.inventory[i]
 
@@ -671,7 +671,9 @@ class CharSheet:
 
         for i in range(len(self.inventory), self.inventory.items_max):
             self.inventory.append(None)
+        pass"""
         pass
+
 
     def has_skill(self, skill_id):
         for wnd in (self.skills, self.hotbar):
@@ -716,3 +718,10 @@ class CharSheet:
         for tr_id, amount in mission['tasks']:
             self.inventory_remove_by_id(tr_id, mission['lvl'], amount)
         return True
+
+    def sort_func(self, e):
+        if e is not None:
+            return str(e.props['treasure_id'])
+        else:
+            return 'z'
+

@@ -98,6 +98,7 @@ def attack_powerful(wins_dict, fate_rnd, pc, skill_obj, item_adress, no_aim=Fals
             skill_help(realm, skill_obj, 'new_txt', "Attack what?", (0, 0), (0, -24), None, pc, None, 120, 'def_bold', 24)
         return True
 
+
     if round(maths.get_distance(pc.x_sq, pc.y_sq, target.x_sq, target.y_sq), 1) - target.size > skill_obj.props['range']:
         """realm.schedule_man.task_add('realm_tasks', 1, realm, 'spawn_realmtext',
                                     ('new_txt', "Too far!",
@@ -214,10 +215,10 @@ def shot_default(wins_dict, fate_rnd, pc, skill_obj, item_adress, no_aim=False, 
 
     if not treasure.amount_change(pc.char_sheet.equipped[3][0], -1):
         pc.char_sheet.equipped[3][0] = None
-        wins_dict['inventory'].updated = True
         pc.char_sheet.calc_stats()
         wins_dict['realm'].spawn_realmtext(None, 'Out of ammo!', (0, 0), (0, -24),
                                            'fnt_celeb', pc, None, 240, 'def_bold', 24)
+    wins_dict['inventory'].updated = True
 
     rnd_attack = random.randrange(att_val_min, att_val_max + 1)
     is_crit = (random.randrange(1, 1001) <= pc.char_sheet.profs['prof_crit'])

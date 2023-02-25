@@ -1220,8 +1220,8 @@ class AppTitle:
         for win in self.wins_dict.values():
             if win is not self and win in self.active_wins:
                 self.active_wins.remove(win)
-        if self.pc is not None:
-            self.pc.char_sheet.itemlist_cleanall_inventory(self.wins_dict, self.pc)
+        """if self.pc is not None:
+            self.pc.char_sheet.itemlist_cleanall_inventory(self.wins_dict, self.pc)"""
         for inter in self.win_ui.interactives:
             if 'quick_view' in inter.tags:
                 inter.mode = 0

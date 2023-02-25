@@ -259,6 +259,8 @@ def initialize(self, x_sq, y_sq, anim_set, stats, state=2):
 
     self.de_buff_dict = {}
 
+    self.inventory = None
+
 
 def basics(self, realm):
     if not self.attacking and (
@@ -381,6 +383,8 @@ def attack_ranged(self, pc, wins_dict, distance):
     if len(self.stats['attacks_ranged']) == 0:
         return False
     face_point(self, pc.x_sq, pc.y_sq)
+    self.x_sq = round(self.x_sq)
+    self.y_sq = round(self.y_sq)
     state_change(self, self.state + 4)
 
     attacks_list = [(att, att['chance']) for att in self.stats['attacks_ranged']]
@@ -627,6 +631,8 @@ def check(self, wins_dict, fate_rnd, pc):
     wins_dict['charstats'].updated = True
 
     loot_total = lootgen.generate_loot(self, wins_dict['realm'], fate_rnd, pc)
+    if self.inventory is not None:
+        loot_total.extend(self.inventory)
     loot_total.extend(lootgen.generate_gold(self, wins_dict['realm'], fate_rnd, pc))
 
     lootgen.drop_loot(round(self.x_sq), round(self.y_sq), wins_dict['realm'], loot_total)

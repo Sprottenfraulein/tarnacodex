@@ -19,10 +19,10 @@ class Inventory:
 
         self.pc = None
         self.win_w = 320
-        self.win_h = 510
+        self.win_h = 510 + 192
         self.offset_x = 0
         self.offset_y = 64
-        self.inv_sckt_total = 24
+        self.inv_sckt_total = 48
         self.inv_sockets_list = []
         self.eq_sockets_list = None
         self.inv_sockets_image = None
@@ -176,6 +176,10 @@ class Inventory:
                 }
                 self.wins_dict['dialogue'].launch(self.pc)
 
+        if element.id == 'bttn_sort' and m_bttn == 1 and mb_event == 'up':
+            self.pc.char_sheet.inventory.sort(key=self.pc.char_sheet.sort_func)
+            self.updated = True
+
         # PAGE 0
         if 'itm' not in element.tags:
             self.win_ui.interaction_callback(element, mb_event, m_bttn)
@@ -200,19 +204,24 @@ class Inventory:
         self.inv_sockets_list.clear()
         self.eq_sockets_list = None
 
+        self.win_w = 320
+        self.inv_sckt_total = len(self.pc.char_sheet.inventory)
+
         inv_sckt_size = 48
         inv_sckt_left = 16
         inv_sckt_top = 244
         inv_sckt_per_row = 6
+        self.win_h = inv_sckt_top + inv_sckt_size * (self.inv_sckt_total // inv_sckt_per_row + ((self.inv_sckt_total % inv_sckt_per_row) != 0)) + 74
+
         # INVENTORY
-        inv_texture = self.win_ui.random_texture((self.win_w, self.win_h), 'black_rock')
+        inv_texture = self.win_ui.random_texture((self.win_w // 2, self.win_h // 2), 'black_rock')
         inv_image = pydraw.square((0, 0), (self.win_w, self.win_h),
                                   (self.resources.colors['gray_light'],
                                    self.resources.colors['gray_dark'],
                                    self.resources.colors['gray_mid'],
                                    self.resources.colors['black']),
                                   sq_outsize=1, sq_bsize=2, sq_ldir=0, sq_fill=False,
-                                  sq_image=inv_texture)
+                                  sq_image=inv_texture, img_stretch=True)
         # INVENTORY BACKGROUND
         inv_image = pydraw.square((inv_sckt_left - 1, inv_sckt_top - 1),
                                   (inv_sckt_per_row * inv_sckt_size + 2,
@@ -294,6 +303,11 @@ class Inventory:
                                             inv_sckt_top + self.inv_sckt_total // inv_sckt_per_row * inv_sckt_size + 12),
                                            (48, 48), images=(inv_sell_img,), page=None, img_stretch=True)
         self.win_ui.interactives.append(sell_panel)
+
+        bttn_sort = self.win_ui.button_add('bttn_sort', xy=(inv_sckt_left - 1, self.win_h - 24 - 16),
+                                            caption='Sort', size=(48, 24), cap_font='def_bold', cap_size=24,
+                                            cap_color='fnt_muted', sounds=self.win_ui.snd_packs['button'], page=None)
+        self.win_ui.interactives.append(bttn_sort)
 
         # window header
         header_texture = self.win_ui.random_texture((self.win_w, 19), 'red_glass')

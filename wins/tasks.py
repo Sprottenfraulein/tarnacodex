@@ -353,7 +353,6 @@ class Tasks:
             container=self.reward_treasure_get(mission), disappear=True, allow_mimic=False
         )
         self.wins_dict['realm'].maze.chests.append(new_chest)
-        self.wins_dict['realm'].maze.chests.append(new_chest)
         self.wins_dict['realm'].maze.flag_array[y_sq][x_sq].obj = new_chest
         self.wins_dict['realm'].maze.flag_array[y_sq][x_sq].mov = False
         self.wins_dict['realm'].obj_jump_add(new_chest)

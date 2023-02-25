@@ -486,7 +486,7 @@ class Realm:
                                     (self.maze.anim_frame + 1) % (len(loot.props['image_floor']))],
                                 ((loot.x_sq - self.ren_x_sq) * self.square_size + loot.off_x - offset,
                                  (loot.y_sq - self.ren_y_sq) * self.square_size + loot.off_y - offset))
-                        offset += self.square_scale * 2
+                        offset += 4
 
                 # mobs rendering
                 if flags.mon is not None:
