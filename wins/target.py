@@ -63,7 +63,7 @@ class Target:
             self.mob_object.aimed = False
         self.mob_object = monster
         self.mob_object.aimed = True
-        self.mob_title.text_obj.caption = '%s, (%s)' % (self.compose_mob_name(), monster.stats['lvl'])
+        self.mob_title.text_obj.caption = '%s, (lv.%s)' % (self.compose_mob_name(), monster.stats['lvl'])
         if monster.stats['grade'] is not None:
             self.mob_title.text_obj.color = self.resources.colors[monster.stats['grade']['color']]
         self.mob_title.render_all()
@@ -128,7 +128,7 @@ class Target:
             self.active_wins.remove(self)
 
     def refresh_aim(self):
-        self.mob_title.text_obj.caption = '%s, (%s)' % (self.compose_mob_name(), self.mob_object.stats['lvl'])
+        self.mob_title.text_obj.caption = '%s, (lv.%s)' % (self.compose_mob_name(), self.mob_object.stats['lvl'])
         if self.mob_object.stats['grade'] is not None:
             self.mob_title.text_obj.color = self.resources.colors[self.mob_object.stats['grade']['color']]
         self.mob_title.render_all()

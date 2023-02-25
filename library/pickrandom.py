@@ -6,7 +6,7 @@ from library import logfun
 
 
 # Pick items with or without removing the last cell in item list line has to be probability value.
-def items_get(items_list, items_number=1, items_pop=False, log=True):
+def items_get(items_list, items_number=1, items_pop=False, log=False):
     if items_list is None or items_list == [] or items_number < 1:
         return []
 

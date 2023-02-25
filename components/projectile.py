@@ -4,7 +4,7 @@ from library import particle, maths
 
 class Projectile:
     def __init__(self, xy_sq, off_xy, duration, speed_xy, animation, attack, destroy_on_limit=True,
-                 collision_limit=1, blast_radius=0, blast_sound=None):
+                 collision_limit=1, blast_radius=0, blast_sound=None, hit_freq=20):
         self.x_sq, self.y_sq = xy_sq
         self.off_x, self.off_y = off_xy
         self.duration = duration
@@ -21,6 +21,8 @@ class Projectile:
         self.step = 1
 
         self.attack_value, self.attack_type, self.attack_is_crit, self.attack_owner = attack
+
+        self.hit_freq = hit_freq
 
     def tick(self, wins_dict, fate_rnd):
         self.x_sq += self.speed_x
@@ -40,12 +42,12 @@ class Projectile:
             self.destroy(wins_dict, fate_rnd)
             return False
 
-        if self.collision_limit > 0:
+        if self.collision_limit != 0 and self.duration % self.hit_freq == 0:
             if self.attack_owner == realm.pc:
                 if flags.mon is not None and flags.mon.alive:
                     flags.mon.wound(self.attack_value, self.attack_type, True, self.attack_is_crit,
                                     wins_dict, fate_rnd, realm.pc)
-                    self.collision_limit -= 1
+                    self.collision_limit -= self.collision_limit > 0
             elif round(realm.pc.x_sq) == round(self.x_sq) and round(realm.pc.y_sq) == round(self.y_sq):
                 realm.pc.wound(wins_dict, self.attack_owner, {
                     'attack_type': self.attack_type,
@@ -53,7 +55,7 @@ class Projectile:
                     'attack_val_spread': 0,
                     'range': True
                 }, fate_rnd)
-                self.collision_limit -= 1
+                self.collision_limit -= self.collision_limit > 0
 
         if self.collision_limit == 0 and self.destroy_on_limit:
             self.destroy(wins_dict, fate_rnd)
@@ -75,7 +77,7 @@ class Projectile:
         if self.attack_owner == realm.pc:
             for mon in realm.mobs_short:
                 if (mon is not None and mon.alive
-                        and maths.get_distance(self.x_sq, self.y_sq, mon.x_sq, mon.y_sq) <= self.blast_radius):
+                        and maths.get_distance(self.x_sq, self.y_sq, mon.x_sq, mon.y_sq) - mon.size <= self.blast_radius):
                     mon.wound(self.attack_value, self.attack_type, True, self.attack_is_crit,
                                     wins_dict, fate_rnd, realm.pc)
         elif maths.get_distance(self.x_sq, self.y_sq, wins_dict['realm'].pc.x_sq, wins_dict['realm'].pc.y_sq) <= self.blast_radius:

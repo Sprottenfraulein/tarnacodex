@@ -150,7 +150,10 @@ class ResMan:
             'damage': {
                 'att_physical': 'hit_physical',
                 'att_arcane': 'fire_putout',
-                'att_fire': 'fire_putout'
+                'att_fire': 'fire_putout',
+                'att_poison': 'gas_inflation',
+                'att_ice': 'hit_physical',
+                'att_lightning': 'hit_physical'
             }
         }
 

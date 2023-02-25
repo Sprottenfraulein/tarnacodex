@@ -29,7 +29,7 @@ def attack_default(wins_dict, fate_rnd, pc, skill_obj, item_adress, no_aim=False
     target = wins_dict['target'].mob_object
     if target is None or not target.alive:
         if no_aim:
-            realm.spawn_realmtext('new_txt', "Attack what?", (0, 0), (0, -24), None, pc, None, 120, 'def_bold', 24)
+            skill_help(realm, skill_obj, 'new_txt', "Attack what?", (0, 0), (0, -24), None, pc, None, 120, 'def_bold', 24)
         return True
 
     if round(maths.get_distance(pc.x_sq, pc.y_sq, target.x_sq, target.y_sq), 1) - target.size > skill_obj.props['range']:
@@ -50,9 +50,7 @@ def attack_default(wins_dict, fate_rnd, pc, skill_obj, item_adress, no_aim=False
     if is_crit:
         rnd_attack *= 4
 
-    damage = rnd_attack * (100 - target.stats['def_physical']) // 100  # reduce attack by percent of def
-
-    target.wound(damage, 'att_physical', False, is_crit, wins_dict, fate_rnd, pc)
+    target.wound(rnd_attack, 'att_physical', False, is_crit, wins_dict, fate_rnd, pc)
 
     pc.food_change(wins_dict, -5)
     pc.act(wins_dict, (target.x_sq, target.y_sq), skill_obj)
@@ -97,7 +95,7 @@ def attack_powerful(wins_dict, fate_rnd, pc, skill_obj, item_adress, no_aim=Fals
     target = wins_dict['target'].mob_object
     if target is None or not target.alive:
         if no_aim:
-            realm.spawn_realmtext('new_txt', "Attack what?", (0, 0), (0, -24), None, pc, None, 120, 'def_bold', 24)
+            skill_help(realm, skill_obj, 'new_txt', "Attack what?", (0, 0), (0, -24), None, pc, None, 120, 'def_bold', 24)
         return True
 
     if round(maths.get_distance(pc.x_sq, pc.y_sq, target.x_sq, target.y_sq), 1) - target.size > skill_obj.props['range']:
@@ -116,14 +114,14 @@ def attack_powerful(wins_dict, fate_rnd, pc, skill_obj, item_adress, no_aim=Fals
     if is_crit:
         rnd_attack *= 4
 
-    damage = rnd_attack * (100 - target.stats['def_physical']) // 100  # reduce attack by percent of def
-
-    target.wound(damage, 'att_physical', False, is_crit, wins_dict, fate_rnd, pc)
+    target.wound(rnd_attack, 'att_physical', False, is_crit, wins_dict, fate_rnd, pc)
 
     pc.food_change(wins_dict, -5)
     pc.act(wins_dict, (target.x_sq, target.y_sq), skill_obj)
     # realm.pygame_settings.audio.sound(skill.props['sound_use'])
     realm.pygame_settings.audio.sound(skill_obj.props['sound_use'])
+    realm.particle_list.append(particle.Particle((target.x_sq, target.y_sq), (-4, -4),
+                                                 realm.animations.get_animation('effect_dust_cloud')['default'], 16, speed_xy=(-0.25,-0.25)))
 
     return False
 
@@ -150,11 +148,10 @@ def attack_butterfly(wins_dict, fate_rnd, pc, skill_obj, item_adress, no_aim=Fal
     for target in realm.mobs_short:
         if round(maths.get_distance(pc.x_sq, pc.y_sq, target.x_sq, target.y_sq), 1) - target.size <= skill_obj.props['range']:
             rnd_attack = random.randrange(att_val_min, att_val_max + 1)
-            damage = rnd_attack * (100 - target.stats['def_physical']) // 100  # reduce attack by percent of def
             is_crit = (random.randrange(1, 1001) <= pc.char_sheet.profs['prof_crit'])
             if is_crit:
                 rnd_attack *= 4
-            target.wound(damage, 'att_physical', False, is_crit, wins_dict, fate_rnd, pc)
+            target.wound(rnd_attack, 'att_physical', False, is_crit, wins_dict, fate_rnd, pc)
 
     realm.particle_list.append(particle.Particle((pc.x_sq, pc.y_sq), (-16, -16),
                                realm.animations.get_animation('effect_blood_swipe')['default'], 25))
@@ -190,19 +187,19 @@ def shot_default(wins_dict, fate_rnd, pc, skill_obj, item_adress, no_aim=False, 
     target = wins_dict['target'].mob_object
     if target is None or not target.alive:
         if no_aim:
-            realm.spawn_realmtext('new_txt', "I have to aim.", (0, 0), (0, -24), None, pc, None, 120, 'def_bold', 24)
+            skill_help(realm, skill_obj, 'new_txt', "I have to aim.", (0, 0), (0, -24), None, pc, None, 120, 'def_bold', 24)
         return True
 
     """if not skill_reqs_check(realm, skill, pc):
         return True"""
     if not skill_reqs_check(realm, skill_obj, pc):
-        # realm.spawn_realmtext(
+        # skill_help(realm, skill_obj, 
         # 'new_txt', "Nothing to shoot with!", (0, 0), (0, -24), None, pc, None, 120, 'def_bold', 24
         # )
         return True
 
     if pc.char_sheet.equipped[2][0].props['class'] != pc.char_sheet.ammo_classes_dict[pc.char_sheet.equipped[3][0].props['class']]:
-        realm.spawn_realmtext('new_txt', "Ammo won't fit.", (0, 0), (0, -24), None, pc, None, 120, 'def_bold', 24)
+        skill_help(realm, skill_obj, 'new_txt', "Ammo won't fit.", (0, 0), (0, -24), None, pc, None, 120, 'def_bold', 24)
         return True
 
     if maths.get_distance(pc.x_sq, pc.y_sq, target.x_sq, target.y_sq) > (skill_obj.props['range'] * (pc.char_sheet.profs['prof_range'] + 1000) // 1000):
@@ -275,13 +272,13 @@ def spell_magical_arrow(wins_dict, fate_rnd, pc, skill_obj, item_adress, no_aim=
     target = wins_dict['target'].mob_object
     if target is None or not target.alive:
         if no_aim:
-            realm.spawn_realmtext('new_txt', "I have to aim.", (0, 0), (0, -24), None, pc, None, 120, 'def_bold', 24)
+            skill_help(realm, skill_obj, 'new_txt', "I have to aim.", (0, 0), (0, -24), None, pc, None, 120, 'def_bold', 24)
         return True
 
     """if not skill_reqs_check(realm, skill, pc):
         return True"""
     if not skill_reqs_check(realm, skill_obj, pc):
-        # realm.spawn_realmtext(
+        # skill_help(realm, skill_obj, 
         # 'new_txt', "Nothing to cast with!", (0, 0), (0, -24), None, pc, None, 120, 'def_bold', 24
         # )
         return True
@@ -351,13 +348,13 @@ def spell_fireball(wins_dict, fate_rnd, pc, skill_obj, item_adress, no_aim=False
     target = wins_dict['target'].mob_object
     if target is None or not target.alive:
         if no_aim:
-            realm.spawn_realmtext('new_txt', "I have to aim.", (0, 0), (0, -24), None, pc, None, 120, 'def_bold', 24)
+            skill_help(realm, skill_obj, 'new_txt', "I have to aim.", (0, 0), (0, -24), None, pc, None, 120, 'def_bold', 24)
         return True
 
     """if not skill_reqs_check(realm, skill, pc):
         return True"""
     if not skill_reqs_check(realm, skill_obj, pc):
-        # realm.spawn_realmtext(
+        # skill_help(realm, skill_obj, 
         # 'new_txt', "Nothing to cast with!", (0, 0), (0, -24), None, pc, None, 120, 'def_bold', 24
         # )
         return True
@@ -413,7 +410,7 @@ def spell_dispel(wins_dict, fate_rnd, pc, skill_obj, item_adress, no_aim=False, 
         return True
 
     if not skill_reqs_check(realm, skill_obj, pc):
-        # realm.spawn_realmtext('new_txt', "Nothing to cast with!", (0, 0), (0, -24), None, pc, None, 120, 'def_bold', 24)
+        # skill_help(realm, skill_obj, 'new_txt', "Nothing to cast with!", (0, 0), (0, -24), None, pc, None, 120, 'def_bold', 24)
         return True
 
     x_sq, y_sq = realm.xy_pixels_to_squares(realm.mouse_pointer.xy)
@@ -428,18 +425,18 @@ def spell_dispel(wins_dict, fate_rnd, pc, skill_obj, item_adress, no_aim=False, 
         realm.maze.flag_array, {'mov': False}, (x_sq, y_sq),
         (round(realm.pc.x_sq), round(realm.pc.y_sq)), 100, 10, r_max=10
     )[0]:
-        realm.spawn_realmtext('new_txt', "Can't reach!", (0, 0), (0, -24), None, pc, None, 120, 'def_bold', 24)
+        skill_help(realm, skill_obj, 'new_txt', "Can't reach!", (0, 0), (0, -24), None, pc, None, 120, 'def_bold', 24)
         return True
     if flags.door is not None and flags.door.lock is not None and flags.door.lock.magical:
         pl_object = flags.door
     elif flags.obj is not None and hasattr(flags.obj, 'lock') and flags.obj.lock is not None and flags.obj.lock.magical:
         pl_object = flags.obj
     else:
-        realm.spawn_realmtext('new_txt', "No magic here!", (0, 0), (0, -24), None, pc, None, 120, 'def_bold', 24)
+        skill_help(realm, skill_obj, 'new_txt', "No magic here!", (0, 0), (0, -24), None, pc, None, 120, 'def_bold', 24)
         return False
 
     if pl_object.lock.lvl > pc.char_sheet.level:
-        realm.spawn_realmtext('new_txt', "The spell is beyond $n my comprehension!", (0, 0), (0, -24), None, pc, None,
+        skill_help(realm, skill_obj, 'new_txt', "The spell is beyond $n my comprehension!", (0, 0), (0, -24), None, pc, None,
                               120, 'def_bold', 24)
         return False
 
@@ -479,7 +476,7 @@ def repair(wins_dict, fate_rnd, pc, skill_obj, item_adress, no_aim=False, just_v
         return True
 
     if not skill_reqs_check(realm, skill_obj, pc):
-        # realm.spawn_realmtext('new_txt', "Nothing to cast with!", (0, 0), (0, -24), None, pc, None, 120, 'def_bold', 24)
+        # skill_help(realm, skill_obj, 'new_txt', "Nothing to cast with!", (0, 0), (0, -24), None, pc, None, 120, 'def_bold', 24)
         return True
 
     x_sq, y_sq = realm.xy_pixels_to_squares(realm.mouse_pointer.xy)
@@ -494,10 +491,10 @@ def repair(wins_dict, fate_rnd, pc, skill_obj, item_adress, no_aim=False, just_v
             realm.maze.flag_array, {'mov': False}, (x_sq, y_sq),
             (round(realm.pc.x_sq), round(realm.pc.y_sq)), 100, 10, r_max=10
     )[0]:
-        realm.spawn_realmtext('new_txt', "Can't reach!", (0, 0), (0, -24), None, pc, None, 120, 'def_bold', 24)
+        skill_help(realm, skill_obj, 'new_txt', "Can't reach!", (0, 0), (0, -24), None, pc, None, 120, 'def_bold', 24)
         return True
     if len(flags.item) == 0:
-        realm.spawn_realmtext('new_txt', "Nothing here!", (0, 0), (0, -24), None, pc, None, 120, 'def_bold', 24)
+        skill_help(realm, skill_obj, 'new_txt', "Nothing here!", (0, 0), (0, -24), None, pc, None, 120, 'def_bold', 24)
         return False
     item_repair = flags.item[-1]
 
@@ -508,18 +505,18 @@ def repair(wins_dict, fate_rnd, pc, skill_obj, item_adress, no_aim=False, just_v
             item_repair.props['condition'] <= 0 or
             item_repair.props['price_sell'] == 0
     ):
-        realm.spawn_realmtext('new_txt', "Can't repair that!", (0, 0), (0, -24), None, pc, None, 120, 'def_bold', 24)
+        skill_help(realm, skill_obj, 'new_txt', "Can't repair that!", (0, 0), (0, -24), None, pc, None, 120, 'def_bold', 24)
         return True
 
     # Custom requirements check.
     if skill_obj.props['cost_mp'] > pc.char_sheet.mp and skill_obj.props['cost_mp'] > pc.autopower(wins_dict):
-        realm.spawn_realmtext('new_txt', "Not enough powers!", (0, 0), (0, -24), None, pc, None, 120, 'def_bold', 24)
+        skill_help(realm, skill_obj, 'new_txt', "Not enough powers!", (0, 0), (0, -24), None, pc, None, 120, 'def_bold', 24)
         return True
     else:
         pc.char_sheet.mp_get(skill_obj.props['cost_mp'] * -1)
         realm.wins_dict['pools'].updated = True
     if item_repair.props['price_sell'] > pc.char_sheet.gold_coins:
-        realm.spawn_realmtext('new_txt', "Not enough gold!", (0, 0), (0, -24), None, pc, None, 120, 'def_bold', 24)
+        skill_help(realm, skill_obj, 'new_txt', "Not enough gold!", (0, 0), (0, -24), None, pc, None, 120, 'def_bold', 24)
         return True
     else:
         pc.char_sheet.gold_coins += (item_repair.props['price_sell'] * -1)
@@ -583,11 +580,12 @@ def potion_heal(wins_dict, fate_rnd, pc, skill_obj, item_adress, no_aim=False, j
         # pc.char_sheet.calc_stats()
         wins_dict['realm'].spawn_realmtext(None, 'Potion finished!', (0, 0), (0, -24),
                                            'fnt_celeb', pc, None, 240, 'def_bold', 24)
+    else:
+        wins_dict['inventory'].updated = True
+        wins_dict['hotbar'].updated = True
 
     pc.char_sheet.hp_get(heal_hp_value)
     wins_dict['pools'].updated = True
-    wins_dict['inventory'].updated = True
-    wins_dict['hotbar'].updated = True
     wins_dict['context'].end()
 
     pc.add_cooldowns(wins_dict, 7)  # Cooldown for magical potion
@@ -614,11 +612,12 @@ def potion_power(wins_dict, fate_rnd, pc, skill_obj, item_adress, no_aim=False, 
         # pc.char_sheet.calc_stats()
         wins_dict['realm'].spawn_realmtext(None, 'Potion finished!', (0, 0), (0, -24),
                                            'fnt_celeb', pc, None, 240, 'def_bold', 24)
+    else:
+        wins_dict['inventory'].updated = True
+        wins_dict['hotbar'].updated = True
 
     pc.char_sheet.mp_get(heal_mp_value)
     wins_dict['pools'].updated = True
-    wins_dict['inventory'].updated = True
-    wins_dict['hotbar'].updated = True
     wins_dict['context'].end()
 
     pc.add_cooldowns(wins_dict, 4)  # Cooldown for healing potion
@@ -637,12 +636,18 @@ def eat(wins_dict, fate_rnd, pc, skill_obj, item_adress, no_aim=False, just_valu
     if not skill_reqs_check(realm, skill_obj, pc):
         return True
 
-    pc.char_sheet.food_get(food_value)
-
-    wins_dict['pools'].updated = True
     realm.pygame_settings.audio.sound(item_adress[0][item_adress[1]].props['sound_use'])
-    pc.char_sheet.item_remove(wins_dict, item_adress[0][item_adress[1]])
-    wins_dict['context'].end()
+    if not treasure.charge_change(item_adress[0][item_adress[1]], -1):
+        pc.char_sheet.item_remove(wins_dict, item_adress[0][item_adress[1]])
+        wins_dict['context'].end()
+        wins_dict['realm'].spawn_realmtext(None, "That's it!", (0, 0), (0, -24),
+                                           'fnt_celeb', pc, None, 240, 'def_bold', 24)
+    else:
+        wins_dict['inventory'].updated = True
+        wins_dict['hotbar'].updated = True
+
+    pc.char_sheet.food_get(food_value)
+    wins_dict['pools'].updated = True
 
     pc.act(wins_dict, None, skill_obj)
 
@@ -682,14 +687,14 @@ def picklock(wins_dict, fate_rnd, pc, skill_obj, item_adress, no_aim=False, just
             realm.maze.flag_array, {'mov': False}, (x_sq, y_sq),
             (round(realm.pc.x_sq), round(realm.pc.y_sq)), 100, 10, r_max=10
     )[0]:
-        realm.spawn_realmtext('new_txt', "Can't reach!", (0, 0), (0, -24), None, pc, None, 120, 'def_bold', 24)
+        skill_help(realm, skill_obj, 'new_txt', "Can't reach!", (0, 0), (0, -24), None, pc, None, 120, 'def_bold', 24)
         return True
     if flags.door is not None and flags.door.lock is not None:
         pl_object = flags.door
     elif flags.obj is not None and hasattr(flags.obj, 'lock') and flags.obj.lock is not None:
         pl_object = flags.obj
     else:
-        realm.spawn_realmtext('new_txt', "No locks here!", (0, 0), (0, -24), None, pc, None, 120, 'def_bold', 24)
+        skill_help(realm, skill_obj, 'new_txt', "No locks here!", (0, 0), (0, -24), None, pc, None, 120, 'def_bold', 24)
         return False
 
     item = item_adress[0][item_adress[1]]
@@ -699,7 +704,7 @@ def picklock(wins_dict, fate_rnd, pc, skill_obj, item_adress, no_aim=False, just
     else:
         lockpicks = pc.char_sheet.inventory_search('exp_lockpick')
         if len(lockpicks) == 0:
-            realm.spawn_realmtext('new_txt', "I have no lockpicks!", (0, 0), (0, -24), None, pc, None, 120, 'def_bold', 24)
+            skill_help(realm, skill_obj, 'new_txt', "I have no lockpicks!", (0, 0), (0, -24), None, pc, None, 120, 'def_bold', 24)
             return True
         lockpick, lockpick_mod = get_highest(lockpicks, 'prof_picklock')
 
@@ -754,7 +759,7 @@ def disarm_trap(wins_dict, fate_rnd, pc, skill_obj, item_adress, no_aim=False, j
             realm.maze.flag_array, {'mov': False}, (x_sq, y_sq),
             (round(realm.pc.x_sq), round(realm.pc.y_sq)), 100, 10, r_max=10
     )[0]:
-        realm.spawn_realmtext('new_txt', "Can't reach!", (0, 0), (0, -24), None, pc, None, 120, 'def_bold', 24)
+        skill_help(realm, skill_obj, 'new_txt', "Can't reach!", (0, 0), (0, -24), None, pc, None, 120, 'def_bold', 24)
         return True
     if flags.trap is not None and flags.trap.visible == 1:
         trap = flags.trap
@@ -763,7 +768,7 @@ def disarm_trap(wins_dict, fate_rnd, pc, skill_obj, item_adress, no_aim=False, j
     elif flags.door is not None and flags.door.trap is not None and flags.door.trap.visible == 1:
         trap = flags.door.trap
     else:
-        realm.spawn_realmtext('new_txt', "Seems no traps here!", (0, 0), (0, -24), None, pc, None, 120, 'def_bold', 24)
+        skill_help(realm, skill_obj, 'new_txt', "Seems no traps here!", (0, 0), (0, -24), None, pc, None, 120, 'def_bold', 24)
         return False
 
     item = item_adress[0][item_adress[1]]
@@ -773,7 +778,7 @@ def disarm_trap(wins_dict, fate_rnd, pc, skill_obj, item_adress, no_aim=False, j
     else:
         tools = pc.char_sheet.inventory_search('exp_tools')
         if len(tools) == 0:
-            realm.spawn_realmtext('new_txt', "I have no tools!", (0, 0), (0, -24), None, pc, None, 120, 'def_bold', 24)
+            skill_help(realm, skill_obj, 'new_txt', "I have no tools!", (0, 0), (0, -24), None, pc, None, 120, 'def_bold', 24)
             return True
         tool, tool_mod = get_highest(tools, 'prof_disarm')
 
@@ -781,7 +786,7 @@ def disarm_trap(wins_dict, fate_rnd, pc, skill_obj, item_adress, no_aim=False, j
         return True
 
     if trap.mode != 1:
-        realm.spawn_realmtext('new_txt', "The trap's safe!", (0, 0), (0, -24), None, pc, None, 120, 'def_bold', 24)
+        skill_help(realm, skill_obj, 'new_txt', "The trap's safe!", (0, 0), (0, -24), None, pc, None, 120, 'def_bold', 24)
         return False
 
     disarm_result = trap.disarm(wins_dict, pc, tool=tool, tool_mod=tool_mod)
@@ -802,10 +807,14 @@ def disarm_trap(wins_dict, fate_rnd, pc, skill_obj, item_adress, no_aim=False, j
 def dig(wins_dict, fate_rnd, pc, skill_obj, item_adress, no_aim=False, just_values=False):
     realm = wins_dict['realm']
 
+    lvl_diff = 0
     if realm.maze:
-        hp_cost = realm.maze.lvl * skill_obj.props['cost_hp']
+        lvl_diff = item_adress[0][item_adress[1]].props['lvl'] - realm.maze.lvl
+        hp_cost = skill_obj.props['cost_hp']
+        if lvl_diff < 0:
+            hp_cost += skill_obj.props['cost_hp'] * abs(lvl_diff)
     else:
-        hp_cost = item_adress[0][item_adress[1]].props['lvl'] * skill_obj.props['cost_hp']
+        hp_cost = skill_obj.props['cost_hp']
     if just_values:
         if not skill_reqs_check(realm, skill_obj, pc):
             return '-'
@@ -815,15 +824,31 @@ def dig(wins_dict, fate_rnd, pc, skill_obj, item_adress, no_aim=False, just_valu
     if not skill_reqs_check(realm, skill_obj, pc):
         return True
 
-    if not skill_costs_check(realm, skill_obj, pc, rate=realm.maze.lvl):
+    rate = 1
+    if lvl_diff < 0:
+        rate += abs(lvl_diff)
+    if not skill_costs_check(realm, skill_obj, pc, rate=rate):
         return True
 
-    item_adress[0][item_adress[1]].props['condition'] -= realm.maze.lvl * 10
+    room_index = None
+    for i in range(len(realm.maze.rooms)):
+        if realm.maze.rooms[i].inside(pc.x_sq, pc.y_sq):
+            room_index = i
+
+    condition_cost = -10
+    if lvl_diff < 0:
+        condition_cost += lvl_diff * 10
+
+    item_adress[0][item_adress[1]].props['condition'] += condition_cost
     if item_adress[0][item_adress[1]].props['condition'] <= 0:
         pc.char_sheet.item_remove(wins_dict, item_adress[0][item_adress[1]])
         realm.pygame_settings.audio.sound('metal_pickup')
-    elif realm.maze.lvl > item_adress[0][item_adress[1]].props['lvl']:
-        realm.spawn_realmtext('new_txt', "I barely scratched the surface!", (0, 0), (0, -24), None, pc, None, 120, 'def_bold', 24)
+    elif room_index is None or room_index % 2 == 0:
+        skill_help(realm, skill_obj, 'new_txt', "It' pointless!", (0, 0), (0, -24), None, pc, None,
+                   120, 'def_bold', 24)
+        realm.pygame_settings.audio.sound(item_adress[0][item_adress[1]].props['sound_use'])
+    elif lvl_diff < -2:
+        skill_help(realm, skill_obj, 'new_txt', "I barely scratched the surface!", (0, 0), (0, -24), None, pc, None, 120, 'def_bold', 24)
         realm.pygame_settings.audio.sound('metal_pickup')
     else:
         realm.pygame_settings.audio.sound(item_adress[0][item_adress[1]].props['sound_use'])
@@ -839,12 +864,12 @@ def dig(wins_dict, fate_rnd, pc, skill_obj, item_adress, no_aim=False, just_valu
             ('monster', 500),
         ))[0]
         if outcome == 'nothing':
-            realm.spawn_realmtext('new_txt', "It's pointless!", (0, 0), (0, -24), None, pc, None, 120, 'def_bold', 24)
+            skill_help(realm, skill_obj, 'new_txt', "No luck!", (0, 0), (0, -24), None, pc, None, 120, 'def_bold', 24)
         elif outcome == 'clay':
             new_tr = treasure.Treasure(132, realm.maze.lvl, realm.db.cursor, realm.tilesets, realm.resources,
                                        realm.pygame_settings.audio, fate_rnd)
             lootgen.drop_loot(pc.x_sq, pc.y_sq, realm, (new_tr,))
-            realm.spawn_realmtext('new_txt', "Ah, good!", (0, 0), (0, -24), None, pc, None, 120, 'def_bold', 24)
+            skill_help(realm, skill_obj, 'new_txt', "Ah, good!", (0, 0), (0, -24), None, pc, None, 120, 'def_bold', 24)
         elif outcome == 'scribble':
             new_tr = treasure.Treasure(142, realm.maze.lvl, realm.db.cursor, realm.tilesets, realm.resources,
                                        realm.pygame_settings.audio, fate_rnd)
@@ -857,7 +882,7 @@ def dig(wins_dict, fate_rnd, pc, skill_obj, item_adress, no_aim=False, just_valu
             if mans_list:
                 new_tr.props['desc'] = textinserts.insert(realm, pc, pickrandom.items_get(mans_list, 1)[0]['desc'])
             lootgen.drop_loot(pc.x_sq, pc.y_sq, realm, (new_tr,))
-            realm.spawn_realmtext('new_txt', "What's that?", (0, 0), (0, -24), None, pc, None, 120, 'def_bold', 24)
+            skill_help(realm, skill_obj, 'new_txt', "What's that?", (0, 0), (0, -24), None, pc, None, 120, 'def_bold', 24)
         elif outcome == 'gold':
             new_gold = treasure.Treasure(
                 6, realm.maze.lvl, realm.db.cursor,
@@ -873,7 +898,7 @@ def dig(wins_dict, fate_rnd, pc, skill_obj, item_adress, no_aim=False, just_valu
                             1 - min(3, max(0, abs(realm.maze.lvl - pc.char_sheet.level) - 1)) * 0.25)
             )
             lootgen.drop_loot(pc.x_sq, pc.y_sq, realm, (new_gold,))
-            realm.spawn_realmtext('new_txt', "Unexpected riches!", (0, 0), (0, -24), None, pc, None, 120, 'def_bold', 24)
+            skill_help(realm, skill_obj, 'new_txt', "Unexpected riches!", (0, 0), (0, -24), None, pc, None, 120, 'def_bold', 24)
         elif outcome == 'treasure':
             treasure_list = []
             rnd_roll = random.randrange(1, 10001)
@@ -911,7 +936,7 @@ def dig(wins_dict, fate_rnd, pc, skill_obj, item_adress, no_aim=False, just_valu
                         new_tr.props['desc'] = textinserts.insert(realm, pc,
                                                                   pickrandom.items_get(mans_list, 1)[0]['desc'])
             lootgen.drop_loot(pc.x_sq, pc.y_sq, realm, treasure_list)
-            realm.spawn_realmtext('new_txt', "I found something!", (0, 0), (0, -24), None, pc, None, 120, 'def_bold', 24)
+            skill_help(realm, skill_obj, 'new_txt', "I found something!", (0, 0), (0, -24), None, pc, None, 120, 'def_bold', 24)
         elif outcome == 'monster':
             rnd_roll = random.randrange(1, 10001)
             mon_id = random.choice(dbrequests.get_monsters(realm.db.cursor, realm.maze.lvl, 0, None, rnd_roll))
@@ -931,7 +956,7 @@ def dig(wins_dict, fate_rnd, pc, skill_obj, item_adress, no_aim=False, just_valu
                                             {'mov': False, 'obj': True, 'door': True, 'floor': False},
                                             (round(pc.x_sq), round(pc.y_sq)), (round(pc.x_sq), round(pc.y_sq)), 2, 2, r_max=5)
             maze.mob_add(realm.maze, space_list[1][0], space_list[1][1], realm.animations, new_mon)
-            realm.spawn_realmtext('new_txt', "Oh no!", (0, 0), (0, -24), None, pc, None, 120, 'def_bold', 24)
+            skill_help(realm, skill_obj, 'new_txt', "Oh no!", (0, 0), (0, -24), None, pc, None, 120, 'def_bold', 24)
             realm.shortlists_update(mobs=True)
 
     pc.food_change(wins_dict, -5)
@@ -977,10 +1002,10 @@ def craft(wins_dict, fate_rnd, pc, skill_obj, item_adress, no_aim=False, just_va
             realm.maze.flag_array, {'mov': False}, (x_sq, y_sq),
             (round(realm.pc.x_sq), round(realm.pc.y_sq)), 100, 10, r_max=10
     )[0]:
-        realm.spawn_realmtext('new_txt', "Can't reach!", (0, 0), (0, -24), None, pc, None, 120, 'def_bold', 24)
+        skill_help(realm, skill_obj, 'new_txt', "Can't reach!", (0, 0), (0, -24), None, pc, None, 120, 'def_bold', 24)
         return True
     if len(flags.item) == 0:
-        realm.spawn_realmtext('new_txt', "Nothing here!", (0, 0), (0, -24), None, pc, None, 120, 'def_bold', 24)
+        skill_help(realm, skill_obj, 'new_txt', "Nothing here!", (0, 0), (0, -24), None, pc, None, 120, 'def_bold', 24)
         return False
     ingredient_list = flags.item
     in_work_list = []
@@ -1001,10 +1026,10 @@ def craft(wins_dict, fate_rnd, pc, skill_obj, item_adress, no_aim=False, just_va
                     in_work_list.append(ing)
                     break
                 else:
-                    realm.spawn_realmtext('new_txt', "%s is no good!" % ing.props['label'],
+                    skill_help(realm, skill_obj, 'new_txt', "%s is no good!" % ing.props['label'],
                                           (0, 0), (0, -24), None, pc, None, 120, 'def_bold', 24)
         else:
-            realm.spawn_realmtext('new_txt', "Not enough ingredients!",
+            skill_help(realm, skill_obj, 'new_txt', "Not enough ingredients!",
                                   (0, 0), (0, -24), None, pc, None, 120, 'def_bold', 24)
             break
     else:
@@ -1017,7 +1042,7 @@ def craft(wins_dict, fate_rnd, pc, skill_obj, item_adress, no_aim=False, just_va
         skill = pc.char_sheet.profs['prof_craft'] + lvl_dif * 250 + 300  # 25% per level penalty, 300 = base value
         rnd_roll = random.randrange(0, 1001)
         if rnd_roll == 1000 or rnd_roll - skill >= 500:
-            realm.spawn_realmtext('new_txt', "Oh no!", (0, 0), (0, -24), None, pc, None, 120, 'def_bold', 24)
+            skill_help(realm, skill_obj, 'new_txt', "Oh no!", (0, 0), (0, -24), None, pc, None, 120, 'def_bold', 24)
             realm.sound_inrealm('fire_pickup', x_sq, y_sq, forced=True)
             realm.particle_list.append(particle.Particle((x_sq, y_sq), (-16, -16),
                                                          realm.animations.get_animation('effect_explosion')[
@@ -1056,14 +1081,14 @@ def craft(wins_dict, fate_rnd, pc, skill_obj, item_adress, no_aim=False, just_va
                         new_tr.props['desc'] = textinserts.insert(realm, pc,
                                                                   pickrandom.items_get(mans_list, 1)[0]['desc'])
             lootgen.drop_loot(x_sq, y_sq, realm, treasure_list)
-            realm.spawn_realmtext('new_txt', "Easy as pie!", (0, 0), (0, -24), None, pc, None, 120, 'def_bold', 24)
+            skill_help(realm, skill_obj, 'new_txt', "Easy as pie!", (0, 0), (0, -24), None, pc, None, 120, 'def_bold', 24)
             realm.sound_inrealm('plate_pickup', x_sq, y_sq, forced=True)
             realm.particle_list.append(particle.Particle((pc.x_sq, pc.y_sq), (-16, -16),
                                                          realm.animations.get_animation('effect_arcane_dust')[
                                                              'default'], 60))
             spent = True
         else:
-            realm.spawn_realmtext('new_txt', "Too hard!", (0, 0), (0, -24), None, pc, None, 120, 'def_bold', 24)
+            skill_help(realm, skill_obj, 'new_txt', "Too hard!", (0, 0), (0, -24), None, pc, None, 120, 'def_bold', 24)
             realm.sound_inrealm('plate_pickup', x_sq, y_sq, forced=True)
             spent = False
 
@@ -1121,7 +1146,7 @@ def pickup(wins_dict, fate_rnd, pc, skill_obj, item_adress, no_aim=False, just_v
                 continue
             break
         else:
-            realm.spawn_realmtext('new_txt', "Nothing here!", (0, 0), (0, -24), None, pc, None, 120, 'def_bold', 24)
+            skill_help(realm, skill_obj, 'new_txt', "Nothing here!", (0, 0), (0, -24), None, pc, None, 120, 'def_bold', 24)
             return False
     else:
         x_sq, y_sq = realm.xy_pixels_to_squares(realm.mouse_pointer.xy)
@@ -1133,7 +1158,7 @@ def pickup(wins_dict, fate_rnd, pc, skill_obj, item_adress, no_aim=False, just_v
             return True
         if maths.get_distance(pc.x_sq, pc.y_sq, x_sq, y_sq) > skill_obj.props['range'] or not calc2darray.path2d(realm.maze.flag_array, {'mov': False}, (x_sq, y_sq),
                                                                                                                  (round(pc.x_sq), round(pc.y_sq)), 100, 10, r_max=10)[0]:
-            realm.spawn_realmtext('new_txt', "Can't reach!", (0, 0), (0, -24), None, pc, None, 120, 'def_bold', 24)
+            skill_help(realm, skill_obj, 'new_txt', "Can't reach!", (0, 0), (0, -24), None, pc, None, 120, 'def_bold', 24)
             return True
 
     realm.coins_collect(pc.x_sq, pc.y_sq, radius=skill_obj.props['range'])
@@ -1219,7 +1244,7 @@ def learn_skill(wins_dict, fate_rnd, pc, skill_obj, item_adress, no_aim=False, j
                 pc.char_sheet.skills[i] = new_skill
                 break
         else:
-            realm.spawn_realmtext('new_txt', "I can't learn $n more skills!", (0, 0), (0, -24), None, pc, None, 120,
+            skill_help(realm, skill_obj, 'new_txt', "I can't learn $n more skills!", (0, 0), (0, -24), None, pc, None, 120,
                                   'def_bold', 24)
             return True
 
@@ -1227,7 +1252,7 @@ def learn_skill(wins_dict, fate_rnd, pc, skill_obj, item_adress, no_aim=False, j
     realm.pygame_settings.audio.sound(item_adress[0][item_adress[1]].props['sound_use'])
     pc.char_sheet.item_remove(wins_dict, item_adress[0][item_adress[1]])
     wins_dict['context'].end()
-    realm.spawn_realmtext('new_txt', "I have learned a new Skill!", (0, 0), (0, -24), None, pc, None, 120,
+    skill_help(realm, skill_obj, 'new_txt', "I have learned a new Skill!", (0, 0), (0, -24), None, pc, None, 120,
                           'def_bold', 24)
     pc.act(wins_dict, None, skill_obj)
 
@@ -1244,7 +1269,7 @@ def skill_reqs_check(realm, skill_obj, pc):
         skill_obj.props['required_char_type'] not in (None, pc.char_sheet.type)
         or not pc.char_sheet.has_skill(skill_obj.props['skill_id'])
     ):
-        realm.spawn_realmtext('new_txt', "I have no skills $n for this task!", (0, 0), (0, -24), None, pc, None, 120, 'def_bold', 24)
+        skill_help(realm, skill_obj, 'new_txt', "I have no skills $n for this task!", (0, 0), (0, -24), None, pc, None, 120, 'def_bold', 24)
         return False
 
     if (skill_obj.props['required_head'] is not None
@@ -1264,7 +1289,7 @@ def skill_reqs_check(realm, skill_obj, pc):
         return False
     if (skill_obj.props['required_light'] is not None
             and not equipment_types_check((pc.char_sheet.equipped[6],), skill_obj.props['required_light'])):
-        realm.spawn_realmtext('new_txt', "I need some light!", (0, 0), (0, -24), None, pc, None, 120,
+        skill_help(realm, skill_obj, 'new_txt', "I need some light!", (0, 0), (0, -24), None, pc, None, 120,
                               'def_bold', 24)
         return False
 
@@ -1273,21 +1298,21 @@ def skill_reqs_check(realm, skill_obj, pc):
 
 def skill_costs_check(realm, skill_obj, pc, rate=1):
     if skill_obj.props['cost_mp'] * rate > pc.char_sheet.mp and pc.autopower(realm.wins_dict) < skill_obj.props['cost_mp'] * rate:
-        realm.spawn_realmtext('new_txt', "Not enough powers!", (0, 0), (0, -24), None, pc, None, 120, 'def_bold', 24)
+        skill_help(realm, skill_obj, 'new_txt', "Not enough powers!", (0, 0), (0, -24), None, pc, None, 120, 'def_bold', 24)
         return False
     elif skill_obj.props['cost_mp'] != 0:
         pc.char_sheet.mp_get(skill_obj.props['cost_mp'] * rate * -1)
         realm.wins_dict['pools'].updated = True
 
     if skill_obj.props['cost_hp'] * rate > pc.char_sheet.hp and pc.autoheal(realm.wins_dict) < skill_obj.props['cost_hp'] * rate:
-        realm.spawn_realmtext('new_txt', "Not enough health!", (0, 0), (0, -24), None, pc, None, 120, 'def_bold', 24)
+        skill_help(realm, skill_obj, 'new_txt', "Not enough health!", (0, 0), (0, -24), None, pc, None, 120, 'def_bold', 24)
         return False
     elif skill_obj.props['cost_hp'] != 0:
         pc.char_sheet.hp_get(skill_obj.props['cost_hp'] * rate * -1)
         realm.wins_dict['pools'].updated = True
 
     if skill_obj.props['cost_exp'] * rate > pc.char_sheet.experience:
-        realm.spawn_realmtext('new_txt', "Not enough experience!", (0, 0), (0, -24), None, pc, None, 120, 'def_bold', 24)
+        skill_help(realm, skill_obj, 'new_txt', "Not enough experience!", (0, 0), (0, -24), None, pc, None, 120, 'def_bold', 24)
         return False
     elif skill_obj.props['cost_exp'] != 0:
         pc.char_sheet.experience_get(realm.wins_dict, pc, None, skill_obj.props['cost_exp'] * rate * -1)
@@ -1295,7 +1320,7 @@ def skill_costs_check(realm, skill_obj, pc, rate=1):
         realm.wins_dict['charstats'].updated = True
 
     if skill_obj.props['cost_gold'] * rate > pc.char_sheet.gold_coins:
-        realm.spawn_realmtext('new_txt', "Not enough gold!", (0, 0), (0, -24), None, pc, None, 120, 'def_bold', 24)
+        skill_help(realm, skill_obj, 'new_txt', "Not enough gold!", (0, 0), (0, -24), None, pc, None, 120, 'def_bold', 24)
         return False
     elif skill_obj.props['cost_gold'] != 0:
         pc.char_sheet.gold_coins += (skill_obj.props['cost_gold'] * rate * -1)
@@ -1323,3 +1348,14 @@ def get_highest(item_list, key):
             obj_max = itm
             obj_max_val = itm_val
     return obj_max, obj_max_val
+
+
+def skill_help(realm, skill_obj, rt_id, caption, xy_sq, offset_xy, color=None, stick_obj=None, speed_xy=None,
+               kill_timer=None, font='def_bold', size=24, frict_x=0, frict_y=0):
+    if realm.last_skill != skill_obj:
+        realm.last_skill = skill_obj
+        realm.last_skill_timer = 60
+        realm.spawn_realmtext(rt_id, caption, xy_sq, offset_xy, color=color, stick_obj=stick_obj, speed_xy=speed_xy,
+                              kill_timer=kill_timer, font=font, size=size, frict_x=frict_x, frict_y=frict_y)
+
+        

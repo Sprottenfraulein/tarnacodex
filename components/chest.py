@@ -5,7 +5,8 @@ import random
 
 class Chest:
     def __init__(self, x_sq, y_sq, alignment, room, tileset, off_x=0, off_y=0, lvl=None, items_number=0, gp_number=0,
-                 treasure_group=None, item_type=None, char_type=None, container=None, disappear=False, allow_mimic=True):
+                 treasure_group=None, item_type=None, char_type=None, container=None, disappear=False, allow_mimic=True,
+                 name_replace=None):
         self.x_sq = x_sq
         self.y_sq = y_sq
         self.off_x = off_x
@@ -17,7 +18,6 @@ class Chest:
         self.trap = None
         self.closed = True
         self.image = None
-        self.image_update()
 
         self.lvl = lvl
         self.items_number = items_number
@@ -29,9 +29,14 @@ class Chest:
         self.container = container
         self.disappear = disappear
         self.allow_mimic = allow_mimic
+        self.name_replace = name_replace
+
+        self.image_update()
 
     def image_update(self):
-        if self.alignment:
+        if self.alignment is None:
+            align = ''
+        elif self.alignment is True:
             align = 'ver'
             """self.off_x = 0
             self.off_y = 0"""
@@ -39,6 +44,7 @@ class Chest:
             align = 'hor'
             """self.off_x = 0
             self.off_y = 0"""
+
         if self.lock is not None:
             if self.lock.magical:
                 pos = 'mlock'
@@ -48,7 +54,10 @@ class Chest:
             pos = 'shut'
         else:
             pos = 'open'
-        image_name = 'chest_%s_%s' % (align, pos)
+        if self.name_replace:
+            image_name = '%s_%s_%s' % (self.name_replace, align, pos)
+        else:
+            image_name = 'chest_%s_%s' % (align, pos)
         self.image = self.tileset[image_name]
 
     def use(self, wins_dict, active_wins, pc, maze_module):
@@ -160,8 +169,8 @@ class Chest:
         if not self.allow_mimic:
             return False
         is_mimic = random.randrange(0, 6) == 5
-        """if not is_mimic:
-            return False"""
+        if not is_mimic:
+            return False
 
         wins_dict['realm'].maze.chests.remove(self)
         wins_dict['realm'].maze.flag_array[self.y_sq][self.x_sq].obj = None

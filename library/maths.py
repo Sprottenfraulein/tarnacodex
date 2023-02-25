@@ -82,7 +82,6 @@ def rect_sticky_edges(rect, rects_list):
     return r_x, r_y
 
 
-
 def expo_rnd_sample(minimum=1, maximum=1000, expolambda=0.004):
     r = int(random.expovariate(expolambda))
     if minimum <= r <= maximum:
@@ -96,3 +95,4 @@ def get_rnd_expo_list(range_min, range_max, n):
     spread = range_max - range_min
     result_list = [i * spread // 1000 + range_min for i in filtered]
     return result_list
+

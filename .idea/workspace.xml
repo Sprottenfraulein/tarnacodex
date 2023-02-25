@@ -25,43 +25,43 @@
     </select>
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="cc130b1c-00f5-48a7-860f-78f09248cfe9" name="Default Changelist" comment="*">
+    <list default="true" id="cc130b1c-00f5-48a7-860f-78f09248cfe9" name="Default Changelist" comment="* Mimics added&#10;* Database updated&#10;* New affixes and new modifiers added&#10;* Texts updated&#10;* Sound effects updated&#10;* Skill calculations corrected&#10;* Monsters code optimized&#10;* Errors fixed&#10;* Other updates">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/TODO.txt" beforeDir="false" afterPath="$PROJECT_DIR$/TODO.txt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/components/animations.py" beforeDir="false" afterPath="$PROJECT_DIR$/components/animations.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/components/charsheet.py" beforeDir="false" afterPath="$PROJECT_DIR$/components/charsheet.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/components/chest.py" beforeDir="false" afterPath="$PROJECT_DIR$/components/chest.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/components/dbrequests.py" beforeDir="false" afterPath="$PROJECT_DIR$/components/dbrequests.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/components/gamesave.py" beforeDir="false" afterPath="$PROJECT_DIR$/components/gamesave.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/components/lock.py" beforeDir="false" afterPath="$PROJECT_DIR$/components/lock.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/components/lootgen.py" beforeDir="false" afterPath="$PROJECT_DIR$/components/lootgen.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/components/maze.py" beforeDir="false" afterPath="$PROJECT_DIR$/components/maze.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/components/monster.py" beforeDir="false" afterPath="$PROJECT_DIR$/components/monster.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/components/pc.py" beforeDir="false" afterPath="$PROJECT_DIR$/components/pc.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/components/projectile.py" beforeDir="false" afterPath="$PROJECT_DIR$/components/projectile.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/components/skillfuncs.py" beforeDir="false" afterPath="$PROJECT_DIR$/components/skillfuncs.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/components/trap.py" beforeDir="false" afterPath="$PROJECT_DIR$/components/trap.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/components/stairs.py" beforeDir="false" afterPath="$PROJECT_DIR$/components/stairs.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/components/textinserts.py" beforeDir="false" afterPath="$PROJECT_DIR$/components/textinserts.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/components/tilesets.py" beforeDir="false" afterPath="$PROJECT_DIR$/components/tilesets.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/components/treasure.py" beforeDir="false" afterPath="$PROJECT_DIR$/components/treasure.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/library/button.py" beforeDir="false" afterPath="$PROJECT_DIR$/library/button.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/library/cursor.py" beforeDir="false" afterPath="$PROJECT_DIR$/library/cursor.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/library/maths.py" beforeDir="false" afterPath="$PROJECT_DIR$/library/maths.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/library/pickrandom.py" beforeDir="false" afterPath="$PROJECT_DIR$/library/pickrandom.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pginit.py" beforeDir="false" afterPath="$PROJECT_DIR$/pginit.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/res/data/tables.db" beforeDir="false" afterPath="$PROJECT_DIR$/res/data/tables.db" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/res/sounds/bell_01.wav" beforeDir="false" afterPath="$PROJECT_DIR$/res/sounds/bell_01.wav" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/res/sounds/blast_01.wav" beforeDir="false" afterPath="$PROJECT_DIR$/res/sounds/blast_01.wav" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/res/sounds/chop_01.wav" beforeDir="false" afterPath="$PROJECT_DIR$/res/sounds/chop_01.wav" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/res/sounds/clank_01.wav" beforeDir="false" afterPath="$PROJECT_DIR$/res/sounds/clank_01.wav" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/res/sounds/slice_01.wav" beforeDir="false" afterPath="$PROJECT_DIR$/res/sounds/slice_01.wav" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/res/sounds/grate_01.wav" beforeDir="false" afterPath="$PROJECT_DIR$/res/sounds/grate_01.wav" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/res/sounds/grate_02.wav" beforeDir="false" afterPath="$PROJECT_DIR$/res/sounds/grate_02.wav" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/res/tilesets/anthro_knight_blue.png" beforeDir="false" afterPath="$PROJECT_DIR$/res/tilesets/anthro_knight_blue.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/res/tilesets/dark_bricks.png" beforeDir="false" afterPath="$PROJECT_DIR$/res/tilesets/dark_bricks.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/res/tilesets/dung_bricks.png" beforeDir="false" afterPath="$PROJECT_DIR$/res/tilesets/dung_bricks.png" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/res/tilesets/floor_items.png" beforeDir="false" afterPath="$PROJECT_DIR$/res/tilesets/floor_items.png" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/res/tilesets/inv_items.png" beforeDir="false" afterPath="$PROJECT_DIR$/res/tilesets/inv_items.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/res/tilesets/item_effects.png" beforeDir="false" afterPath="$PROJECT_DIR$/res/tilesets/item_effects.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/resman.py" beforeDir="false" afterPath="$PROJECT_DIR$/resman.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/save/normal_commons.pd" beforeDir="false" afterPath="$PROJECT_DIR$/save/normal_commons.pd" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/settings.py" beforeDir="false" afterPath="$PROJECT_DIR$/settings.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/wins/apptitle.py" beforeDir="false" afterPath="$PROJECT_DIR$/wins/apptitle.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/wins/charstats.py" beforeDir="false" afterPath="$PROJECT_DIR$/wins/charstats.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/wins/context.py" beforeDir="false" afterPath="$PROJECT_DIR$/wins/context.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/wins/demos.py" beforeDir="false" afterPath="$PROJECT_DIR$/wins/demos.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/wins/hotbar.py" beforeDir="false" afterPath="$PROJECT_DIR$/wins/hotbar.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/wins/inventory.py" beforeDir="false" afterPath="$PROJECT_DIR$/wins/inventory.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/wins/pools.py" beforeDir="false" afterPath="$PROJECT_DIR$/wins/pools.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/wins/realm.py" beforeDir="false" afterPath="$PROJECT_DIR$/wins/realm.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/wins/skillbook.py" beforeDir="false" afterPath="$PROJECT_DIR$/wins/skillbook.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/wins/stash.py" beforeDir="false" afterPath="$PROJECT_DIR$/wins/stash.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/wins/target.py" beforeDir="false" afterPath="$PROJECT_DIR$/wins/target.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/wins/tasks.py" beforeDir="false" afterPath="$PROJECT_DIR$/wins/tasks.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/wins/trade.py" beforeDir="false" afterPath="$PROJECT_DIR$/wins/trade.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -153,13 +153,6 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1642253012991</updated>
-    </task>
-    <task id="LOCAL-00020" summary="Test skill added, slot management fixed and improved, interface interactions updated and fixed. Context window updated for the skills. Calculations start coming together and working.">
-      <created>1643125316392</created>
-      <option name="number" value="00020" />
-      <option name="presentableId" value="LOCAL-00020" />
-      <option name="project" value="LOCAL" />
-      <updated>1643125316392</updated>
     </task>
     <task id="LOCAL-00021" summary="Fate introduced, refactored a folder">
       <created>1643183961705</created>
@@ -497,7 +490,14 @@
       <option name="project" value="LOCAL" />
       <updated>1675342490698</updated>
     </task>
-    <option name="localTasksCounter" value="69" />
+    <task id="LOCAL-00069" summary="* Mimics added&#10;* Database updated&#10;* New affixes and new modifiers added&#10;* Texts updated&#10;* Sound effects updated&#10;* Skill calculations corrected&#10;* Monsters code optimized&#10;* Errors fixed&#10;* Other updates">
+      <created>1676393705582</created>
+      <option name="number" value="00069" />
+      <option name="presentableId" value="LOCAL-00069" />
+      <option name="project" value="LOCAL" />
+      <updated>1676393705582</updated>
+    </task>
+    <option name="localTasksCounter" value="70" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -527,7 +527,6 @@
     <ignored-roots>
       <path value="$PROJECT_DIR$/Unnamed-Final" />
     </ignored-roots>
-    <MESSAGE value="Traps, burglary skills for Kingslayer, food added. Fixed mistakes, optimised code, reworked some things." />
     <MESSAGE value="Readme updated" />
     <MESSAGE value="Tables updated" />
     <MESSAGE value="Skills update" />
@@ -552,6 +551,7 @@
     <MESSAGE value="* Main menu fixes and updates.&#10;* New monsters.&#10;* Ravenstone test chapter tweaks.&#10;* Monsters and traps generation updates and tweaks.&#10;* Level progressions tweaks.&#10;* New items (rings).&#10;* Error fixes." />
     <MESSAGE value="* Intro added:&#10;  - Intro subtitles added (no pics and sound yet).&#10;* Task system added.&#10;  - Database updated accordingly.&#10;  - Tasks window added.&#10;* World rendering algorithms tweaked and fixed and everything now looks better.&#10;  - TEMPORARILY dungeon tiles replaced by placeholder set. Sorry for inconvenience.&#10;* Old saves are no longer valid. Create a new character.&#10;* Manuscripts added.&#10;* Text insertions added.&#10;* Some errors and bugs fixed." />
     <MESSAGE value="* Outro added.&#10;* Task system updated.&#10;* Dungeon tile art added (1 set and 1 variation).&#10;* Chapters in progress are no longer valid. Start a new chapter.&#10;* Some errors and bugs fixed." />
-    <option name="LAST_COMMIT_MESSAGE" value="* Outro added.&#10;* Task system updated.&#10;* Dungeon tile art added (1 set and 1 variation).&#10;* Chapters in progress are no longer valid. Start a new chapter.&#10;* Some errors and bugs fixed." />
+    <MESSAGE value="* Mimics added&#10;* Database updated&#10;* New affixes and new modifiers added&#10;* Texts updated&#10;* Sound effects updated&#10;* Skill calculations corrected&#10;* Monsters code optimized&#10;* Errors fixed&#10;* Other updates" />
+    <option name="LAST_COMMIT_MESSAGE" value="* Mimics added&#10;* Database updated&#10;* New affixes and new modifiers added&#10;* Texts updated&#10;* Sound effects updated&#10;* Skill calculations corrected&#10;* Monsters code optimized&#10;* Errors fixed&#10;* Other updates" />
   </component>
 </project>

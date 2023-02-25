@@ -398,11 +398,18 @@ def attack_ranged(self, pc, wins_dict, distance):
         self.anim_set['missile_nw'],
         self.anim_set['missile_w']
     )
-    speed = 0.1
+    speed = round(self.attacking['projectile_speed'] / 100, 3)
+    if self.attacking['projectile_collision_limit'] == -1:
+        duration = 1200
+    else:
+        duration = None
     wins_dict['realm'].spawn_projectile((self.x_sq, self.y_sq), (pc.x_sq, pc.y_sq),
                                         (rnd_attack, self.attacking['attack_type'], is_crit, self),
-                                        speed, anim_pack, collision_limit=1, blast_radius=self.attacking['blast_radius'],
-                                        blast_sound=self.attacking['sound_blast'])
+                                        speed, anim_pack, collision_limit=self.attacking['projectile_collision_limit'],
+                                        blast_radius=self.attacking['blast_radius'],
+                                        blast_sound=self.attacking['sound_blast'],
+                                        duration=duration,
+                                        destroy_on_limit=self.attacking['projectile_collision_limit']>0)
 
     wins_dict['realm'].sound_inrealm(self.attacking['sound_attack'], self.x_sq, self.y_sq)
 
@@ -445,8 +452,10 @@ def move(self, step_x, step_y, realm):
     if step_x != 0 and step_y != 0:
         step_x *= 0.8
         step_y *= 0.8
-    dest_x_sq = round(self.x_sq + (step_x + self.size) * self.speed / 100)
-    dest_y_sq = round(self.y_sq + (step_y + self.size) * self.speed / 100)
+    """dest_x_sq = round(self.x_sq + (step_x + self.size) * self.speed / 100)
+    dest_y_sq = round(self.y_sq + (step_y + self.size) * self.speed / 100)"""
+    dest_x_sq = round(self.x_sq + step_x * self.speed * 2 / 100)
+    dest_y_sq = round(self.y_sq + step_y * self.speed * 2 / 100)
 
     if not (0 <= dest_x_sq < realm.maze.width):
         dest_x_sq = round(self.x_sq)
@@ -545,9 +554,11 @@ def sq_is_free(self, realm, sq_x, sq_y):
     return 1, 1
 
 
-def wound(self, damage, dam_type, ranged, is_crit, wins_dict, fate_rnd, pc, no_reflect=False):
+def wound(self, rnd_attack, dam_type, ranged, is_crit, wins_dict, fate_rnd, pc, no_reflect=False):
     if not self.alive:
         return
+    damage = rnd_attack * (100 - self.stats[pc.char_sheet.att_def_dict[dam_type]]) // 100  # reduce attack by percent of def
+
     self.hp -= damage
 
     wins_dict['realm'].hit_fx(self.x_sq, self.y_sq, dam_type, is_crit)
@@ -626,6 +637,7 @@ def check(self, wins_dict, fate_rnd, pc):
         pass
     # wins_dict['realm'].maze.flag_array[round(self.y_sq)][round(self.x_sq)].mon = None
     wins_dict['target'].drop_aim()
+    wins_dict['realm'].buttons_pressed.discard(11)
 
 
 def state_change(self, new_state):

@@ -79,6 +79,10 @@ class Realm:
         self.pause = False
         self.controls_enabled = True
 
+        self.buttons_pressed = set()
+        self.last_skill = None
+        self.last_skill_timer = 60
+
     def view_resize(self, w, h):
         self.view_maze_width_sq = math.ceil(w / self.square_scale / self.square_size)
         self.view_maze_height_sq = math.ceil(h / self.square_scale / self.square_size)
@@ -150,21 +154,30 @@ class Realm:
 
     def event_check(self, event, log=True):
         if not self.pc.alive or not self.controls_enabled:
+            pygame.event.clear()
             return
         # character and gui controls
         if event.type == pygame.KEYDOWN:
-            """if event.key == pygame.K_LEFT:
-                # self.view_maze_x_sq -= 1
-                self.pc.move_instr_x = -1
-            if event.key == pygame.K_RIGHT:
-                # self.view_maze_x_sq += 1
-                self.pc.move_instr_x = 1
-            if event.key == pygame.K_UP:
-                # self.view_maze_y_sq -= 1
-                self.pc.move_instr_y = -1
-            if event.key == pygame.K_DOWN:
-                # self.view_maze_y_sq += 1
-                self.pc.move_instr_y = 1"""
+            if event.key == pygame.K_1:
+                self.buttons_pressed.add(1)
+            elif event.key == pygame.K_2:
+                self.buttons_pressed.add(2)
+            elif event.key == pygame.K_3:
+                self.buttons_pressed.add(3)
+            elif event.key == pygame.K_4:
+                self.buttons_pressed.add(4)
+            elif event.key == pygame.K_5:
+                self.buttons_pressed.add(5)
+            elif event.key == pygame.K_6:
+                self.buttons_pressed.add(6)
+            elif event.key == pygame.K_7:
+                self.buttons_pressed.add(7)
+            elif event.key == pygame.K_8:
+                self.buttons_pressed.add(8)
+            elif event.key == pygame.K_9:
+                self.buttons_pressed.add(9)
+            elif event.key == pygame.K_0:
+                self.buttons_pressed.add(0)
 
             if event.key == pygame.K_v:
                 self.view_offset_x_sq = round(self.mouse_pointer.xy[0] / self.square_size / self.square_scale) * -1
@@ -202,53 +215,46 @@ class Realm:
                                            ('new_txt', "I'd better have a black muffin.",
                                             (0, 0), (0, -24), None, self.pc, None, 120, 'def_bold', 24))
 
-        if event.type == pygame.KEYUP:
-            if event.key in (pygame.K_LEFT, pygame.K_RIGHT):
-                # self.view_maze_x_sq -= 1
-                self.pc.move_instr_x = 0
-            elif event.key in (pygame.K_UP, pygame.K_DOWN):
-                # self.view_maze_y_sq -= 1
-                self.pc.move_instr_y = 0
+        elif event.type == pygame.KEYUP:
+            if event.key == pygame.K_1:
+                self.buttons_pressed.discard(1)
+            elif event.key == pygame.K_2:
+                self.buttons_pressed.discard(2)
+            elif event.key == pygame.K_3:
+                self.buttons_pressed.discard(3)
+            elif event.key == pygame.K_4:
+                self.buttons_pressed.discard(4)
+            elif event.key == pygame.K_5:
+                self.buttons_pressed.discard(5)
+            elif event.key == pygame.K_6:
+                self.buttons_pressed.discard(6)
+            elif event.key == pygame.K_7:
+                self.buttons_pressed.discard(7)
+            elif event.key == pygame.K_8:
+                self.buttons_pressed.discard(8)
+            elif event.key == pygame.K_9:
+                self.buttons_pressed.discard(9)
+            elif event.key == pygame.K_0:
+                self.buttons_pressed.discard(0)
 
-            elif event.key == pygame.K_1 and self.pc.char_sheet.hotbar[0] is not None:
-                self.hot_activate(0, True)
-            elif event.key == pygame.K_2 and self.pc.char_sheet.hotbar[1] is not None:
-                self.hot_activate(1, True)
-            elif event.key == pygame.K_3 and self.pc.char_sheet.hotbar[2] is not None:
-                self.hot_activate(2, True)
-            elif event.key == pygame.K_4 and self.pc.char_sheet.hotbar[3] is not None:
-                self.hot_activate(3, True)
-            elif event.key == pygame.K_5 and self.pc.char_sheet.hotbar[4] is not None:
-                self.hot_activate(4, True)
-            elif event.key == pygame.K_6 and self.pc.char_sheet.hotbar[5] is not None:
-                self.hot_activate(5, True)
-            elif event.key == pygame.K_7 and self.pc.char_sheet.hotbar[6] is not None:
-                self.hot_activate(6, True)
-            elif event.key == pygame.K_8 and self.pc.char_sheet.hotbar[7] is not None:
-                self.hot_activate(7, True)
-            elif event.key == pygame.K_9 and self.pc.char_sheet.hotbar[8] is not None:
-                self.hot_activate(8, True)
-            elif event.key == pygame.K_0 and self.pc.char_sheet.hotbar[9] is not None:
-                self.hot_activate(9, True)
-
-        if event.type == pygame.MOUSEBUTTONDOWN:
+        elif event.type == pygame.MOUSEBUTTONDOWN:
             # removing popup if active
             if self.wins_dict['context'] in self.active_wins:
                 self.active_wins.remove(self.wins_dict['context'])
             if self.mouse_pointer.drag_item is not None:
                 return
 
-            can_move = True
-            if event.button == 1 and self.pc.char_sheet.hotbar[-2] is not None:
-                can_move = self.hot_activate(-2, False)
-            elif event.button == 3 and self.pc.char_sheet.hotbar[-1] is not None:
-                can_move = self.hot_activate(-1, False)
-            if can_move and event.button == 1:
-                can_move = self.square_check(self.mouse_pointer.xy)
-            if can_move and event.button == 1:
-                self.pc.move_instr_x, self.pc.move_instr_y = self.mouse_move(self.mouse_pointer.xy)
+            if event.button == 1:
+                self.buttons_pressed.add(11)
+            if event.button == 3:
+                self.buttons_pressed.add(13)
 
         elif event.type == pygame.MOUSEBUTTONUP:
+            if event.button == 1:
+                self.buttons_pressed.discard(11)
+            if event.button == 3:
+                self.buttons_pressed.discard(13)
+
             if event.button != 1:
                 return
             self.pc.move_instr_x = self.pc.move_instr_y = 0
@@ -282,6 +288,13 @@ class Realm:
         if self.pause:
             return
 
+        if self.last_skill_timer > 0:
+            self.last_skill_timer -= 1
+        elif self.last_skill is not None:
+            self.last_skill = None
+
+        self.controls()
+
         self.maze.tick()
         self.pc.tick(self, self.resources.fate_rnd, self.wins_dict, self.active_wins)
         for mob in self.mobs_short:
@@ -306,6 +319,39 @@ class Realm:
         self.monster_sound_ambience()
 
         self.render_update()
+
+    def controls(self):
+        if 1 in self.buttons_pressed and self.pc.char_sheet.hotbar[0] is not None:
+            self.hot_activate(0, True)
+        if 2 in self.buttons_pressed and self.pc.char_sheet.hotbar[1] is not None:
+            self.hot_activate(1, True)
+        if 3 in self.buttons_pressed and self.pc.char_sheet.hotbar[2] is not None:
+            self.hot_activate(2, True)
+        if 4 in self.buttons_pressed and self.pc.char_sheet.hotbar[3] is not None:
+            self.hot_activate(3, True)
+        if 5 in self.buttons_pressed and self.pc.char_sheet.hotbar[4] is not None:
+            self.hot_activate(4, True)
+        if 6 in self.buttons_pressed and self.pc.char_sheet.hotbar[5] is not None:
+            self.hot_activate(5, True)
+        if 7 in self.buttons_pressed and self.pc.char_sheet.hotbar[6] is not None:
+            self.hot_activate(6, True)
+        if 8 in self.buttons_pressed and self.pc.char_sheet.hotbar[7] is not None:
+            self.hot_activate(7, True)
+        if 9 in self.buttons_pressed and self.pc.char_sheet.hotbar[8] is not None:
+            self.hot_activate(8, True)
+        if 0 in self.buttons_pressed and self.pc.char_sheet.hotbar[9] is not None:
+            self.hot_activate(9, True)
+
+        can_move = True
+        if 11 in self.buttons_pressed and self.pc.char_sheet.hotbar[-2] is not None and self.pc.move_instr_x == self.pc.move_instr_y == 0:
+            can_move = self.hot_activate(-2, False)
+        if 13 in self.buttons_pressed and self.pc.char_sheet.hotbar[-1] is not None:
+            self.hot_activate(-1, False)
+
+        if can_move and 11 in self.buttons_pressed and self.pc.move_instr_x == self.pc.move_instr_y == 0:
+            can_move = self.square_check(self.mouse_pointer.xy)
+        if can_move and 11 in self.buttons_pressed:
+            self.pc.move_instr_x, self.pc.move_instr_y = self.mouse_move(self.mouse_pointer.xy)
 
     def draw(self, surface):
         self.stage_display(surface)
@@ -348,9 +394,10 @@ class Realm:
 
         if self.redraw_missiles:
             for missile in self.missiles_list:
-                self.view_maze_surface.blit(missile.image_strip[missile.frame_index],
-                                            ((missile.x_sq - self.ren_x_sq) * self.square_size + missile.off_x,
-                                             (missile.y_sq - self.ren_y_sq) * self.square_size + missile.off_y))
+                if self.maze.flag_array[round(missile.y_sq)][round(missile.x_sq)].vis:
+                    self.view_maze_surface.blit(missile.image_strip[missile.frame_index],
+                                                ((missile.x_sq - self.ren_x_sq) * self.square_size + missile.off_x,
+                                                 (missile.y_sq - self.ren_y_sq) * self.square_size + missile.off_y))
 
         if self.redraw_particles:
             for part in self.particle_list:
@@ -513,14 +560,9 @@ class Realm:
                                   (ren_pos_y - self.ren_y_sq) * self.square_size))
 
     def pc_display(self, surface, x_sq, y_sq):
-        try:
-            surface.blit(self.pc.image[self.pc.anim_frame],
-                         ((self.pc.x_sq - x_sq - 0.1) * self.square_size + self.pc.off_x,
-                          (self.pc.y_sq - y_sq - 0.1) * self.square_size + self.pc.off_y))
-        except IndexError:
-            surface.blit(self.pc.image[self.pc.anim_frame % len(self.pc.image)],
-                         ((self.pc.x_sq - x_sq - 0.1) * self.square_size + self.pc.off_x,
-                          (self.pc.y_sq - y_sq - 0.1) * self.square_size + self.pc.off_y))
+        surface.blit(self.pc.image[self.pc.anim_frame],
+                     ((self.pc.x_sq - x_sq) * self.square_size + self.pc.off_x,
+                      (self.pc.y_sq - y_sq) * self.square_size + self.pc.off_y))
 
     def end(self):
         # prepare game pack for return to BigLoop
@@ -559,8 +601,8 @@ class Realm:
         self.traps_search(self.vision_sq_prev)
 
     def mouse_move(self, mouse_xy):
-        rads = maths.xy_dist_to_rads((self.pc.x_sq - self.view_maze_x_sq - 0.4) * self.square_size * self.square_scale,
-                                     (self.pc.y_sq - self.view_maze_y_sq - 0.4) * self.square_size * self.square_scale,
+        rads = maths.xy_dist_to_rads((self.pc.x_sq - self.view_maze_x_sq - 0.8) * self.square_size * self.square_scale,
+                                     (self.pc.y_sq - self.view_maze_y_sq - 0.8) * self.square_size * self.square_scale,
                                      mouse_xy[0], mouse_xy[1])
 
         if -1.95 < rads <= -1.17:
@@ -676,7 +718,13 @@ class Realm:
                 self.sound_inrealm('item_move', x_sq, y_sq)
                 # self.loot_short.remove(lt)
                 # self.render_update()
+                self.buttons_pressed.discard(11)
                 return False
+        if flags.obj is not None:
+            # objects
+            flags.obj.use(self.wins_dict, self.active_wins, self.pc, maze)
+            self.buttons_pressed.discard(11)
+            return False
         if flags.door is not None:
             # doors
             if flags.door.use(self.wins_dict, self.active_wins, self.pc):
@@ -685,10 +733,7 @@ class Realm:
                 self.calc_vision_alt()
                 self.shortlists_update(mobs=True)
                 # self.render_update()
-            return False
-        if flags.obj is not None:
-            # objects
-            flags.obj.use(self.wins_dict, self.active_wins, self.pc, maze)
+            self.buttons_pressed.discard(11)
             return False
         return True
 
@@ -763,7 +808,7 @@ class Realm:
                     self.text_short.remove(txt)
 
     def spawn_realmtext(self, rt_id, caption, xy_sq, offset_xy, color=None, stick_obj=None, speed_xy=None,
-                        kill_timer=None, font='def_bold', size=24, frict_x=0, frict_y=0):
+                        kill_timer=None, font='def_bold', size=24, frict_x=0, frict_y=0, width=None):
         if speed_xy is None:
             speed_xy = (0, 0)
         if color is None:
@@ -773,7 +818,7 @@ class Realm:
         new_tpg = typography.Typography(self.pygame_settings,
                                         caption,
                                         (0, 0), font, size, color,
-                                        self.resources.colors['bg'], 'center', 'bottom', 160, 1, shadow=True)
+                                        self.resources.colors['bg'], 'center', 'bottom', width or 160, 1, shadow=True)
         new_rt = realmtext.RealmText(self, rt_id, xy_sq, text_obj=new_tpg, stick_obj=stick_obj, offset_xy=offset_xy,
                                      speed_xy=speed_xy, kill_timer=kill_timer, frict_x=frict_x, frict_y=frict_y)
         # Move text if there is another one in place.
@@ -924,20 +969,45 @@ class Realm:
             for i in range(-1, is_crit * 4):
                 rnd_x_sq = random.randrange(-3 - is_crit, 4 + is_crit) / 10 + x_sq
                 rnd_y_sq = random.randrange(-3 - is_crit, 4 + is_crit) / 10 + y_sq
-                self.particle_list.append(particle.Particle((rnd_x_sq, rnd_y_sq), (-8, -8),
-                                                            self.animations.get_animation('effect_blood_cloud')[
+                self.particle_list.append(particle.Particle((rnd_x_sq, rnd_y_sq), (0, 0),
+                                                            self.animations.get_animation('effect_arcane_dust')[
                                                                 'default'],
-                                                            16, speed_xy=(0.25, 0.25)))
+                                                            29, speed_xy=(-0.25, -0.25)))
         elif dam_type == 'att_fire':
             for i in range(-1, is_crit * 4):
                 rnd_x_sq = random.randrange(-3 - is_crit, 4 + is_crit) / 10 + x_sq
                 rnd_y_sq = random.randrange(-3 - is_crit, 4 + is_crit) / 10 + y_sq
                 self.particle_list.append(particle.Particle((rnd_x_sq, rnd_y_sq), (-8, -8),
-                                                            self.animations.get_animation('effect_blood_cloud')[
+                                                            self.animations.get_animation('effect_fire_burst')[
                                                                 'default'],
-                                                            16, speed_xy=(0.25, 0.25)))
+                                                            29, speed_xy=(0, 0)))
+        elif dam_type == 'att_poison':
+            for i in range(-1, is_crit * 4):
+                rnd_x_sq = random.randrange(-3 - is_crit, 4 + is_crit) / 10 + x_sq
+                rnd_y_sq = random.randrange(-3 - is_crit, 4 + is_crit) / 10 + y_sq
+                self.particle_list.append(particle.Particle((rnd_x_sq, rnd_y_sq), (-8, -8),
+                                                            self.animations.get_animation('effect_poison_bubble')[
+                                                                'default'],
+                                                            30, speed_xy=(0, 0)))
+        elif dam_type == 'att_ice':
+            for i in range(-1, is_crit * 4):
+                rnd_x_sq = random.randrange(-3 - is_crit, 4 + is_crit) / 10 + x_sq
+                rnd_y_sq = random.randrange(-3 - is_crit, 4 + is_crit) / 10 + y_sq
+                self.particle_list.append(particle.Particle((rnd_x_sq, rnd_y_sq), (-8, -8),
+                                                            self.animations.get_animation('effect_ice_crystal')[
+                                                                'default'],
+                                                            29, speed_xy=(0, 0)))
+        elif dam_type == 'att_lightning':
+            for i in range(-1, is_crit * 4):
+                rnd_x_sq = random.randrange(-3 - is_crit, 4 + is_crit) / 10 + x_sq
+                rnd_y_sq = random.randrange(-3 - is_crit, 4 + is_crit) / 10 + y_sq
+                self.particle_list.append(particle.Particle((rnd_x_sq, rnd_y_sq), (-8, -8),
+                                                            self.animations.get_animation('effect_lightning_bolt')[
+                                                                'default'],
+                                                            29, speed_xy=(0, 0)))
 
         if for_pc:
+            self.sound_inrealm(self.resources.sound_presets['damage'][dam_type], x_sq, y_sq, forced=forced_sound)
             self.pygame_settings.audio.sound('pc_hit')
             if is_crit:
                 self.pygame_settings.audio.sound('hit_ring')

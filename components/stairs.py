@@ -9,7 +9,7 @@ class Stairs:
         self.image = image
         self.tilename = tilename
 
-    def use(self, wins_dict, active_wins, pc):
+    def use(self, wins_dict, active_wins, pc, maze_module):
         if pc.location[1] > 0 or self.dest == "down":
             wins_dict['dialogue'].dialogue_elements = {
                 'header': 'Attention',

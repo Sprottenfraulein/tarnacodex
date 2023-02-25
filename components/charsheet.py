@@ -455,8 +455,9 @@ class CharSheet:
                     self.hp_get(100, True)
                     self.mp_get(100, True)
                     wins_dict['realm'].spawn_realmtext('new_txt', "LEVEL UP!",
-                                                      (0, 0), (0, -24), 'fnt_celeb', pc, (0, -3), 60, 'large', 16, 0,
+                                                      (0, 0), (0, -24), 'fnt_celeb', pc, (0, -3), 60, 'large', 18, 0,
                                                       0.15)
+                    wins_dict['realm'].pygame_settings.audio.sound('level_up')
                 return True
         return False
 
@@ -533,15 +534,29 @@ class CharSheet:
         return food_mod
 
     # INVENTORY
-    def inventory_search(self, item_type):
+    def inventory_search(self, item_type=None, item_class=None):
         found_list = []
         for itm in self.inventory:
             if itm is None:
                 continue
-            if itm.props['item_type'] == item_type:
+            if item_type is not None and itm.props['item_type'] != item_type:
+                continue
+            if item_class is not None and itm.props['class'] != item_class:
+                continue
+            found_list.append(itm)
+        return found_list
+
+    def equipped_search(self, item_type=None, item_class=None):
+        found_list = []
+        for eq_pos in self.equipped:
+            for itm in eq_pos:
+                if itm is None:
+                    continue
+                if item_type is not None and itm.props['item_type'] != item_type:
+                    continue
+                if item_class is not None and itm.props['class'] != item_class:
+                    continue
                 found_list.append(itm)
-            elif 'container' in itm.props and itm.props['container'] is not None:
-                found_list.extend(self.inventory_search(item_type))
         return found_list
 
     def inventory_search_by_id(self, item_id, level=None, amount=1):

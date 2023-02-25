@@ -19,6 +19,7 @@ tilesets = (
     ('paper', 'res/tilesets/texture03.png'),
 
     ('dung_bricks', 'res/tilesets/dung_bricks.png'),
+    ('dung_cave', 'res/tilesets/dung_cave.png'),
     ('dark_bricks', 'res/tilesets/dark_bricks.png'),
 
     ('dung_doors', 'res/tilesets/dung_doors.png'),
@@ -40,6 +41,7 @@ tilesets = (
 
     ('anthro_skeleton_red', 'res/tilesets/anthro_skeleton_red.png'),
     ('anthro_skeleton_yellow', 'res/tilesets/anthro_skeleton_yellow.png'),
+    ('anthro_zombie', 'res/tilesets/anthro_zombie.png'),
     ('monster_spider_light', 'res/tilesets/monster_spider_light.png'),
     ('monster_spider_pale', 'res/tilesets/monster_spider_pale.png'),
     ('monster_slime_green', 'res/tilesets/monster_slime_green.png'),
@@ -72,6 +74,8 @@ sounds = (
     ('important_jingle', 'res/sounds/owl_01.wav'),
     ('thunder_blast', 'res/sounds/thunder_02.wav'),
     ('thunder_rolling', 'res/sounds/thunder_01.wav'),
+    ('level_up', 'res/sounds/fanfare_01.wav'),
+    ('task_complete', 'res/sounds/fanfare_02.wav'),
 
     ('pc_step_01', 'res/sounds/step_01.wav'),
     ('pc_step_02', 'res/sounds/step_02.wav'),
@@ -125,6 +129,7 @@ sounds = (
     ('plate_pickup', 'res/sounds/plate_02.wav'),
     ('plate_drop', 'res/sounds/plate_01.wav'),
     ('fire_pickup', 'res/sounds/torch_01.wav'),
+    ('gas_inflation', 'res/sounds/torch_02.wav'),
     ('fire_putout', 'res/sounds/torch_03.wav'),
     ('sand_drop', 'res/sounds/sandy_01.wav'),
     ('sand_pickup', 'res/sounds/sandy_02.wav'),
@@ -137,6 +142,7 @@ sounds = (
     ('hit_chop', 'res/sounds/chop_01.wav'),
     ('hit_blunt', 'res/sounds/hit_physical_01.wav'),
     ('hit_physical', 'res/sounds/hit_physical_02.wav'),
+    ('hit_lightning', 'res/sounds/lightning_01.wav'),
     ('bow_shot', 'res/sounds/shot_01.wav'),
     ('pc_hit', 'res/sounds/hit_physical_02.wav'),
     ('hit_blast', 'res/sounds/blast_01.wav'),

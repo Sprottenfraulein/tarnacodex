@@ -1231,20 +1231,29 @@ class AppTitle:
         self.mouse_pointer.catcher[0] = None
 
     def ending_check(self, pc):
-        quest_item_id = self.wins_dict['realm'].maze.chapter['quest_item_id']
-        quest_item_list = pc.char_sheet.inventory_search_by_id(quest_item_id, amount=-1) + pc.char_sheet.equipped_search_by_id(quest_item_id)
-        for qi in quest_item_list:
-            if qi is not None and 'quest_item' in qi.props:
-                self.wins_dict['dialogue'].dialogue_elements = {
-                    'header': 'Attention',
-                    'text': "Finish your Quest? $n $n (If you leave now, you will not be able to return to this world anymore without restarting the Chapter!)",
-                    'bttn_cancel': 'NO',
-                    'bttn_ok': 'YES'
-                }
-                self.wins_dict['dialogue'].delayed_action['bttn_ok'] = (self, 'chapter_conclude', (qi, self.wins_dict, pc))
-                self.wins_dict['dialogue'].launch(pc)
-                self.pygame_settings.audio.sound('important_jingle')
-                break
+        can_conclude = None
+        if self.wins_dict['realm'].maze.chapter['quest_item_id'] is not None:
+            quest_item_id = self.wins_dict['realm'].maze.chapter['quest_item_id']
+            quest_item_list = pc.char_sheet.inventory_search_by_id(quest_item_id, amount=-1) + pc.char_sheet.equipped_search_by_id(quest_item_id)
+            for qi in quest_item_list:
+                if qi is not None and 'quest_item' in qi.props:
+                    can_conclude = qi
+        else:
+            blackrock_list = pc.char_sheet.inventory_search(item_class='blackrock') + pc.char_sheet.equipped_search(item_class='blackrock')
+            for br in blackrock_list:
+                if br is not None and 'quest_item' in br.props:
+                    can_conclude = br
+
+        if can_conclude:
+            self.wins_dict['dialogue'].dialogue_elements = {
+                'header': 'Attention',
+                'text': "Finish your Quest? $n $n (If you leave now, you will not be able to return to this world anymore without restarting the Chapter!)",
+                'bttn_cancel': 'NO',
+                'bttn_ok': 'YES'
+            }
+            self.wins_dict['dialogue'].delayed_action['bttn_ok'] = (self, 'chapter_conclude', (can_conclude, self.wins_dict, pc))
+            self.wins_dict['dialogue'].launch(pc)
+            self.pygame_settings.audio.sound('important_jingle')
         else:
             self.wins_dict['dialogue'].dialogue_elements = {
                 'header': 'Attention',

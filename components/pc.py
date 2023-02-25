@@ -139,8 +139,8 @@ class PC:
         if step_x != 0 and step_y != 0:
             step_x *= 0.8
             step_y *= 0.8
-        dest_x_sq = round(self.x_sq + step_x * self.speed)
-        dest_y_sq = round(self.y_sq + step_y * self.speed)
+        dest_x_sq = round(self.x_sq + step_x * self.speed * 4)
+        dest_y_sq = round(self.y_sq + step_y * self.speed * 4)
 
         if not (0 <= dest_x_sq < realm.maze.width) or not (0 <= dest_y_sq < realm.maze.height):
             return
@@ -168,7 +168,7 @@ class PC:
             realm.view_maze_update(self.x_sq, self.y_sq)
 
             if abs(self.x_sq - self.prev_x_sq) >= 1 or abs(self.y_sq - self.prev_y_sq) >= 1:
-                self.food_change(wins_dict, -2)
+                self.food_change(wins_dict, -1)
 
                 # Light source burns out gradually.
                 if self.char_sheet.equipped[6][0]:
@@ -489,6 +489,8 @@ class PC:
             self.die(wins_dict, {'label': 'hunger'})
             return
         if self.food_delta >= 20:
+            self.char_sheet.hp_get(2, True)
+            self.char_sheet.mp_get(2, True)
             wins_dict['pools'].updated = True
             self.food_delta = 0
             if self.char_sheet.food < 250:

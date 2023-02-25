@@ -230,7 +230,7 @@ class Tasks:
         self.task_desc = self.win_ui.text_add(
             'task_desc', (246, frames_top + 2),
             caption='Click a task button on the left panel to watch its description.',
-            h_align='left', v_align='top', size=(self.win_w - 236 - 8 - 8, 48),
+            h_align='left', v_align='top', size=(self.win_w - 236 - 8 - 8 - 4, 48),
             cap_color='fnt_celeb', cap_font='def_normal', cap_size=24
         )
         self.win_ui.decoratives.append(self.task_desc)
@@ -308,13 +308,13 @@ class Tasks:
                 task_list[i]['tileset'], (task_list[i]['width'], task_list[i]['height']), (task_list[i]['index'],)
             )[0]
             req_panel = self.win_ui.panel_add(
-                'req_panel', (246, self.task_desc.rendered_rect.bottom + 32 + 56 * i), (48, 48), images=(req_image,),
+                'req_panel', (246, self.task_desc.rendered_rect.top + self.task_desc.text_obj.rendered_rect.height + 32 + 56 * i), (48, 48), images=(req_image,),
                 img_stretch=True
             )
             self.win_ui.decoratives.insert(0, req_panel)
             self.task_reqs.append(req_panel)
             req_text = self.win_ui.text_add(
-                'req_text', (298, self.task_desc.rendered_rect.bottom + 32 + 56 * i + 18),
+                'req_text', (298, self.task_desc.rendered_rect.top + self.task_desc.text_obj.rendered_rect.height + 32 + 56 * i + 18),
                 caption='%s x%s' % (task_list[i]['label'], amount),
                 h_align='left', size=(self.win_w - 236 - 8 - 8 - 52, 24),
                 cap_color='fnt_celeb', cap_font='def_normal', cap_size=24
@@ -338,10 +338,13 @@ class Tasks:
             if ex.dest == 'up':
                 x_sq, y_sq = ex.x_sq, ex.y_sq
         space_list = calc2darray.fill2d(
-            self.wins_dict['realm'].maze.flag_array, {'mov': False, 'obj': 'True', 'floor': False},
+            self.wins_dict['realm'].maze.flag_array, {'mov': False, 'obj': True, 'floor': False, 'door': True},
             (x_sq, y_sq), (round(self.pc.x_sq), round(self.pc.y_sq)), 2, 5, r_max=5
         )
-        x_sq, y_sq = space_list[1]
+        if space_list:
+            x_sq, y_sq = space_list[-1]
+        else:
+            x_sq, y_sq = self.pc.x_sq, self.pc.y_sq
         alignment = random.choice((0, 1))
         new_chest = chest.Chest(
             x_sq, y_sq, alignment, None, self.wins_dict['realm'].maze.tile_set, off_x=-4, off_y=-4,
@@ -370,6 +373,7 @@ class Tasks:
 
         if not self.wins_dict['realm'].maze.flag_array[y_sq][x_sq].vis:
             self.wins_dict['realm'].schedule_man.task_add('realm_tasks', 1, self, 'shipment_reminder', ())
+        self.wins_dict['realm'].pygame_settings.audio.sound('task_complete')
         self.restart()
 
     def shipment_reminder(self):

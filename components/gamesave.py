@@ -360,7 +360,13 @@ def load_maze(pc, maze, db, tile_sets, animations):
         maze.loot = pickle.load(f)
         maze.anim_timing = pickle.load(f)
 
-        maze.tile_set = tile_sets.get_maze_tiles(maze.stage_dict['tile_set'])
+        if maze.decor_rnds:
+            maze.decor_rnds_read = True
+            maze.decor_rnds_copy = maze.decor_rnds.copy()
+        if maze.stage_dict['tile_set'] == 'randomized':
+            maze.tile_set = tile_sets.get_random_maze(maze.decor_rnds, maze.decor_rnds_read)
+        else:
+            maze.tile_set = tile_sets.get_maze_tiles(maze.stage_dict['tile_set'])
 
     restore_maze_media(pc, maze, db.cursor, tile_sets, animations, cooldown_reset=True)
 

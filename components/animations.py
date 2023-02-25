@@ -211,6 +211,48 @@ class Animations:
                 }
             }
             return animation
+        if anim_id == 'anthro_zombie':
+            animation = {
+                'face_north': {
+                    'images': self.get_image('anthro_zombie', (24, 24), (0, 1, 0, 2)), 'timings': (10, 10, 10, 10)
+                },
+                'face_east': {
+                    'images': self.get_image('anthro_zombie', (24, 24), (5, 6, 5, 7)), 'timings': (10, 10, 10, 10)
+                },
+                'face_south': {
+                    'images': self.get_image('anthro_zombie', (24, 24), (10, 11, 10, 12)), 'timings': (10, 10, 10, 10)
+                },
+                'face_west': {
+                    'images': self.get_image('anthro_zombie', (24, 24), (15, 16, 15, 17)), 'timings': (10, 10, 10, 10)
+                },
+                'act_north': {
+                    'images': self.get_image('anthro_zombie', (24, 24), (3,0)), 'timings': (18, 18)
+                },
+                'act_east': {
+                    'images': self.get_image('anthro_zombie', (24, 24), (8,5)), 'timings': (18, 18)
+                },
+                'act_south': {
+                    'images': self.get_image('anthro_zombie', (24, 24), (13,10)), 'timings': (18, 18)
+                },
+                'act_west': {
+                    'images': self.get_image('anthro_zombie', (24, 24), (18,15)), 'timings': (18, 18)
+                },
+                'lay_down': {
+                    'images': self.get_image('anthro_zombie', (24, 24), (20,)), 'timings': (18,)
+                },
+                'missile_nw': {
+                    'images': self.get_image('item_effects', (24, 24), (88, 89, 90, 91)),
+                    'timings': (12, 12, 12, 12)
+                },
+                'missile_w': {
+                    'images': self.get_image('item_effects', (24, 24), (88, 89, 90, 91)),
+                    'timings': (12, 12, 12, 12)
+                },
+                'affix_mark': {
+                    'images': self.get_image('anthro_zombie', (12, 12), (82, 83, 84, 85)), 'timings': (10,10,10,10)
+                }
+            }
+            return animation
         if anim_id == 'monster_spider_light':
             animation = {
                 'face_north': {
@@ -451,6 +493,86 @@ class Animations:
                 }
             }
             return animation
+        if anim_id == 'monster_mimic_chest':
+            animation = {
+                'face_north': {
+                    'images': self.get_image('monster_mimic_chest', (24, 24), (0,1,2,1)), 'timings': (8,8,8,8)
+                },
+                'face_east': {
+                    'images': self.get_image('monster_mimic_chest', (24, 24), (5,6,7,6)), 'timings': (8,8,8,8)
+                },
+                'face_south': {
+                    'images': self.get_image('monster_mimic_chest', (24, 24), (10,11,12,11)), 'timings': (8,8,8,8)
+                },
+                'face_west': {
+                    'images': self.get_image('monster_mimic_chest', (24, 24), (15,16,17,16)), 'timings': (8,8,8,8)
+                },
+                'act_north': {
+                    'images': self.get_image('monster_mimic_chest', (24, 24), (3,4,3,0)), 'timings': (9,9,9,9)
+                },
+                'act_east': {
+                    'images': self.get_image('monster_mimic_chest', (24, 24), (8,9,8,5)), 'timings': (9,9,9,9)
+                },
+                'act_south': {
+                    'images': self.get_image('monster_mimic_chest', (24, 24), (13,14,13,10)), 'timings': (9,9,9,9)
+                },
+                'act_west': {
+                    'images': self.get_image('monster_mimic_chest', (24, 24), (18,19,18,15)), 'timings': (9,9,9,9)
+                },
+                'lay_down': {
+                    'images': self.get_image('monster_mimic_chest', (24, 24), (20,)), 'timings': (18,)
+                },
+                'missile_nw': {
+                    'images': self.get_image('monster_mimic_chest', (12, 12), (92, )), 'timings': (16, )
+                },
+                'missile_w': {
+                    'images': self.get_image('monster_mimic_chest', (12, 12), (92, )), 'timings': (16, )
+                },
+                'affix_mark': {
+                    'images': self.get_image('monster_mimic_chest', (12, 12), (82, 83, 84, 85)), 'timings': (10,10,10,10)
+                }
+            }
+            return animation
+        if anim_id == 'giant_spider_light':
+            animation = {
+                'face_north': {
+                    'images': self.get_image('giant_spider_light', (48, 48), (0, 1)), 'timings': (5, 5)
+                },
+                'face_east': {
+                    'images': self.get_image('giant_spider_light', (48, 48), (5, 6)), 'timings': (5, 5)
+                },
+                'face_south': {
+                    'images': self.get_image('giant_spider_light', (48, 48), (10, 11)), 'timings': (5, 5)
+                },
+                'face_west': {
+                    'images': self.get_image('giant_spider_light', (48, 48), (15, 16)), 'timings': (5, 5)
+                },
+                'act_north': {
+                    'images': self.get_image('giant_spider_light', (48, 48), (2,0)), 'timings': (18, 18)
+                },
+                'act_east': {
+                    'images': self.get_image('giant_spider_light', (48, 48), (7,5)), 'timings': (18, 18)
+                },
+                'act_south': {
+                    'images': self.get_image('giant_spider_light', (48, 48), (12,10)), 'timings': (18, 18)
+                },
+                'act_west': {
+                    'images': self.get_image('giant_spider_light', (48, 48), (17,15)), 'timings': (18, 18)
+                },
+                'lay_down': {
+                    'images': self.get_image('giant_spider_light', (48, 48), (20,)), 'timings': (18,)
+                },
+                'missile_nw': {
+                    'images': self.get_image('giant_spider_light', (24, 24), (92, )), 'timings': (16, )
+                },
+                'missile_w': {
+                    'images': self.get_image('giant_spider_light', (24, 24), (93, )), 'timings': (16, )
+                },
+                'affix_mark': {
+                    'images': self.get_image('giant_spider_light', (24, 24), (82, 83, 84, 85)), 'timings': (10,10,10,10)
+                }
+            }
+            return animation
         elif anim_id == 'effect_dust_cloud':
             animation = {
                 'default': {
@@ -483,11 +605,51 @@ class Animations:
                 }
             }
             return animation
+        elif anim_id == 'effect_ice_crystal':
+            animation = {
+                'default': {
+                    'images': self.get_image('item_effects', (24, 24), (16, 17, 18, 19, 20)),
+                    'timings': (5, 5, 5, 5, 5)
+                }
+            }
+            return animation
+        elif anim_id == 'effect_fire_burst':
+            animation = {
+                'default': {
+                    'images': self.get_image('item_effects', (24, 24), (24, 25, 26, 27, 28)),
+                    'timings': (5, 5, 5, 5, 5)
+                }
+            }
+            return animation
+        elif anim_id == 'effect_poison_bubble':
+            animation = {
+                'default': {
+                    'images': self.get_image('item_effects', (24, 24), (32, 33, 34, 35, 36)),
+                    'timings': (5, 5, 6, 5, 5)
+                }
+            }
+            return animation
         elif anim_id == 'effect_arcane_dust':
             animation = {
                 'default': {
                     'images': self.get_image('item_effects', (24, 24), (40, 41, 42, 43, 44)),
-                    'timings': (4, 4, 4, 4, 4)
+                    'timings': (5, 5, 5, 5, 5)
+                }
+            }
+            return animation
+        elif anim_id == 'effect_lightning_bolt':
+            animation = {
+                'default': {
+                    'images': self.get_image('item_effects', (24, 24), (80, 81, 82, 83, 84)),
+                    'timings': (5, 5, 5, 5, 5)
+                }
+            }
+            return animation
+        elif anim_id == 'effect_poison_cloud':
+            animation = {
+                'default': {
+                    'images': self.get_image('item_effects', (24, 24), (88, 89, 90, 91)),
+                    'timings': (12, 12, 12, 12)
                 }
             }
             return animation

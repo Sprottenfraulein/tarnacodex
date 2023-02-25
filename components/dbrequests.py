@@ -353,7 +353,7 @@ def monster_get_by_id(cursor, monster_id):
     for row in rows:
         monster_dict[row[0]] = row[1]
     # Monster attacks query
-    ex_str = "SELECT ma.attack_id, label, range, attack_type, attack_val_base, attack_val_spread, monster_type, lvl, time, chance, sound_attack, blast_radius, sound_blast FROM monster_attack_sets mas JOIN monster_attacks ma ON mas.attack_id=ma.attack_id WHERE mas.monster_id=?"
+    ex_str = "SELECT ma.attack_id, label, range, attack_type, attack_val_base, attack_val_spread, monster_type, lvl, time, chance, sound_attack, blast_radius, sound_blast, projectile_speed, projectile_collision_limit FROM monster_attack_sets mas JOIN monster_attacks ma ON mas.attack_id=ma.attack_id WHERE mas.monster_id=?"
     cursor.execute(ex_str, (monster_id,))
     rows = cursor.fetchall()
     column_names = [column[0] for column in cursor.description]
@@ -387,7 +387,7 @@ def monster_get_by_id(cursor, monster_id):
 
 
 def affixed_attack_get(cursor, affix_id):
-    ex_str = "SELECT ma.attack_id, label, range, attack_type, attack_val_base, attack_val_spread, monster_type, lvl, time, chance, sound_attack, blast_radius, sound_blast FROM affixed_attack_sets aas JOIN monster_attacks ma ON aas.attack_id=ma.attack_id WHERE aas.affix_id=?"
+    ex_str = "SELECT ma.attack_id, label, range, attack_type, attack_val_base, attack_val_spread, monster_type, lvl, time, chance, sound_attack, blast_radius, sound_blast, projectile_speed, projectile_collision_limit FROM affixed_attack_sets aas JOIN monster_attacks ma ON aas.attack_id=ma.attack_id WHERE aas.affix_id=?"
     cursor.execute(ex_str, (affix_id,))
     rows = cursor.fetchall()
     column_names = [column[0] for column in cursor.description]
@@ -685,7 +685,7 @@ def mission_tasks_get(cursor, treasure_ids):
     ex_str = (
         "SELECT t.treasure_id, t.label, tileset, width, height, `index` FROM images i JOIN treasure_image_sets tis "
         "ON tis.image_id=i.image_id JOIN treasure t ON tis.treasure_id=t.treasure_id "
-        "WHERE tis.treasure_id IN (%s) AND tis.image_type=0" % ','.join([str(tr_id) for tr_id in treasure_ids])
+        "WHERE tis.treasure_id IN (%s) AND tis.image_type=0 AND tis.treasure_grade=0" % ','.join([str(tr_id) for tr_id in treasure_ids])
     )
     cursor.execute(ex_str)
     rows = cursor.fetchall()

@@ -357,7 +357,7 @@ class Pools:
 
     def render(self):
         if self.pc_level != self.pc.char_sheet.level:
-            self.win_header.text_obj.caption = '%s (%s lvl)' % (self.pc.char_sheet.name.capitalize(),
+            self.win_header.text_obj.caption = '%s (lv.%s)' % (self.pc.char_sheet.name.capitalize(),
                                                                        self.pc.char_sheet.level)
             self.win_header.render_all()
             self.pc_level = self.pc.char_sheet.level

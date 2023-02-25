@@ -328,6 +328,8 @@ def item_expo_price(loot_props, add_price_expos):
 
 
 def charge_change(item, value):
+    if 'charge' not in item.props:
+        return False
     item.props['charge'] += value
 
     if item.props['charge'] <= 0:
