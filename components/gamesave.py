@@ -89,6 +89,7 @@ def save_char(wins_dict, pc, maze, db, tileset):
         }
         pickle.dump(pc_obj_vars, f)
         pickle.dump(pc.char_sheet.missions, f)
+        pickle.dump(pc.day_stamp, f)
 
         wins_offsets = {}
         for win in ('charstats', 'hotbar','inventory','pools', 'skillbook', 'trade', 'stash', 'debuffs', 'tasks'):
@@ -139,6 +140,8 @@ def load_char(wins_dict, pc, db_cursor, tileset):
         pc.char_portrait_index = pickle.load(f)
         pc_obj_vars = pickle.load(f)
         pc.char_sheet.missions = pickle.load(f)
+        pc.day_stamp = pickle.load(f)
+
         wins_offsets = pickle.load(f)
         for win in ('charstats', 'hotbar', 'inventory', 'pools', 'skillbook', 'trade', 'stash', 'debuffs', 'tasks'):
             wins_dict[win].offset_x, wins_dict[win].offset_y = wins_offsets[win]
@@ -265,11 +268,13 @@ def save_maze(pc, maze, db, tile_sets, animations):
         pickle.dump(maze.tradepost_update, f)
         pickle.dump(maze.array, f)
         pickle.dump(maze.decor_rnds, f)
+        pickle.dump(maze.shading_color, f)
 
         for mob in maze.mobs:
             mob.aimed = False
             mob.anim_set = None
             mob.image = None
+            mob.inventory = None
             mob.sound_channel = None
         for door in maze.doors:
             door.tileset = None
@@ -297,6 +302,8 @@ def save_maze(pc, maze, db, tile_sets, animations):
         for stair in maze.exits:
             stair.image = None
             stair.room = None
+        for furnitute in maze.furnitures:
+            furnitute.image = None
         for itm in maze.loot:
             if itm is None:
                 continue
@@ -317,6 +324,7 @@ def save_maze(pc, maze, db, tile_sets, animations):
         pickle.dump(maze.mobs, f)
         pickle.dump(maze.traps, f)
         pickle.dump(maze.exits, f)
+        pickle.dump(maze.furnitures, f)
         pickle.dump(maze.loot, f)
         pickle.dump(maze.anim_timing, f)
 
@@ -350,6 +358,7 @@ def load_maze(pc, maze, db, tile_sets, animations):
         maze.tradepost_update = pickle.load(f)
         maze.array = pickle.load(f)
         maze.decor_rnds = pickle.load(f)
+        maze.shading_color = pickle.load(f)
 
         maze.rooms = pickle.load(f)
         maze.doors = pickle.load(f)
@@ -357,6 +366,7 @@ def load_maze(pc, maze, db, tile_sets, animations):
         maze.mobs = pickle.load(f)
         maze.traps = pickle.load(f)
         maze.exits = pickle.load(f)
+        maze.furniture = pickle.load(f)
         maze.loot = pickle.load(f)
         maze.anim_timing = pickle.load(f)
 
@@ -465,6 +475,8 @@ def restore_maze_media(pc, maze, db_cursor, tile_sets, animations, cooldown_rese
         trap.image_update()
     for stair in maze.exits:
         stair.image = maze.tile_set[stair.tilename]
+    for furniture in maze.furnitures:
+        furniture.image_update(maze.tile_sets)
     for itm in maze.loot:
         if itm is None:
             continue

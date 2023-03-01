@@ -30,6 +30,7 @@ tilesets = (
     ('floor_items', 'res/tilesets/floor_items.png'),
     ('inv_skills', 'res/tilesets/inv_skills.png'),
     ('de_buffs', 'res/tilesets/de_buffs.png'),
+    ('dung_furniture', 'res/tilesets/dung_furniture.png'),
 
     ('pools', 'res/tilesets/pools.png'),
     ('char_portraits', 'res/tilesets/char_portraits.png'),
@@ -64,6 +65,7 @@ sounds = (
     ('switch_click_push', 'res/sounds/click_01.wav'),
     ('switch_click_release', 'res/sounds/click_03.wav'),
     ('input_key_press', 'res/sounds/singlesharptick01.wav'),
+    ('input_delete', 'res/sounds/singlemidtick01.wav'),
     ('input_enter', 'res/sounds/singlelowtick01.wav'),
 
     ('news_bell', 'res/sounds/bell_01.wav'),
@@ -94,6 +96,7 @@ sounds = (
     ('item_drag', 'res/sounds/rustle_02.wav'),
     ('item_move', 'res/sounds/wet_03.wav'),
     ('item_throw', 'res/sounds/air_01.wav'),
+    ('multi_throw', 'res/sounds/air_spin_01.wav'),
     ('tools_quiet', 'res/sounds/rustle_01.wav'),
     ('bag_drop', 'res/sounds/bag_01.wav'),
     ('cheese_eat', 'res/sounds/eat_02.wav'),
@@ -143,6 +146,7 @@ sounds = (
     ('hit_blunt', 'res/sounds/hit_physical_01.wav'),
     ('hit_physical', 'res/sounds/hit_physical_02.wav'),
     ('hit_lightning', 'res/sounds/lightning_01.wav'),
+    ('skill_lightning', 'res/sounds/thunder_03.wav'),
     ('bow_shot', 'res/sounds/shot_01.wav'),
     ('pc_hit', 'res/sounds/hit_physical_02.wav'),
     ('hit_blast', 'res/sounds/blast_01.wav'),

@@ -4,13 +4,13 @@ import random
 
 
 class Chest:
-    def __init__(self, x_sq, y_sq, alignment, room, tileset, off_x=0, off_y=0, lvl=None, items_number=0, gp_number=0,
+    def __init__(self, x_sq, y_sq, alignment, room, tileset, off_x_sq=0, off_y_sq=0, lvl=None, items_number=0, gp_number=0,
                  treasure_group=None, item_type=None, char_type=None, container=None, disappear=False, allow_mimic=True,
                  name_replace=None):
         self.x_sq = x_sq
         self.y_sq = y_sq
-        self.off_x = off_x
-        self.off_y = off_y
+        self.off_x_sq = off_x_sq
+        self.off_y_sq = off_y_sq
         self.alignment = alignment
         self.room = room
         self.tileset = tileset
@@ -38,12 +38,8 @@ class Chest:
             align = ''
         elif self.alignment is True:
             align = 'ver'
-            """self.off_x = 0
-            self.off_y = 0"""
         else:
             align = 'hor'
-            """self.off_x = 0
-            self.off_y = 0"""
 
         if self.lock is not None:
             if self.lock.magical:
@@ -103,7 +99,7 @@ class Chest:
             realm.maze.flag_array[self.y_sq][self.x_sq].obj = None
             realm.maze.flag_array[self.y_sq][self.x_sq].mov = True
             realm.particle_list.append(particle.Particle(
-                (self.x_sq, self.y_sq), (self.off_x, self.off_y),
+                (self.x_sq, self.y_sq), (self.off_x_sq, self.off_y_sq),
                 realm.animations.get_animation('effect_dust_cloud')['default'], 16
             ))
 
@@ -187,7 +183,6 @@ class Chest:
         del new_mon['grade_set_monster']
 
         self.container_fill(wins_dict['realm'], pc)
-        new_mon.inventory.extend(self.container)
         wins_dict['realm'].maze.chests.remove(self)
         wins_dict['realm'].maze.flag_array[self.y_sq][self.x_sq].obj = None
         wins_dict['realm'].maze.flag_array[self.y_sq][self.x_sq].mov = True
@@ -195,8 +190,9 @@ class Chest:
         maze_module.monster_apply_grade(wins_dict['realm'].db, new_mon, wins_dict['realm'].maze.lvl,
                                                     wins_dict['realm'].resources.fate_rnd)
         maze_module.scale_mob(new_mon, wins_dict['realm'].maze.lvl, wins_dict['realm'].maze)
-        maze_module.mob_add(wins_dict['realm'].maze, self.x_sq,
+        mob_obj = maze_module.mob_add(wins_dict['realm'].maze, self.x_sq,
                                         self.y_sq, wins_dict['realm'].animations, new_mon)
+        mob_obj.inventory = self.container
         wins_dict['realm'].shortlists_update(mobs=True)
 
         lvl_dif = min(1, pc.char_sheet.level - self.lvl)

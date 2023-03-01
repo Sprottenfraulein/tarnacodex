@@ -2,7 +2,7 @@
 import pygame
 import settings
 import random
-from library import textinput, pydraw
+from library import textinput, pydraw, maths
 from components import maze, pc, charsheet, ui, skill, treasure, dbrequests, gamesave, debuff
 
 
@@ -946,6 +946,9 @@ class AppTitle:
             self.win_ui.interactives.append(bttn_load)
 
     def location_change(self, pc, entry, launch=False, new_chapter=False):
+        debuff.DeBuff(dbrequests.de_buff_get_by_id_with_mods(self.db.cursor, 4, self.resources.fate_rnd),
+                      self.pc.char_sheet.de_buffs)
+
         self.wins_dict['app_title'].schedule_man.task_add('realm_tasks', 1, self.wins_dict['overlay'],
                                                           'fade_out', (20, None))
         self.wins_dict['app_title'].schedule_man.task_add('realm_tasks', 2, self.wins_dict['app_title'],
@@ -1165,7 +1168,8 @@ class AppTitle:
         """p.char_sheet.inventory[0] = treasure.Treasure(9, p.char_sheet.level, self.db.cursor, self.win_ui.tilesets,
                                                         self.win_ui.resources, self.pygame_settings.audio,
                                                         self.win_ui.resources.fate_rnd)"""
-        # debuff.DeBuff(dbrequests.de_buff_get_by_id_with_mods(self.db.cursor, 3, self.resources.fate_rnd), p.char_sheet.de_buffs)
+        debuff.DeBuff(dbrequests.de_buff_get_by_id_with_mods(self.db.cursor, 3, self.resources.fate_rnd),
+                      p.char_sheet.de_buffs)
         self.pc = p
 
     def char_save(self, pc, maze):
@@ -1191,6 +1195,9 @@ class AppTitle:
 
             gamesave.load_char(self.wins_dict, p, self.db.cursor, self.win_ui.tilesets)
             self.pc = p
+
+            self.entry_bonus()
+            self.pc.day_stamp = maths.get_days()
 
             self.char_loaded_info_update()
         else:
@@ -1270,6 +1277,12 @@ class AppTitle:
         wins_dict['app_title'].chapter_end(pc, wins_dict['realm'].maze.chapter)
         pc.location = None
         pc.stage_entry = 'up'
+
+    def entry_bonus(self):
+        day_current = maths.get_days()
+        if day_current - self.pc.day_stamp > 0:
+            debuff.DeBuff(dbrequests.de_buff_get_by_id_with_mods(self.db.cursor, 3, self.resources.fate_rnd),
+                          self.pc.char_sheet.de_buffs)
 
     def tick(self):
         self.win_ui.tick()

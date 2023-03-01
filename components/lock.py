@@ -47,7 +47,7 @@ class Lock:
                 wins_dict['realm'].spawn_realmtext('new_txt', "Too hard!", (0, 0), (0, -24), None, pc, None, 120,
                                                    'def_bold', 24)
                 wins_dict['realm'].pygame_settings.audio.sound('mech_hard')
-                lockpick.props['condition'] -= round(self.lvl / lockpick.props['lvl'] * 300)
+                lockpick.props['condition'] -= round(self.lvl / lockpick.props['lvl'] * 200)
                 return False
         elif len(pc_keys) > 0:
             for i in range(len(pc_keys) - 1, -1, -1):

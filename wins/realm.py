@@ -69,12 +69,13 @@ class Realm:
 
         self.view_maze_surface = None
         self.vision_sq_prev = None
+        self.shade_color = self.border_color = self.bg_color = None
+        self.set_shadings((0, 0, 0))
 
-        self.dark_edges = self.tilesets.get_image('dark_edges', (24, 24), (0, 1, 2, 3))
+        self.dark_edges = self.dark_edges_get(self.tilesets.sets_dict['dark_edges'], self.border_color)
+        self.shade_square = pygame.Surface((24, 24)).convert_alpha()
+        self.shade_square.fill(self.shade_color)
         self.target_mark = self.tilesets.get_image('interface', (24, 24), (10, 11, 12, 13))
-        self.shade_square = pygame.Surface((24, 24))
-        self.shade_square.fill((0, 0, 14))
-        self.shade_square.set_alpha(150)
 
         self.pause = False
         self.controls_enabled = True
@@ -82,6 +83,21 @@ class Realm:
         self.buttons_pressed = set()
         self.last_skill = None
         self.last_skill_timer = 60
+
+        self.vision_dist = 0
+
+    def dark_edges_get(self, tiles, shade_color):
+        tiles.set_colorkey((0,0,0), pygame.RLEACCEL)
+        self.tilesets.sets_dict['dark_edges_color'] = pygame.Surface(tiles.get_size()).convert()
+        self.tilesets.sets_dict['dark_edges_color'].fill(shade_color)
+        self.tilesets.sets_dict['dark_edges_color'].blit(tiles, (0,0))
+        self.tilesets.sets_dict['dark_edges_color'].set_colorkey((0,255,0), pygame.RLEACCEL)
+        return self.tilesets.get_image('dark_edges_color', (24, 24), (0, 1, 2, 3))
+
+    def set_shadings(self, color):
+        self.shade_color = color
+        self.border_color = color[0] // 3, color[1] // 3, color[2] // 3
+        self.bg_color = color[0] // 4, color[1] // 4, color[2] // 4
 
     def view_resize(self, w, h):
         self.view_maze_width_sq = math.ceil(w / self.square_scale / self.square_size)
@@ -108,6 +124,10 @@ class Realm:
         self.view_maze_update(self.pc.x_sq, self.pc.y_sq)
 
     def launch(self):
+        self.set_shadings(self.resources.colors[self.maze.shading_color])
+        self.dark_edges = self.dark_edges_get(self.tilesets.sets_dict['dark_edges'], self.border_color)
+        self.shade_square.fill(self.shade_color)
+
         self.wins_dict['realm'].view_resize(self.pygame_settings.screen_res[0], self.pygame_settings.screen_res[1])
         # creating dedicated schedule
         self.schedule_man.new_schedule('realm_tasks')
@@ -190,6 +210,9 @@ class Realm:
 
             # CHANGE SCALE
             if event.key == pygame.K_KP_PLUS and self.square_scale < 4:
+                self.pc.x_sq = round(self.pc.x_sq)
+                self.pc.y_sq = round(self.pc.y_sq)
+                self.view_maze_update(self.pc.x_sq, self.pc.y_sq)
                 self.square_scale += 1
                 self.view_maze_width_sq = math.ceil(
                     self.pygame_settings.screen_res[0] / self.square_scale / self.square_size)
@@ -199,6 +222,9 @@ class Realm:
                 self.view_offset_y_sq = round(self.view_maze_height_sq / 2) * -1
                 self.view_maze_update(self.pc.x_sq, self.pc.y_sq)
             if event.key == pygame.K_KP_MINUS and self.square_scale > 2:
+                self.pc.x_sq = round(self.pc.x_sq)
+                self.pc.y_sq = round(self.pc.y_sq)
+                self.view_maze_update(self.pc.x_sq, self.pc.y_sq)
                 self.square_scale -= 1
                 self.view_maze_width_sq = math.ceil(
                     self.pygame_settings.screen_res[0] / self.square_scale / self.square_size)
@@ -410,7 +436,7 @@ class Realm:
 
     def stage_render(self, surface, top_sq, left_sq, bottom_sq, right_sq, clear=True):
         if clear:
-            surface.fill((1, 1, 1))
+            surface.fill(self.bg_color)
         for ren_pos_y in range(top_sq, bottom_sq):
             for ren_pos_x in range(left_sq, right_sq):
                 if not ((0 <= ren_pos_y < self.maze.height) and (0 <= ren_pos_x < self.maze.width)):
@@ -440,37 +466,14 @@ class Realm:
                 decor_array = self.maze.decor_array[ren_pos_y][ren_pos_x]
                 if decor_array == ' ' or not flags.vis:
                     continue
-
                 # drawing doors
                 if flags.door is not None:
-                    try:
-                        surface.blit(flags.door.image[self.maze.anim_frame],
-                                     ((flags.door.x_sq - self.ren_x_sq) * self.square_size + flags.door.off_x,
-                                      (flags.door.y_sq - self.ren_y_sq) * self.square_size + flags.door.off_y))
-                    except IndexError:
-                        surface.blit(flags.door.image[(self.maze.anim_frame + 1) % (len(flags.door.image))],
-                                     ((flags.door.x_sq - self.ren_x_sq) * self.square_size + flags.door.off_x,
-                                      (flags.door.y_sq - self.ren_y_sq) * self.square_size + flags.door.off_y))
-                    if flags.door.alignment:
-                        if not self.maze.flag_array[flags.door.y_sq - 1][flags.door.x_sq].vis:
-                            surface.fill((1, 1, 1), ((flags.door.x_sq - self.ren_x_sq) * self.square_size,
-                                                     (flags.door.y_sq - self.ren_y_sq - 1) * self.square_size,
-                                                     self.square_size, self.square_size))
-                    else:
-                        if not self.maze.flag_array[flags.door.y_sq][flags.door.x_sq - 1].vis:
-                            surface.fill((1, 1, 1), ((flags.door.x_sq - self.ren_x_sq - 1) * self.square_size,
-                                                     (flags.door.y_sq - self.ren_y_sq) * self.square_size,
-                                                     self.square_size, self.square_size))
+                    obj_image = flags.door.image[self.maze.anim_frame % len(flags.door.image)]
+                    self.render_by_square(surface, ren_pos_x, ren_pos_y, flags.door, obj_image, self.maze.flag_array)
 
                 if flags.obj is not None:
-                    try:
-                        surface.blit(flags.obj.image[self.maze.anim_frame],
-                                     ((flags.obj.x_sq - self.ren_x_sq) * self.square_size + flags.obj.off_x,
-                                      (flags.obj.y_sq - self.ren_y_sq) * self.square_size + flags.obj.off_y))
-                    except IndexError:
-                        surface.blit(flags.obj.image[(self.maze.anim_frame + 1) % (len(flags.obj.image))],
-                                     ((flags.obj.x_sq - self.ren_x_sq) * self.square_size + flags.obj.off_x,
-                                      (flags.obj.y_sq - self.ren_y_sq) * self.square_size + flags.obj.off_y))
+                    obj_image = flags.obj.image[self.maze.anim_frame % len(flags.obj.image)]
+                    self.render_by_square(surface, ren_pos_x, ren_pos_y, flags.obj, obj_image, self.maze.flag_array)
 
                 # drawing loot
                 if flags.item is not None:
@@ -478,14 +481,14 @@ class Realm:
                     for loot in flags.item:
                         try:
                             surface.blit(loot.props['image_floor'][self.maze.anim_frame],
-                                         ((loot.x_sq - self.ren_x_sq) * self.square_size + loot.off_x - offset,
-                                          (loot.y_sq - self.ren_y_sq) * self.square_size + loot.off_y - offset))
+                                         ((loot.x_sq - self.ren_x_sq + loot.off_x_sq) * self.square_size - offset,
+                                          (loot.y_sq - self.ren_y_sq + loot.off_y_sq) * self.square_size - offset))
                         except IndexError:
                             surface.blit(
                                 loot.props['image_floor'][
                                     (self.maze.anim_frame + 1) % (len(loot.props['image_floor']))],
-                                ((loot.x_sq - self.ren_x_sq) * self.square_size + loot.off_x - offset,
-                                 (loot.y_sq - self.ren_y_sq) * self.square_size + loot.off_y - offset))
+                                ((loot.x_sq - self.ren_x_sq + loot.off_x_sq) * self.square_size - offset,
+                                 (loot.y_sq - self.ren_y_sq + loot.off_y_sq) * self.square_size - offset))
                         offset += 4
 
                 # mobs rendering
@@ -541,7 +544,12 @@ class Realm:
                 decor_array = self.maze.decor_array[ren_pos_y][ren_pos_x]
                 if decor_array == ' ' or not flags.vis:
                     continue
-
+                shade_rate = max(0, 9 - self.vision_dist + flags.map)
+                if shade_rate > 0:
+                    self.shade_square.set_alpha(25 * shade_rate)
+                    surface.blit(self.shade_square,
+                                 ((ren_pos_x - self.ren_x_sq) * self.square_size,
+                                  (ren_pos_y - self.ren_y_sq) * self.square_size))
                 if ren_pos_x + 1 < self.maze.width and not self.maze.flag_array[ren_pos_y][ren_pos_x + 1].vis:
                     surface.blit(self.dark_edges[0],
                                  ((ren_pos_x - self.ren_x_sq) * self.square_size,
@@ -558,6 +566,20 @@ class Realm:
                     surface.blit(self.dark_edges[3],
                                  ((ren_pos_x - self.ren_x_sq) * self.square_size,
                                   (ren_pos_y - self.ren_y_sq) * self.square_size))
+
+    def render_by_square(self, surface, ren_pos_x, ren_pos_y, obj, image, flag_array):
+        img_width = image.get_width()
+        img_height = image.get_height()
+        for i in range(0, img_width // self.square_size):
+            for j in range(0, img_height // self.square_size):
+                act_ren_pos_x = ren_pos_x + obj.off_x_sq + i
+                act_ren_pos_y = ren_pos_y + obj.off_y_sq + j
+                flags = flag_array[round(act_ren_pos_y)][round(act_ren_pos_x)]
+                if flags.vis:
+                    surface.blit(image.subsurface((i * self.square_size, j * self.square_size,
+                                                   self.square_size, self.square_size)),
+                                 ((act_ren_pos_x - self.ren_x_sq) * self.square_size,
+                                  (act_ren_pos_y - self.ren_y_sq) * self.square_size))
 
     def pc_display(self, surface, x_sq, y_sq):
         surface.blit(self.pc.image[self.pc.anim_frame],
@@ -590,13 +612,11 @@ class Realm:
             orig_xy = round(self.pc.x_sq), round(self.pc.y_sq)
         else:
             orig_xy = xy_sq
-
-        self.vision_sq_prev = calc2darray.calc_vision_rays(
-            self.maze.flag_array, orig_xy[0], orig_xy[1],
-            max(self.maze.stage_dict['base_light'], round(
+        self.vision_dist = max(self.maze.stage_dict['base_light'], round(
                 self.pc.char_sheet.base_light + self.pc.char_sheet.base_light * self.pc.char_sheet.profs[
-                    'prof_light'] // 1000)),
-            self.vision_sq_prev
+                    'prof_light'] // 1000))
+        self.vision_sq_prev = calc2darray.calc_vision_rays(
+            self.maze.flag_array, orig_xy[0], orig_xy[1], self.vision_dist, self.vision_sq_prev
         )
         self.traps_search(self.vision_sq_prev)
 
@@ -722,8 +742,9 @@ class Realm:
                 return False
         if flags.obj is not None:
             # objects
-            flags.obj.use(self.wins_dict, self.active_wins, self.pc, maze)
             self.buttons_pressed.discard(11)
+            flags.obj.use(self.wins_dict, self.active_wins, self.pc, maze)
+
             return False
         if flags.door is not None:
             # doors
@@ -886,7 +907,7 @@ class Realm:
                 obj_list[i][1] -= 1
             else:
                 self.particle_list.append(particle.Particle((obj_list[i][0].x_sq, obj_list[i][0].y_sq),
-                                                            (obj_list[i][0].off_x, obj_list[i][0].off_y),
+                                                            (obj_list[i][0].off_x_sq, obj_list[i][0].off_y_sq),
                                                             self.animations.get_animation('effect_dust_cloud')[
                                                                 'default'], 16, speed_xy=(-0.25, -0.25)))
                 try:
@@ -896,10 +917,8 @@ class Realm:
                 self.sound_inrealm(sound, obj_list[i][0].x_sq, obj_list[i][0].y_sq)
                 del obj_list[i]
                 continue
-            obj_list[i][0].off_x = math.sin(obj_list[i][1] / obj_list[i][2] * 3.14) * (
-                        self.square_size * self.square_scale) * -1
-            obj_list[i][0].off_y = math.sin(obj_list[i][1] / obj_list[i][2] * 3.14) * (
-                        self.square_size * self.square_scale) * -1
+            obj_list[i][0].off_x_sq = math.sin(obj_list[i][1] / obj_list[i][2] * 3.14) * 2 * -1
+            obj_list[i][0].off_y_sq = math.sin(obj_list[i][1] / obj_list[i][2] * 3.14) * 2 * -1
 
     def obj_jump_add(self, object):
         self.jumping_objects.append([object, 20, 20])

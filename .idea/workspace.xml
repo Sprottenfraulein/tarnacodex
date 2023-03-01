@@ -25,21 +25,37 @@
     </select>
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="cc130b1c-00f5-48a7-860f-78f09248cfe9" name="Default Changelist" comment="* Tiles randomization option added.&#10;* Skill calculations fixed.&#10;* Visual effects updated.&#10;* New monster: zombie.&#10;* UI updated.&#10;* PC updated.&#10;* Crafting updated.&#10;* Treasure updated.&#10;* Errors fixed.&#10;* Other updates.">
+    <list default="true" id="cc130b1c-00f5-48a7-860f-78f09248cfe9" name="Default Changelist" comment="* Inventory size increased to 48 items.&#10;* Stash size increased to 100 items.&#10;* &quot;Sort&quot; buttons added to inventory and stash.">
+      <change afterPath="$PROJECT_DIR$/components/furniture.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/components/charsheet.py" beforeDir="false" afterPath="$PROJECT_DIR$/components/charsheet.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/components/chest.py" beforeDir="false" afterPath="$PROJECT_DIR$/components/chest.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/components/dbrequests.py" beforeDir="false" afterPath="$PROJECT_DIR$/components/dbrequests.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/components/door.py" beforeDir="false" afterPath="$PROJECT_DIR$/components/door.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/components/gamesave.py" beforeDir="false" afterPath="$PROJECT_DIR$/components/gamesave.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/components/lock.py" beforeDir="false" afterPath="$PROJECT_DIR$/components/lock.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/components/lootgen.py" beforeDir="false" afterPath="$PROJECT_DIR$/components/lootgen.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/components/maze.py" beforeDir="false" afterPath="$PROJECT_DIR$/components/maze.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/components/monster.py" beforeDir="false" afterPath="$PROJECT_DIR$/components/monster.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/components/pc.py" beforeDir="false" afterPath="$PROJECT_DIR$/components/pc.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/components/skillfuncs.py" beforeDir="false" afterPath="$PROJECT_DIR$/components/skillfuncs.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/components/stairs.py" beforeDir="false" afterPath="$PROJECT_DIR$/components/stairs.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/components/trap.py" beforeDir="false" afterPath="$PROJECT_DIR$/components/trap.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/components/treasure.py" beforeDir="false" afterPath="$PROJECT_DIR$/components/treasure.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/library/calc2darray.py" beforeDir="false" afterPath="$PROJECT_DIR$/library/calc2darray.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/library/maths.py" beforeDir="false" afterPath="$PROJECT_DIR$/library/maths.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/res/data/tables.db" beforeDir="false" afterPath="$PROJECT_DIR$/res/data/tables.db" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/res/tilesets/de_buffs.png" beforeDir="false" afterPath="$PROJECT_DIR$/res/tilesets/de_buffs.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/res/tilesets/inv_skills.png" beforeDir="false" afterPath="$PROJECT_DIR$/res/tilesets/inv_skills.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/resman.py" beforeDir="false" afterPath="$PROJECT_DIR$/resman.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/save/normal_commons.pd" beforeDir="false" afterPath="$PROJECT_DIR$/save/normal_commons.pd" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/settings.py" beforeDir="false" afterPath="$PROJECT_DIR$/settings.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/wins/apptitle.py" beforeDir="false" afterPath="$PROJECT_DIR$/wins/apptitle.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/wins/inventory.py" beforeDir="false" afterPath="$PROJECT_DIR$/wins/inventory.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/wins/context.py" beforeDir="false" afterPath="$PROJECT_DIR$/wins/context.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/wins/dialogue.py" beforeDir="false" afterPath="$PROJECT_DIR$/wins/dialogue.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/wins/pools.py" beforeDir="false" afterPath="$PROJECT_DIR$/wins/pools.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/wins/realm.py" beforeDir="false" afterPath="$PROJECT_DIR$/wins/realm.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/wins/stash.py" beforeDir="false" afterPath="$PROJECT_DIR$/wins/stash.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/wins/tasks.py" beforeDir="false" afterPath="$PROJECT_DIR$/wins/tasks.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/wins/trade.py" beforeDir="false" afterPath="$PROJECT_DIR$/wins/trade.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -74,17 +90,17 @@
   &quot;keyToString&quot;: {
     &quot;RunOnceActivity.OpenProjectViewOnStart&quot;: &quot;true&quot;,
     &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
-    &quot;last_opened_file_path&quot;: &quot;/home/ezpink/Documents/python/unnamedfinal/wins&quot;,
+    &quot;last_opened_file_path&quot;: &quot;/home/ezpink/Documents/python/unnamedfinal/components&quot;,
     &quot;settings.editor.selected.configurable&quot;: &quot;com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable&quot;
   }
 }</component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$/components" />
       <recent name="$PROJECT_DIR$/wins" />
       <recent name="D:\EZpink\Documents\python\unnamedfinal\wins" />
       <recent name="D:\EZpink\Documents\python\unnamedfinal\components" />
       <recent name="D:\EZpink\Documents\python\unnamedfinal\objects" />
-      <recent name="D:\EZpink\Documents\python\unnamedfinal\library" />
     </key>
     <key name="MoveFile.RECENT_KEYS">
       <recent name="D:\EZpink\Documents\python\unnamedfinal\components" />
@@ -131,13 +147,6 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1642253012991</updated>
-    </task>
-    <task id="LOCAL-00022" summary="Silly scheduler mistake fixed. Now it works.">
-      <created>1643187832135</created>
-      <option name="number" value="00022" />
-      <option name="presentableId" value="LOCAL-00022" />
-      <option name="project" value="LOCAL" />
-      <updated>1643187832135</updated>
     </task>
     <task id="LOCAL-00023" summary="main hud window added. window management updated.">
       <created>1643456973660</created>
@@ -475,7 +484,14 @@
       <option name="project" value="LOCAL" />
       <updated>1677326766807</updated>
     </task>
-    <option name="localTasksCounter" value="71" />
+    <task id="LOCAL-00071" summary="* Inventory size increased to 48 items.&#10;* Stash size increased to 100 items.&#10;* &quot;Sort&quot; buttons added to inventory and stash.">
+      <created>1677337444161</created>
+      <option name="number" value="00071" />
+      <option name="presentableId" value="LOCAL-00071" />
+      <option name="project" value="LOCAL" />
+      <updated>1677337444161</updated>
+    </task>
+    <option name="localTasksCounter" value="72" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -505,7 +521,6 @@
     <ignored-roots>
       <path value="$PROJECT_DIR$/Unnamed-Final" />
     </ignored-roots>
-    <MESSAGE value="Tables updated" />
     <MESSAGE value="Skills update" />
     <MESSAGE value="Trading Post implemented, many things updated." />
     <MESSAGE value="Readme updated." />
@@ -530,6 +545,7 @@
     <MESSAGE value="* Outro added.&#10;* Task system updated.&#10;* Dungeon tile art added (1 set and 1 variation).&#10;* Chapters in progress are no longer valid. Start a new chapter.&#10;* Some errors and bugs fixed." />
     <MESSAGE value="* Mimics added&#10;* Database updated&#10;* New affixes and new modifiers added&#10;* Texts updated&#10;* Sound effects updated&#10;* Skill calculations corrected&#10;* Monsters code optimized&#10;* Errors fixed&#10;* Other updates" />
     <MESSAGE value="* Tiles randomization option added.&#10;* Skill calculations fixed.&#10;* Visual effects updated.&#10;* New monster: zombie.&#10;* UI updated.&#10;* PC updated.&#10;* Crafting updated.&#10;* Treasure updated.&#10;* Errors fixed.&#10;* Other updates." />
-    <option name="LAST_COMMIT_MESSAGE" value="* Tiles randomization option added.&#10;* Skill calculations fixed.&#10;* Visual effects updated.&#10;* New monster: zombie.&#10;* UI updated.&#10;* PC updated.&#10;* Crafting updated.&#10;* Treasure updated.&#10;* Errors fixed.&#10;* Other updates." />
+    <MESSAGE value="* Inventory size increased to 48 items.&#10;* Stash size increased to 100 items.&#10;* &quot;Sort&quot; buttons added to inventory and stash." />
+    <option name="LAST_COMMIT_MESSAGE" value="* Inventory size increased to 48 items.&#10;* Stash size increased to 100 items.&#10;* &quot;Sort&quot; buttons added to inventory and stash." />
   </component>
 </project>

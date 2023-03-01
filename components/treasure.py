@@ -12,7 +12,7 @@ class Treasure:
                  mob_stats=None, grade=None, findmagic=0, log=True):
         self.x_sq = x_sq
         self.y_sq = y_sq
-        self.off_x = self.off_y = 0
+        self.off_x_sq = self.off_y_sq = 0
 
         self.CONDITION_PENALTY_LEVEL = 250
         self.CONDITION_BROKEN_LEVEL = 0

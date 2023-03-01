@@ -236,6 +236,7 @@ class Trade:
             self.selected_index_list[key_obj] = 1
             self.updated = True
             self.wins_dict['context'].end()
+            self.pygame_settings.audio.sound('input_key_press')
         if 'itm' in element.tags and m_bttn == 3 and mb_event == 'down' and element.id < len(self.trade_list):
             key_obj = self.trade_list[element.id]
             if key_obj in self.selected_index_list:
@@ -243,6 +244,7 @@ class Trade:
                     self.selected_index_list[key_obj] -= 1
                 else:
                     del self.selected_index_list[key_obj]
+                self.pygame_settings.audio.sound('input_delete')
             self.updated = True
             self.wins_dict['context'].end()
 
@@ -454,7 +456,7 @@ class Trade:
         space_list = calc2darray.fill2d(self.wins_dict['realm'].maze.flag_array, {'mov': False, 'obj': True, 'door': True, 'floor': False},
                                         (x_sq, y_sq), (x_sq, y_sq), 2, 3, r_max=5)
         x_sq, y_sq = space_list[1]
-        new_chest = chest.Chest(x_sq, y_sq, 0, None, self.wins_dict['realm'].maze.tile_set, off_x=-4, off_y=-4,
+        new_chest = chest.Chest(x_sq, y_sq, 0, None, self.wins_dict['realm'].maze.tile_set, off_x_sq=-0.125, off_y_sq=-0.125,
                                 container=ordered_goods, disappear=True, allow_mimic=False)
         self.wins_dict['realm'].maze.chests.append(new_chest)
         self.wins_dict['realm'].maze.flag_array[y_sq][x_sq].obj = new_chest

@@ -347,7 +347,7 @@ class Tasks:
             x_sq, y_sq = self.pc.x_sq, self.pc.y_sq
         alignment = random.choice((0, 1))
         new_chest = chest.Chest(
-            x_sq, y_sq, alignment, None, self.wins_dict['realm'].maze.tile_set, off_x=-4, off_y=-4,
+            x_sq, y_sq, alignment, None, self.wins_dict['realm'].maze.tile_set, off_x_sq=-0.125, off_y_sq=-0.125,
             lvl=mission['lvl'], items_number=mission['reward_treasure_amount'], gp_number=mission['reward_gold_piles'],
             treasure_group=mission['reward_treasure_group'], item_type=None, char_type=(self.pc.char_sheet.type,),
             container=self.reward_treasure_get(mission), disappear=True, allow_mimic=False

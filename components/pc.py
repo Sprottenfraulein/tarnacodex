@@ -24,6 +24,7 @@ class PC:
         self.alive = True
         self.food_delta = 0
         self.hardcore_char = hardcore_char
+        self.day_stamp = maths.get_days()
 
         self.move_instr_x = 0
         self.move_instr_y = 0

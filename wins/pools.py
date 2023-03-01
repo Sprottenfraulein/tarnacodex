@@ -202,8 +202,8 @@ class Pools:
             self.wins_dict['charstats'].launch(pc)
             self.wins_dict['charstats'].updated = True
             self.active_wins.insert(0, self.wins_dict['charstats'])
-            self.pools_menu[3].mode = 1
-            self.pools_menu[3].render()
+            self.pools_menu[4].mode = 1
+            self.pools_menu[4].render()
 
         self.pygame_settings.audio.sound(self.resources.sound_presets['button'][2])
         self.updated = True

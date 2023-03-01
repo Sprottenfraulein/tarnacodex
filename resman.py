@@ -112,7 +112,15 @@ class ResMan:
             'gray_mid': (130, 130, 130),
             'gray_dark': (50, 50, 50),
             'gray_darker': (20, 20, 25),
-            'black': (0, 0, 0)
+            'black': (0, 0, 0),
+            # Stage shadings
+            'shade_darkness': (0, 0, 15),
+            'shade_red_fog': (100, 0, 0),
+            'shade_blue_fog': (0, 0, 100),
+            'shade_green_fog': (0, 100, 0),
+            'shade_yellow_fog': (100, 100, 0),
+            'shade_purple_fog': (100, 0, 100),
+            'shade_frosty_fog': (0, 100, 100),
         }
 
         # Loading sounds.

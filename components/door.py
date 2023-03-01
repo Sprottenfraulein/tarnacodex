@@ -3,7 +3,7 @@ class Door:
         self.tileset = tileset
         self.x_sq = x_sq
         self.y_sq = y_sq
-        self.off_x = self.off_y = 0
+        self.off_x_sq = self.off_y_sq = 0
         self.alignment = alignment
         self.lvl = lvl
         self.shut = shut
@@ -51,12 +51,12 @@ class Door:
     def image_update(self):
         if self.alignment:
             align = 'ver'
-            self.off_x = 0
-            self.off_y = -24
+            self.off_x_sq = 0
+            self.off_y_sq = -1
         else:
             align = 'hor'
-            self.off_x = -24
-            self.off_y = 0
+            self.off_x_sq = -1
+            self.off_y_sq = 0
         if self.grate:
             typ = 'grate'
         else:

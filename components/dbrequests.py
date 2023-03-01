@@ -721,3 +721,41 @@ def get_recipe_result(cursor, recipe_id):
     for row in rows:
         result_list.append(row[0])
     return result_list
+
+
+def furniture_get_image(cursor, furniture_id, alignment):
+    ex_str = "SELECT image_tileset, image_width, image_height, image_index, anim_index FROM furniture_image_sets WHERE furniture_id=? AND alignment=?"
+    cursor.execute(ex_str, (furniture_id, alignment))
+    rows = cursor.fetchall()
+    if len(rows) == 0:
+        return None
+    rows = sorted(rows, key=lambda row: row[-1])    # Sort by last item in row which is anim_index
+    image = rows[0][0], (rows[0][1], rows[0][2]), tuple([row[3] for row in rows])
+    return image
+
+
+def furniture_get(cursor, tag=None, type=None, solid=None, on_wall=None, roll=10000):
+    ex_str = "SELECT * FROM furniture WHERE roll_chance=?"
+    pars = [roll]
+    if tag is not None:
+        ex_str += " AND furniture_tag IS NULL OR furniture_tag=?"
+        pars.append(tag)
+    if type is not None:
+        ex_str += " AND furniture_type IS NULL OR furniture_type=?"
+        pars.append(type)
+    if solid is not None:
+        ex_str += " AND solid=?"
+        pars.append(solid)
+    if on_wall is not None:
+        ex_str += " AND on_wall IS NULL OR on_wall=?"
+        pars.append(on_wall)
+    cursor.execute(ex_str, pars)
+    rows = cursor.fetchall()
+    column_names = [column[0] for column in cursor.description]
+    furniture_list = []
+    for row in rows:
+        furniture_dict = {}
+        for i in range(0, len(column_names)):
+            furniture_dict[column_names[i]] = row[i]
+        furniture_list.append(furniture_dict)
+    return furniture_list

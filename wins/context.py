@@ -30,10 +30,8 @@ class Context:
 
     def event_check(self, event, log=True):
         # return True if interaction was made to prevent other windows from responding to this event
-        """mouse_x, mouse_y = self.mouse_pointer.xy
-        return self.ui_click(self.win_ui.mouse_actions(mouse_x - self.offset_x, mouse_y - self.offset_y, event),
-                             self.pygame_settings, resources, self.wins_dict, self.active_wins)"""
-        pass
+        if event.type == pygame.MOUSEMOTION:
+            self.win_align(self.mouse_pointer.xy)
 
     def ui_click(self, inter_click):
         pass
@@ -55,7 +53,6 @@ class Context:
             element.popup_active = True
             self.active_wins.insert(0, self.wins_dict['context'])
             return
-
 
     def context_define(self, pc, itm, element, trade=False):
         if itm.props['item_type'] in ('wpn_melee', 'wpn_ranged', 'wpn_magic'):
@@ -130,7 +127,9 @@ class Context:
             'condition': str('Condition: %s/%s' % (
             math.ceil(item.props['condition'] / 10), math.ceil(treasure.calc_loot_stat(item.props, 'condition_max') / 10)))
         }
-        if trade:
+        if 'quest_item' in item.props:
+            body_text['price'] = 'QUEST ITEM'
+        elif trade:
             body_text['price'] = str('Buy price: %s' % treasure.calc_loot_stat(item.props, 'price_buy'))
         else:
             body_text['price'] = str('Sell price: %s' % treasure.calc_loot_stat(item.props, 'price_sell'))
@@ -190,7 +189,9 @@ class Context:
             'desc': (item.props['desc'] + ' '),
             'amount': str('Amount: %s' % (item.props['amount']))
         }
-        if trade:
+        if 'quest_item' in item.props:
+            body_text['price'] = 'QUEST ITEM'
+        elif trade:
             body_text['price'] = str('Buy price: %s' % treasure.calc_loot_stat(item.props, 'price_buy'))
         else:
             body_text['price'] = str('Sell price: %s' % treasure.calc_loot_stat(item.props, 'price_sell'))
@@ -251,7 +252,9 @@ class Context:
             'condition': str('Condition: %s/%s' % (
             math.ceil(item.props['condition'] / 10), math.ceil(treasure.calc_loot_stat(item.props, 'condition_max') / 10)))
         }
-        if trade:
+        if 'quest_item' in item.props:
+            body_text['price'] = 'QUEST ITEM'
+        elif trade:
             body_text['price'] = str('Buy price: %s' % treasure.calc_loot_stat(item.props, 'price_buy'))
         else:
             body_text['price'] = str('Sell price: %s' % treasure.calc_loot_stat(item.props, 'price_sell'))
@@ -312,7 +315,9 @@ class Context:
             'condition': str('Condition: %s/%s' % (
             math.ceil(item.props['condition'] / 10), math.ceil(treasure.calc_loot_stat(item.props, 'condition_max') / 10)))
         }
-        if trade:
+        if 'quest_item' in item.props:
+            body_text['price'] = 'QUEST ITEM'
+        elif trade:
             body_text['price'] = str('Buy price: %s' % treasure.calc_loot_stat(item.props, 'price_buy'))
         else:
             body_text['price'] = str('Sell price: %s' % treasure.calc_loot_stat(item.props, 'price_sell'))
@@ -429,7 +434,9 @@ class Context:
         bl_text = {
             'desc': item.props['desc']
         }
-        if trade:
+        if 'quest_item' in item.props:
+            bl_text['price'] = 'QUEST ITEM'
+        elif trade:
             bl_text['price'] = str('Buy price: %s' % treasure.calc_loot_stat(item.props, 'price_buy'))
         else:
             bl_text['price'] = str('Sell price: %s' % treasure.calc_loot_stat(item.props, 'price_sell'))
@@ -489,7 +496,9 @@ class Context:
         if 'condition' in item.props:
             bl_text['condition'] = 'Condition: %s/%s' % (
                 item.props['condition'], treasure.calc_loot_stat(item.props, 'condition_max'))
-        if trade:
+        if 'quest_item' in item.props:
+            bl_text['price'] = 'QUEST ITEM'
+        elif trade:
             bl_text['price'] = str('Buy price: %s' % treasure.calc_loot_stat(item.props, 'price_buy'))
         else:
             bl_text['price'] = str('Sell price: %s' % treasure.calc_loot_stat(item.props, 'price_sell'))
@@ -549,7 +558,9 @@ class Context:
                 ) + ' '
             )
         }
-        if trade:
+        if 'quest_item' in item.props:
+            bl_text['price'] = 'QUEST ITEM'
+        elif trade:
             bl_text['price'] = str('Buy price: %s' % treasure.calc_loot_stat(item.props, 'price_buy'))
         else:
             bl_text['price'] = str('Sell price: %s' % treasure.calc_loot_stat(item.props, 'price_sell'))
@@ -610,7 +621,9 @@ class Context:
         if 'charge' in item.props:
             body_text['charges'] = 'Charge: %s/%s' % (
                 item.props['charge'], treasure.calc_loot_stat(item.props, 'charge_max'))
-        if trade:
+        if 'quest_item' in item.props:
+            body_text['price'] = 'QUEST ITEM'
+        elif trade:
             body_text['price'] = str('Buy price: %s' % treasure.calc_loot_stat(item.props, 'price_buy'))
         else:
             body_text['price'] = str('Sell price: %s' % treasure.calc_loot_stat(item.props, 'price_sell'))
@@ -668,7 +681,9 @@ class Context:
         if 'condition' in item.props:
             body_text['condition'] = 'Condition: %s/%s' % (
                 item.props['condition'], treasure.calc_loot_stat(item.props, 'condition_max'))
-        if trade:
+        if 'quest_item' in item.props:
+            body_text['price'] = 'QUEST ITEM'
+        elif trade:
             body_text['price'] = str('Buy price: %s' % treasure.calc_loot_stat(item.props, 'price_buy'))
         else:
             body_text['price'] = str('Sell price: %s' % treasure.calc_loot_stat(item.props, 'price_sell'))
@@ -730,7 +745,9 @@ class Context:
                 math.ceil(item.props['condition'] / 10),
                 math.ceil(treasure.calc_loot_stat(item.props, 'condition_max') / 10)))
         }
-        if trade:
+        if 'quest_item' in item.props:
+            body_text['price'] = 'QUEST ITEM'
+        elif trade:
             body_text['price'] = str('Buy price: %s' % treasure.calc_loot_stat(item.props, 'price_buy'))
         else:
             body_text['price'] = str('Sell price: %s' % treasure.calc_loot_stat(item.props, 'price_sell'))
@@ -788,7 +805,9 @@ class Context:
                 [self.decorated_de_buffs(affx['de_buffs']) for affx in item.props['affixes'] if affx['de_buffs']]),
             'desc': (item.props['desc'] + ' '),
         }
-        if trade:
+        if 'quest_item' in item.props:
+            body_text['price'] = 'QUEST ITEM'
+        elif trade:
             body_text['price'] = str('Buy price: %s' % treasure.calc_loot_stat(item.props, 'price_buy'))
         else:
             body_text['price'] = str('Sell price: %s' % treasure.calc_loot_stat(item.props, 'price_sell'))
@@ -847,7 +866,9 @@ class Context:
                 [self.decorated_de_buffs(affx['de_buffs']) for affx in item.props['affixes'] if affx['de_buffs']]),
             'desc': item.props['desc'] % (item.props['lvl'])
         }
-        if trade:
+        if 'quest_item' in item.props:
+            body_text['price'] = 'QUEST ITEM'
+        elif trade:
             body_text['price'] = str('Buy price: %s' % treasure.calc_loot_stat(item.props, 'price_buy'))
         else:
             body_text['price'] = str('Sell price: %s' % treasure.calc_loot_stat(item.props, 'price_sell'))
@@ -907,7 +928,9 @@ class Context:
             'condition': 'Condition: %s/%s' % (
                 math.ceil(item.props['condition'] / 10), math.ceil(treasure.calc_loot_stat(item.props, 'condition_max') / 10))
         }
-        if trade:
+        if 'quest_item' in item.props:
+            body_text['price'] = 'QUEST ITEM'
+        elif trade:
             body_text['price'] = str('Buy price: %s' % treasure.calc_loot_stat(item.props, 'price_buy'))
         else:
             body_text['price'] = str('Sell price: %s' % treasure.calc_loot_stat(item.props, 'price_sell'))
@@ -989,10 +1012,12 @@ class Context:
         return itm_icon_panel
 
     def win_align(self, mouse_xy):
-        self.offset_x, self.offset_y = maths.rect_to_center(mouse_xy[0], mouse_xy[1], self.win_w, self.win_h, 0, 0,
+        self.offset_x, self.offset_y = maths.rect_to_center(mouse_xy[0] + 8, mouse_xy[1], self.win_w,
+                                                            self.win_h, 0, 0,
                                                             self.pygame_settings.screen_res[0],
                                                             self.pygame_settings.screen_res[1])
-        self.offset_x, self.offset_y = maths.rect_in_bounds(self.offset_x, self.offset_y, self.win_w, self.win_h, 0, 0,
+        self.offset_x, self.offset_y = maths.rect_in_bounds(self.offset_x, self.offset_y, self.win_w,
+                                                            self.win_h, 0, 0,
                                                             self.pygame_settings.screen_res[0],
                                                             self.pygame_settings.screen_res[1])
 

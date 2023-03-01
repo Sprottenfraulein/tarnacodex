@@ -4,7 +4,7 @@ import pygame
 
 from library import maths
 from library import pickrandom, calc2darray, itemlist
-from components import dbrequests, progression, room, door, stairs, trap, lock, flagtile, monster, gamesave, chest, initmod, treasure
+from components import dbrequests, progression, room, door, stairs, trap, lock, flagtile, monster, gamesave, chest, initmod, treasure, furniture
 
 
 class Maze:
@@ -58,6 +58,7 @@ class Maze:
         self.array = maze_array(self.width, self.height)
         self.decor_rnds = []
         self.decor_array = None
+        self.shading_color = (0,0,0)
 
         self.rooms = None
         self.doors = set()
@@ -65,6 +66,7 @@ class Maze:
         self.mobs = []
         self.traps = []
         self.exits = []
+        self.furnitures = []
         self.loot = itemlist.ItemList(filters={
                 'item_types': ['wpn_melee', 'wpn_ranged', 'wpn_magic', 'arm_head', 'arm_chest', 'acc_ring', 'orb_shield',
                                'orb_ammo', 'orb_source', 'use_wand', 'exp_tools', 'exp_lockpick', 'exp_food', 'exp_key',
@@ -88,6 +90,13 @@ class Maze:
                 self.tile_set = tile_sets.get_random_maze(self.decor_rnds, self.decor_rnds_read)
             else:
                 self.tile_set = tile_sets.get_maze_tiles(self.stage_dict['tile_set'])
+            if self.stage_dict['shading_color'] == 'randomized':
+                if random.randrange(0, 10) > 8:
+                    self.shading_color = random.choice([key for key, value in self.resources.colors.items() if 'shade' in key])
+                else:
+                    self.shading_color = 'shade_darkness'
+            else:
+                self.shading_color = self.stage_dict['shading_color']
 
         if len(stage_progress) == 0 or stage_progress[0]['maze_rolled'] == 0 or not use_saves:
             # self.generate_1(0, 0, self.height - 1, self.width - 1, 8, 8, False)
@@ -135,6 +144,7 @@ class Maze:
         doors_set(self, self.tile_set, self.db, 'monster_attacks', bonus_rooms)
         traps_set(self, 'monster_attacks', self.db, pc)
         well_set(self, room_seq, bonus_rooms)
+        furniture_set(self)
 
     def generate_2(self, pc, top, left, bottom, right, min_width, min_height, prop, vert_chance=50, rooms_number=None):
         square(self.array, top, left, bottom, right, '#', '.', True)
@@ -164,11 +174,12 @@ class Maze:
                     continue
                 ex = exits.pop()
                 dest = ex[0]
-                new_exit = stairs.Stairs(x_sq, y_sq, -24, -24, dest, None, self.tile_set[ex[1]], ex[1])
+                new_exit = stairs.Stairs(x_sq, y_sq, -1, -1, dest, None, self.tile_set[ex[1]], ex[1])
                 self.exits.append(new_exit)
 
         traps_set(self, 'monster_attacks', self.db, pc)
         well_set(self, self.rooms, free_rooms)
+        furniture_set(self)
 
     def mob_populate_alg_1(self, db, maze, animations, maze_monster_pool, monster_number, pop_level):
         mob_populate_alg_1(db, maze, animations, maze_monster_pool, monster_number, pop_level)
@@ -874,7 +885,7 @@ def exits_set(maze, exits_list, room_seq):
         x_sq = random.randrange(rm.left + 1, rm.right)
         y_sq = random.randrange(rm.top + 1, rm.bottom - 1)
 
-        new_exit = stairs.Stairs(x_sq, y_sq, -24, -24, dest, rm, maze.tile_set[exits_list[i][1]], exits_list[i][1])
+        new_exit = stairs.Stairs(x_sq, y_sq, -1, -1, dest, rm, maze.tile_set[exits_list[i][1]], exits_list[i][1])
 
         maze.exits.append(new_exit)
 
@@ -889,7 +900,7 @@ def chest_set(maze, room, tileset, chest_number, db, attack_table_point):
                                         (x_sq, y_sq), (x_sq, y_sq), 1, 5, r_max=5)
         x_sq, y_sq = space_list[0]
         alignment = random.choice((0, 1))
-        new_chest = chest.Chest(x_sq, y_sq, alignment, room, tileset, off_x=-4, off_y=-4, lvl=maze.lvl, items_number=2,
+        new_chest = chest.Chest(x_sq, y_sq, alignment, room, tileset, off_x_sq=-0.125, off_y_sq=-0.125, lvl=maze.lvl, items_number=2,
                                 gp_number=3, treasure_group=0, item_type=None, char_type=None, container=None,
                                 disappear=False)
 
@@ -928,15 +939,104 @@ def well_set(maze, room_seq, bonus_rooms):
         ((random.randrange(rnd_room.left + 1, rnd_room.right - 2), random.choice((rnd_room.top + 1, rnd_room.bottom - 2))),
          (random.choice((rnd_room.left + 1, rnd_room.right - 2)), random.randrange(rnd_room.top + 1, rnd_room.bottom - 2)))
     )
-    space_list = calc2darray.fill2d(maze.flag_array, {'mov': False, 'obj': 'True', 'floor': False, 'door': True},
+    space_list = calc2darray.fill2d(maze.flag_array, {'mov': False, 'obj': True, 'floor': False, 'door': True},
                                     (x_sq, y_sq), (x_sq, y_sq), 2, 5, r_max=5)
     x_sq, y_sq = space_list[1]
-    new_chest = chest.Chest(x_sq, y_sq, None, rnd_room, maze.tile_set, off_x=-4, off_y=-4, lvl=maze.lvl, items_number=0,
+    new_chest = chest.Chest(x_sq, y_sq, None, rnd_room, maze.tile_set, off_x_sq=-0.125, off_y_sq=-0.125, lvl=maze.lvl, items_number=0,
                             gp_number=0, treasure_group=0, item_type=None, char_type=None, container=[
                                 treasure.Treasure(146, maze.lvl, maze.db.cursor, maze.tile_sets, maze.resources,
                                                   maze.audio, maze.resources.fate_rnd, grade=1)
                             ], disappear=False, allow_mimic=False, name_replace='well')
     maze.chests.append(new_chest)
+
+
+def furniture_set(maze):
+    total_amount = len(maze.rooms) * maze.stage_dict['furniture_rate'] // 100
+    room_pool = [(rm, rm.rating) for rm in maze.rooms]
+    furn_rooms = pickrandom.items_get(room_pool, total_amount)
+    for furn_room in furn_rooms:
+        if furn_room.corridor:
+            furn_type = 'corridor'
+        elif furn_room.locked:
+            furn_type = 'treasury'
+        else:
+            furn_type = None
+        furniture_add(maze.db, maze, furn_room, 1, 'dungeon', furn_type)
+
+
+def furniture_add(db, maze, maze_room, amount=1, furn_tag=None, furn_type=None, solid=None, on_wall=None):
+    furn_list = dbrequests.furniture_get(db.cursor, furn_tag, furn_type, solid, on_wall, 10000)
+    random.shuffle(furn_list)
+    for i in range(amount):
+        furn = furn_list.pop()
+        if furn['on_wall'] == 1:
+            furn_align = random.choice((0, 3))
+        else:
+            furn_align = random.choice((0, 1, 2, 3))
+        furn_image = dbrequests.furniture_get_image(db.cursor, furn['furniture_id'], furn_align)
+        xy_sq = furniture_get_place(maze, maze_room, furn_align, furn['on_wall'], furn['width_sq'], furn['height_sq'])
+        if xy_sq is None:
+            continue
+        x_sq, y_sq = xy_sq
+        furn = furniture.Furniture(furn['furniture_type'], x_sq, y_sq, furn_align, maze_room, furn_image,
+                                        maze.tile_sets, furn['solid'], furn['offset_x'], furn['offset_y'])
+        maze.furnitures.append(furn)
+
+
+def furniture_get_place(maze, maze_room, furn_align, on_wall, width_sq, height_sq):
+    if on_wall is None:
+        on_wall = random.choice((True, False))
+    if on_wall == 1:
+        if furn_align == 0:
+            y_sq = maze_room.top
+            rnd_list = [x for x in range(maze_room.left + (width_sq > 1), maze_room.right)
+                                  if maze.array[y_sq][x] == '#' and not maze.flag_array[y_sq][x].obj]
+            if len(rnd_list) < 2:
+                return None
+            x_sq = random.choice(rnd_list)
+            y_sq += (height_sq > 1)
+        elif furn_align == 3:
+            x_sq = maze_room.left
+            rnd_list = [y for y in range(maze_room.top + (height_sq > 1), maze_room.bottom)
+                                  if maze.array[y][x_sq] == '#' and not maze.flag_array[y][x_sq].obj]
+            y_sq = random.choice(rnd_list)
+            if len(rnd_list) < 2:
+                return None
+            x_sq += (width_sq > 1)
+        else:
+            return None
+    else:
+        if furn_align == 0:
+            orig_xy_sq = random.choice(
+                ((maze_room.left + 1, maze_room.top + 1), (maze_room.right, maze_room.top + 1))
+            )
+        elif furn_align == 1:
+            orig_xy_sq = random.choice(
+                ((maze_room.right, maze_room.top + 1), (maze_room.right, maze_room.bottom))
+            )
+        elif furn_align == 2:
+            orig_xy_sq = random.choice(
+                ((maze_room.left + 1, maze_room.bottom), (maze_room.right, maze_room.bottom))
+            )
+        elif furn_align == 3:
+            orig_xy_sq = random.choice(
+                ((maze_room.left + 1, maze_room.top + 1), (maze_room.left + 1, maze_room.bottom))
+            )
+        else:
+            return None
+
+        space_list = calc2darray.fill2d(maze.flag_array,
+                                        {'mov': False, 'obj': True, 'floor': False, 'door': True},
+                                        orig_xy_sq, orig_xy_sq, 2, 10, r_max=10)
+        if len(space_list) > 1:
+            x_sq, y_sq = space_list[1]
+        else:
+            return None
+
+    if x_sq is None or y_sq is None:
+        return None
+    else:
+        return x_sq, y_sq
 
 
 def array_pattern_apply(array, pattern, x, y):
@@ -1040,7 +1140,9 @@ def mob_add(maze, mon_x_sq, mon_y_sq, animations, mob_props):
                 mon_x_sq, mon_y_sq, animations.get_animation(mob_props['animation']), mob_props, state=0
             )
         )
-    maze.flag_array[mon_y_sq][mon_x_sq].mon = maze.mobs[-1]
+    new_mob = maze.mobs[-1]
+    maze.flag_array[mon_y_sq][mon_x_sq].mon = new_mob
+    return new_mob
 
 
 def roll_monsters(db_cursor, max_level, max_grade, monster_types, mon_amount=1):
@@ -1175,6 +1277,10 @@ def flags_update(maze, flags_array):
         fl = flags_array[ch.y_sq][ch.x_sq]
         fl.mov = False
         fl.obj = ch
+    for fu in maze.furnitures:
+        fl = flags_array[fu.y_sq][fu.x_sq]
+        fl.mov = fl.mov and not fu.solid
+        fl.obj = fu
     for tr in maze.traps:
         if tr.x_sq is not None and tr.y_sq is not None:
             flags_array[tr.y_sq][tr.x_sq].trap = tr

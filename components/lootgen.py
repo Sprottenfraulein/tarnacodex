@@ -18,7 +18,7 @@ def generate_loot(monster, realm, fate_rnd, pc, log=True):
         rnd_rate = tr_amount + 1
     elif pc.char_sheet.level == 3:
         rnd_rate = tr_amount
-    elif pc.char_sheet.level < 6:
+    elif pc.char_sheet.level < 6 or 3 in pc.char_sheet.de_buffs:
         rnd_rate = random.randrange(0, tr_amount + 1)
     else:
         rnd_rate = fate_rnd.expo_rnd(0, tr_amount + 1)

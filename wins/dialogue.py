@@ -35,6 +35,7 @@ class Dialogue:
         self.win_rendered = None
 
     def launch(self, pc):
+        self.wins_dict['realm'].buttons_pressed.clear()
         self.pc = pc
         self.create_elements(log=True)
         self.updated = True

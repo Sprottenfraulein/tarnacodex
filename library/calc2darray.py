@@ -125,7 +125,6 @@ def cast_ray(flag_array, x1, y1, x2, y2, sightonly=False):
             # test ray calculation
             temp_x += step_x / 2
             temp_y += step_y / 2
-
         if hit:
             return False
         else:
@@ -133,11 +132,15 @@ def cast_ray(flag_array, x1, y1, x2, y2, sightonly=False):
     else:
         squares = []
         hit = False
+        steps = 0
         while not hit and (abs(temp_x - x2) >= 1 or abs(temp_y - y2) >= 1):
-            if not flag_array[round(temp_y)][round(temp_x)].light:
+            flags = flag_array[round(temp_y)][round(temp_x)]
+            if not flags.light:
                 hit = True
             squares.append((round(temp_x), round(temp_y)))
+            flags.map = steps
             # test ray calculation
             temp_x += step_x
             temp_y += step_y
+            steps += 1
         return set(squares)

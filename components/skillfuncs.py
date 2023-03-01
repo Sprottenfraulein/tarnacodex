@@ -68,7 +68,7 @@ def attack_powerful(wins_dict, fate_rnd, pc, skill_obj, item_adress, no_aim=Fals
     att_rate = 2
 
     att_val_min, att_val_max = pc.char_sheet.attacks['att_base']
-    att_mods = pc.char_sheet.calc_attack_mod('att_physical')
+    att_mods = pc.char_sheet.calc_attack_mod('att_fire')
     att_val_min += (att_val_min * att_mods // 1000)  # att_mods comprehended as procents
     att_val_max += (att_val_max * att_mods // 1000)  # att_mods comprehended as procents
     dam_min = att_val_min * 2
@@ -115,7 +115,7 @@ def attack_powerful(wins_dict, fate_rnd, pc, skill_obj, item_adress, no_aim=Fals
     if is_crit:
         rnd_attack *= 4
 
-    target.wound(rnd_attack, 'att_physical', False, is_crit, wins_dict, fate_rnd, pc)
+    target.wound(rnd_attack, 'att_fire', False, is_crit, wins_dict, fate_rnd, pc)
 
     pc.food_change(wins_dict, -5)
     pc.act(wins_dict, (target.x_sq, target.y_sq), skill_obj)
@@ -131,7 +131,7 @@ def attack_butterfly(wins_dict, fate_rnd, pc, skill_obj, item_adress, no_aim=Fal
     realm = wins_dict['realm']
 
     att_val_min, att_val_max = pc.char_sheet.attacks['att_base']
-    att_mods = pc.char_sheet.calc_attack_mod('att_physical')
+    att_mods = pc.char_sheet.calc_attack_mod('att_lightning')
     att_val_min += (att_val_min * att_mods // 1000)  # att_mods comprehended as procents
     att_val_max += (att_val_max * att_mods // 1000)  # att_mods comprehended as procents
     if just_values:
@@ -147,12 +147,14 @@ def attack_butterfly(wins_dict, fate_rnd, pc, skill_obj, item_adress, no_aim=Fal
         return True
 
     for target in realm.mobs_short:
+        if not target.alive:
+            continue
         if round(maths.get_distance(pc.x_sq, pc.y_sq, target.x_sq, target.y_sq), 1) - target.size <= skill_obj.props['range']:
             rnd_attack = random.randrange(att_val_min, att_val_max + 1)
             is_crit = (random.randrange(1, 1001) <= pc.char_sheet.profs['prof_crit'])
             if is_crit:
                 rnd_attack *= 4
-            target.wound(rnd_attack, 'att_physical', False, is_crit, wins_dict, fate_rnd, pc)
+            target.wound(rnd_attack, 'att_lightning', False, is_crit, wins_dict, fate_rnd, pc)
 
     realm.particle_list.append(particle.Particle((pc.x_sq, pc.y_sq), (-16, -16),
                                realm.animations.get_animation('effect_blood_swipe')['default'], 25))
@@ -243,6 +245,172 @@ def shot_default(wins_dict, fate_rnd, pc, skill_obj, item_adress, no_aim=False, 
     pc.act(wins_dict, (target.x_sq, target.y_sq), skill_obj)
 
     wins_dict['realm'].sound_inrealm(pc.char_sheet.equipped[2][0].props['sound_swing'], target.x_sq, target.y_sq)
+
+    return False
+
+
+def shot_sniper(wins_dict, fate_rnd, pc, skill_obj, item_adress, no_aim=False, just_values=False):
+    realm = wins_dict['realm']
+    att_rate = 2
+
+    att_val_min, att_val_max = pc.char_sheet.attacks['att_base']
+    att_mods = pc.char_sheet.calc_attack_mod('att_fire')
+    att_val_min += (att_val_min * att_mods // 1000)  # att_mods comprehended as procents
+    att_val_max += (att_val_max * att_mods // 1000)  # att_mods comprehended as procents
+    dam_min = att_val_min * att_rate
+    dam_max = att_val_max * att_rate
+    if just_values:
+        if not skill_reqs_check(realm, skill_obj, pc):
+            return '-', '-', '-'
+        else:
+            return dam_min, dam_max, skill_obj.props['cost_mp']
+
+    if item_adress[0] in (pc.char_sheet.inventory, pc.char_sheet.skills):
+        realm.wins_dict['dialogue'].dialogue_elements = {
+            'header': 'Attention',
+            'text': "This item may be used from Hotbar!",
+            'bttn_cancel': 'OK'
+        }
+        realm.wins_dict['dialogue'].launch(pc)
+        return True
+
+    target = wins_dict['target'].mob_object
+    if target is None or not target.alive:
+        if no_aim:
+            skill_help(realm, skill_obj, 'new_txt', "I have to aim.", (0, 0), (0, -24), None, pc, None, 120, 'def_bold', 24)
+        return True
+
+    """if not skill_reqs_check(realm, skill, pc):
+        return True"""
+    if not skill_reqs_check(realm, skill_obj, pc):
+        # skill_help(realm, skill_obj,
+        # 'new_txt', "Nothing to shoot with!", (0, 0), (0, -24), None, pc, None, 120, 'def_bold', 24
+        # )
+        return True
+
+    if pc.char_sheet.equipped[2][0].props['class'] != pc.char_sheet.ammo_classes_dict[pc.char_sheet.equipped[3][0].props['class']]:
+        skill_help(realm, skill_obj, 'new_txt', "Ammo won't fit.", (0, 0), (0, -24), None, pc, None, 120, 'def_bold', 24)
+        return True
+
+    if maths.get_distance(pc.x_sq, pc.y_sq, target.x_sq, target.y_sq) > (skill_obj.props['range'] * (pc.char_sheet.profs['prof_range'] + 1000) // 1000):
+        """realm.schedule_man.task_add('realm_tasks', 1, realm, 'spawn_realmtext',
+                                    ('new_txt', "Too far!",
+                                     (0, 0), (0, -24), None, True, realm.pc))
+        realm.schedule_man.task_add('realm_tasks', 8, realm, 'remove_realmtext', ('new_txt',))"""
+        return True
+
+    if not skill_costs_check(realm, skill_obj, pc):
+        return True
+
+    if not treasure.amount_change(pc.char_sheet.equipped[3][0], -1):
+        pc.char_sheet.equipped[3][0] = None
+        pc.char_sheet.calc_stats()
+        wins_dict['realm'].spawn_realmtext(None, 'Out of ammo!', (0, 0), (0, -24),
+                                           'fnt_celeb', pc, None, 240, 'def_bold', 24)
+    wins_dict['inventory'].updated = True
+
+    rnd_attack = random.randrange(att_val_min * att_rate, att_val_max * att_rate + 1)
+    is_crit = (random.randrange(1, 1001) <= pc.char_sheet.profs['prof_crit'])
+    if is_crit:
+        rnd_attack *= 4
+
+    if pc.char_sheet.equipped[2][0].props['class'] == 'sling':
+        anim_pack = (
+            {'images': realm.tilesets.get_image('item_effects', (16, 16), (2,)), 'timings': (60,)},
+            {'images': realm.tilesets.get_image('item_effects', (16, 16), (2,)), 'timings': (60,)}
+        )
+    else:
+        anim_pack = (
+            {'images': realm.tilesets.get_image('item_effects', (16, 16), (0,)), 'timings': (60,)},
+            {'images': realm.tilesets.get_image('item_effects', (16, 16), (1,)), 'timings': (60,)}
+        )
+    speed = 0.5
+    realm.spawn_projectile((pc.x_sq, pc.y_sq), (target.x_sq, target.y_sq), (rnd_attack, 'att_fire', is_crit, pc),
+                           speed, anim_pack, collision_limit=1, blast_radius=0)
+
+    pc.food_change(wins_dict, -5)
+    pc.act(wins_dict, (target.x_sq, target.y_sq), skill_obj)
+
+    wins_dict['realm'].sound_inrealm(pc.char_sheet.equipped[2][0].props['sound_swing'], target.x_sq, target.y_sq)
+
+    return False
+
+
+def shot_multi(wins_dict, fate_rnd, pc, skill_obj, item_adress, no_aim=False, just_values=False):
+    realm = wins_dict['realm']
+    max_targets = 3 + pc.char_sheet.level // 10
+    att_val_min, att_val_max = pc.char_sheet.attacks['att_base']
+    att_mods = pc.char_sheet.calc_attack_mod('att_poison')
+    att_val_min += (att_val_min * att_mods // 1000)  # att_mods comprehended as procents
+    att_val_max += (att_val_max * att_mods // 1000)  # att_mods comprehended as procents
+    if just_values:
+        if not skill_reqs_check(realm, skill_obj, pc):
+            return '-', '-', '-', '-'
+        else:
+            return max_targets, att_val_min, att_val_max, skill_obj.props['cost_mp']
+
+    if not skill_reqs_check(realm, skill_obj, pc):
+        return True
+
+    if pc.char_sheet.equipped[2][0].props['class'] != pc.char_sheet.ammo_classes_dict[
+        pc.char_sheet.equipped[3][0].props['class']]:
+        skill_help(realm, skill_obj, 'new_txt', "Ammo won't fit.", (0, 0), (0, -24), None, pc, None, 120,
+                   'def_bold', 24)
+        return True
+
+    shot = 0
+    for target in realm.mobs_short:
+        if shot == max_targets:
+            break
+        if not target.alive:
+            continue
+        if not realm.maze.flag_array[round(target.y_sq)][round(target.x_sq)].vis:
+            continue
+        if round(maths.get_distance(pc.x_sq, pc.y_sq, target.x_sq, target.y_sq), 1) - target.size <= skill_obj.props['range']:
+            shot += 1
+            if not skill_reqs_check(realm, skill_obj, pc):
+                break
+            if pc.char_sheet.equipped[2][0].props['class'] != pc.char_sheet.ammo_classes_dict[
+                pc.char_sheet.equipped[3][0].props['class']]:
+                break
+            if maths.get_distance(pc.x_sq, pc.y_sq, target.x_sq, target.y_sq) > (
+                    skill_obj.props['range'] * (pc.char_sheet.profs['prof_range'] + 1000) // 1000):
+                continue
+            if not skill_costs_check(realm, skill_obj, pc):
+                break
+            if not treasure.amount_change(pc.char_sheet.equipped[3][0], -1):
+                pc.char_sheet.equipped[3][0] = None
+                pc.char_sheet.calc_stats()
+                wins_dict['realm'].spawn_realmtext(None, 'Out of ammo!', (0, 0), (0, -24),
+                                                   'fnt_celeb', pc, None, 240, 'def_bold', 24)
+            rnd_attack = random.randrange(att_val_min, att_val_max + 1)
+            is_crit = (random.randrange(1, 1001) <= pc.char_sheet.profs['prof_crit'])
+            if is_crit:
+                rnd_attack *= 4
+
+            if pc.char_sheet.equipped[2][0].props['class'] == 'sling':
+                anim_pack = (
+                    {'images': realm.tilesets.get_image('item_effects', (16, 16), (2,)), 'timings': (60,)},
+                    {'images': realm.tilesets.get_image('item_effects', (16, 16), (2,)), 'timings': (60,)}
+                )
+            else:
+                anim_pack = (
+                    {'images': realm.tilesets.get_image('item_effects', (16, 16), (0,)), 'timings': (60,)},
+                    {'images': realm.tilesets.get_image('item_effects', (16, 16), (1,)), 'timings': (60,)}
+                )
+            speed = 0.5
+            realm.spawn_projectile((pc.x_sq, pc.y_sq), (target.x_sq, target.y_sq),
+                                   (rnd_attack, 'att_poison', is_crit, pc),
+                                   speed, anim_pack, collision_limit=1, blast_radius=0)
+
+    if shot == 0:
+        skill_help(realm, skill_obj, 'new_txt', "No targets nearby.", (0, 0), (0, -24), None, pc, None, 120,
+                   'def_bold', 24)
+    else:
+        pc.food_change(wins_dict, -5)
+        wins_dict['inventory'].updated = True
+        pc.act(wins_dict, None, skill_obj)
+        realm.pygame_settings.audio.sound(skill_obj.props['sound_use'])
 
     return False
 
@@ -1203,7 +1371,9 @@ def learn_skill(wins_dict, fate_rnd, pc, skill_obj, item_adress, no_aim=False, j
             99: 15,  # Dispel spell
             100: 5,  # Pick locks skill
             101: 6,   # Disarm skill
-            105: 21  # Powerful strike skill
+            105: 21,  # Powerful strike skill
+            152: 24,  # Multishot skill
+            153: 25  # Sniper Shot skill
         }[item_adress[0][item_adress[1]].props['treasure_id']]
     except KeyError:
         return True

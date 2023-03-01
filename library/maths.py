@@ -96,3 +96,9 @@ def get_rnd_expo_list(range_min, range_max, n):
     result_list = [i * spread // 1000 + range_min for i in filtered]
     return result_list
 
+
+def get_days():
+    import datetime
+    checkdate = datetime.datetime.strptime("2000-01-01", "%Y-%m-%d")
+    return (datetime.datetime.now() - checkdate).days
+

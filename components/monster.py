@@ -340,6 +340,10 @@ def direction_change(self, realm):
 
 def intercept(self, wins_dict, pc_distance):
     realm = wins_dict['realm']
+    # Surprise Visit buff check
+    if 4 in realm.pc.char_sheet.de_buffs:
+        return
+
     self.busy = True
     if calc2darray.cast_ray(realm.maze.flag_array, round(self.x_sq), round(self.y_sq), round(realm.pc.x_sq), round(realm.pc.y_sq), True):
         if attack_ranged(self, realm.pc, wins_dict, pc_distance):
@@ -360,6 +364,10 @@ def intercept(self, wins_dict, pc_distance):
 
 
 def attack(self, wins_dict, fate_rnd, pc):
+    # Surprise Visit buff check
+    if 4 in wins_dict['realm'].pc.char_sheet.de_buffs:
+        return
+
     if len(self.stats['attacks_melee']) == 0:
         return False
     face_point(self, pc.x_sq, pc.y_sq)
