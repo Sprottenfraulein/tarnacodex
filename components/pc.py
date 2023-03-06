@@ -39,6 +39,7 @@ class PC:
         self.hot_cooling_set = set()
 
         self.dimmed_light = False
+        self.path = None
 
     def animate(self):
         # PC states:
@@ -503,8 +504,8 @@ class PC:
         wins_dict['realm'].pygame_settings.audio.sound('death_%s' % self.char_sheet.type)
 
         if self.char_sheet.level > 3 and self.char_sheet.gold_coins > 1000:
-            self.char_sheet.gold_coins //= 2
-            gold_penalty = self.char_sheet.gold_coins
+            gold_penalty = round(self.char_sheet.gold_coins * 0.75)
+            self.char_sheet.gold_coins -= gold_penalty
         else:
             gold_penalty = 'none'
 
@@ -515,6 +516,7 @@ class PC:
             self.hardcore_char = 2
             wins_dict['demos'].death_hardcore(self, killer, wins_dict['realm'].maze.chapter)
         else:
+            wins_dict['realm'].maze.remains_add(self, wins_dict)
             self.char_sheet.hp_get(100, percent=True)
             wins_dict['demos'].death_soft(self, killer, wins_dict['realm'].maze.chapter, gold_penalty)
 

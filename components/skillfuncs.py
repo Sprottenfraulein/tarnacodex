@@ -17,14 +17,7 @@ def attack_default(wins_dict, fate_rnd, pc, skill_obj, item_adress, no_aim=False
         else:
             return att_val_min, att_val_max
 
-    if item_adress[0] in (pc.char_sheet.inventory, pc.char_sheet.skills):
-        realm.wins_dict['dialogue'].dialogue_elements = {
-            'header': 'Attention',
-            'text': "This item may be used from Hotbar!",
-            'bttn_cancel': 'OK'
-        }
-        realm.wins_dict['dialogue'].launch(pc)
-        return True
+    only_from_hotbar_check(item_adress, pc, wins_dict)
 
     target = wins_dict['target'].mob_object
     if target is None or not target.alive:
@@ -80,14 +73,7 @@ def attack_powerful(wins_dict, fate_rnd, pc, skill_obj, item_adress, no_aim=Fals
         else:
             return dam_min, dam_max, skill_obj.props['cost_mp']
 
-    if item_adress[0] in (pc.char_sheet.inventory, pc.char_sheet.skills):
-        realm.wins_dict['dialogue'].dialogue_elements = {
-            'header': 'Attention',
-            'text': "This item may be used from Hotbar!",
-            'bttn_cancel': 'OK'
-        }
-        realm.wins_dict['dialogue'].launch(pc)
-        return True
+    only_from_hotbar_check(item_adress, pc, wins_dict)
 
     if not skill_reqs_check(realm, skill_obj, pc):
         return True
@@ -178,14 +164,7 @@ def shot_default(wins_dict, fate_rnd, pc, skill_obj, item_adress, no_aim=False, 
         else:
             return att_val_min, att_val_max
 
-    if item_adress[0] in (pc.char_sheet.inventory, pc.char_sheet.skills):
-        realm.wins_dict['dialogue'].dialogue_elements = {
-            'header': 'Attention',
-            'text': "This item may be used from Hotbar!",
-            'bttn_cancel': 'OK'
-        }
-        realm.wins_dict['dialogue'].launch(pc)
-        return True
+    only_from_hotbar_check(item_adress, pc, wins_dict)
 
     target = wins_dict['target'].mob_object
     if target is None or not target.alive:
@@ -265,14 +244,7 @@ def shot_sniper(wins_dict, fate_rnd, pc, skill_obj, item_adress, no_aim=False, j
         else:
             return dam_min, dam_max, skill_obj.props['cost_mp']
 
-    if item_adress[0] in (pc.char_sheet.inventory, pc.char_sheet.skills):
-        realm.wins_dict['dialogue'].dialogue_elements = {
-            'header': 'Attention',
-            'text': "This item may be used from Hotbar!",
-            'bttn_cancel': 'OK'
-        }
-        realm.wins_dict['dialogue'].launch(pc)
-        return True
+    only_from_hotbar_check(item_adress, pc, wins_dict)
 
     target = wins_dict['target'].mob_object
     if target is None or not target.alive:
@@ -418,25 +390,25 @@ def shot_multi(wins_dict, fate_rnd, pc, skill_obj, item_adress, no_aim=False, ju
 # TODO Spell skills.
 def spell_magical_arrow(wins_dict, fate_rnd, pc, skill_obj, item_adress, no_aim=False, just_values=False):
     realm = wins_dict['realm']
+    is_magic_item = item_adress[0][item_adress[1]] != skill_obj
 
-    att_val_min, att_val_max = pc.char_sheet.attacks['att_base']
+    if is_magic_item:
+        att_val_min, att_val_max = rods_damage_get(pc, item_adress[0][item_adress[1]].props['lvl'], fate_rnd)
+    else:
+        att_val_min, att_val_max = pc.char_sheet.attacks['att_base']
     att_mods = pc.char_sheet.calc_attack_mod('att_arcane')
     att_val_min += (att_val_min * att_mods // 1000)  # att_mods comprehended as procents
     att_val_max += (att_val_max * att_mods // 1000)  # att_mods comprehended as procents
     if just_values:
-        if not skill_reqs_check(realm, skill_obj, pc):
-            return '-', '-', '-', '-'
+        if is_magic_item:
+            report = att_val_min, att_val_max
+        elif not skill_reqs_check(realm, skill_obj, pc, is_magic_item):
+            report = '-', '-', '-', '-'
         else:
-            return att_val_min, att_val_max, round(att_val_min * skill_obj.props['cost_mp']), round(att_val_max * skill_obj.props['cost_mp'])
+            report = att_val_min, att_val_max, round(att_val_min * skill_obj.props['cost_mp']), round(att_val_max * skill_obj.props['cost_mp'])
+        return report
 
-    if item_adress[0] in (pc.char_sheet.inventory, pc.char_sheet.skills):
-        realm.wins_dict['dialogue'].dialogue_elements = {
-            'header': 'Attention',
-            'text': "This item may be used from Hotbar!",
-            'bttn_cancel': 'OK'
-        }
-        realm.wins_dict['dialogue'].launch(pc)
-        return True
+    only_from_hotbar_check(item_adress, pc, wins_dict)
 
     target = wins_dict['target'].mob_object
     if target is None or not target.alive:
@@ -446,7 +418,7 @@ def spell_magical_arrow(wins_dict, fate_rnd, pc, skill_obj, item_adress, no_aim=
 
     """if not skill_reqs_check(realm, skill, pc):
         return True"""
-    if not skill_reqs_check(realm, skill_obj, pc):
+    if not skill_reqs_check(realm, skill_obj, pc, is_magic_item):
         # skill_help(realm, skill_obj, 
         # 'new_txt', "Nothing to cast with!", (0, 0), (0, -24), None, pc, None, 120, 'def_bold', 24
         # )
@@ -460,8 +432,13 @@ def spell_magical_arrow(wins_dict, fate_rnd, pc, skill_obj, item_adress, no_aim=
         return True
 
     rnd_attack = random.randrange(att_val_min, att_val_max + 1)
+    skill_sound = item_adress[0][item_adress[1]].props['sound_use']
 
-    if not skill_costs_check(realm, skill_obj, pc, rate=rnd_attack):
+    if not is_magic_item:
+        if not skill_costs_check(realm, skill_obj, pc, rate=rnd_attack):
+            return True
+    elif not charges_control(wins_dict, pc, item_adress[0][item_adress[1]], message='This is it!'):
+        skill_help(realm, skill_obj, 'new_txt', "No charges.", (0, 0), (0, -24), None, pc, None, 120, 'def_bold', 24)
         return True
 
     is_crit = (random.randrange(1, 1001) <= pc.char_sheet.profs['prof_crit'])
@@ -480,7 +457,7 @@ def spell_magical_arrow(wins_dict, fate_rnd, pc, skill_obj, item_adress, no_aim=
     pc.food_change(wins_dict, -5)
     pc.act(wins_dict, (target.x_sq, target.y_sq), skill_obj)
 
-    realm.pygame_settings.audio.sound(item_adress[0][item_adress[1]].props['sound_use'])
+    realm.pygame_settings.audio.sound(skill_sound)
 
     realm.particle_list.append(particle.Particle((pc.x_sq, pc.y_sq), (-4, -4),
                                                  realm.animations.get_animation('effect_arcane_vortex')['default'],
@@ -492,27 +469,27 @@ def spell_magical_arrow(wins_dict, fate_rnd, pc, skill_obj, item_adress, no_aim=
 def spell_fireball(wins_dict, fate_rnd, pc, skill_obj, item_adress, no_aim=False, just_values=False):
     realm = wins_dict['realm']
     att_rate = 2
+    is_magic_item = item_adress[0][item_adress[1]] != skill_obj
 
-    att_val_min, att_val_max = pc.char_sheet.attacks['att_base']
+    if is_magic_item:
+        att_val_min, att_val_max = rods_damage_get(pc, item_adress[0][item_adress[1]].props['lvl'], fate_rnd)
+    else:
+        att_val_min, att_val_max = pc.char_sheet.attacks['att_base']
     att_mods = pc.char_sheet.calc_attack_mod('att_fire')
     att_val_min += (att_val_min * att_mods // 1000)  # att_mods comprehended as procents
     att_val_max += (att_val_max * att_mods // 1000)  # att_mods comprehended as procents
     mp_cost_min = round(att_val_min * skill_obj.props['cost_mp'])
     mp_cost_max = round(att_val_max * skill_obj.props['cost_mp'])
     if just_values:
-        if not skill_reqs_check(realm, skill_obj, pc):
-            return '-', '-', '-', '-'
+        if is_magic_item:
+            report = att_val_min * att_rate, att_val_max * att_rate
+        elif not skill_reqs_check(realm, skill_obj, pc, is_magic_item):
+            report = '-', '-', '-', '-'
         else:
-            return att_val_min * att_rate, att_val_max * att_rate, mp_cost_min, mp_cost_max
+            report = att_val_min * att_rate, att_val_max * att_rate, mp_cost_min, mp_cost_max
+        return report
 
-    if item_adress[0] in (pc.char_sheet.inventory, pc.char_sheet.skills):
-        realm.wins_dict['dialogue'].dialogue_elements = {
-            'header': 'Attention',
-            'text': "This item may be used from Hotbar!",
-            'bttn_cancel': 'OK'
-        }
-        realm.wins_dict['dialogue'].launch(pc)
-        return True
+    only_from_hotbar_check(item_adress, pc, wins_dict)
 
     target = wins_dict['target'].mob_object
     if target is None or not target.alive:
@@ -522,7 +499,7 @@ def spell_fireball(wins_dict, fate_rnd, pc, skill_obj, item_adress, no_aim=False
 
     """if not skill_reqs_check(realm, skill, pc):
         return True"""
-    if not skill_reqs_check(realm, skill_obj, pc):
+    if not skill_reqs_check(realm, skill_obj, pc, is_magic_item):
         # skill_help(realm, skill_obj, 
         # 'new_txt', "Nothing to cast with!", (0, 0), (0, -24), None, pc, None, 120, 'def_bold', 24
         # )
@@ -536,8 +513,13 @@ def spell_fireball(wins_dict, fate_rnd, pc, skill_obj, item_adress, no_aim=False
         return True
 
     rnd_attack = random.randrange(att_val_min * att_rate, att_val_max * att_rate + 1)
+    skill_sound = item_adress[0][item_adress[1]].props['sound_use']
 
-    if not skill_costs_check(realm, skill_obj, pc, rate=rnd_attack // att_rate):
+    if not is_magic_item:
+        if not skill_costs_check(realm, skill_obj, pc, rate=rnd_attack // att_rate):
+            return True
+    elif not charges_control(wins_dict, pc, item_adress[0][item_adress[1]], message='This is it!'):
+        skill_help(realm, skill_obj, 'new_txt', "No charges.", (0, 0), (0, -24), None, pc, None, 120, 'def_bold', 24)
         return True
 
     is_crit = (random.randrange(1, 1001) <= pc.char_sheet.profs['prof_crit'])
@@ -555,7 +537,7 @@ def spell_fireball(wins_dict, fate_rnd, pc, skill_obj, item_adress, no_aim=False
     pc.food_change(wins_dict, -5)
     pc.act(wins_dict, (target.x_sq, target.y_sq), skill_obj)
 
-    realm.pygame_settings.audio.sound(item_adress[0][item_adress[1]].props['sound_use'])
+    realm.pygame_settings.audio.sound(skill_sound)
 
     realm.particle_list.append(particle.Particle((pc.x_sq, pc.y_sq), (-4, -4),
                                                  realm.animations.get_animation('effect_arcane_vortex')['default'],
@@ -565,20 +547,18 @@ def spell_fireball(wins_dict, fate_rnd, pc, skill_obj, item_adress, no_aim=False
 
 
 def spell_dispel(wins_dict, fate_rnd, pc, skill_obj, item_adress, no_aim=False, just_values=False):
+    is_magic_item = item_adress[0][item_adress[1]] != skill_obj
     if just_values:
-        return skill_obj.props['cost_mp'], skill_obj.props['cost_gold']
+        report = skill_obj.props['cost_mp'], skill_obj.props['cost_gold']
+        if not is_magic_item:
+            return report
+        else:
+            return tuple()
 
     realm = wins_dict['realm']
-    if item_adress[0] in (pc.char_sheet.inventory, pc.char_sheet.skills):
-        realm.wins_dict['dialogue'].dialogue_elements = {
-            'header': 'Attention',
-            'text': "This item may be used from Hotbar!",
-            'bttn_cancel': 'OK'
-        }
-        realm.wins_dict['dialogue'].launch(pc)
-        return True
+    only_from_hotbar_check(item_adress, pc, wins_dict)
 
-    if not skill_reqs_check(realm, skill_obj, pc):
+    if not skill_reqs_check(realm, skill_obj, pc, is_magic_item):
         # skill_help(realm, skill_obj, 'new_txt', "Nothing to cast with!", (0, 0), (0, -24), None, pc, None, 120, 'def_bold', 24)
         return True
 
@@ -604,25 +584,31 @@ def spell_dispel(wins_dict, fate_rnd, pc, skill_obj, item_adress, no_aim=False, 
         skill_help(realm, skill_obj, 'new_txt', "No magic here!", (0, 0), (0, -24), None, pc, None, 120, 'def_bold', 24)
         return False
 
-    if pl_object.lock.lvl > pc.char_sheet.level:
-        skill_help(realm, skill_obj, 'new_txt', "The spell is beyond $n my comprehension!", (0, 0), (0, -24), None, pc, None,
-                              120, 'def_bold', 24)
-        return False
+    skill_level = item_adress[0][item_adress[1]].props['lvl']
+    skill_sound = item_adress[0][item_adress[1]].props['sound_use']
 
-    if not skill_costs_check(realm, skill_obj, pc, rate=pl_object.lock.lvl):
+    if not is_magic_item:
+        if not skill_costs_check(realm, skill_obj, pc, rate=pl_object.lock.lvl):
+            return True
+    elif not charges_control(wins_dict, pc, item_adress[0][item_adress[1]], message='This is it!'):
+        skill_help(realm, skill_obj, 'new_txt', "No charges.", (0, 0), (0, -24), None, pc, None, 120, 'def_bold', 24)
         return True
 
-    exp = pl_object.lock.lvl * 100
-    pc.char_sheet.experience_get(wins_dict, pc, pl_object.lock.lvl, exp)
-    pl_object.lock = None
-    pl_object.image_update()
+    if pl_object.lock.lvl > skill_level:
+        skill_help(realm, skill_obj, 'new_txt', "The spell is beyond $n my comprehension!", (0, 0), (0, -24), None, pc, None,
+                              120, 'def_bold', 24)
+    else:
+        exp = pl_object.lock.lvl * 100
+        pc.char_sheet.experience_get(wins_dict, pc, pl_object.lock.lvl, exp)
+        pl_object.lock = None
+        pl_object.image_update()
 
     realm.particle_list.append(particle.Particle((pl_object.x_sq, pl_object.y_sq), (-4, -4),
                                                  realm.animations.get_animation('effect_arcane_dust')['default'],
                                                  20))
 
     wins_dict['context'].end()
-    realm.pygame_settings.audio.sound(item_adress[0][item_adress[1]].props['sound_use'])
+    realm.pygame_settings.audio.sound(skill_sound)
     pc.food_change(wins_dict, -10)
     pc.act(wins_dict, (x_sq, y_sq), skill_obj)
 
@@ -635,14 +621,7 @@ def repair(wins_dict, fate_rnd, pc, skill_obj, item_adress, no_aim=False, just_v
 
     realm = wins_dict['realm']
 
-    if item_adress[0] in (pc.char_sheet.inventory, pc.char_sheet.skills):
-        realm.wins_dict['dialogue'].dialogue_elements = {
-            'header': 'Attention',
-            'text': "This item may be used from Hotbar!",
-            'bttn_cancel': 'OK'
-        }
-        realm.wins_dict['dialogue'].launch(pc)
-        return True
+    only_from_hotbar_check(item_adress, pc, wins_dict)
 
     if not skill_reqs_check(realm, skill_obj, pc):
         # skill_help(realm, skill_obj, 'new_txt', "Nothing to cast with!", (0, 0), (0, -24), None, pc, None, 120, 'def_bold', 24)
@@ -742,16 +721,7 @@ def potion_heal(wins_dict, fate_rnd, pc, skill_obj, item_adress, no_aim=False, j
         return True
 
     realm.pygame_settings.audio.sound(item_adress[0][item_adress[1]].props['sound_use'])
-
-    if not treasure.charge_change(item_adress[0][item_adress[1]], -1):
-        pc.char_sheet.item_remove(wins_dict, item_adress[0][item_adress[1]])
-        wins_dict['context'].end()
-        # pc.char_sheet.calc_stats()
-        wins_dict['realm'].spawn_realmtext(None, 'Potion finished!', (0, 0), (0, -24),
-                                           'fnt_celeb', pc, None, 240, 'def_bold', 24)
-    else:
-        wins_dict['inventory'].updated = True
-        wins_dict['hotbar'].updated = True
+    charges_control(wins_dict, pc, item_adress[0][item_adress[1]], message='Potion finished!')
 
     pc.char_sheet.hp_get(heal_hp_value)
     wins_dict['pools'].updated = True
@@ -774,16 +744,7 @@ def potion_power(wins_dict, fate_rnd, pc, skill_obj, item_adress, no_aim=False, 
         return True
 
     realm.pygame_settings.audio.sound(item_adress[0][item_adress[1]].props['sound_use'])
-
-    if not treasure.charge_change(item_adress[0][item_adress[1]], -1):
-        pc.char_sheet.item_remove(wins_dict, item_adress[0][item_adress[1]])
-        wins_dict['context'].end()
-        # pc.char_sheet.calc_stats()
-        wins_dict['realm'].spawn_realmtext(None, 'Potion finished!', (0, 0), (0, -24),
-                                           'fnt_celeb', pc, None, 240, 'def_bold', 24)
-    else:
-        wins_dict['inventory'].updated = True
-        wins_dict['hotbar'].updated = True
+    charges_control(wins_dict, pc, item_adress[0][item_adress[1]], message='Potion finished!')
 
     pc.char_sheet.mp_get(heal_mp_value)
     wins_dict['pools'].updated = True
@@ -806,14 +767,7 @@ def eat(wins_dict, fate_rnd, pc, skill_obj, item_adress, no_aim=False, just_valu
         return True
 
     realm.pygame_settings.audio.sound(item_adress[0][item_adress[1]].props['sound_use'])
-    if not treasure.charge_change(item_adress[0][item_adress[1]], -1):
-        pc.char_sheet.item_remove(wins_dict, item_adress[0][item_adress[1]])
-        wins_dict['context'].end()
-        wins_dict['realm'].spawn_realmtext(None, "That's it!", (0, 0), (0, -24),
-                                           'fnt_celeb', pc, None, 240, 'def_bold', 24)
-    else:
-        wins_dict['inventory'].updated = True
-        wins_dict['hotbar'].updated = True
+    charges_control(wins_dict, pc, item_adress[0][item_adress[1]], message='This is it!')
 
     pc.char_sheet.food_get(food_value)
     wins_dict['pools'].updated = True
@@ -832,14 +786,7 @@ def picklock(wins_dict, fate_rnd, pc, skill_obj, item_adress, no_aim=False, just
         return (lockpick_mod + pc.char_sheet.profs['prof_picklock']) // 10
 
     realm = wins_dict['realm']
-    if item_adress[0] in (pc.char_sheet.inventory, pc.char_sheet.skills):
-        realm.wins_dict['dialogue'].dialogue_elements = {
-            'header': 'Attention',
-            'text': "This item may be used from Hotbar!",
-            'bttn_cancel': 'OK'
-        }
-        realm.wins_dict['dialogue'].launch(pc)
-        return True
+    only_from_hotbar_check(item_adress, pc, wins_dict)
 
     if not skill_reqs_check(realm, skill_obj, pc):
         return True
@@ -904,14 +851,7 @@ def disarm_trap(wins_dict, fate_rnd, pc, skill_obj, item_adress, no_aim=False, j
         return (tool_mod + pc.char_sheet.profs['prof_disarm']) // 10
 
     realm = wins_dict['realm']
-    if item_adress[0] in (pc.char_sheet.inventory, pc.char_sheet.skills):
-        realm.wins_dict['dialogue'].dialogue_elements = {
-            'header': 'Attention',
-            'text': "This item may be used from Hotbar!",
-            'bttn_cancel': 'OK'
-        }
-        realm.wins_dict['dialogue'].launch(pc)
-        return True
+    only_from_hotbar_check(item_adress, pc, wins_dict)
 
     if not skill_reqs_check(realm, skill_obj, pc):
         return True
@@ -1121,8 +1061,7 @@ def dig(wins_dict, fate_rnd, pc, skill_obj, item_adress, no_aim=False, just_valu
             del new_mon['grade_set_monster']
             maze.monster_apply_grade(realm.db, new_mon, realm.maze.lvl, fate_rnd)
             maze.scale_mob(new_mon, realm.maze.lvl, realm.maze)
-            space_list = calc2darray.fill2d(realm.maze.flag_array,
-                                            {'mov': False, 'obj': True, 'door': True, 'floor': False},
+            space_list = calc2darray.fill2d(realm.maze.flag_array, ('mov', 'obj', 'door', 'floor'),
                                             (round(pc.x_sq), round(pc.y_sq)), (round(pc.x_sq), round(pc.y_sq)), 2, 2, r_max=5)
             maze.mob_add(realm.maze, space_list[1][0], space_list[1][1], realm.animations, new_mon)
             skill_help(realm, skill_obj, 'new_txt', "Oh no!", (0, 0), (0, -24), None, pc, None, 120, 'def_bold', 24)
@@ -1147,14 +1086,7 @@ def craft(wins_dict, fate_rnd, pc, skill_obj, item_adress, no_aim=False, just_va
         else:
             return mp_cost, gold_cost
 
-    if item_adress[0] in (pc.char_sheet.inventory, pc.char_sheet.skills):
-        realm.wins_dict['dialogue'].dialogue_elements = {
-            'header': 'Attention',
-            'text': "This item may be used from Hotbar!",
-            'bttn_cancel': 'OK'
-        }
-        realm.wins_dict['dialogue'].launch(pc)
-        return True
+    only_from_hotbar_check(item_adress, pc, wins_dict)
 
     if not skill_reqs_check(realm, skill_obj, pc):
         return True
@@ -1430,11 +1362,13 @@ def learn_skill(wins_dict, fate_rnd, pc, skill_obj, item_adress, no_aim=False, j
     return False
 
 
-def skill_reqs_check(realm, skill_obj, pc):
+def skill_reqs_check(realm, skill_obj, pc, is_magic_item=False):
     """if pc.busy is not None:
         return False"""
     if skill_obj.cooldown_timer > 0:
         return False
+    if is_magic_item:
+        return True
 
     if skill_obj.props['item_type'] != 'skill_item' and (
         skill_obj.props['required_char_type'] not in (None, pc.char_sheet.type)
@@ -1498,6 +1432,43 @@ def skill_costs_check(realm, skill_obj, pc, rate=1):
         realm.wins_dict['inventory'].updated = True
 
     return True
+
+
+def charges_control(wins_dict, pc, itm, message=None):
+    if 'charge' in itm.props and itm.props['charge'] == 0:
+        return False
+    if not treasure.charge_change(itm, -1):
+        pc.char_sheet.item_remove(wins_dict, itm)
+        wins_dict['context'].end()
+        if message is not None:
+            wins_dict['realm'].spawn_realmtext(None, message, (0, 0), (0, -24),
+                                               'fnt_celeb', pc, None, 240, 'def_bold', 24)
+    else:
+        wins_dict['inventory'].updated = True
+        wins_dict['hotbar'].updated = True
+    return True
+
+
+def only_from_hotbar_check(item_adress, pc, wins_dict):
+    if item_adress[0] in (pc.char_sheet.inventory, pc.char_sheet.skills):
+        wins_dict['dialogue'].dialogue_elements = {
+            'header': 'Attention',
+            'text': "This item may be used from Hotbar!",
+            'bttn_cancel': 'OK'
+        }
+        wins_dict['dialogue'].launch(pc)
+        return True
+
+
+def rods_damage_get(pc, level, fate_rnd):
+    rnd_attr = 12
+    multiplier = rnd_attr + (rnd_attr - 10) * (level - 1) * pc.char_sheet.attr_rate
+    base_dmg_min = 12 * level
+    base_dmg_spread = 7 * level
+    base_dmg_max = base_dmg_min + base_dmg_spread
+    dmg_min = base_dmg_min + base_dmg_min * multiplier // 100
+    dmg_max = base_dmg_max + base_dmg_max * multiplier // 100
+    return dmg_min, dmg_max
 
 
 def equipment_types_check(sockets, item_type):

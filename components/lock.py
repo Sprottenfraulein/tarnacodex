@@ -11,7 +11,7 @@ class Lock:
 
     def unlock(self, wins_dict, pc, lockpick=None, lockpick_mod=None):
         # checking for keys
-        pc_keys = pc.char_sheet.inventory_search_by_id(14)
+        pc_keys = pc.char_sheet.inventory_search_by_id(14, level=self.lvl)
         if self.magical:
             wins_dict['realm'].spawn_realmtext('new_txt', "The lock is unpickable!", (0, 0), (0, -24), None, pc, None,
                                                120, 'def_bold', 24)
@@ -50,12 +50,10 @@ class Lock:
                 lockpick.props['condition'] -= round(self.lvl / lockpick.props['lvl'] * 200)
                 return False
         elif len(pc_keys) > 0:
-            for i in range(len(pc_keys) - 1, -1, -1):
-                if pc_keys[i].props['lvl'] >= self.lvl:
-                    pc.char_sheet.inventory[pc.char_sheet.inventory.index(pc_keys[i])] = None
-                    wins_dict['inventory'].updated = True
-                    wins_dict['realm'].spawn_realmtext('new_txt', "I have a key $n for this one!", (0, 0), (0, -24),
-                                                       None, pc, None, 120, 'def_bold', 24)
-                    wins_dict['realm'].pygame_settings.audio.sound('lock_operate')
-                    wins_dict['realm'].pygame_settings.audio.sound(pc_keys[i].props['sound_pickup'])
-                    return True
+            pc.char_sheet.inventory[pc.char_sheet.inventory.index(pc_keys[0])] = None
+            wins_dict['inventory'].updated = True
+            wins_dict['realm'].spawn_realmtext('new_txt', "I have a key $n for this one!", (0, 0), (0, -24),
+                                               None, pc, None, 120, 'def_bold', 24)
+            wins_dict['realm'].pygame_settings.audio.sound('lock_operate')
+            wins_dict['realm'].pygame_settings.audio.sound(pc_keys[0].props['sound_pickup'])
+            return True

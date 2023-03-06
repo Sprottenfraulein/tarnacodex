@@ -473,7 +473,7 @@ class Context:
         self.win_w = 240
 
         # color based on grade
-        decor_color = 'azure'
+        decor_color = 'indigo'
 
         header_caption = item.props['label'].upper()
         context_header, info_y = self.header_add(header_caption, decor_color)

@@ -141,7 +141,8 @@ class Trade:
                 self.mouse_pointer.drag_ui = None
                 framed_wins = [fw for fw in (
                     self.wins_dict['charstats'], self.wins_dict['pools'], self.wins_dict['hotbar'],
-                    self.wins_dict['inventory'], self.wins_dict['skillbook'], self.wins_dict['tasks']
+                    self.wins_dict['inventory'], self.wins_dict['skillbook'], self.wins_dict['tasks'],
+                    self.wins_dict['map']
                 ) if fw in self.active_wins]
                 self.offset_x, self.offset_y = maths.rect_sticky_edges(
                     (self.offset_x, self.offset_y, self.win_w, self.win_h),
@@ -453,7 +454,7 @@ class Trade:
         for ex in self.wins_dict['realm'].maze.exits:
             if ex.dest == 'up':
                 x_sq, y_sq = ex.x_sq, ex.y_sq
-        space_list = calc2darray.fill2d(self.wins_dict['realm'].maze.flag_array, {'mov': False, 'obj': True, 'door': True, 'floor': False},
+        space_list = calc2darray.fill2d(self.wins_dict['realm'].maze.flag_array, ('mov', 'obj', 'door', 'floor'),
                                         (x_sq, y_sq), (x_sq, y_sq), 2, 3, r_max=5)
         x_sq, y_sq = space_list[1]
         new_chest = chest.Chest(x_sq, y_sq, 0, None, self.wins_dict['realm'].maze.tile_set, off_x_sq=-0.125, off_y_sq=-0.125,

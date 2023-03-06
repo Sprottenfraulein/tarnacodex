@@ -83,7 +83,8 @@ class Debuffs:
                 self.mouse_pointer.drag_ui = None
                 framed_wins = [fw for fw in (
                     self.wins_dict['charstats'], self.wins_dict['pools'], self.wins_dict['hotbar'],
-                    self.wins_dict['inventory'], self.wins_dict['skillbook'], self.wins_dict['tasks']
+                    self.wins_dict['inventory'], self.wins_dict['skillbook'], self.wins_dict['tasks'],
+                    self.wins_dict['map']
                 ) if fw in self.active_wins]
                 self.offset_x, self.offset_y = maths.rect_sticky_edges(
                     (self.offset_x, self.offset_y, self.win_w, self.win_h),
@@ -108,7 +109,7 @@ class Debuffs:
         self.win_ui.interactives.clear()
         self.win_ui.decoratives.clear()
         self.pc = pc
-        icon_w, icon_h = 32, 32
+        icon_w, icon_h = 48, 48
         total_de_buffs_list = list(pc.char_sheet.de_buffs.values())
         for eq_slot in pc.char_sheet.equipped:
             for eq_itm in eq_slot:

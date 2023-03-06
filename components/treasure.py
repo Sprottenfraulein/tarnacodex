@@ -317,6 +317,7 @@ def condition_change(itm, value):
         return False
     return True
 
+
 def item_expo_price(loot_props, add_price_expos):
     additional_price_buy = 0
     additional_price_sell = 0

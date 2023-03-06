@@ -94,7 +94,8 @@ class Pools:
                 self.mouse_pointer.drag_ui = None
                 framed_wins = [fw for fw in (
                     self.wins_dict['charstats'], self.wins_dict['pools'], self.wins_dict['hotbar'],
-                    self.wins_dict['inventory'], self.wins_dict['skillbook'], self.wins_dict['tasks']
+                    self.wins_dict['inventory'], self.wins_dict['skillbook'], self.wins_dict['tasks'],
+                    self.wins_dict['map']
                 ) if fw in self.active_wins]
                 self.offset_x, self.offset_y = maths.rect_sticky_edges(
                     (self.offset_x, self.offset_y, self.win_w, self.win_h),
@@ -134,10 +135,9 @@ class Pools:
                     self.wins_dict['charstats'].launch(self.pc)
                     self.wins_dict['charstats'].render()
                     self.active_wins.insert(0, self.wins_dict['charstats'])
-            """elif element.id == 'opts':
-                if not self.wins_dict['options'] in self.active_wins:
-                    self.wins_dict['options'].launch(self.pc, self.wins_dict, self.active_wins)
-                    self.wins_dict['options'].render()"""
+            elif element.id == 'map':
+                if not self.wins_dict['map'] in self.active_wins:
+                    self.wins_dict['map'].restart(self.pc)
 
         elif 'hud' in element.tags and m_bttn == 1 and element.mode == 1 and element.sw_op is False and mb_event == 'up':
             if element.id == 'inv':
@@ -161,9 +161,9 @@ class Pools:
                 if self.wins_dict['charstats'] in self.active_wins:
                     self.active_wins.remove(self.wins_dict['charstats'])
                     self.wins_dict['charstats'].end()
-            """elif element.id == 'opts':
-                if self.wins_dict['options'] in self.active_wins:
-                    self.wins_dict['options'].end()"""
+            elif element.id == 'map':
+                if self.wins_dict['map'] in self.active_wins:
+                    self.wins_dict['map'].end()
 
         self.win_ui.interaction_callback(element, mb_event, m_bttn)
         # return True if interaction was made to prevent other windows from responding to this event
@@ -202,6 +202,11 @@ class Pools:
             self.wins_dict['charstats'].launch(pc)
             self.wins_dict['charstats'].updated = True
             self.active_wins.insert(0, self.wins_dict['charstats'])
+            self.pools_menu[5].mode = 1
+            self.pools_menu[5].render()
+        if not self.wins_dict['map'] in self.active_wins and charstats:
+            self.wins_dict['map'].restart(pc)
+            self.active_wins.insert(0, self.wins_dict['map'])
             self.pools_menu[4].mode = 1
             self.pools_menu[4].render()
 
@@ -234,16 +239,22 @@ class Pools:
             self.pools_menu[3].mode = 0
             self.pools_menu[3].render()
 
-        if self.wins_dict['charstats'] in self.active_wins and charstats:
-            self.active_wins.remove(self.wins_dict['charstats'])
-            self.wins_dict['charstats'].end()
+        if self.wins_dict['map'] in self.active_wins and charstats:
+            self.active_wins.remove(self.wins_dict['map'])
+            self.wins_dict['map'].end()
             self.pools_menu[4].mode = 0
             self.pools_menu[4].render()
 
-        if self.wins_dict['options'] in self.active_wins and options:
-            self.wins_dict['options'].end()
+        if self.wins_dict['charstats'] in self.active_wins and charstats:
+            self.active_wins.remove(self.wins_dict['charstats'])
+            self.wins_dict['charstats'].end()
             self.pools_menu[5].mode = 0
             self.pools_menu[5].render()
+
+        if self.wins_dict['options'] in self.active_wins and options:
+            self.wins_dict['options'].end()
+            self.pools_menu[6].mode = 0
+            self.pools_menu[6].render()
 
         self.pygame_settings.audio.sound(self.resources.sound_presets['button'][3])
         self.updated = True
@@ -251,28 +262,29 @@ class Pools:
     def create_elements(self):
         self.win_ui.decoratives.clear()
         self.win_ui.interactives.clear()
+        self.header_h = 19
 
         # POOLS
-        pl_texture = self.tilesets.get_image('pools', (154, 192), (0,))[0]
-        pl_image = pydraw.square((0, 0), (self.win_w, self.win_h),
+        pl_texture = self.tilesets.sets_dict['pools'].subsurface((0, self.header_h, 154, 192 - self.header_h))
+        pl_image = pydraw.square((0, 0), (self.win_w, self.win_h - self.header_h),
                                  (self.resources.colors['gray_light'],
                                   self.resources.colors['gray_dark'],
                                   self.resources.colors['gray_mid'],
                                   self.resources.colors['black']),
                                  sq_outsize=1, sq_bsize=2, sq_ldir=0, sq_fill=False,
                                  sq_image=pl_texture)
-        pl_panel = self.win_ui.panel_add('pl_panel', (0, 0), (self.win_w, self.win_h), images=(pl_image,),
+        pl_panel = self.win_ui.panel_add('pl_panel', (0, self.header_h), (self.win_w, self.win_h - self.header_h), images=(pl_image,),
                                          page=None)
         # window header
-        header_texture = self.win_ui.random_texture((self.win_w, 19), 'red_glass')
-        header_img = pydraw.square((0, 0), (self.win_w, 19),
+        header_texture = self.win_ui.random_texture((self.win_w, self.header_h), 'red_glass')
+        header_img = pydraw.square((0, 0), (self.win_w, self.header_h),
                                    (self.resources.colors['gray_light'],
                                     self.resources.colors['gray_dark'],
                                     self.resources.colors['gray_mid'],
                                     self.resources.colors['gray_darker']),
                                    sq_outsize=1, sq_bsize=1, sq_ldir=0, sq_fill=False,
                                    sq_image=header_texture)
-        self.win_header = self.win_ui.text_add('win_header', (0, 0), (self.win_w, 19),
+        self.win_header = self.win_ui.text_add('win_header', (0, 0), (self.win_w, self.header_h),
                                                caption='%s (%s lvl)' % (self.pc.char_sheet.name.capitalize(),
                                                                                self.pc.char_sheet.level),
                                                h_align='center', v_align='middle', cap_color='sun', cap_font='def_bold',
@@ -289,8 +301,8 @@ class Pools:
 
         # HUD BUTTONS
         pools_btn_w = 54
-        pools_btn_h = 28
-        bttns_per_col = 6
+        pools_btn_h = 24
+        bttns_per_col = 7
         settings_btn_h = 35
         # MAIN MENU
         bttn_texture = self.win_ui.random_texture((pools_btn_w, pools_btn_h), 'red_glass')
@@ -300,11 +312,12 @@ class Pools:
             self.tilesets.get_image('interface', (24, 24,), (22, 23)),
             self.tilesets.get_image('interface', (24, 24,), (24, 25)),
             self.tilesets.get_image('interface', (24, 24,), (30, 31)),
+            self.tilesets.get_image('interface', (24, 24,), (32, 33)),
             self.tilesets.get_image('interface', (24, 24,), (26, 27)),
             self.tilesets.get_image('interface', (24, 24,), (28, 29))
         )
         bttn_img_list = []
-        for i in range(0, 6):
+        for i in range(len(bttn_icons)):
             bttn_up_img = pydraw.square((0, 0), (pools_btn_w, pools_btn_h),
                                         (self.resources.colors['gray_light'],
                                          self.resources.colors['gray_dark'],
@@ -335,16 +348,18 @@ class Pools:
                                    sounds=self.win_ui.snd_packs['button'], images=bttn_img_list[2], switch=True, mode=1),
             self.win_ui.button_add('miss', size=(pools_btn_w, pools_btn_h), cap_size=24, cap_color='fnt_muted',
                                    sounds=self.win_ui.snd_packs['button'], images=bttn_img_list[3], switch=True),
+            self.win_ui.button_add('map', size=(pools_btn_w, pools_btn_h), cap_size=24, cap_color='fnt_muted',
+                                   sounds=self.win_ui.snd_packs['button'], images=bttn_img_list[4], switch=True, mode=1),
             self.win_ui.button_add('char', size=(pools_btn_w, pools_btn_h), cap_size=24, cap_color='fnt_muted',
-                                   sounds=self.win_ui.snd_packs['button'], images=bttn_img_list[4], switch=True),
+                                   sounds=self.win_ui.snd_packs['button'], images=bttn_img_list[5], switch=True),
             self.win_ui.button_add('opts', size=(pools_btn_w, pools_btn_h), cap_size=24, cap_color='fnt_muted',
-                                   sounds=self.win_ui.snd_packs['button'], images=bttn_img_list[5]),
+                                   sounds=self.win_ui.snd_packs['button'], images=bttn_img_list[6]),
         )
         for i in range(0, len(self.pools_menu)):
             self.pools_menu[i].tags = ['hud']
 
             self.pools_menu[i].rendered_rect.left = self.win_w - pools_btn_w - pools_btn_w * (i // bttns_per_col) - 3
-            self.pools_menu[i].rendered_rect.top = 19 + (pools_btn_h * (i % bttns_per_col))
+            self.pools_menu[i].rendered_rect.top = self.header_h + 2 + (pools_btn_h * (i % bttns_per_col))
 
         self.win_ui.interactives.append(self.win_header)
         self.win_ui.interactives.extend(self.pools_menu)

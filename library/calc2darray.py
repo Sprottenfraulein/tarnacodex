@@ -21,8 +21,18 @@ def fill2d(array2d, stop_list, orig_xy, xy, max_spaces, max_dist, xy_stop_list=N
         if len(xy_stop_list) >= max_spaces:
             return xy_stop_list
         xy_stop = False
-        for flag_name, flag_value in stop_list.items():
-            if getattr(array2d[abs_y][abs_x], flag_name) == flag_value:
+        flags = array2d[abs_y][abs_x]
+        for flag_name in stop_list:
+            if (flag_name == 'floor' and not flags.floor
+                    or flag_name == 'obj' and flags.obj is not None
+                    or flag_name == 'door' and flags.door is not None
+                    or flag_name == 'mon' and flags.mon is not None
+                    or flag_name == 'trap' and flags.trap is not None
+                    or flag_name == 'item' and flags.item
+                    or flag_name == 'light' and not flags.light
+                    or flag_name == 'mov' and not flags.mov
+                    or flag_name == 'vis' and not flags.vis
+                    or flag_name == 'map' and flags.map is not None):
                 xy_stop = True
         if xy_stop:
             continue

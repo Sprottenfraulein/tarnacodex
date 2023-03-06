@@ -45,9 +45,9 @@ class Audio:
         if name is None or name not in self.bank_sounds:
             logfun.put('Can not find sound "%s"!' % name, log)
             return
-        sc_right = round((3.14 - abs(direction)) / 3.14, 2)
-        sc_left = round(abs(direction) / 3.14, 2)
-        vol_mod = round(volume / 2, 2)
+        sc_right = round((3.14 - abs(direction)) / 3.14, 4)
+        sc_left = round(abs(direction) / 3.14, 4)
+        vol_mod = round(volume / 2, 4)
         snd_channel = pygame.mixer.find_channel(forced)
         if snd_channel is None:
             return

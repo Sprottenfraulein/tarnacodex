@@ -124,6 +124,7 @@ class Options:
                                                           (20, None))
 
     def game_save_and_exit(self, pc):
+        self.wins_dict['realm'].maze.spawn_loot(round(pc.x_sq), round(pc.y_sq), self.pc.char_sheet.quest_item_remove(self.wins_dict))
         self.wins_dict['pools'].close_all_wins(pc)
         self.active_wins.clear()
         self.wins_dict['pools'].pc = None
@@ -138,7 +139,7 @@ class Options:
         border_w = 8
         menu_btn_h = 40
         menu_btn_w = 256
-        bttn_save_exit = self.win_ui.button_add('bttn_save_exit', xy=(0,0), caption='Save and Exit',
+        bttn_save_exit = self.win_ui.button_add('bttn_save_exit', xy=(0,0), caption='Pray for Salvation',
                                          size=(menu_btn_w, menu_btn_h), cap_font='large', cap_size=16,
                                          cap_color='fnt_muted', sounds=self.win_ui.snd_packs['button'], page=None)
         bttn_save_exit.rendered_rect.midtop = (self.win_w // 2, 28)

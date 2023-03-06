@@ -1,5 +1,5 @@
 class Stairs:
-    def __init__(self, x_sq, y_sq, off_x_sq, off_y_sq, dest, room, image, tilename):
+    def __init__(self, x_sq, y_sq, off_x_sq, off_y_sq, dest, room, image, tilename, render_later=False):
         self.x_sq = x_sq
         self.y_sq = y_sq
         self.off_x_sq = off_x_sq
@@ -8,6 +8,7 @@ class Stairs:
         self.room = room
         self.image = image
         self.tilename = tilename
+        self.render_later = render_later
 
     def use(self, wins_dict, active_wins, pc, maze_module):
         if pc.location[1] > 0 or self.dest == "down":

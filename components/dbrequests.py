@@ -594,6 +594,8 @@ def chapter_demo_get(cursor, chapter_id, demo_tag):
         demo_image_list.append(image_dict)
     # Retrieving images by ids
     for img in demo_image_list:
+        if img['filename'] is not None:
+            continue
         ex_str = "SELECT * FROM images WHERE image_id=?"
         cursor.execute(ex_str, (img['image_id'],))
         rows = cursor.fetchall()
@@ -724,7 +726,7 @@ def get_recipe_result(cursor, recipe_id):
 
 
 def furniture_get_image(cursor, furniture_id, alignment):
-    ex_str = "SELECT image_tileset, image_width, image_height, image_index, anim_index FROM furniture_image_sets WHERE furniture_id=? AND alignment=?"
+    ex_str = "SELECT image_tileset, image_width, image_height, image_index, anim_index FROM furniture_image_sets WHERE furniture_id=? AND (alignment=? OR alignment IS NULL)"
     cursor.execute(ex_str, (furniture_id, alignment))
     rows = cursor.fetchall()
     if len(rows) == 0:

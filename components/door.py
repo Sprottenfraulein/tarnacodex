@@ -14,6 +14,8 @@ class Door:
 
     def use(self, wins_dict, active_wins, pc):
         if not self.shut:
+            if controlled(wins_dict, self):
+                return True
             self.shut = True
             self.image_update()
             if self.grate:
@@ -35,6 +37,8 @@ class Door:
                 self.trap.trigger(wins_dict, pc)
             return True
         elif self.lock is None:
+            if controlled(wins_dict, self):
+                return True
             self.shut = False
             self.image_update()
             if self.grate:
@@ -73,3 +77,12 @@ class Door:
         image_name = '%s_%s_%s' % (typ, align, pos)
         self.image = self.tileset[image_name]
 
+
+def controlled(wins_dict, door):
+    ind = wins_dict['realm'].maze.doors.index(door)
+    for trigger in wins_dict['realm'].maze.triggers:
+        if ind in trigger.grate_index_list:
+            wins_dict['realm'].spawn_realmtext('new_txt', "It's operated from somewhere else.", (0, 0), (0, -24),
+                                               None, wins_dict['realm'].pc, None, 120, 'def_bold', 24)
+            wins_dict['realm'].pygame_settings.audio.sound('mech_hard')
+            return True

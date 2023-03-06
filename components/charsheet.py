@@ -145,7 +145,7 @@ class CharSheet:
 
         self.hotbar = itemlist.ItemList(all_to_none=True, items_max=12, filters={
             'item_types': ['skill_melee', 'skill_ranged', 'skill_magic', 'skill_craft', 'skill_misc', 'sup_potion',
-                           'exp_food', 'exp_lockpick', 'exp_key', 'exp_tools', 'use_learn', 'use_craft']
+                           'exp_food', 'exp_lockpick', 'exp_key', 'exp_tools', 'use_learn', 'use_craft', 'use_wand']
         })
 
         self.missions = {}
@@ -446,6 +446,7 @@ class CharSheet:
         wins_dict['realm'].spawn_realmtext('new_txt', '%s exp.' % new_exp_value,
                                                (0, 0), (0, -24), exp_color, pc, (0, -2), 60, 'large', 16, 0,
                                                0.17)
+        wins_dict['pools'].updated = True
         if not self.exp_prev_lvl <= self.experience < self.exp_next_lvl:
             old_level = self.level
             self.level = self.calc_level(self.experience)
@@ -614,24 +615,29 @@ class CharSheet:
         return False
 
     def quest_item_remove(self, wins_dict):
+        q_items = []
         for i in range(len(self.inventory)-1, -1, -1):
             if self.inventory[i] is None:
                 continue
             if 'quest_item' in self.inventory[i].props:
+                q_items.append(self.inventory[i])
                 self.inventory[i] = None
                 wins_dict['inventory'].updated = True
         for i in range(len(self.hotbar)-1, -1, -1):
             if self.hotbar[i] is None:
                 continue
             if 'quest_item' in self.hotbar[i].props:
+                q_items.append(self.hotbar[i])
                 self.hotbar[i] = None
                 wins_dict['hotbar'].updated = True
         for i in range(len(self.equipped)-1, -1, -1):
             if self.equipped[i][0] is None:
                 continue
             if 'quest_item' in self.equipped[i][0].props:
+                q_items.append(self.equipped[i][0])
                 self.equipped[i][0] = None
                 wins_dict['equipped'].updated = True
+        return q_items
 
     def itemlists_clean_tail(self):
         """for i in range(len(self.skills) - 1, -1, -1):

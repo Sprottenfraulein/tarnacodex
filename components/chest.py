@@ -6,7 +6,7 @@ import random
 class Chest:
     def __init__(self, x_sq, y_sq, alignment, room, tileset, off_x_sq=0, off_y_sq=0, lvl=None, items_number=0, gp_number=0,
                  treasure_group=None, item_type=None, char_type=None, container=None, disappear=False, allow_mimic=True,
-                 name_replace=None):
+                 name_replace=None, render_later=False):
         self.x_sq = x_sq
         self.y_sq = y_sq
         self.off_x_sq = off_x_sq
@@ -32,6 +32,7 @@ class Chest:
         self.name_replace = name_replace
 
         self.image_update()
+        self.render_later = render_later
 
     def image_update(self):
         if self.alignment is None:

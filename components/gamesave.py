@@ -274,8 +274,19 @@ def save_maze(pc, maze, db, tile_sets, animations):
             mob.aimed = False
             mob.anim_set = None
             mob.image = None
-            mob.inventory = None
             mob.sound_channel = None
+            if mob.inventory is None:
+                continue
+            for itm in mob.inventory:
+                if itm is None:
+                    continue
+                for key in itm.props.keys():
+                    if 'image_' in key or 'sound_' in key:
+                        itm.props[key] = None
+                if 'treasure_id' in itm.props and itm.props['use_skill'] is not None:
+                    for key in itm.props['use_skill'].props.keys():
+                        if 'image_' in key or 'sound_' in key:
+                            itm.props['use_skill'].props[key] = None
         for door in maze.doors:
             door.tileset = None
             door.image = None
@@ -302,8 +313,23 @@ def save_maze(pc, maze, db, tile_sets, animations):
         for stair in maze.exits:
             stair.image = None
             stair.room = None
-        for furnitute in maze.furnitures:
-            furnitute.image = None
+        for furniture in maze.furnitures:
+            furniture.image = None
+            if furniture.furn_type == 'remains' and furniture.inventory is not None:
+                for itm in furniture.inventory:
+                    if itm is None:
+                        continue
+                    for key in itm.props.keys():
+                        if 'image_' in key or 'sound_' in key:
+                            itm.props[key] = None
+                    if 'treasure_id' in itm.props and itm.props['use_skill'] is not None:
+                        for key in itm.props['use_skill'].props.keys():
+                            if 'image_' in key or 'sound_' in key:
+                                itm.props['use_skill'].props[key] = None
+        for tr in maze.triggers:
+            tr.tileset = None
+            tr.image = None
+            tr.sound_channel = None
         for itm in maze.loot:
             if itm is None:
                 continue
@@ -325,15 +351,19 @@ def save_maze(pc, maze, db, tile_sets, animations):
         pickle.dump(maze.traps, f)
         pickle.dump(maze.exits, f)
         pickle.dump(maze.furnitures, f)
+        pickle.dump(maze.triggers, f)
         pickle.dump(maze.loot, f)
         pickle.dump(maze.anim_timing, f)
+
+        map_list = [(i, j, maze.flag_array[j][i].map) for i in range(maze.width) for j in range(maze.height) if maze.flag_array[j][i].map is not None]
+        pickle.dump(map_list, f)
 
         f.truncate()
 
     restore_maze_media(pc, maze, db.cursor, tile_sets, animations, cooldown_reset=True)
 
 
-def load_maze(pc, maze, db, tile_sets, animations):
+def load_maze(pc, maze, db, tile_sets, animations, flags_create):
     filename = "./save/%s/dung/%s.pd" % (pc.char_sheet.id, pc.location[1])
     if not os.path.exists(filename):
         return
@@ -366,9 +396,16 @@ def load_maze(pc, maze, db, tile_sets, animations):
         maze.mobs = pickle.load(f)
         maze.traps = pickle.load(f)
         maze.exits = pickle.load(f)
-        maze.furniture = pickle.load(f)
+        maze.furnitures = pickle.load(f)
+        maze.triggers = pickle.load(f)
         maze.loot = pickle.load(f)
         maze.anim_timing = pickle.load(f)
+
+        maze.flag_array = flags_create(maze, maze.array)
+        map_list = pickle.load(f)
+        for i in range(len(map_list)):
+            x_sq, y_sq, map_value = map_list.pop()
+            maze.flag_array[y_sq][x_sq].map = map_value
 
         if maze.decor_rnds:
             maze.decor_rnds_read = True
@@ -452,6 +489,18 @@ def restore_maze_media(pc, maze, db_cursor, tile_sets, animations, cooldown_rese
     for mob in maze.mobs:
         mob.anim_set = animations.get_animation(mob.stats['animation'])
         mob.animate()
+        if mob.inventory is None:
+            continue
+        for itm in mob.inventory:
+            if itm is None:
+                continue
+            treasure.images_update(db_cursor, itm.props, tile_sets)
+            treasure.sounds_update(db_cursor, itm.props)
+            if itm.props['use_skill'] is not None:
+                if cooldown_reset:
+                    itm.props['use_skill'].cooldown_timer = 0
+                skill.images_update(db_cursor, itm.props['use_skill'].props, tile_sets)
+                skill.sounds_update(db_cursor, itm.props['use_skill'].props)
     for door in maze.doors:
         door.tileset = maze.tile_set
         door.image_update()
@@ -477,6 +526,21 @@ def restore_maze_media(pc, maze, db_cursor, tile_sets, animations, cooldown_rese
         stair.image = maze.tile_set[stair.tilename]
     for furniture in maze.furnitures:
         furniture.image_update(maze.tile_sets)
+        if furniture.furn_type == 'remains' and furniture.inventory is not None:
+            for itm in furniture.inventory:
+                if itm is None:
+                    continue
+                itm.off_x = itm.off_y = 0
+                treasure.images_update(db_cursor, itm.props, tile_sets)
+                treasure.sounds_update(db_cursor, itm.props)
+                if itm.props['use_skill'] is not None:
+                    if cooldown_reset:
+                        itm.props['use_skill'].cooldown_timer = 0
+                    skill.images_update(db_cursor, itm.props['use_skill'].props, tile_sets)
+                    skill.sounds_update(db_cursor, itm.props['use_skill'].props)
+    for tr in maze.triggers:
+        tr.tileset = maze.tile_set
+        tr.image_update()
     for itm in maze.loot:
         if itm is None:
             continue

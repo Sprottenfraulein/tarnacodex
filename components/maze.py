@@ -4,7 +4,7 @@ import pygame
 
 from library import maths
 from library import pickrandom, calc2darray, itemlist
-from components import dbrequests, progression, room, door, stairs, trap, lock, flagtile, monster, gamesave, chest, initmod, treasure, furniture
+from components import dbrequests, progression, room, door, stairs, trap, lock, flagtile, monster, gamesave, chest, initmod, treasure, furniture, trigger
 
 
 class Maze:
@@ -67,6 +67,7 @@ class Maze:
         self.traps = []
         self.exits = []
         self.furnitures = []
+        self.triggers = []
         self.loot = itemlist.ItemList(filters={
                 'item_types': ['wpn_melee', 'wpn_ranged', 'wpn_magic', 'arm_head', 'arm_chest', 'acc_ring', 'orb_shield',
                                'orb_ammo', 'orb_source', 'use_wand', 'exp_tools', 'exp_lockpick', 'exp_food', 'exp_key',
@@ -82,7 +83,8 @@ class Maze:
         # WORKING WITH PREGENERATED DATA
         stage_progress = dbrequests.chapter_progress_get(db.cursor, pc.char_sheet.id, stage_index=self.stage_index)
         if len(stage_progress) > 0 and use_saves:
-            gamesave.load_maze(pc, self, db, tile_sets, animations)
+            gamesave.load_maze(pc, self, db, tile_sets, animations, flags_create)
+
         else:
             self.tradepost_update = True
             self.decor_rnds_read = False
@@ -103,7 +105,6 @@ class Maze:
             getattr(self, self.stage_dict['maze_algorythm'])(pc, 0, 0, self.height-1, self.width-1,
                                                              self.stage_dict['room_min_width'],
                                                              self.stage_dict['room_min_height'], True)
-        self.flag_array = flags_create(self, self.array)
         if len(stage_progress) == 0 or stage_progress[0]['monsters_rolled'] == 0 or not use_saves:
             populate(self.db, self, pc, self.animations)
         self.decor_array = decor_maze(self)
@@ -142,6 +143,7 @@ class Maze:
         self.flag_array = flags_create(self, self.array)
         exits_set(self, self.exits_list, room_seq)
         doors_set(self, self.tile_set, self.db, 'monster_attacks', bonus_rooms)
+        grate_controls(self, room_seq)
         traps_set(self, 'monster_attacks', self.db, pc)
         well_set(self, room_seq, bonus_rooms)
         furniture_set(self)
@@ -161,6 +163,7 @@ class Maze:
         self.flag_array = flags_create(self, self.array)
         doors_set(self, self.tile_set, self.db, 'monster_attacks', self.rooms)
         free_rooms = [rm for rm in self.rooms if not rm.locked]
+        grate_controls(self, free_rooms)
 
         exits = self.exits_list[:]
         while len(exits) > 0:
@@ -206,6 +209,28 @@ class Maze:
         realm.spawn_realmtext('new_txt', "This is it! I need to go back now.", (0, 0), (0, -24),
                               'cyan', realm.pc, None, 240, 'def_bold', 24)
         realm.sound_inrealm('realmtext_noise', realm.pc.x_sq, realm.pc.y_sq)
+
+    def remains_add(self, pc, wins_dict):
+        for rm in self.rooms:
+            if rm.inside(pc.x_sq, pc.y_sq):
+                death_room = rm
+                break
+        else:
+            death_room = None
+        space_list = calc2darray.fill2d(self.flag_array, ('mov', 'obj', 'door', 'floor'),
+                                        (round(pc.x_sq), round(pc.y_sq)), (round(pc.x_sq), round(pc.y_sq)), 2, 10, r_max=8)
+        x_sq, y_sq = space_list[-1]
+        furn = furniture.Remains(x_sq, y_sq, death_room, self.tile_sets,
+                                 [itm for itm in pc.char_sheet.inventory if itm is not None],
+                                 pc.char_sheet.gold_coins)
+        furn.inventory.extend(pc.char_sheet.quest_item_remove(wins_dict))
+        self.furnitures.append(furn)
+        fl = self.flag_array[y_sq][x_sq]
+        fl.mov = fl.mov and not furn.solid
+        fl.obj = furn
+        for i in range(len(pc.char_sheet.inventory)):
+            pc.char_sheet.inventory[i] = None
+        pc.char_sheet.gold_coins = 0
 
 
 def get_room_sequence(rooms):
@@ -743,7 +768,7 @@ def compare_grid_pattern(maze, lab_x, lab_y, pattern_matrix, matrix_width, matri
 def traps_set(maze, attacks_table_point, db, pc):
     traps_num = round(maze.width * maze.height * progression.scale_to_lvl(maze.trap_rate, maze.lvl) // 100)
     room_rnd_list = [(rm, rm.rating) for rm in maze.rooms]
-    trap_density = (    # Level, Percents of a room space
+    """trap_density = (    # Level, Percents of a room space
         (1, 10),
         (5, 20),
         (10, 30),
@@ -760,7 +785,8 @@ def traps_set(maze, attacks_table_point, db, pc):
             tr_dens = dens
             break
     else:
-        tr_dens = trap_density[-1][1]
+        tr_dens = trap_density[-1][1]"""
+    tr_dens = 100
     while traps_num > 0 and len(room_rnd_list) > 0:
         tr_room = pickrandom.items_get(room_rnd_list, items_pop=True)[0]
         rm_space = ((tr_room.right - 2) - (tr_room.left + 1)) * ((tr_room.bottom - 2) - (tr_room.top + 1))
@@ -797,11 +823,11 @@ def doors_set(maze, tile_set, db, attack_table_point, bonus_rooms):
     # lock all rooms that are not corridors
     for locked_room in maze.rooms:
         if locked_room.corridor:
-            for dr in locked_room.doors:
+            """for dr in locked_room.doors:
                 if dr.lock is not None:
                     continue
                 if random.randrange(1, 101) <= 20:
-                    dr.shut = False
+                    dr.shut = False"""
             continue
         """if len(locked_room.doors) == 0:
             continue"""
@@ -846,7 +872,7 @@ def doors_set(maze, tile_set, db, attack_table_point, bonus_rooms):
     # create list of all doors
     for rm in maze.rooms:
         maze.doors.update(rm.doors)
-    dr_remove = [dr for dr in maze.doors if dr.lock is None and random.randrange(1, 101) < 81]
+    dr_remove = [dr for dr in maze.doors if dr.lock is None and random.randrange(1, 101) < 51]
     for dr in dr_remove:
         maze.doors.remove(dr)
         for rm in maze.rooms:
@@ -884,9 +910,12 @@ def exits_set(maze, exits_list, room_seq):
 
         x_sq = random.randrange(rm.left + 1, rm.right)
         y_sq = random.randrange(rm.top + 1, rm.bottom - 1)
+        space_list = calc2darray.fill2d(maze.flag_array, ('mov', 'obj', 'door', 'floor'),
+                                        (x_sq, y_sq), (x_sq, y_sq), 2, 5, r_max=5)
+        x_sq, y_sq = space_list[-1]
 
         new_exit = stairs.Stairs(x_sq, y_sq, -1, -1, dest, rm, maze.tile_set[exits_list[i][1]], exits_list[i][1])
-
+        maze.flag_array[y_sq][x_sq].obj = new_exit
         maze.exits.append(new_exit)
 
 
@@ -896,9 +925,9 @@ def chest_set(maze, room, tileset, chest_number, db, attack_table_point):
             ((random.randrange(room.left + 1, room.right - 1), random.choice((room.top + 1, room.bottom - 1))),
              (random.choice((room.left + 1, room.right - 1)), random.randrange(room.top + 1, room.bottom - 1)))
         )
-        space_list = calc2darray.fill2d(maze.flag_array, {'mov': False, 'obj': 'True', 'floor': False},
-                                        (x_sq, y_sq), (x_sq, y_sq), 1, 5, r_max=5)
-        x_sq, y_sq = space_list[0]
+        space_list = calc2darray.fill2d(maze.flag_array, ('mov', 'obj', 'door', 'floor'),
+                                        (x_sq, y_sq), (x_sq, y_sq), 2, 5, r_max=5)
+        x_sq, y_sq = space_list[-1]
         alignment = random.choice((0, 1))
         new_chest = chest.Chest(x_sq, y_sq, alignment, room, tileset, off_x_sq=-0.125, off_y_sq=-0.125, lvl=maze.lvl, items_number=2,
                                 gp_number=3, treasure_group=0, item_type=None, char_type=None, container=None,
@@ -939,14 +968,15 @@ def well_set(maze, room_seq, bonus_rooms):
         ((random.randrange(rnd_room.left + 1, rnd_room.right - 2), random.choice((rnd_room.top + 1, rnd_room.bottom - 2))),
          (random.choice((rnd_room.left + 1, rnd_room.right - 2)), random.randrange(rnd_room.top + 1, rnd_room.bottom - 2)))
     )
-    space_list = calc2darray.fill2d(maze.flag_array, {'mov': False, 'obj': True, 'floor': False, 'door': True},
+    space_list = calc2darray.fill2d(maze.flag_array, ('mov', 'obj', 'door', 'floor'),
                                     (x_sq, y_sq), (x_sq, y_sq), 2, 5, r_max=5)
-    x_sq, y_sq = space_list[1]
+    x_sq, y_sq = space_list[-1]
     new_chest = chest.Chest(x_sq, y_sq, None, rnd_room, maze.tile_set, off_x_sq=-0.125, off_y_sq=-0.125, lvl=maze.lvl, items_number=0,
                             gp_number=0, treasure_group=0, item_type=None, char_type=None, container=[
                                 treasure.Treasure(146, maze.lvl, maze.db.cursor, maze.tile_sets, maze.resources,
                                                   maze.audio, maze.resources.fate_rnd, grade=1)
                             ], disappear=False, allow_mimic=False, name_replace='well')
+    maze.flag_array[y_sq][x_sq].obj = new_chest
     maze.chests.append(new_chest)
 
 
@@ -974,64 +1004,65 @@ def furniture_add(db, maze, maze_room, amount=1, furn_tag=None, furn_type=None, 
         else:
             furn_align = random.choice((0, 1, 2, 3))
         furn_image = dbrequests.furniture_get_image(db.cursor, furn['furniture_id'], furn_align)
+        if furn['on_wall'] is None:
+            furn['on_wall'] = random.choice((True, False))
         xy_sq = furniture_get_place(maze, maze_room, furn_align, furn['on_wall'], furn['width_sq'], furn['height_sq'])
         if xy_sq is None:
             continue
         x_sq, y_sq = xy_sq
         furn = furniture.Furniture(furn['furniture_type'], x_sq, y_sq, furn_align, maze_room, furn_image,
-                                        maze.tile_sets, furn['solid'], furn['offset_x'], furn['offset_y'])
+                                        maze.tile_sets, furn['solid'], furn['offset_x'], furn['offset_y'],
+                                   render_later=(furn['on_wall'] == 1 and furn['width_sq'] == 1))
         maze.furnitures.append(furn)
 
 
 def furniture_get_place(maze, maze_room, furn_align, on_wall, width_sq, height_sq):
-    if on_wall is None:
-        on_wall = random.choice((True, False))
     if on_wall == 1:
         if furn_align == 0:
             y_sq = maze_room.top
-            rnd_list = [x for x in range(maze_room.left + (width_sq > 1), maze_room.right)
-                                  if maze.array[y_sq][x] == '#' and not maze.flag_array[y_sq][x].obj]
+            rnd_list = [x for x in range(maze_room.left + 1 + (width_sq > 1), maze_room.right)
+                        if maze.array[y_sq][x] == '#'
+                        and maze.array[y_sq][x - (width_sq > 1)] == '#'
+                        and not maze.flag_array[y_sq + (height_sq > 1)][x].obj]
             if len(rnd_list) < 2:
                 return None
             x_sq = random.choice(rnd_list)
             y_sq += (height_sq > 1)
         elif furn_align == 3:
             x_sq = maze_room.left
-            rnd_list = [y for y in range(maze_room.top + (height_sq > 1), maze_room.bottom)
-                                  if maze.array[y][x_sq] == '#' and not maze.flag_array[y][x_sq].obj]
-            y_sq = random.choice(rnd_list)
+            rnd_list = [y for y in range(maze_room.top + 1 + (height_sq > 1), maze_room.bottom)
+                        if maze.array[y][x_sq] == '#'
+                        and maze.array[y - (width_sq > 1)][x_sq] == '#'
+                        and not maze.flag_array[y][x_sq + (width_sq > 1)].obj]
             if len(rnd_list) < 2:
                 return None
+            y_sq = random.choice(rnd_list)
             x_sq += (width_sq > 1)
         else:
             return None
     else:
         if furn_align == 0:
             orig_xy_sq = random.choice(
-                ((maze_room.left + 1, maze_room.top + 1), (maze_room.right, maze_room.top + 1))
+                ((maze_room.left + 1, maze_room.top + 1), (maze_room.right - 1, maze_room.top + 1))
             )
         elif furn_align == 1:
             orig_xy_sq = random.choice(
-                ((maze_room.right, maze_room.top + 1), (maze_room.right, maze_room.bottom))
+                ((maze_room.right - 1, maze_room.top + 1), (maze_room.right - 1, maze_room.bottom -1))
             )
         elif furn_align == 2:
             orig_xy_sq = random.choice(
-                ((maze_room.left + 1, maze_room.bottom), (maze_room.right, maze_room.bottom))
+                ((maze_room.left + 1, maze_room.bottom - 1), (maze_room.right - 1, maze_room.bottom -1))
             )
         elif furn_align == 3:
             orig_xy_sq = random.choice(
-                ((maze_room.left + 1, maze_room.top + 1), (maze_room.left + 1, maze_room.bottom))
+                ((maze_room.left + 1, maze_room.top + 1), (maze_room.left + 1, maze_room.bottom -1))
             )
         else:
             return None
 
-        space_list = calc2darray.fill2d(maze.flag_array,
-                                        {'mov': False, 'obj': True, 'floor': False, 'door': True},
+        space_list = calc2darray.fill2d(maze.flag_array, ('mov', 'obj', 'door', 'floor'),
                                         orig_xy_sq, orig_xy_sq, 2, 10, r_max=10)
-        if len(space_list) > 1:
-            x_sq, y_sq = space_list[1]
-        else:
-            return None
+        x_sq, y_sq = random.choice(space_list)
 
     if x_sq is None or y_sq is None:
         return None
@@ -1107,8 +1138,7 @@ def mob_populate_alg_1(db, maze, animations, maze_monster_pool, monster_number, 
                 break
         x_sq = (rm.left + rm.right - 1) // 2
         y_sq = (rm.top + rm.bottom - 1) // 2
-        space_list = calc2darray.fill2d(maze.flag_array,
-                                        {'mov': False, 'obj': True, 'door': True, 'floor': False},
+        space_list = calc2darray.fill2d(maze.flag_array, ('mov', 'obj', 'door', 'floor'),
                                         (x_sq, y_sq), (x_sq, y_sq), len(room_mobs) + 1, 10, r_max=20)
         for mon_x_sq, mon_y_sq in space_list[1:]:
             rm_mob = room_mobs.pop()
@@ -1254,8 +1284,8 @@ def flags_create(maze, array):
                 None, None, None, None, [],
                 (array[i][j] in ('.', '+', '0')),
                 (array[i][j] in ('.', '+', '0')),
-                False, False,
-                (array[i][j] in ('.', '+', '0'))
+                False, None,
+                (array[i][j] in ('.', '0'))
             )
     return flags_array
 
@@ -1268,6 +1298,14 @@ def flags_update(maze, flags_array):
             fl.mov = False
             if not dr.grate:
                 fl.light = False
+    for fu in maze.furnitures:
+        fl = flags_array[round(fu.y_sq)][round(fu.x_sq)]
+        fl.mov = fl.mov and not fu.solid
+        fl.obj = fu
+    for tr in maze.triggers:
+        fl = flags_array[round(tr.y_sq)][round(tr.x_sq)]
+        fl.mov = False
+        fl.obj = tr
     for ex in maze.exits:
         fl = flags_array[ex.y_sq][ex.x_sq]
         fl.mov = False
@@ -1277,10 +1315,6 @@ def flags_update(maze, flags_array):
         fl = flags_array[ch.y_sq][ch.x_sq]
         fl.mov = False
         fl.obj = ch
-    for fu in maze.furnitures:
-        fl = flags_array[fu.y_sq][fu.x_sq]
-        fl.mov = fl.mov and not fu.solid
-        fl.obj = fu
     for tr in maze.traps:
         if tr.x_sq is not None and tr.y_sq is not None:
             flags_array[tr.y_sq][tr.x_sq].trap = tr
@@ -1299,3 +1333,74 @@ def get_chapter_stage(db, chapter, stage_index):
     else:
         return None
 
+
+def grate_controls(maze, rooms):
+    bonus_rooms = [rm for rm in maze.rooms if not rm.locked and rm not in rooms and any(rrm in rooms for rrm in rm.adj_rooms)]
+    if not bonus_rooms:
+        bonus_rooms = rooms
+    maze.doors = list(maze.doors)
+    control_list = [[] for rm in rooms]
+    control_list_tr = [[] for rm in bonus_rooms]
+    grate_list = []
+    grate_locked_list = []
+    for dr in maze.doors:
+        if not dr.grate:
+            continue
+        if dr.lock is None:
+            grate_list.append(maze.doors.index(dr))
+        else:
+            grate_locked_list.append(maze.doors.index(dr))
+    random.shuffle(grate_list)
+    random.shuffle(grate_locked_list)
+    while grate_list:
+        control_list[random.randrange(0, len(control_list))].append(grate_list.pop())
+    while grate_locked_list:
+        control_list_tr[random.randrange(0, len(control_list_tr))].append(grate_locked_list.pop())
+    modifier = 0
+    for tr_list in (control_list, control_list_tr):
+        while tr_list:
+            ctrl_grates = tr_list.pop()
+            if not ctrl_grates:
+                continue
+            if tr_list == control_list:
+                min_rm_index = len(rooms) - 1
+                for gr in ctrl_grates:
+                    for rm in maze.rooms:
+                        if maze.doors[gr] in rm.doors and rm in rooms:
+                            min_rm_index = min(min_rm_index, rooms.index(rm))
+                lever_room = rooms[max(min_rm_index - modifier, 0)]
+            else:
+                lever_room = random.choice(bonus_rooms)
+            hor_spaces = [(x, lever_room.top) for x in range(lever_room.left + 1, lever_room.right)
+                            if maze.array[lever_room.top][x] == '#'
+                                and maze.array[lever_room.top][x + 1] == '#'
+                                and maze.array[lever_room.top][x - 1] == '#'
+                                and not maze.flag_array[lever_room.top][x].obj]
+            ver_spaces = [(lever_room.left, y) for y in range(lever_room.top + 1, lever_room.bottom)
+                            if maze.array[y][lever_room.left] == '#'
+                                and maze.array[y + 1][lever_room.left] == '#'
+                                and maze.array[y - 1][lever_room.left] == '#'
+                                and not maze.flag_array[y][lever_room.left].obj]
+            if hor_spaces:
+                x_sq, y_sq = random.choice(hor_spaces)
+                alignment = 0
+            elif ver_spaces:
+                x_sq, y_sq = random.choice(ver_spaces)
+                alignment = 1
+            else:
+                if lever_room in bonus_rooms:
+                    tr_list.append(ctrl_grates)
+                    continue
+                elif rooms.index(lever_room) > 0:
+                    modifier += 1
+                    tr_list.append(ctrl_grates)
+                    continue
+                else:
+                    for gr in ctrl_grates:
+                        if not maze.doors[gr].lock:
+                            maze.doors[gr].shut = False
+                            maze.flag_array[maze.doors[gr].y_sq][maze.doors[gr].x_sq].mov = True
+                    continue
+            new_trigger = trigger.Trigger(x_sq, y_sq, alignment, maze.tile_set, ctrl_grates, value=False)
+            maze.triggers.append(new_trigger)
+            maze.flag_array[y_sq][x_sq].obj = new_trigger

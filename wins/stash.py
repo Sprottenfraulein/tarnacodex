@@ -124,7 +124,8 @@ class Stash:
                 self.mouse_pointer.drag_ui = None
                 framed_wins = [fw for fw in (
                     self.wins_dict['charstats'], self.wins_dict['pools'], self.wins_dict['hotbar'],
-                    self.wins_dict['inventory'], self.wins_dict['skillbook'], self.wins_dict['tasks']
+                    self.wins_dict['inventory'], self.wins_dict['skillbook'], self.wins_dict['tasks'],
+                    self.wins_dict['map']
                 ) if fw in self.active_wins]
                 self.offset_x, self.offset_y = maths.rect_sticky_edges(
                     (self.offset_x, self.offset_y, self.win_w, self.win_h),

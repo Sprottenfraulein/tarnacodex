@@ -96,10 +96,17 @@ class Demos:
                 )
             time_ending = max(time_ending, cap['schedule_delta'] * self.schedule_man.ticks_per_round + cap['duration'])
         for img in image_list:
-            images = self.tilesets.get_image(img['image']['tileset'], (img['image']['width'], img['image']['height']), (img['image']['index'],))[0]
-            img_panel = panel.Panel(None, (self.width * img['x'] // 100, self.height * img['y'] // 100),
-                                    (img['image']['width'] * img['image']['scale_h'],
-                                     img['image']['height'] * img['image']['scale_v']),
+            if img['filename'] is None:
+                images = self.tilesets.get_image(img['image']['tileset'], (img['image']['width'], img['image']['height']), (img['image']['index'],))
+            else:
+                images = (pygame.image.load('res/images/%s' % img['filename']).convert(),)
+                img['image'] = {'width': images[0].get_width(), 'height': images[0].get_height()}
+            img_panel = panel.Panel(None, (
+                self.width * img['x'] // 100 - img['image']['width'] * img['scale_h'] // 2,
+                self.height * img['y'] // 100 - img['image']['height'] * img['scale_v'] // 2
+            ),
+                                    (img['image']['width'] * img['scale_h'],
+                                     img['image']['height'] * img['scale_v']),
                                     pan_images=images, page=None, img_stretch=True)
             self.wins_dict['app_title'].schedule_man.task_add('realm_tasks', img['schedule_delta'], self.wins_dict['demos'], 'image_add',
                                                          (img_panel, img['duration'], (img['speed_x'], img['speed_y']),

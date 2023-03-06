@@ -71,6 +71,10 @@ class Tilesets:
                 'well__open': self.get_image('dung_bricks', (24, 24), (86,)),
                 'well__shut': self.get_image('dung_bricks', (24, 24), (85,)),
                 'column': self.get_image('dung_bricks', (24, 24), (22,)),
+                'trigger_ver_up': self.get_image('dung_bricks', (24, 24), (24,)),
+                'trigger_ver_down': self.get_image('dung_bricks', (24, 24), (26,)),
+                'trigger_hor_up': self.get_image('dung_bricks', (24, 24), (42,)),
+                'trigger_hor_down': self.get_image('dung_bricks', (24, 24), (62,)),
             }
             return tileset
         elif set_id == 'dung_dark':
@@ -124,6 +128,10 @@ class Tilesets:
                 'well__open': self.get_image('dark_bricks', (24, 24), (86,)),
                 'well__shut': self.get_image('dark_bricks', (24, 24), (85,)),
                 'column': self.get_image('dark_bricks', (24, 24), (22,)),
+                'trigger_ver_up': self.get_image('dark_bricks', (24, 24), (24,)),
+                'trigger_ver_down': self.get_image('dark_bricks', (24, 24), (26,)),
+                'trigger_hor_up': self.get_image('dark_bricks', (24, 24), (42,)),
+                'trigger_hor_down': self.get_image('dark_bricks', (24, 24), (62,)),
             }
             return tileset
         elif set_id == 'dung_cave':
@@ -177,6 +185,10 @@ class Tilesets:
                 'well__open': self.get_image('dung_cave', (24, 24), (86,)),
                 'well__shut': self.get_image('dung_cave', (24, 24), (85,)),
                 'column': self.get_image('dung_cave', (24, 24), (22,)),
+                'trigger_ver_up': self.get_image('dung_cave', (24, 24), (24,)),
+                'trigger_ver_down': self.get_image('dung_cave', (24, 24), (26,)),
+                'trigger_hor_up': self.get_image('dung_cave', (24, 24), (42,)),
+                'trigger_hor_down': self.get_image('dung_cave', (24, 24), (62,)),
             }
             return tileset
 
@@ -191,7 +203,8 @@ class Tilesets:
             tr_floor_roll = random.choice(sets_list)
             exits_roll = random.choice(sets_list)
             wells_roll = random.choice(sets_list)
-            decor_rnds.extend((walls_roll, columns_roll, gr_floor_roll, tr_floor_roll, exits_roll, wells_roll))
+            triggers_roll = random.choice(sets_list)
+            decor_rnds.extend((walls_roll, columns_roll, gr_floor_roll, tr_floor_roll, exits_roll, wells_roll, triggers_roll))
         else:
             walls_roll = decor_rnds.pop()
             columns_roll = decor_rnds.pop()
@@ -199,6 +212,7 @@ class Tilesets:
             tr_floor_roll = decor_rnds.pop()
             exits_roll = decor_rnds.pop()
             wells_roll = decor_rnds.pop()
+            triggers_roll = decor_rnds.pop()
 
         tileset = {
             'wall_hor': self.get_image(walls_roll, (24, 24), (12, 32, 51, 52, 53, 54)),
@@ -250,6 +264,10 @@ class Tilesets:
             'well__open': self.get_image(wells_roll, (24, 24), (86,)),
             'well__shut': self.get_image(wells_roll, (24, 24), (85,)),
             'column': self.get_image(columns_roll, (24, 24), (22,)),
+            'trigger_ver_up': self.get_image(triggers_roll, (24, 24), (24,)),
+            'trigger_ver_down': self.get_image(triggers_roll, (24, 24), (26,)),
+            'trigger_hor_up': self.get_image(triggers_roll, (24, 24), (42,)),
+            'trigger_hor_down': self.get_image(triggers_roll, (24, 24), (62,)),
         }
         return tileset
 

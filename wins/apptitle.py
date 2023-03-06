@@ -2,7 +2,7 @@
 import pygame
 import settings
 import random
-from library import textinput, pydraw, maths
+from library import textinput, pydraw, maths, calc2darray
 from components import maze, pc, charsheet, ui, skill, treasure, dbrequests, gamesave, debuff
 
 
@@ -41,6 +41,7 @@ class AppTitle:
         self.curr_chapter_title_string = None
         self.curr_chapter_desc_string = None
         self.curr_chapter_stage_string = None
+        self.curr_chapter_continue_expence = None
         self.curr_char_panel = None
         self.curr_char_name_string = None
         self.curr_char_type_string = None
@@ -331,18 +332,26 @@ class AppTitle:
                     'bttn_cancel': 'OK'
                 }
                 self.wins_dict['dialogue'].launch(pc)
+            elif (self.pc.char_sheet.gold_coins + self.wins_dict['stash'].common_stash_gold) < self.get_continue_expence(self.pc):
+                self.wins_dict['dialogue'].dialogue_elements = {
+                    'header': 'PAYMENT REQUIRED!',
+                    'text': "To resume from the last visited stage, you have to pay Cosmologists' guild "
+                            "for warping services. Unfortunately you have no %s "
+                            "gold coins to cover the expences." % self.get_continue_expence(self.pc),
+                    'bttn_cancel': 'OK'
+                }
+                self.wins_dict['dialogue'].launch(pc)
             else:
-                self.win_ui.key_focus = None
-                self.controls_enabled = False
-
-                self.pc.char_sheet.calc_stats()
-                # self.pc.char_sheet.hp_get(100, percent=True)
-                # self.pc.char_sheet.mp_get(100, percent=True)
-                # self.pc.char_sheet.food_get(100, percent=True)
-
-                self.clear_quick_view()
-
-                self.location_change(self.pc, self.pc.stage_entry, launch=True)
+                expence = self.get_continue_expence(self.pc)
+                self.wins_dict['dialogue'].dialogue_elements = {
+                    'header': 'PAYMENT REQUIRED!',
+                    'text': "To resume from the last visited stage, you have to pay Cosmologists' guild "
+                            "for warping services. You are to be charged %s gold coins. $n Is this OK?" % expence,
+                    'bttn_cancel': 'NO',
+                    'bttn_ok': 'YES'
+                }
+                self.wins_dict['dialogue'].delayed_action['bttn_ok'] = (self, 'chapter_continue', (expence,))
+                self.wins_dict['dialogue'].launch(pc)
 
         elif element.id == 'load' and m_bttn == 1 and mb_event == 'up' and element.mode == 1:
             self.win_ui.key_focus = None
@@ -684,13 +693,24 @@ class AppTitle:
         self.curr_chapter_stage_string = \
             self.win_ui.text_add('chapter_stage',
                                  (0, round(self.pygame_settings.screen_res[1] / 2) + (
-                menu_btn_h * 1.2) * 7 - menu_btn_h * 1.9),
+                menu_btn_h * 1.2) * 7 - menu_btn_h * 2.2),
                                  caption='chapter $n stage', h_align='center', v_align='top',
                                  size=(menu_btn_w, 48),
                                  cap_color='fnt_celeb', cap_font='large', cap_size=14, page=(2,))
         self.curr_chapter_stage_string.rendered_rect.centerx = menu_btn_h + menu_btn_w + (
                     self.pygame_settings.screen_res[0] / 2 - menu_btn_h - menu_btn_w) / 2
         self.win_ui.decoratives.append(self.curr_chapter_stage_string)
+
+        self.curr_chapter_continue_expence = \
+            self.win_ui.text_add('chapter_stage',
+                                 (0, round(self.pygame_settings.screen_res[1] / 2) + (
+                                         menu_btn_h * 1.2) * 7 - menu_btn_h * 1.1),
+                                 caption='price', h_align='center', v_align='top',
+                                 size=(menu_btn_w, 48),
+                                 cap_color='bright_gold', cap_font='large', cap_size=12, page=(2,))
+        self.curr_chapter_continue_expence.rendered_rect.centerx = menu_btn_h + menu_btn_w + (
+                self.pygame_settings.screen_res[0] / 2 - menu_btn_h - menu_btn_w) / 2
+        self.win_ui.decoratives.append(self.curr_chapter_continue_expence)
 
         bttn_begin_chapter = self.win_ui.button_add('begin_chapter', caption='Start New Chapter', size=(menu_btn_w, menu_btn_h),
                                             cap_font='large', cap_size=16,
@@ -699,8 +719,25 @@ class AppTitle:
         bttn_begin_chapter.rendered_rect.centery = round(self.pygame_settings.screen_res[1] / 2) + (
                 menu_btn_h * 1.2) * 7
 
+        rnd_texture = self.win_ui.random_texture((menu_btn_w, menu_btn_h), 'black_rock')
+        images = (
+            pydraw.square((0, 0), (menu_btn_w, menu_btn_h),
+                          (self.resources.colors['bright_gold'],
+                           self.resources.colors['fnt_muted'],
+                           self.resources.colors['gray_mid'],
+                           self.resources.colors['black']),
+                          sq_outsize=2, sq_bsize=2, sq_ldir=0, sq_fill=False,
+                          sq_image=rnd_texture),
+            pydraw.square((0, 0), (menu_btn_w, menu_btn_h),
+                          (self.resources.colors['bright_gold'],
+                           self.resources.colors['fnt_muted'],
+                           self.resources.colors['gray_mid'],
+                           self.resources.colors['black']),
+                          sq_outsize=2, sq_bsize=2, sq_ldir=2, sq_fill=False,
+                          sq_image=rnd_texture),
+        )
         self.bttn_continue_chapter = self.win_ui.button_add('continue_chapter', caption='Resume Chapter',
-                                                    size=(menu_btn_w, menu_btn_h),
+                                                    size=(menu_btn_w, menu_btn_h), images=images,
                                                     cap_font='large', cap_size=16,
                                                     cap_color='fnt_muted', sounds=self.win_ui.snd_packs['button'],
                                                     page=(2,))
@@ -973,8 +1010,10 @@ class AppTitle:
 
         for i in range(0, len(l.exits)):
             if l.exits[i].dest == entry:
-                pc.x_sq = l.exits[i].x_sq
-                pc.y_sq = l.exits[i].y_sq + 1
+                space_list = calc2darray.fill2d(l.flag_array, ('mov', 'obj', 'door', 'floor'),
+                                                (l.exits[i].x_sq, l.exits[i].y_sq), (l.exits[i].x_sq, l.exits[i].y_sq),
+                                                2, 5, r_max=5)
+                pc.x_sq, pc.y_sq = space_list[-1]
                 break
         pc.stage_entry = entry
 
@@ -1023,6 +1062,9 @@ class AppTitle:
             self.curr_chapter_desc_string.render_all()
             self.curr_chapter_stage_string.text_obj.caption = 'Stage %s: $n %s' % (
                 self.pc.location[1] + 1, self.savegames[self.save_selection]['stage_label'])
+            self.curr_chapter_continue_expence.text_obj.caption = '%s gold coins' % self.get_continue_expence(self.pc)
+            self.curr_chapter_continue_expence.page = (2,)
+            self.curr_chapter_continue_expence.render_all()
             self.curr_chapter_img_panel.page = (2,)
             self.curr_chapter_desc_string.page = (2,)
             self.curr_chapter_stage_string.page = (2,)
@@ -1035,6 +1077,7 @@ class AppTitle:
             self.curr_chapter_stage_string.page = (-1,)
             self.bttn_continue_chapter.page = (-1,)
             self.curr_chapter_title_string.render_all()
+            self.curr_chapter_continue_expence.page = (-1,)
 
         self.controls_enabled = True
 
@@ -1086,8 +1129,6 @@ class AppTitle:
         self.pc.char_sheet.mp_get(100, percent=True)
         self.pc.char_sheet.food_get(100, percent=True)
 
-        self.pc.char_sheet.quest_item_remove(self.wins_dict)
-
         gamesave.chapter_wipe(self.db, self.pc)
 
         self.pc.location = [self.chapters[self.chapter_selection], 0]
@@ -1096,6 +1137,31 @@ class AppTitle:
         self.clear_quick_view()
 
         self.location_change(self.pc, 'up', launch=True, new_chapter=True)
+
+    def chapter_continue(self, expence):
+        if self.pc.char_sheet.gold_coins >= expence:
+            self.pc.char_sheet.gold_coins -= expence
+        else:
+            self.pc.char_sheet.gold_coins -= expence
+            self.wins_dict['stash'].common_stash_gold += self.pc.char_sheet.gold_coins
+            self.pc.char_sheet.gold_coins = 0
+            self.wins_dict['stash'].updated = True
+        self.win_ui.key_focus = None
+        self.controls_enabled = False
+
+        self.pygame_settings.audio.sound('cast_dispel')
+
+        self.pc.char_sheet.calc_stats()
+        # self.pc.char_sheet.hp_get(100, percent=True)
+        # self.pc.char_sheet.mp_get(100, percent=True)
+        # self.pc.char_sheet.food_get(100, percent=True)
+
+        self.clear_quick_view()
+
+        self.location_change(self.pc, self.pc.stage_entry, launch=True)
+
+    def get_continue_expence(self, pc):
+        return round((100 + 10 * pc.location[1]) * (1 * (pc.char_sheet.level * (pc.char_sheet.level + 1) / 2)))
 
     def chapter_end(self, pc, chapter_dict):
         text_list, image_list = dbrequests.chapter_demo_get(self.db.cursor, chapter_dict['chapter_id'], 'ending')

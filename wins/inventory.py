@@ -116,7 +116,8 @@ class Inventory:
                 self.mouse_pointer.drag_ui = None
                 framed_wins = [fw for fw in (
                     self.wins_dict['charstats'], self.wins_dict['pools'], self.wins_dict['hotbar'],
-                    self.wins_dict['inventory'], self.wins_dict['skillbook'], self.wins_dict['tasks']
+                    self.wins_dict['inventory'], self.wins_dict['skillbook'], self.wins_dict['tasks'],
+                    self.wins_dict['map']
                 ) if fw in self.active_wins]
                 self.offset_x, self.offset_y = maths.rect_sticky_edges(
                     (self.offset_x, self.offset_y, self.win_w, self.win_h),
@@ -182,6 +183,7 @@ class Inventory:
 
         # PAGE 0
         if 'itm' not in element.tags:
+            self.win_ui.updated = True
             self.win_ui.interaction_callback(element, mb_event, m_bttn)
             # return True if interaction was made to prevent other windows from responding to this event
             return True

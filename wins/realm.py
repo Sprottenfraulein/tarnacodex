@@ -160,6 +160,8 @@ class Realm:
         if self.wins_dict['tasks'].pc != self.pc:
             self.wins_dict['tasks'].launch(self.pc)
 
+        self.wins_dict['map'].restart(self.pc)
+
         if self.wins_dict['pools'] not in self.active_wins:
             self.active_wins.insert(0, self.wins_dict['pools'])
         if self.wins_dict['hotbar'] not in self.active_wins:
@@ -203,10 +205,8 @@ class Realm:
                 self.view_offset_x_sq = round(self.mouse_pointer.xy[0] / self.square_size / self.square_scale) * -1
                 self.view_offset_y_sq = round(self.mouse_pointer.xy[1] / self.square_size / self.square_scale) * -1
                 self.view_maze_update(self.pc.x_sq, self.pc.y_sq)
-            if event.key == pygame.K_i:
-                pass
-            if event.key == pygame.K_s:
-                self.wins_dict['app_title'].chapter_end(self.pc, self.maze.chapter)
+            if event.key == pygame.K_m:
+                self.wins_dict['map'].restart(self.pc)
 
             # CHANGE SCALE
             if event.key == pygame.K_KP_PLUS and self.square_scale < 4:
@@ -449,14 +449,16 @@ class Realm:
                              ((ren_pos_x - self.ren_x_sq) * self.square_size,
                               (ren_pos_y - self.ren_y_sq) * self.square_size))
                 if flags.trap is not None and flags.trap.visible == 1:
-                    try:
-                        surface.blit(flags.trap.images[self.maze.anim_frame],
-                                     ((flags.trap.x_sq - self.ren_x_sq) * self.square_size + flags.trap.off_x,
-                                      (flags.trap.y_sq - self.ren_y_sq) * self.square_size + flags.trap.off_y))
-                    except IndexError:
-                        surface.blit(flags.trap.images[(self.maze.anim_frame + 1) % (len(flags.trap.images))],
-                                     ((flags.trap.x_sq - self.ren_x_sq) * self.square_size + flags.trap.off_x,
-                                      (flags.trap.y_sq - self.ren_y_sq) * self.square_size + flags.trap.off_y))
+                    surface.blit(flags.trap.images[self.maze.anim_frame % len(flags.trap.images)],
+                                 ((flags.trap.x_sq - self.ren_x_sq) * self.square_size + flags.trap.off_x,
+                                  (flags.trap.y_sq - self.ren_y_sq) * self.square_size + flags.trap.off_y))
+                if self.pc.path is not None:
+                    for wp in self.pc.path:
+                        if wp[0] != ren_pos_x or wp[1] != ren_pos_y:
+                            continue
+                        surface.blit(self.target_mark[0],
+                                     ((wp[0] - self.ren_x_sq + 0.15) * self.square_size,
+                                      (wp[1] - self.ren_y_sq + 0.2) * self.square_size))
 
         for ren_pos_y in range(top_sq, bottom_sq):
             for ren_pos_x in range(left_sq, right_sq):
@@ -471,7 +473,7 @@ class Realm:
                     obj_image = flags.door.image[self.maze.anim_frame % len(flags.door.image)]
                     self.render_by_square(surface, ren_pos_x, ren_pos_y, flags.door, obj_image, self.maze.flag_array)
 
-                if flags.obj is not None:
+                if flags.obj is not None and not flags.obj.render_later:
                     obj_image = flags.obj.image[self.maze.anim_frame % len(flags.obj.image)]
                     self.render_by_square(surface, ren_pos_x, ren_pos_y, flags.obj, obj_image, self.maze.flag_array)
 
@@ -536,6 +538,10 @@ class Realm:
                                  ((ren_pos_x - self.ren_x_sq - 1) * self.square_size,
                                   (ren_pos_y - self.ren_y_sq) * self.square_size))
 
+                if flags.obj is not None and flags.obj.render_later:
+                    obj_image = flags.obj.image[self.maze.anim_frame % len(flags.obj.image)]
+                    self.render_by_square(surface, ren_pos_x, ren_pos_y, flags.obj, obj_image, self.maze.flag_array)
+
         for ren_pos_y in range(top_sq, bottom_sq):
             for ren_pos_x in range(left_sq, right_sq):
                 if not ((0 <= ren_pos_y < self.maze.height) and (0 <= ren_pos_x < self.maze.width)):
@@ -594,7 +600,7 @@ class Realm:
         flag_array = flag_array or self.maze.flag_array
         orig_xy = orig_xy or (round(self.pc.x_sq), round(self.pc.y_sq))
 
-        sq_list = calc2darray.fill2d(flag_array, {'light': False}, orig_xy, orig_xy, max_spaces, max_dist,
+        sq_list = calc2darray.fill2d(flag_array, ('light',), orig_xy, orig_xy, max_spaces, max_dist,
                                      r_max=r_max)
         for sq_x, sq_y in sq_list:
             flag_array[sq_y][sq_x].vis = True
@@ -618,6 +624,8 @@ class Realm:
         self.vision_sq_prev = calc2darray.calc_vision_rays(
             self.maze.flag_array, orig_xy[0], orig_xy[1], self.vision_dist, self.vision_sq_prev
         )
+        if self.wins_dict['map'] in self.active_wins:
+            self.wins_dict['map'].map_update_bulk(self.vision_sq_prev)
         self.traps_search(self.vision_sq_prev)
 
     def mouse_move(self, mouse_xy):
@@ -953,12 +961,12 @@ class Realm:
         self.maze.spawn_loot(x_sq, y_sq, (item,))
         self.sound_inrealm('item_throw', x_sq, y_sq)
 
-    def sound_inrealm(self, sound_name, x_sq, y_sq, forced=False):
-        max_distance = 17
+    def sound_inrealm(self, sound_name, x_sq, y_sq, forced=False, volume_rate=1):
+        max_distance = 24
         distance = maths.get_distance(self.pc.x_sq, self.pc.y_sq, x_sq, y_sq)
         if distance > max_distance:
             return
-        volume = 1 - round(distance / max_distance, 2)
+        volume = max(0.001, (1 - round(distance / max_distance, 4))) * volume_rate
         direction = maths.xy_dist_to_rads(self.pc.x_sq, self.pc.y_sq, x_sq, y_sq)
         self.pygame_settings.audio.sound_panned(sound_name, direction, volume, forced)
 
