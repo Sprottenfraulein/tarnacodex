@@ -17,11 +17,12 @@ def generate_loot(monster, realm, fate_rnd, pc, log=True):
     elif pc.char_sheet.level == 2:
         rnd_rate = tr_amount + 1
     elif pc.char_sheet.level == 3:
-        rnd_rate = tr_amount
+        rnd_rate = random.randrange(1, tr_amount + 2)
     elif pc.char_sheet.level < 6 or 3 in pc.char_sheet.de_buffs:
-        rnd_rate = random.randrange(0, tr_amount + 1)
+        rnd_rate = random.randrange(0, tr_amount + 2)
     else:
-        rnd_rate = fate_rnd.expo_rnd(0, tr_amount + 1)
+        rnd_rate = random.randrange(0, tr_amount + 1)
+        # rnd_rate = fate_rnd.expo_rnd(0, tr_amount + 1)
     # Level difference penalty and grade bonus
     actual_amount = max(
         0, max(rnd_rate, monster.stats['grade']['grade_level']) - (abs(monster.stats['lvl'] - pc.char_sheet.level) > 2)

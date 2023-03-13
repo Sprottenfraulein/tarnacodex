@@ -60,14 +60,6 @@ class Lurker:
                 self.move_instr_x, self.move_instr_y = maths.sign(wp_x - self.x_sq), maths.sign(wp_y - self.y_sq)
         elif not self.busy and pc_distance <= self.stats['aggro_distance'] * (realm.pc.char_sheet.profs['prof_provoke'] + 1000) // 1000:
             intercept(self, wins_dict, pc_distance)
-            if not self.introduced:
-                try:
-                    realm.sound_inrealm(self.stats['sound_aggro'], self.x_sq, self.y_sq)
-                    if self.stats['grade'] is not None and self.stats['grade']['grade_level'] > 0:
-                        realm.pygame_settings.audio.sound('laugh_chamber')
-                except KeyError:
-                    pass
-                self.introduced = True
         else:
             if self.bhvr_timer > 0:
                 self.bhvr_timer -= 1
@@ -127,14 +119,7 @@ class Mimic:
                 self.move_instr_x, self.move_instr_y = maths.sign(wp_x - self.x_sq), maths.sign(wp_y - self.y_sq)
         elif not self.busy and pc_distance <= self.stats['aggro_distance'] * (realm.pc.char_sheet.profs['prof_provoke'] + 1000) // 1000:
             intercept(self, wins_dict, pc_distance)
-            if not self.introduced:
-                try:
-                    realm.sound_inrealm(self.stats['sound_aggro'], self.x_sq, self.y_sq)
-                    if self.stats['grade'] is not None and self.stats['grade']['grade_level'] > 0:
-                        realm.pygame_settings.audio.sound('laugh_chamber')
-                except KeyError:
-                    pass
-                self.introduced = True
+
         else:
             if self.bhvr_timer > 0:
                 self.bhvr_timer -= 1
@@ -194,14 +179,6 @@ class Giant:
                 self.move_instr_x, self.move_instr_y = maths.sign(wp_x - self.x_sq), maths.sign(wp_y - self.y_sq)
         elif not self.busy and pc_distance <= self.stats['aggro_distance'] * (realm.pc.char_sheet.profs['prof_provoke'] + 1000) // 1000:
             intercept(self, wins_dict, pc_distance)
-            if not self.introduced:
-                try:
-                    realm.sound_inrealm(self.stats['sound_aggro'], self.x_sq, self.y_sq)
-                    if self.stats['grade'] is not None and self.stats['grade']['grade_level'] > 0:
-                        realm.pygame_settings.audio.sound('laugh_chamber')
-                except KeyError:
-                    pass
-                self.introduced = True
         else:
             if self.bhvr_timer > 0:
                 self.bhvr_timer -= 1
@@ -346,9 +323,8 @@ def intercept(self, wins_dict, pc_distance):
 
     self.busy = True
     if calc2darray.cast_ray(realm.maze.flag_array, round(self.x_sq), round(self.y_sq), round(realm.pc.x_sq), round(realm.pc.y_sq), True):
-        if attack_ranged(self, realm.pc, wins_dict, pc_distance):
-            return
-        calc_path(self, realm, (round(realm.pc.x_sq), round(realm.pc.y_sq)))
+        if not attack_ranged(self, realm.pc, wins_dict, pc_distance):
+            calc_path(self, realm, (round(realm.pc.x_sq), round(realm.pc.y_sq)))
     elif self.stats['xray'] == 1:
         calc_path(self, realm, (round(realm.pc.x_sq), round(realm.pc.y_sq)))
     else:
@@ -569,6 +545,9 @@ def sq_is_free(self, realm, sq_x, sq_y):
 def wound(self, rnd_attack, dam_type, ranged, is_crit, wins_dict, fate_rnd, pc, no_reflect=False):
     if not self.alive:
         return
+    if 4 in pc.char_sheet.de_buffs:
+        del pc.char_sheet.de_buffs[4]
+        wins_dict['debuffs'].update(pc)
     damage = rnd_attack * (100 - self.stats[pc.char_sheet.att_def_dict[dam_type]]) // 100  # reduce attack by percent of def
 
     self.hp -= damage

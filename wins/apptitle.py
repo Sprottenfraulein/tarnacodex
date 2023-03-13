@@ -107,6 +107,8 @@ class AppTitle:
                             self.win_ui.interactives.remove(self.win_ui.interactives[i].popup_win)
                             self.win_ui.dated = True
 
+        if self.wins_dict['context'] in self.active_wins:
+            self.active_wins.remove(self.wins_dict['context'])
         # return True if interaction was made to prevent other windows from responding to this event
         if event.type == pygame.MOUSEBUTTONUP or event.type == pygame.MOUSEBUTTONDOWN:
             return self.ui_click(self.win_ui.mouse_actions(mouse_x - self.offset_x, mouse_y - self.offset_y, event))
@@ -929,7 +931,7 @@ class AppTitle:
             char_type_string = \
                 self.win_ui.text_add('char_type',
                                      (save_x + 4, save_y + 8 + 120 + 8 + 14),
-                                     caption='%s, level %s' % (
+                                     caption='%s, lv.%s' % (
                                      self.savegames[i]['char_type'].capitalize(), self.savegames[i]['char_level']),
                                      h_align='center', v_align='top', size=(save_w - 8, 14), cap_color=save_font_color,
                                      cap_font='def_normal', cap_size=24, page=(0,))
@@ -1150,6 +1152,7 @@ class AppTitle:
         self.controls_enabled = False
 
         self.pygame_settings.audio.sound('cast_dispel')
+        self.pygame_settings.audio.sound('coins_trade')
 
         self.pc.char_sheet.calc_stats()
         # self.pc.char_sheet.hp_get(100, percent=True)

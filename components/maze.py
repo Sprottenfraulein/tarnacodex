@@ -159,9 +159,9 @@ class Maze:
             rooms_attached(self, rm, 2, 2, 3, mandatory_doors=random.randrange(1, 5))
 
         columns_set(self.array, '#', double_space=True)
-
+        bonus_rooms = self.rooms[:round(len(self.rooms) / 2)]
         self.flag_array = flags_create(self, self.array)
-        doors_set(self, self.tile_set, self.db, 'monster_attacks', self.rooms)
+        doors_set(self, self.tile_set, self.db, 'monster_attacks', bonus_rooms)
         free_rooms = [rm for rm in self.rooms if not rm.locked]
         grate_controls(self, free_rooms)
 
@@ -221,7 +221,7 @@ class Maze:
                                         (round(pc.x_sq), round(pc.y_sq)), (round(pc.x_sq), round(pc.y_sq)), 2, 10, r_max=8)
         x_sq, y_sq = space_list[-1]
         furn = furniture.Remains(x_sq, y_sq, death_room, self.tile_sets,
-                                 [itm for itm in pc.char_sheet.inventory if itm is not None],
+                                 [itm for itm in pc.char_sheet.inventory if itm is not None and not 'quest_item' in itm.props],
                                  pc.char_sheet.gold_coins)
         furn.inventory.extend(pc.char_sheet.quest_item_remove(wins_dict))
         self.furnitures.append(furn)
@@ -1348,14 +1348,23 @@ def grate_controls(maze, rooms):
             continue
         if dr.lock is None:
             grate_list.append(maze.doors.index(dr))
-        else:
-            grate_locked_list.append(maze.doors.index(dr))
+    for rm in maze.rooms:
+        if not rm.locked:
+            continue
+        rm_grates = []
+        for dr in rm.doors:
+            if dr.grate and dr.lock is not None:
+                rm_grates.append(maze.doors.index(dr))
+        if rm_grates:
+            grate_locked_list.append(rm_grates)
     random.shuffle(grate_list)
     random.shuffle(grate_locked_list)
-    while grate_list:
-        control_list[random.randrange(0, len(control_list))].append(grate_list.pop())
-    while grate_locked_list:
-        control_list_tr[random.randrange(0, len(control_list_tr))].append(grate_locked_list.pop())
+    if control_list:
+        while grate_list:
+            control_list[random.randrange(0, len(control_list))].append(grate_list.pop())
+    if control_list_tr:
+        while grate_locked_list:
+            control_list_tr[random.randrange(0, len(control_list_tr))].extend(grate_locked_list.pop())
     modifier = 0
     for tr_list in (control_list, control_list_tr):
         while tr_list:

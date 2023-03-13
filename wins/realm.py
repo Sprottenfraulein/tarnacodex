@@ -174,7 +174,7 @@ class Realm:
         self.pause = False
         self.controls_enabled = True
 
-    def event_check(self, event, log=True):
+    def event_check(self, event, log=False):
         if not self.pc.alive or not self.controls_enabled:
             pygame.event.clear()
             return
@@ -901,10 +901,10 @@ class Realm:
 
     def location_label_update(self):
         if self.pc.stage_entry == 'up':
-            venture_direction = 'descended'
+            venture_direction = 'DESC'
         else:
-            venture_direction = 'ascended'
-        self.location_label.caption = '%s (%s, stage %s, level %s), %s.' % (
+            venture_direction = 'ASC'
+        self.location_label.caption = '%s (%s, stage %s, lv.%s), %s.' % (
         self.maze.stage_dict['label'], self.maze.chapter['label'],
         self.pc.location[1] + 1, self.maze.lvl, venture_direction)
         self.location_label.render()

@@ -605,7 +605,7 @@ def spell_dispel(wins_dict, fate_rnd, pc, skill_obj, item_adress, no_aim=False, 
 
     realm.particle_list.append(particle.Particle((pl_object.x_sq, pl_object.y_sq), (-4, -4),
                                                  realm.animations.get_animation('effect_arcane_dust')['default'],
-                                                 20))
+                                                 25))
 
     wins_dict['context'].end()
     realm.pygame_settings.audio.sound(skill_sound)
@@ -1105,10 +1105,11 @@ def craft(wins_dict, fate_rnd, pc, skill_obj, item_adress, no_aim=False, just_va
     )[0]:
         skill_help(realm, skill_obj, 'new_txt', "Can't reach!", (0, 0), (0, -24), None, pc, None, 120, 'def_bold', 24)
         return True
-    if len(flags.item) == 0:
+    ingredient_list = flags.item[:]
+    if len(ingredient_list) == 0:
         skill_help(realm, skill_obj, 'new_txt', "Nothing here!", (0, 0), (0, -24), None, pc, None, 120, 'def_bold', 24)
         return False
-    ingredient_list = flags.item
+    gather_ingredients(realm.maze.flag_array, x_sq, y_sq, ingredient_list)
     in_work_list = []
     req_ingredient_list = dbrequests.get_recipe_ingredients(realm.db.cursor, item_adress[0][item_adress[1]].props['treasure_id'])
     for req_ing in req_ingredient_list:
@@ -1145,7 +1146,7 @@ def craft(wins_dict, fate_rnd, pc, skill_obj, item_adress, no_aim=False, just_va
         if rnd_roll == 1000 or rnd_roll - skill >= 500:
             skill_help(realm, skill_obj, 'new_txt', "Oh no!", (0, 0), (0, -24), None, pc, None, 120, 'def_bold', 24)
             realm.sound_inrealm('fire_pickup', x_sq, y_sq, forced=True)
-            realm.particle_list.append(particle.Particle((x_sq, y_sq), (-16, -16),
+            realm.particle_list.append(particle.Particle((x_sq, y_sq), (-4, -4),
                                                          realm.animations.get_animation('effect_explosion')[
                                                              'default'], 25))
             spent = True
@@ -1184,9 +1185,10 @@ def craft(wins_dict, fate_rnd, pc, skill_obj, item_adress, no_aim=False, just_va
             lootgen.drop_loot(x_sq, y_sq, realm, treasure_list)
             skill_help(realm, skill_obj, 'new_txt', "Easy as pie!", (0, 0), (0, -24), None, pc, None, 120, 'def_bold', 24)
             realm.sound_inrealm('plate_pickup', x_sq, y_sq, forced=True)
-            realm.particle_list.append(particle.Particle((pc.x_sq, pc.y_sq), (-16, -16),
-                                                         realm.animations.get_animation('effect_arcane_dust')[
-                                                             'default'], 60))
+            for itm in in_work_list:
+                realm.particle_list.append(particle.Particle((round(itm.x_sq), round(itm.y_sq)), (-4, -4),
+                                                             realm.animations.get_animation('effect_arcane_dust')[
+                                                                 'default'], 25))
             spent = True
         else:
             skill_help(realm, skill_obj, 'new_txt', "Too hard!", (0, 0), (0, -24), None, pc, None, 120, 'def_bold', 24)
@@ -1198,20 +1200,20 @@ def craft(wins_dict, fate_rnd, pc, skill_obj, item_adress, no_aim=False, just_va
                 for ing in in_work_list:
                     if req_ing['ingredient_treasure_id'] == ing.props['treasure_id']:
                         if req_ing['expendable']:
-                            flags.item.remove(ing)
+                            realm.maze.flag_array[round(ing.y_sq)][round(ing.x_sq)].item.remove(ing)
                             realm.maze.loot.remove(ing)
                         else:
                             if req_ing['ingredient_amount']:
                                 if not treasure.amount_change(ing, req_ing['ingredient_amount'] * -1):
-                                    flags.item.remove(ing)
+                                    realm.maze.flag_array[round(ing.y_sq)][round(ing.x_sq)].item.remove(ing)
                                     realm.maze.loot.remove(ing)
                             if req_ing['ingredient_charges']:
                                 if not treasure.charge_change(ing, req_ing['ingredient_charges'] * -1):
-                                    flags.item.remove(ing)
+                                    realm.maze.flag_array[round(ing.y_sq)][round(ing.x_sq)].item.remove(ing)
                                     realm.maze.loot.remove(ing)
                             if req_ing['ingredient_condition']:
                                 if not treasure.condition_change(ing, req_ing['ingredient_condition'] * -1):
-                                    flags.item.remove(ing)
+                                    realm.maze.flag_array[round(ing.y_sq)][round(ing.x_sq)].item.remove(ing)
                                     realm.maze.loot.remove(ing)
                         in_work_list.remove(ing)
                         break
@@ -1500,4 +1502,18 @@ def skill_help(realm, skill_obj, rt_id, caption, xy_sq, offset_xy, color=None, s
         realm.spawn_realmtext(rt_id, caption, xy_sq, offset_xy, color=color, stick_obj=stick_obj, speed_xy=speed_xy,
                               kill_timer=kill_timer, font=font, size=size, frict_x=frict_x, frict_y=frict_y)
 
-        
+
+def gather_ingredients(flag_array, x_sq, y_sq, ingredient_list=None, r=5):
+    if ingredient_list is None:
+        ingredient_list = []
+    offsets = [(0, -1), (-1, 0), (1, 0), (0, 1), (-1, -1), (-1, 1), (1, -1), (1, 1)]
+    for off_x, off_y in offsets:
+        try:
+            items = flag_array[y_sq + off_y][x_sq + off_x].item
+        except IndexError:
+            continue
+        if items:
+            ingredient_list.extend(items)
+            if r > 0:
+                gather_ingredients(flag_array, x_sq + off_x, y_sq + off_y, ingredient_list, r=r-1)
+    return ingredient_list

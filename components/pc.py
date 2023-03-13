@@ -504,7 +504,7 @@ class PC:
         wins_dict['realm'].pygame_settings.audio.sound('death_%s' % self.char_sheet.type)
 
         if self.char_sheet.level > 3 and self.char_sheet.gold_coins > 1000:
-            gold_penalty = round(self.char_sheet.gold_coins * 0.75)
+            gold_penalty = round(self.char_sheet.gold_coins * 0.25)
             self.char_sheet.gold_coins -= gold_penalty
         else:
             gold_penalty = 'none'

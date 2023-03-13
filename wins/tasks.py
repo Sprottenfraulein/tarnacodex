@@ -385,7 +385,9 @@ class Tasks:
         self.wins_dict['dialogue'].launch(self.pc)
 
     def reward_treasure_get(self, mission):
-        treasure_list = [self.reward_manuscript_get(mission)]
+        treasure_list = []
+        if mission['reward_manuscript_id'] is not None:
+            treasure_list.append(self.reward_manuscript_get(mission))
         for tr_id, amount in mission['non_rnd_reward']:
             for i in range(0, amount):
                 new_tr = treasure.Treasure(
