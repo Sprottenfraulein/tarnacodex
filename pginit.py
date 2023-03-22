@@ -22,7 +22,7 @@ class PG:
 		# setting display
 		self.screen_res = (320, 200)
 		self.screen = None
-		self.set_display(settings.APP_RES[0], settings.APP_RES[1])
+		self.set_display()
 		# Creating buffer canvas.
 		self.canvas = pygame.Surface(settings.APP_RES)
 		# Setting game caption.
@@ -36,9 +36,9 @@ class PG:
 		self.text_font = pygame.freetype.Font(resources.fonts['def_bold'], 24)
 		logfun.put('Pygame initialized successfully.', log)
 
-	def set_display(self, w, h, mode=pygame.SWSURFACE):
+	def set_display(self):
 		# For fullscreen mode:
-		# mode = pygame.HWACCEL | pygame.HWSURFACE | pygame.FULLSCREEN
-		self.screen_res = (w, h)
-		self.screen = pygame.display.set_mode(self.screen_res, mode)
+		mode = pygame.HWACCEL | pygame.HWSURFACE | pygame.FULLSCREEN
+		self.screen = pygame.display.set_mode((0,0), mode)
+		self.screen_res = self.screen.get_size()
 		pygame.display.update()

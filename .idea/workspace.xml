@@ -25,22 +25,11 @@
     </select>
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="cc130b1c-00f5-48a7-860f-78f09248cfe9" name="Default Changelist" comment="* Levers added.&#10;* Auto-map added.&#10;* Intro and ending images added.&#10;* Algorithms updated.&#10;* Database updated.&#10;* Balance corrected.&#10;* Errors fixed.">
+    <list default="true" id="cc130b1c-00f5-48a7-860f-78f09248cfe9" name="Default Changelist" comment="* Tweaks and stuff.">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/components/lootgen.py" beforeDir="false" afterPath="$PROJECT_DIR$/components/lootgen.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/components/maze.py" beforeDir="false" afterPath="$PROJECT_DIR$/components/maze.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/components/monster.py" beforeDir="false" afterPath="$PROJECT_DIR$/components/monster.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/components/pc.py" beforeDir="false" afterPath="$PROJECT_DIR$/components/pc.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/components/skillfuncs.py" beforeDir="false" afterPath="$PROJECT_DIR$/components/skillfuncs.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/components/textinserts.py" beforeDir="false" afterPath="$PROJECT_DIR$/components/textinserts.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pginit.py" beforeDir="false" afterPath="$PROJECT_DIR$/pginit.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/res/data/tables.db" beforeDir="false" afterPath="$PROJECT_DIR$/res/data/tables.db" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/res/tilesets/chapter_thumbs.png" beforeDir="false" afterPath="$PROJECT_DIR$/res/tilesets/chapter_thumbs.png" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/res/tilesets/logo.png" beforeDir="false" afterPath="$PROJECT_DIR$/res/tilesets/logo.png" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/save/normal_commons.pd" beforeDir="false" afterPath="$PROJECT_DIR$/save/normal_commons.pd" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/settings.py" beforeDir="false" afterPath="$PROJECT_DIR$/settings.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/wins/apptitle.py" beforeDir="false" afterPath="$PROJECT_DIR$/wins/apptitle.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/wins/realm.py" beforeDir="false" afterPath="$PROJECT_DIR$/wins/realm.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/wins/tasks.py" beforeDir="false" afterPath="$PROJECT_DIR$/wins/tasks.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -132,13 +121,6 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1642253012991</updated>
-    </task>
-    <task id="LOCAL-00025" summary="Item management fixes, interface updates. Character Sheet implemented.">
-      <created>1643490048310</created>
-      <option name="number" value="00025" />
-      <option name="presentableId" value="LOCAL-00025" />
-      <option name="project" value="LOCAL" />
-      <updated>1643490048310</updated>
     </task>
     <task id="LOCAL-00026" summary="Rendering and object management reworked yet again. Some level generation tweaks.">
       <created>1643579953385</created>
@@ -476,7 +458,14 @@
       <option name="project" value="LOCAL" />
       <updated>1678102533780</updated>
     </task>
-    <option name="localTasksCounter" value="74" />
+    <task id="LOCAL-00074" summary="* Tweaks and stuff.">
+      <created>1678701586219</created>
+      <option name="number" value="00074" />
+      <option name="presentableId" value="LOCAL-00074" />
+      <option name="project" value="LOCAL" />
+      <updated>1678701586219</updated>
+    </task>
+    <option name="localTasksCounter" value="75" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -506,7 +495,6 @@
     <ignored-roots>
       <path value="$PROJECT_DIR$/Unnamed-Final" />
     </ignored-roots>
-    <MESSAGE value="Readme updated." />
     <MESSAGE value="Trading Post delivery added. Chests added! Enemies aggro on being hit and other things." />
     <MESSAGE value="Another major update." />
     <MESSAGE value="Sounds added." />
@@ -531,6 +519,7 @@
     <MESSAGE value="* Inventory size increased to 48 items.&#10;* Stash size increased to 100 items.&#10;* &quot;Sort&quot; buttons added to inventory and stash." />
     <MESSAGE value="* Gradient vision shading added.&#10;* Colorful vision shading added.&#10;* Daily loot drop boost buff added.&#10;* Surprise Visit buff on floor entry added.&#10;* New quests added.&#10;* Furniture objects added.&#10;* Mini-chapter added." />
     <MESSAGE value="* Levers added.&#10;* Auto-map added.&#10;* Intro and ending images added.&#10;* Algorithms updated.&#10;* Database updated.&#10;* Balance corrected.&#10;* Errors fixed." />
-    <option name="LAST_COMMIT_MESSAGE" value="* Levers added.&#10;* Auto-map added.&#10;* Intro and ending images added.&#10;* Algorithms updated.&#10;* Database updated.&#10;* Balance corrected.&#10;* Errors fixed." />
+    <MESSAGE value="* Tweaks and stuff." />
+    <option name="LAST_COMMIT_MESSAGE" value="* Tweaks and stuff." />
   </component>
 </project>
