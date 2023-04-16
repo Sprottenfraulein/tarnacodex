@@ -231,6 +231,9 @@ class AppTitle:
                 self.clear_quick_view()
                 self.create_savegames()
             self.win_ui.page = 0
+            if self.pygame_settings.audio.music_playing != 'ravenstone':
+                self.pygame_settings.audio.music_stop()
+                self.pygame_settings.audio.music('ravenstone', loops=1)
             self.win_ui.key_focus = None
 
             self.save_selection = None
@@ -358,6 +361,7 @@ class AppTitle:
         elif element.id == 'load' and m_bttn == 1 and mb_event == 'up' and element.mode == 1:
             self.win_ui.key_focus = None
             self.char_load()
+
 
         # PAGE 2 quickview buttons
         if 'quick_view' in element.tags and m_bttn == 1 and element.mode == 0 and mb_event == 'down':
@@ -846,7 +850,7 @@ class AppTitle:
         # all pages
         tag_string = self.win_ui.text_add('tag_string', (0, self.pygame_settings.screen_res[1] - 16),
                                           caption=settings.tag_string, h_align='left', v_align='bottom',
-                                          size=(self.pygame_settings.screen_res[0] // 4, 16), cap_color='sun')
+                                          size=(self.pygame_settings.screen_res[0], 16), cap_color='sun')
 
         self.win_ui.interactives.extend(char_quick_menu)
         self.win_ui.interactives.append(self.bttn_continue_chapter)
@@ -1003,6 +1007,9 @@ class AppTitle:
                                                               (20, None))
 
     def location_update(self, pc, entry, launch=False):
+        self.pygame_settings.audio.music_stop()
+        self.pygame_settings.audio.music('dungeon', loops=1)
+
         if not launch:
             self.maze_save(pc, self.wins_dict['realm'].maze)
         # dbrequests.chapter_progress_set(self.db, pc.char_sheet.id, self.wins_dict['realm'].maze.stage_index, 1, 1, 1, 1, 1, 1)
@@ -1269,6 +1276,9 @@ class AppTitle:
             self.pc.day_stamp = maths.get_days()
 
             self.char_loaded_info_update()
+            if self.pygame_settings.audio.music_playing != 'homeworld':
+                self.pygame_settings.audio.music_stop()
+                self.pygame_settings.audio.music('homeworld', loops=1)
         else:
             self.wins_dict['dialogue'].dialogue_elements = {
                 'header': 'Attention',

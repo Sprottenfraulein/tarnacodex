@@ -7,7 +7,7 @@ APP_RES = (1600, 900)
 app_scale = 2
 # Application caption (visible in window title or OS apps manager)
 APP_CAPTION = 'TARNA CODEX'
-tag_string = 'TARNA CODEX, pre-alpha build. © Sprottenfraulein, 2022.'
+tag_string = 'TARNA CODEX, development-hell-burnout-and-pointless-existence build. © Sprottenfraulein, 2023.'
 # Frames per second (changing this affects app's run speed)
 FPS = 60
 
@@ -178,5 +178,7 @@ sounds = (
 )
 
 music = (
-
+    ('ravenstone', 'res/music/ravenstone.ogg'),
+    ('homeworld', 'res/music/homeworld.ogg'),
+    ('dungeon', 'res/music/dungeon.ogg')
 )

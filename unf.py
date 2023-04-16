@@ -54,6 +54,7 @@ def bigloop(pygame_settings, resources, wins_dict, active_wins, mouse_pointer, s
 	# adding the first unit to active wins
 	title_win = wins_dict['app_title']
 	active_wins.append(title_win)
+	title_win.pygame_settings.audio.music('ravenstone', loops=1)
 
 	run = True
 
