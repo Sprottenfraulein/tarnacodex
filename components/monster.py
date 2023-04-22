@@ -392,7 +392,7 @@ def attack_ranged(self, pc, wins_dict, distance):
     else:
         duration = None
     wins_dict['realm'].spawn_projectile((self.x_sq, self.y_sq), (pc.x_sq, pc.y_sq),
-                                        (rnd_attack, self.attacking['attack_type'], is_crit, self),
+                                        (rnd_attack, self.attacking['attack_type'], self.attacking['de_buffs'], is_crit, self),
                                         speed, anim_pack, collision_limit=self.attacking['projectile_collision_limit'],
                                         blast_radius=self.attacking['blast_radius'],
                                         blast_sound=self.attacking['sound_blast'],

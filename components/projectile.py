@@ -20,7 +20,7 @@ class Projectile:
         self.frame_timer = 0
         self.step = 1
 
-        self.attack_value, self.attack_type, self.attack_is_crit, self.attack_owner = attack
+        self.attack_value, self.attack_type, self.attack_effect, self.attack_is_crit, self.attack_owner = attack
 
         self.hit_freq = hit_freq
 
@@ -53,6 +53,7 @@ class Projectile:
                     'attack_type': self.attack_type,
                     'attack_val_base': self.attack_value,
                     'attack_val_spread': 0,
+                    'de_buffs': self.attack_effect,
                     'range': True
                 }, fate_rnd)
                 self.collision_limit -= self.collision_limit > 0

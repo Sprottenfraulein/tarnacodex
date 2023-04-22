@@ -362,7 +362,7 @@ class Context:
         # calculating and rendering text
         hl_text = {
             'gradetype': 'Skill',
-            'mainvalue': '%s' % (pc.char_sheet.level or '-'),
+            'mainvalue': '%s' % (item.props['lvl'] or '-'),
             'mv_caption': 'Level'
         }
         itm_headlines = self.headlines_add(hl_text, info_y)

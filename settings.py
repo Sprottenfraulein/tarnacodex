@@ -10,6 +10,8 @@ APP_CAPTION = 'TARNA CODEX'
 tag_string = 'TARNA CODEX, development-hell-burnout-and-pointless-existence build. © Sprottenfraulein, 2023.'
 # Frames per second (changing this affects app's run speed)
 FPS = 60
+sound_enable = True
+music_enable = False
 
 # Game settings
 tilesets = (

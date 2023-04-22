@@ -4,7 +4,7 @@ from library import logfun
 
 
 class Audio:
-    def __init__(self, resources):
+    def __init__(self, resources, mute_snd, mute_mus):
         pygame.mixer.set_num_channels(16)
         """pygame.mixer.set_reserved(4)
         # 0 - music channel, 1 - pc action sounds, 2 - ui sounds"""
@@ -15,16 +15,20 @@ class Audio:
         self.bank_music = resources.music
 
         self.music_playing = None
-        self.mute_snd = False
-        self.mute_mus = False
+        self.mute_snd = mute_snd
+        self.mute_mus = mute_mus
 
     def music(self, name, loops=-1):
+        if self.mute_mus:
+            return
         if not pygame.mixer.music.get_busy() and self.music_playing is not name:
             pygame.mixer.music.load(self.bank_music[name])
             pygame.mixer.music.play(loops)
         self.music_playing = name
 
     def playlist(self):
+        if self.mute_mus:
+            return
         self.music(random.choice(self.bank_music.keys()), 1)
 
     def music_stop(self):

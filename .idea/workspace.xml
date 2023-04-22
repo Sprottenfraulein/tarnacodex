@@ -25,14 +25,27 @@
     </select>
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="cc130b1c-00f5-48a7-860f-78f09248cfe9" name="Default Changelist" comment="* Tweaks and stuff.">
+    <list default="true" id="cc130b1c-00f5-48a7-860f-78f09248cfe9" name="Default Changelist" comment="* Music added to further annoy you.">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/README.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/components/charsheet.py" beforeDir="false" afterPath="$PROJECT_DIR$/components/charsheet.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/components/chest.py" beforeDir="false" afterPath="$PROJECT_DIR$/components/chest.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/components/dbrequests.py" beforeDir="false" afterPath="$PROJECT_DIR$/components/dbrequests.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/components/debuff.py" beforeDir="false" afterPath="$PROJECT_DIR$/components/debuff.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/components/maze.py" beforeDir="false" afterPath="$PROJECT_DIR$/components/maze.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/components/monster.py" beforeDir="false" afterPath="$PROJECT_DIR$/components/monster.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/components/pc.py" beforeDir="false" afterPath="$PROJECT_DIR$/components/pc.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/components/projectile.py" beforeDir="false" afterPath="$PROJECT_DIR$/components/projectile.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/components/skillfuncs.py" beforeDir="false" afterPath="$PROJECT_DIR$/components/skillfuncs.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/library/audio.py" beforeDir="false" afterPath="$PROJECT_DIR$/library/audio.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pginit.py" beforeDir="false" afterPath="$PROJECT_DIR$/pginit.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/res/data/tables.db" beforeDir="false" afterPath="$PROJECT_DIR$/res/data/tables.db" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/res/tilesets/de_buffs.png" beforeDir="false" afterPath="$PROJECT_DIR$/res/tilesets/de_buffs.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/res/tilesets/floor_items.png" beforeDir="false" afterPath="$PROJECT_DIR$/res/tilesets/floor_items.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/res/tilesets/inv_items.png" beforeDir="false" afterPath="$PROJECT_DIR$/res/tilesets/inv_items.png" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/save/normal_commons.pd" beforeDir="false" afterPath="$PROJECT_DIR$/save/normal_commons.pd" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/settings.py" beforeDir="false" afterPath="$PROJECT_DIR$/settings.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/unf.py" beforeDir="false" afterPath="$PROJECT_DIR$/unf.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/wins/apptitle.py" beforeDir="false" afterPath="$PROJECT_DIR$/wins/apptitle.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/wins/context.py" beforeDir="false" afterPath="$PROJECT_DIR$/wins/context.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/wins/pools.py" beforeDir="false" afterPath="$PROJECT_DIR$/wins/pools.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -63,14 +76,14 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent"><![CDATA[{
-  "keyToString": {
-    "RunOnceActivity.OpenProjectViewOnStart": "true",
-    "RunOnceActivity.ShowReadmeOnStart": "true",
-    "last_opened_file_path": "/home/ezpink/Documents/python/unnamedfinal",
-    "settings.editor.selected.configurable": "com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable"
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;RunOnceActivity.OpenProjectViewOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;last_opened_file_path&quot;: &quot;/home/ezpink/Documents/python/unnamedfinal&quot;,
+    &quot;settings.editor.selected.configurable&quot;: &quot;com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable&quot;
   }
-}]]></component>
+}</component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
       <recent name="$PROJECT_DIR$/components" />
@@ -124,13 +137,6 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1642253012991</updated>
-    </task>
-    <task id="LOCAL-00027" summary="Rendering and object management reworked yet again. Some level generation tweaks.">
-      <created>1643580030790</created>
-      <option name="number" value="00027" />
-      <option name="presentableId" value="LOCAL-00027" />
-      <option name="project" value="LOCAL" />
-      <updated>1643580030790</updated>
     </task>
     <task id="LOCAL-00028" summary="Chapters and stages implemented, levels transition implemented, maze generation updated, title screen updated, etc.">
       <created>1643823438992</created>
@@ -468,7 +474,14 @@
       <option name="project" value="LOCAL" />
       <updated>1679469713903</updated>
     </task>
-    <option name="localTasksCounter" value="76" />
+    <task id="LOCAL-00076" summary="* Music added to further annoy you.">
+      <created>1681646710273</created>
+      <option name="number" value="00076" />
+      <option name="presentableId" value="LOCAL-00076" />
+      <option name="project" value="LOCAL" />
+      <updated>1681646710273</updated>
+    </task>
+    <option name="localTasksCounter" value="77" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -498,7 +511,6 @@
     <ignored-roots>
       <path value="$PROJECT_DIR$/Unnamed-Final" />
     </ignored-roots>
-    <MESSAGE value="Trading Post delivery added. Chests added! Enemies aggro on being hit and other things." />
     <MESSAGE value="Another major update." />
     <MESSAGE value="Sounds added." />
     <MESSAGE value="Stereo sound panning added." />
@@ -523,6 +535,7 @@
     <MESSAGE value="* Gradient vision shading added.&#10;* Colorful vision shading added.&#10;* Daily loot drop boost buff added.&#10;* Surprise Visit buff on floor entry added.&#10;* New quests added.&#10;* Furniture objects added.&#10;* Mini-chapter added." />
     <MESSAGE value="* Levers added.&#10;* Auto-map added.&#10;* Intro and ending images added.&#10;* Algorithms updated.&#10;* Database updated.&#10;* Balance corrected.&#10;* Errors fixed." />
     <MESSAGE value="* Tweaks and stuff." />
-    <option name="LAST_COMMIT_MESSAGE" value="* Tweaks and stuff." />
+    <MESSAGE value="* Music added to further annoy you." />
+    <option name="LAST_COMMIT_MESSAGE" value="* Music added to further annoy you." />
   </component>
 </project>

@@ -172,7 +172,7 @@ class Chest:
         if not is_mimic:
             return False
         mon_id = random.choice((11,))
-        new_mon = dbrequests.monster_get_by_id(wins_dict['realm'].db.cursor, mon_id)
+        new_mon = dbrequests.monster_get_by_id(wins_dict['realm'].db.cursor, mon_id, wins_dict['realm'].resources.fate_rnd)
         grade_list = dbrequests.grade_set_get(wins_dict['realm'].db.cursor, new_mon['grade_set_monster'], wins_dict['realm'].maze.lvl)
         if len(grade_list) > 0:
             if len(grade_list) > 1:

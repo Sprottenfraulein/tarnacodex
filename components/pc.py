@@ -106,6 +106,8 @@ class PC:
             for deb in self.char_sheet.de_buffs.values():
                 if not deb.tick():
                     debs_upd = True
+                elif deb.timer_freq == 0:
+                    deb.effect(self, wins_dict)
             if debs_upd:
                 self.char_sheet.de_buffs = {k: v for k, v in self.char_sheet.de_buffs.items() if v.timer_dur != 0}
                 self.char_sheet.calc_stats()
@@ -301,12 +303,14 @@ class PC:
         # Last HP last chance.
         """if damage > self.char_sheet.hp > 1:
             damage = self.char_sheet.hp - 1"""
-
+        stats_recalc = False
         # Adding de_buffs
-        if 'de_buffs' in chosen_attack and chosen_attack['de_buffs']:
+        if 'de_buffs' in chosen_attack and chosen_attack['de_buffs'] is not None and chosen_attack['de_buffs']:
             for d_b in chosen_attack['de_buffs']:
+                d_b['lvl'] = monster.stats['lvl']
                 debuff.DeBuff(d_b, self.char_sheet.de_buffs)
             wins_dict['debuffs'].update(self)
+            stats_recalc = True
 
         self.char_sheet.hp_get(damage * -1)
 
@@ -314,7 +318,7 @@ class PC:
 
         # 100% HP damage = 10 points of condition
         if treasure.condition_equipment_change(self.char_sheet, round(-2 * rnd_dmg / self.char_sheet.pools['HP'])):
-            self.char_sheet.calc_stats()
+            stats_recalc = True
 
         wins_dict['pools'].updated = True
 
@@ -336,6 +340,9 @@ class PC:
                                            color=info_color, stick_obj=self, speed_xy=(inf_sp_x, inf_sp_y),
                                            kill_timer=25,
                                            font='large', size=info_size, frict_x=0.1, frict_y=0.15)
+
+        if stats_recalc:
+            self.char_sheet.calc_stats()
 
         if self.char_sheet.hp < self.char_sheet.pools['HP'] // 4:
             if self.autoheal(wins_dict) < self.char_sheet.pools['HP'] // 4:
@@ -499,6 +506,7 @@ class PC:
                 wins_dict['realm'].spawn_realmtext('new_txt', "I am hungry!", (0, 0), (0, -24), 'fnt_header', self, None,
                                       120, 'def_bold', 24)
 
+
     def die(self, wins_dict, killer):
         self.state_change(8)
         wins_dict['realm'].pygame_settings.audio.sound('death_%s' % self.char_sheet.type)
@@ -508,6 +516,8 @@ class PC:
             self.char_sheet.gold_coins -= gold_penalty
         else:
             gold_penalty = 'none'
+
+        self.char_sheet.de_buffs.clear()
 
         if treasure.condition_equipment_change(self.char_sheet, -100):
             self.char_sheet.calc_stats()

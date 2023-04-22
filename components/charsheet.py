@@ -414,9 +414,11 @@ class CharSheet:
         mod = 0
         for de_buff in self.de_buffs.values():
             if stat_name in de_buff['mods']:
-                mod += de_buff['mods'][stat_name]['value_base']
-                if 'value_spread' in de_buff['mods'][stat_name]:
-                    mod += de_buff['mods'][stat_name]['value_spread']
+                if de_buff['mods'][stat_name]['value_type'] in (1, 3):
+                    mod += de_buff['mods'][stat_name]['value_base']
+                elif de_buff['mods'][stat_name]['value_type'] == 2:
+                    base_stat = self.get_char_stat(stat_name)
+                    mod += round(base_stat * de_buff['mods'][stat_name]['value_base'] / 1000)
         return mod
 
     def calc_all_mods(self, stat_name):

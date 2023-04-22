@@ -9,8 +9,8 @@ def attack_default(wins_dict, fate_rnd, pc, skill_obj, item_adress, no_aim=False
 
     att_val_min, att_val_max = pc.char_sheet.attacks['att_base']
     att_mods = pc.char_sheet.calc_attack_mod('att_physical')
-    att_val_min += (att_val_min * att_mods // 1000)  # att_mods comprehended as procents
-    att_val_max += (att_val_max * att_mods // 1000)  # att_mods comprehended as procents
+    att_val_min += (att_val_min * att_mods // 1000)  # att_mods comprehended as percents
+    att_val_max += (att_val_max * att_mods // 1000)  # att_mods comprehended as percents
     if just_values:
         if not skill_reqs_check(realm, skill_obj, pc):
             return '-', '-'
@@ -62,10 +62,12 @@ def attack_powerful(wins_dict, fate_rnd, pc, skill_obj, item_adress, no_aim=Fals
 
     att_val_min, att_val_max = pc.char_sheet.attacks['att_base']
     att_mods = pc.char_sheet.calc_attack_mod('att_fire')
-    att_val_min += (att_val_min * att_mods // 1000)  # att_mods comprehended as procents
-    att_val_max += (att_val_max * att_mods // 1000)  # att_mods comprehended as procents
+    att_val_min += (att_val_min * att_mods // 1000)  # att_mods comprehended as percents
+    att_val_max += (att_val_max * att_mods // 1000)  # att_mods comprehended as percents
     dam_min = att_val_min * 2
     dam_max = att_val_max * 2
+    dam_min = dam_min * skill_obj.props['lvl'] // pc.char_sheet.level
+    dam_max = dam_max * skill_obj.props['lvl'] // pc.char_sheet.level
 
     if just_values:
         if not skill_reqs_check(realm, skill_obj, pc):
@@ -92,7 +94,7 @@ def attack_powerful(wins_dict, fate_rnd, pc, skill_obj, item_adress, no_aim=Fals
         realm.schedule_man.task_add('realm_tasks', 8, realm, 'remove_realmtext', ('new_txt',))"""
         return True
 
-    rnd_attack = random.randrange(att_val_min * att_rate, att_val_max * att_rate + 1)
+    rnd_attack = random.randrange(dam_min, dam_max + 1)
 
     if not skill_costs_check(realm, skill_obj, pc):
         return True
@@ -118,8 +120,10 @@ def attack_butterfly(wins_dict, fate_rnd, pc, skill_obj, item_adress, no_aim=Fal
 
     att_val_min, att_val_max = pc.char_sheet.attacks['att_base']
     att_mods = pc.char_sheet.calc_attack_mod('att_lightning')
-    att_val_min += (att_val_min * att_mods // 1000)  # att_mods comprehended as procents
-    att_val_max += (att_val_max * att_mods // 1000)  # att_mods comprehended as procents
+    att_val_min += (att_val_min * att_mods // 1000)  # att_mods comprehended as percents
+    att_val_max += (att_val_max * att_mods // 1000)  # att_mods comprehended as percents
+    att_val_min = att_val_min * skill_obj.props['lvl'] // pc.char_sheet.level
+    att_val_max = att_val_max * skill_obj.props['lvl'] // pc.char_sheet.level
     if just_values:
         if not skill_reqs_check(realm, skill_obj, pc):
             return '-', '-', '-'
@@ -156,8 +160,8 @@ def shot_default(wins_dict, fate_rnd, pc, skill_obj, item_adress, no_aim=False, 
 
     att_val_min, att_val_max = pc.char_sheet.attacks['att_base']
     att_mods = pc.char_sheet.calc_attack_mod('att_physical')
-    att_val_min += (att_val_min * att_mods // 1000)  # att_mods comprehended as procents
-    att_val_max += (att_val_max * att_mods // 1000)  # att_mods comprehended as procents
+    att_val_min += (att_val_min * att_mods // 1000)  # att_mods comprehended as percents
+    att_val_max += (att_val_max * att_mods // 1000)  # att_mods comprehended as percents
     if just_values:
         if not skill_reqs_check(realm, skill_obj, pc):
             return '-', '-'
@@ -217,7 +221,7 @@ def shot_default(wins_dict, fate_rnd, pc, skill_obj, item_adress, no_aim=False, 
             {'images': realm.tilesets.get_image('item_effects', (16, 16), (1,)), 'timings': (60,)}
         )
     speed = 0.5
-    realm.spawn_projectile((pc.x_sq, pc.y_sq), (target.x_sq, target.y_sq), (rnd_attack, 'att_physical', is_crit, pc),
+    realm.spawn_projectile((pc.x_sq, pc.y_sq), (target.x_sq, target.y_sq), (rnd_attack, 'att_physical', None, is_crit, pc),
                            speed, anim_pack, collision_limit=1, blast_radius=0)
 
     pc.food_change(wins_dict, -5)
@@ -234,10 +238,12 @@ def shot_sniper(wins_dict, fate_rnd, pc, skill_obj, item_adress, no_aim=False, j
 
     att_val_min, att_val_max = pc.char_sheet.attacks['att_base']
     att_mods = pc.char_sheet.calc_attack_mod('att_fire')
-    att_val_min += (att_val_min * att_mods // 1000)  # att_mods comprehended as procents
-    att_val_max += (att_val_max * att_mods // 1000)  # att_mods comprehended as procents
+    att_val_min += (att_val_min * att_mods // 1000)  # att_mods comprehended as percents
+    att_val_max += (att_val_max * att_mods // 1000)  # att_mods comprehended as percents
     dam_min = att_val_min * att_rate
     dam_max = att_val_max * att_rate
+    dam_min = dam_min * skill_obj.props['lvl'] // pc.char_sheet.level
+    dam_max = dam_max * skill_obj.props['lvl'] // pc.char_sheet.level
     if just_values:
         if not skill_reqs_check(realm, skill_obj, pc):
             return '-', '-', '-'
@@ -281,7 +287,7 @@ def shot_sniper(wins_dict, fate_rnd, pc, skill_obj, item_adress, no_aim=False, j
                                            'fnt_celeb', pc, None, 240, 'def_bold', 24)
     wins_dict['inventory'].updated = True
 
-    rnd_attack = random.randrange(att_val_min * att_rate, att_val_max * att_rate + 1)
+    rnd_attack = random.randrange(dam_min, dam_max + 1)
     is_crit = (random.randrange(1, 1001) <= pc.char_sheet.profs['prof_crit'])
     if is_crit:
         rnd_attack *= 4
@@ -297,7 +303,7 @@ def shot_sniper(wins_dict, fate_rnd, pc, skill_obj, item_adress, no_aim=False, j
             {'images': realm.tilesets.get_image('item_effects', (16, 16), (1,)), 'timings': (60,)}
         )
     speed = 0.5
-    realm.spawn_projectile((pc.x_sq, pc.y_sq), (target.x_sq, target.y_sq), (rnd_attack, 'att_fire', is_crit, pc),
+    realm.spawn_projectile((pc.x_sq, pc.y_sq), (target.x_sq, target.y_sq), (rnd_attack, 'att_fire', None, is_crit, pc),
                            speed, anim_pack, collision_limit=1, blast_radius=0)
 
     pc.food_change(wins_dict, -5)
@@ -313,8 +319,10 @@ def shot_multi(wins_dict, fate_rnd, pc, skill_obj, item_adress, no_aim=False, ju
     max_targets = 3 + pc.char_sheet.level // 10
     att_val_min, att_val_max = pc.char_sheet.attacks['att_base']
     att_mods = pc.char_sheet.calc_attack_mod('att_poison')
-    att_val_min += (att_val_min * att_mods // 1000)  # att_mods comprehended as procents
-    att_val_max += (att_val_max * att_mods // 1000)  # att_mods comprehended as procents
+    att_val_min += (att_val_min * att_mods // 1000)  # att_mods comprehended as percents
+    att_val_max += (att_val_max * att_mods // 1000)  # att_mods comprehended as percents
+    att_val_min = att_val_min * skill_obj.props['lvl'] // pc.char_sheet.level
+    att_val_max = att_val_max * skill_obj.props['lvl'] // pc.char_sheet.level
     if just_values:
         if not skill_reqs_check(realm, skill_obj, pc):
             return '-', '-', '-', '-'
@@ -372,7 +380,7 @@ def shot_multi(wins_dict, fate_rnd, pc, skill_obj, item_adress, no_aim=False, ju
                 )
             speed = 0.5
             realm.spawn_projectile((pc.x_sq, pc.y_sq), (target.x_sq, target.y_sq),
-                                   (rnd_attack, 'att_poison', is_crit, pc),
+                                   (rnd_attack, 'att_poison', None, is_crit, pc),
                                    speed, anim_pack, collision_limit=1, blast_radius=0)
 
     if shot == 0:
@@ -397,8 +405,10 @@ def spell_magical_arrow(wins_dict, fate_rnd, pc, skill_obj, item_adress, no_aim=
     else:
         att_val_min, att_val_max = pc.char_sheet.attacks['att_base']
     att_mods = pc.char_sheet.calc_attack_mod('att_arcane')
-    att_val_min += (att_val_min * att_mods // 1000)  # att_mods comprehended as procents
-    att_val_max += (att_val_max * att_mods // 1000)  # att_mods comprehended as procents
+    att_val_min += (att_val_min * att_mods // 1000)  # att_mods comprehended as percents
+    att_val_max += (att_val_max * att_mods // 1000)  # att_mods comprehended as percents
+    att_val_min = att_val_min * skill_obj.props['lvl'] // pc.char_sheet.level
+    att_val_max = att_val_max * skill_obj.props['lvl'] // pc.char_sheet.level
     if just_values:
         if is_magic_item:
             report = att_val_min, att_val_max
@@ -451,7 +461,7 @@ def spell_magical_arrow(wins_dict, fate_rnd, pc, skill_obj, item_adress, no_aim=
     )
 
     speed = 0.5
-    realm.spawn_projectile((pc.x_sq, pc.y_sq), (target.x_sq, target.y_sq), (rnd_attack, 'att_arcane', is_crit, pc),
+    realm.spawn_projectile((pc.x_sq, pc.y_sq), (target.x_sq, target.y_sq), (rnd_attack, 'att_arcane', None, is_crit, pc),
                            speed, anim_pack, collision_limit=1, blast_radius=0)
 
     pc.food_change(wins_dict, -5)
@@ -476,17 +486,21 @@ def spell_fireball(wins_dict, fate_rnd, pc, skill_obj, item_adress, no_aim=False
     else:
         att_val_min, att_val_max = pc.char_sheet.attacks['att_base']
     att_mods = pc.char_sheet.calc_attack_mod('att_fire')
-    att_val_min += (att_val_min * att_mods // 1000)  # att_mods comprehended as procents
-    att_val_max += (att_val_max * att_mods // 1000)  # att_mods comprehended as procents
-    mp_cost_min = round(att_val_min * skill_obj.props['cost_mp'])
-    mp_cost_max = round(att_val_max * skill_obj.props['cost_mp'])
+    att_val_min += (att_val_min * att_mods // 1000)  # att_mods comprehended as percents
+    att_val_max += (att_val_max * att_mods // 1000)  # att_mods comprehended as percents
+    dam_min = att_val_min * att_rate
+    dam_max = att_val_max * att_rate
+    dam_min = dam_min * skill_obj.props['lvl'] // pc.char_sheet.level
+    dam_max = dam_max * skill_obj.props['lvl'] // pc.char_sheet.level
+    mp_cost_min = att_val_min * skill_obj.props['cost_mp'] * skill_obj.props['lvl'] // pc.char_sheet.level
+    mp_cost_max = att_val_max * skill_obj.props['cost_mp'] * skill_obj.props['lvl'] // pc.char_sheet.level
     if just_values:
         if is_magic_item:
             report = att_val_min * att_rate, att_val_max * att_rate
         elif not skill_reqs_check(realm, skill_obj, pc, is_magic_item):
             report = '-', '-', '-', '-'
         else:
-            report = att_val_min * att_rate, att_val_max * att_rate, mp_cost_min, mp_cost_max
+            report = dam_min, dam_max, mp_cost_min, mp_cost_max
         return report
 
     only_from_hotbar_check(item_adress, pc, wins_dict)
@@ -512,7 +526,7 @@ def spell_fireball(wins_dict, fate_rnd, pc, skill_obj, item_adress, no_aim=False
         realm.schedule_man.task_add('realm_tasks', 8, realm, 'remove_realmtext', ('new_txt',))"""
         return True
 
-    rnd_attack = random.randrange(att_val_min * att_rate, att_val_max * att_rate + 1)
+    rnd_attack = random.randrange(dam_min, dam_max + 1)
     skill_sound = item_adress[0][item_adress[1]].props['sound_use']
 
     if not is_magic_item:
@@ -531,7 +545,7 @@ def spell_fireball(wins_dict, fate_rnd, pc, skill_obj, item_adress, no_aim=False
             realm.animations.get_animation('missile_fireball')['default']
     )
     speed = 0.25
-    realm.spawn_projectile((pc.x_sq, pc.y_sq), (target.x_sq, target.y_sq), (rnd_attack, 'att_fire', is_crit, pc),
+    realm.spawn_projectile((pc.x_sq, pc.y_sq), (target.x_sq, target.y_sq), (rnd_attack, 'att_fire', None, is_crit, pc),
                            speed, image_pack, collision_limit=1, blast_radius=2)
 
     pc.food_change(wins_dict, -5)
@@ -672,7 +686,7 @@ def repair(wins_dict, fate_rnd, pc, skill_obj, item_adress, no_aim=False, just_v
 
     # TODO: Add resource spending for repairing.
 
-    lvl_dif = pc.char_sheet.level - item_repair.props['lvl']
+    lvl_dif = skill_obj.props['lvl'] - item_repair.props['lvl']
     sk = pc.char_sheet.profs['prof_craft'] + lvl_dif * 250  # 25% per level bonus/penalty
     rnd_roll = random.randrange(0, 1001)
     if rnd_roll == 1000 or rnd_roll - sk >= 500:
@@ -728,6 +742,7 @@ def potion_heal(wins_dict, fate_rnd, pc, skill_obj, item_adress, no_aim=False, j
     wins_dict['context'].end()
 
     pc.add_cooldowns(wins_dict, 7)  # Cooldown for magical potion
+    pc.add_cooldowns(wins_dict, 26)  # Cooldown for antidote potion
     pc.act(wins_dict, None, skill_obj)
 
     return False
@@ -751,13 +766,42 @@ def potion_power(wins_dict, fate_rnd, pc, skill_obj, item_adress, no_aim=False, 
     wins_dict['context'].end()
 
     pc.add_cooldowns(wins_dict, 4)  # Cooldown for healing potion
+    pc.add_cooldowns(wins_dict, 26)  # Cooldown for antidote potion
+    pc.act(wins_dict, None, skill_obj)
+
+    return False
+
+
+def potion_antidote(wins_dict, fate_rnd, pc, skill_obj, item_adress, no_aim=False, just_values=False):
+    if just_values:
+        return item_adress[0][item_adress[1]].props['lvl']
+
+    realm = wins_dict['realm']
+
+    if not skill_reqs_check(realm, skill_obj, pc):
+        return True
+
+    if 6 in pc.char_sheet.de_buffs:
+        ad_rate = round(item_adress[0][item_adress[1]].props['lvl'] / pc.char_sheet.de_buffs[6]['lvl'], 2)
+        timer_dur = round(pc.char_sheet.de_buffs[6].timer_dur - pc.char_sheet.de_buffs[6]['duration'] * 60 * ad_rate)
+        timer_dur = max(1, timer_dur)
+        pc.char_sheet.de_buffs[6].timer_dur = timer_dur
+
+    realm.pygame_settings.audio.sound(item_adress[0][item_adress[1]].props['sound_use'])
+    charges_control(wins_dict, pc, item_adress[0][item_adress[1]], message='Potion finished!')
+
+    wins_dict['pools'].updated = True
+    wins_dict['context'].end()
+
+    pc.add_cooldowns(wins_dict, 4)  # Cooldown for healing potion
+    pc.add_cooldowns(wins_dict, 7)  # Cooldown for magical potion
     pc.act(wins_dict, None, skill_obj)
 
     return False
 
 
 def eat(wins_dict, fate_rnd, pc, skill_obj, item_adress, no_aim=False, just_values=False):
-    food_value = item_adress[0][item_adress[1]].props['mods']['food_pool']['value_base'] * skill_obj.props['lvl']
+    food_value = item_adress[0][item_adress[1]].props['mods']['food_pool']['value_base']
     if just_values:
         return food_value
 
@@ -1049,7 +1093,7 @@ def dig(wins_dict, fate_rnd, pc, skill_obj, item_adress, no_aim=False, just_valu
         elif outcome == 'monster':
             rnd_roll = random.randrange(1, 10001)
             mon_id = random.choice(dbrequests.get_monsters(realm.db.cursor, realm.maze.lvl, 0, None, rnd_roll))
-            new_mon = dbrequests.monster_get_by_id(realm.db.cursor, mon_id)
+            new_mon = dbrequests.monster_get_by_id(realm.db.cursor, mon_id, fate_rnd)
             grade_list = dbrequests.grade_set_get(realm.db.cursor, new_mon['grade_set_monster'], realm.maze.lvl)
             if len(grade_list) > 0:
                 if len(grade_list) > 1:
@@ -1463,10 +1507,10 @@ def only_from_hotbar_check(item_adress, pc, wins_dict):
 
 
 def rods_damage_get(pc, level, fate_rnd):
-    rnd_attr = 12
-    multiplier = rnd_attr + (rnd_attr - 10) * (level - 1) * pc.char_sheet.attr_rate
-    base_dmg_min = 12 * level
-    base_dmg_spread = 7 * level
+    rnd_attr = 4
+    multiplier = rnd_attr + (rnd_attr - 3) * (level - 1) * pc.char_sheet.attr_rate
+    base_dmg_min = 4 * level
+    base_dmg_spread = 3 * level
     base_dmg_max = base_dmg_min + base_dmg_spread
     dmg_min = base_dmg_min + base_dmg_min * multiplier // 100
     dmg_max = base_dmg_max + base_dmg_max * multiplier // 100

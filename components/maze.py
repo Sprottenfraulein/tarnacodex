@@ -106,7 +106,7 @@ class Maze:
                                                              self.stage_dict['room_min_width'],
                                                              self.stage_dict['room_min_height'], True)
         if len(stage_progress) == 0 or stage_progress[0]['monsters_rolled'] == 0 or not use_saves:
-            populate(self.db, self, pc, self.animations)
+            populate(self.db, self, pc, self.animations, self.resources.fate_rnd)
         self.decor_array = decor_maze(self)
         flags_update(self, self.flag_array)
 
@@ -1076,15 +1076,15 @@ def array_pattern_apply(array, pattern, x, y):
             array[y + i][x + j] = pattern[i][j]
 
 
-def populate(db, maze, pc, animations):
+def populate(db, maze, pc, animations, fate_rnd):
     maze_monster_pool = []
     pop_level = maze.stage_dict['lvl'] or pc.char_sheet.level
     mon_ids = maze.monster_ids[:]
     for i in range(0, maze.monster_number):
-        new_mon = dbrequests.monster_get_by_id(db.cursor, pickrandom.items_get(mon_ids, 1)[0])
+        new_mon = dbrequests.monster_get_by_id(db.cursor, pickrandom.items_get(mon_ids, 1)[0], fate_rnd)
         if new_mon['lvl'] > pop_level:
             mon_ids = [(mon_id[0], mon_id[1]) for mon_id in mon_ids if mon_id[0] != new_mon['monster_id']]
-            new_mon = dbrequests.monster_get_by_id(db.cursor, pickrandom.items_get(mon_ids, 1)[0])
+            new_mon = dbrequests.monster_get_by_id(db.cursor, pickrandom.items_get(mon_ids, 1)[0], fate_rnd)
         maze_monster_pool.append(new_mon)
     for mon in maze_monster_pool:
         # Monster grade definining
@@ -1255,6 +1255,10 @@ def mob_affix_add(db_cursor, mob_stats, affix_dicts, fate_rnd):
     for key, value in base_props['mods'].items():
         if value['value_type'] == 2:
             mob_stats[key] += mob_stats[key] * value['value_base'] // 1000
+        elif value['value_type'] == 1:
+            mob_stats[key] += value['value_base']
+        elif value['value_type'] == 0:
+            mob_stats[key] = value['value_base']
 
     # inserting de_buffs
     for db_dict in de_buff_list:

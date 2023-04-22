@@ -394,27 +394,38 @@ class Pools:
         self.win_rendered.blit(
             self.exp_pool_img.subsurface((0, 0, round(self.pool_exp_w * exp_rate), self.pool_exp_h)), (17, 152))
 
+        hp_show = mp_show = food_show = False
+        hp_color = mp_color = food_color = self.resources.colors['fnt_celeb']
         if self.mouse_over:
+            hp_show = mp_show = food_show = True
+        if 5 in self.pc.char_sheet.de_buffs:
+            hp_show = True
+            hp_color = self.resources.colors['pink']
+        if 6 in self.pc.char_sheet.de_buffs:
+            food_show = True
+            food_color = self.resources.colors['fnt_bonus']
+
+        if hp_show:
             hp_caption = '%s/%s' % (self.pc.char_sheet.hp, self.pc.char_sheet.pools['HP'])
             hp_cap_rect = self.pygame_settings.text_font.get_rect(hp_caption)
             self.pygame_settings.text_font.render_to(self.win_rendered, (
                 44 + self.pool_img_w // 2 - hp_cap_rect.width // 2,
                 31 + self.pool_img_h // 2 - hp_cap_rect.height // 2
-            ), hp_caption, fgcolor=self.resources.colors['fnt_celeb'])
-
+            ), hp_caption, fgcolor=hp_color)
+        if mp_show:
             mp_caption = '%s/%s' % (self.pc.char_sheet.mp, self.pc.char_sheet.pools['MP'])
             mp_cap_rect = self.pygame_settings.text_font.get_rect(mp_caption)
             self.pygame_settings.text_font.render_to(self.win_rendered, (
                 12 + self.pool_img_w // 2 - mp_cap_rect.width // 2,
                 82 + self.pool_img_h // 2 - mp_cap_rect.height // 2
-            ), mp_caption, fgcolor=self.resources.colors['fnt_celeb'])
-
+            ), mp_caption, fgcolor=mp_color)
+        if food_show:
             food_caption = '%s/%s' % (self.pc.char_sheet.food // 10, self.pc.char_sheet.pools['FOOD'] // 10)
             food_cap_rect = self.pygame_settings.text_font.get_rect(food_caption)
             self.pygame_settings.text_font.render_to(self.win_rendered, (
                 81 + self.pool_img_w // 2 - food_cap_rect.width // 2,
                 82 + self.pool_img_h // 2 - food_cap_rect.height // 2
-            ), food_caption, fgcolor=self.resources.colors['fnt_celeb'])
+            ), food_caption, fgcolor=food_color)
 
         self.updated = False
 

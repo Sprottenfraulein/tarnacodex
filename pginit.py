@@ -15,7 +15,7 @@ class PG:
 		pygame.mixer.init()
 		# Hiding OS cursor.
 		# pygame.mouse.set_visible(False)
-		self.audio = audio.Audio(resources)
+		self.audio = audio.Audio(resources, not settings.sound_enable, not settings.music_enable)
 		# Initializing pygame display.
 		# setting graphic scaling
 		self.APP_SCALE = settings.app_scale

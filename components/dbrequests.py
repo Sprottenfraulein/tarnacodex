@@ -339,7 +339,7 @@ def get_affixes_mob(cursor, max_level, max_grade, mob_type, roll, is_suffix=None
     return affix_ids
 
 
-def monster_get_by_id(cursor, monster_id):
+def monster_get_by_id(cursor, monster_id, fate_rnd):
     ex_str = "SELECT * FROM monsters WHERE monster_id=?"
     cursor.execute(ex_str, (monster_id,))
     rows = cursor.fetchall()
@@ -378,9 +378,13 @@ def monster_get_by_id(cursor, monster_id):
             column_names = [column[0] for column in cursor.description]
             de_buffs_list = []
             for row in rows:
-                de_buff_dict = debuff.DeBuff()
+                de_buff_dict = {}
                 for i in range(0, len(column_names)):
                     de_buff_dict[column_names[i]] = row[i]
+                mods = de_buff_get_mods(cursor, de_buff_dict['de_buff_id'])
+                de_buff_dict['mods'] = {}
+                for mod in mods:
+                    initmod.init_modifier(de_buff_dict, mod, fate_rnd)
                 de_buffs_list.append(de_buff_dict)
             att['de_buffs'] = de_buffs_list
     return monster_dict
