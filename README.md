@@ -6,7 +6,9 @@ Your objective is to descend into dungeon and find a magical artifact, so-called
 First steps:
 
 Choose New Character and Start to begin a new game.
-Use [MOUSE] to walk around. 
+Use [MOUSE] to walk around.
+To zoom in and out, use + and - on numpad. IMPORTANT: the game MAY crash when zooming out.
+To change position of your Character on screen to where your mouse cursor is, Press "v" on your keyboard.
 Click on the doors to operate them. 
 Click on mobs to fight them. 
 Pickup and equip weapons. Watch out for items' durability.
