@@ -40,7 +40,7 @@ class Realm:
 
         self.redraw_pc = True
         self.square_size = 24
-        self.square_scale = 2
+        self.square_scale = 3
         self.view_bleed_sq = 1
         self.view_maze_top = 24
         self.view_maze_left = 24
@@ -210,7 +210,7 @@ class Realm:
                 self.wins_dict['map'].restart(self.pc)
 
             # CHANGE SCALE
-            if event.key == pygame.K_KP_PLUS and self.square_scale < 4:
+            if event.key in (pygame.K_KP_PLUS, pygame.K_PLUS) and self.square_scale < 4:
                 self.pc.x_sq = round(self.pc.x_sq)
                 self.pc.y_sq = round(self.pc.y_sq)
                 self.view_maze_update(self.pc.x_sq, self.pc.y_sq)
@@ -222,7 +222,7 @@ class Realm:
                 self.view_offset_x_sq = round(self.view_maze_width_sq / 2) * -1
                 self.view_offset_y_sq = round(self.view_maze_height_sq / 2) * -1
                 self.view_maze_update(self.pc.x_sq, self.pc.y_sq)
-            if event.key == pygame.K_KP_MINUS and self.square_scale > 2:
+            if event.key in (pygame.K_KP_MINUS, pygame.K_MINUS) and self.square_scale > 2:
                 self.pc.x_sq = round(self.pc.x_sq)
                 self.pc.y_sq = round(self.pc.y_sq)
                 self.view_maze_update(self.pc.x_sq, self.pc.y_sq)
