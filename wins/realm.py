@@ -142,6 +142,7 @@ class Realm:
         self.loot_short.clear()
         self.mobs_short.clear()
         self.particle_list.clear()
+        self.missiles_list.clear()
 
         self.text_short.clear()
 
@@ -882,7 +883,7 @@ class Realm:
                 return
 
     def spawn_projectile(self, origin_xy, dest_xy, attack, speed, image_pack, off_xy=None, duration=None,
-                         destroy_on_limit=True, collision_limit=1, blast_radius=0, blast_sound=None):
+                         destroy_on_limit=True, collision_limit=1, blast_radius=0, blast_sound=None, hit_freq=20):
         if off_xy is None:
             off_xy = (0, 0)
         distance = maths.get_distance(origin_xy[0], origin_xy[1], dest_xy[0], dest_xy[1])
@@ -896,7 +897,7 @@ class Realm:
 
         new_missile = projectile.Projectile(origin_xy, off_xy, duration, speed_xy, images, attack,
                                             destroy_on_limit=destroy_on_limit, collision_limit=collision_limit,
-                                            blast_radius=blast_radius, blast_sound=blast_sound)
+                                            blast_radius=blast_radius, blast_sound=blast_sound, hit_freq=hit_freq)
         self.missiles_list.append(new_missile)
 
     def location_label_update(self):

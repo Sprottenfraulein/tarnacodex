@@ -16,6 +16,7 @@ class Trigger:
             return False
         self.value = not self.value
         sound = ('lock_jam', 'trap_operate')[self.value]
+        trap = True
         for ind in self.grate_index_list:
             gr = wins_dict['realm'].maze.doors[ind]
             if gr.lock is not None:
@@ -29,9 +30,15 @@ class Trigger:
             gr.image_update()
             flags = wins_dict['realm'].maze.flag_array[gr.y_sq][gr.x_sq]
             flags.mov = not gr.shut
+            trap = False
         wins_dict['realm'].sound_inrealm(sound, self.x_sq, self.y_sq)
         self.image_update()
+        if trap:
+            self.trigger_trap(wins_dict, active_wins, pc, maze)
         return True
+
+    def trigger_trap(self, wins_dict, active_wins, pc, maze):
+        pass
 
     def image_update(self):
         if self.alignment:
